@@ -1641,22 +1641,20 @@
     });
 
     // ===== Leaves on a pond: the pointer is the wind =====
-    // A gust from the cursor/finger pushes nearby circles in the direction of travel and spins them.
-    // They then float freely (slow water drag) inside a small circle around their spot, bumping softly
-    // off its edge and off each other. After a calm spell they glide back to their starting position.
+    // Heavy, viscous motion: a gust sets a small target offset (and tilt) for nearby circles.
+    // Each circle eases slowly towards that target while the target itself fades back to zero,
+    // so circles drift a few pixels and slowly settle home - no bounce, no overshoot.
     const LEAF_SEL = '#board-grid > div > div, #keyboard-container button';
     const POND = {
-      reach: 130,        // how far the breeze reaches (px)
-      push: 0.02,        // strength of the gust along the cursor's path
-      blow: 0.03,        // gentle push away from the cursor
-      spin: 0.25,        // how much a gust twists a leaf
-      drag: 0.975,       // water drag per frame while floating freely
-      roam: 3,           // board tiles may drift this far from home (px)
-      roamKey: 1.5,      // keyboard keys stay close so they remain easy to tap
-      maxTilt: 3,        // degrees
-      calmAfter: 0,      // anchored: always pulled home (rigid, not free-floating)
-      homeK: 0.012,      // firm tether back to the starting spot
-      homeDrag: 0.88
+      reach: 130,          // how far the breeze reaches (px)
+      push: 0.12,          // how much a gust moves the target along the cursor's path
+      blow: 0.12,          // gentle push away from the cursor
+      spin: 1.2,           // tilt from a passing gust
+      roam: 3,             // board tiles: max drift (px)
+      roamKey: 1.2,        // keyboard keys barely move
+      maxTilt: 3,          // degrees
+      follow: 0.04,        // how quickly a circle eases toward its target (per frame) - lower = slower
+      settle: 0.975        // how slowly the target fades back home (per frame) - higher = slower
     };
     const leafStates = new WeakMap();
     const driftingLeaves = new Set();
@@ -1666,7 +1664,7 @@
 
     function leafState(el) {
       let s = leafStates.get(el);
-      if (!s) { s = { x: 0, y: 0, vx: 0, vy: 0, r: 0, vr: 0, gust: 0, key: el.tagName === 'BUTTON' }; leafStates.set(el, s); }
+      if (!s) { s = { x: 0, y: 0, r: 0, tx: 0, ty: 0, tr: 0, key: el.tagName === 'BUTTON' }; leafStates.set(el, s); }
       return s;
     }
     function wakePond() { if (!pondFrame) pondFrame = requestAnimationFrame(driftLeaves); }
@@ -1689,81 +1687,44 @@
         if (d > R) return;
         const f = (1 - d / R) ** 2;
         const s = leafState(el);
-        const k = s.key ? 0.3 : 1;
-        s.vx += (wx * POND.push + (rx / (d || 1)) * POND.blow) * f * k;
-        s.vy += (wy * POND.push + (ry / (d || 1)) * POND.blow) * f * k;
-        s.vr += ((rx * wy - ry * wx) / (R * R)) * f * POND.spin * k;
-        s.gust = now;
+        s.tx += (wx * POND.push + (rx / (d || 1)) * POND.blow) * f;
+        s.ty += (wy * POND.push + (ry / (d || 1)) * POND.blow) * f;
+        s.tr += ((rx * wy - ry * wx) / (R * R)) * f * POND.spin;
+        const roam = s.key ? POND.roamKey : POND.roam;
+        const m = Math.hypot(s.tx, s.ty);
+        if (m > roam) { s.tx *= roam / m; s.ty *= roam / m; }
+        const tilt = s.key ? POND.maxTilt / 2 : POND.maxTilt;
+        s.tr = Math.max(-tilt, Math.min(tilt, s.tr));
         driftingLeaves.add(el);
       });
       wakePond();
     }
 
+    let pondLastT = 0;
     function driftLeaves(now) {
       pondFrame = null;
-      // read: current centres of all board tiles (for gentle collisions between neighbours)
-      const tiles = [...document.querySelectorAll('#board-grid > div > div')].map(el => {
-        const b = el.getBoundingClientRect();
-        return { el, cx: b.left + b.width / 2, cy: b.top + b.height / 2, rad: b.width / 2 };
-      });
-      // simulate
+      // time-based so the motion is equally slow on 60Hz and 120Hz screens (constants are per 1/60 s)
+      const frames = pondLastT ? Math.min(4, (now - pondLastT) / (1000 / 60)) : 1;
+      pondLastT = now;
+      const settle = Math.pow(POND.settle, frames);
+      const follow = 1 - Math.pow(1 - POND.follow, frames);
       for (const el of driftingLeaves) {
         const s = leafStates.get(el);
         if (!el.isConnected) { driftingLeaves.delete(el); continue; }
-        if (now - s.gust >= POND.calmAfter) {
-          // calm: glide home
-          const ease = Math.min(1, (now - s.gust - POND.calmAfter) / 120);
-          s.vx += -s.x * POND.homeK * ease; s.vy += -s.y * POND.homeK * ease; s.vr += -s.r * POND.homeK * ease;
-          s.vx *= POND.homeDrag; s.vy *= POND.homeDrag; s.vr *= POND.homeDrag;
-        } else {
-          s.vx *= POND.drag; s.vy *= POND.drag; s.vr *= POND.drag;
-        }
-        s.x += s.vx; s.y += s.vy; s.r += s.vr;
-        // stay inside the leaf's little patch of water: soft bounce off the edge
-        const roam = s.key ? POND.roamKey : POND.roam;
-        const dist = Math.hypot(s.x, s.y);
-        if (dist > roam) {
-          const nx = s.x / dist, ny = s.y / dist;
-          s.x = nx * roam; s.y = ny * roam;
-          const out = s.vx * nx + s.vy * ny;
-          if (out > 0) { s.vx -= 1.5 * out * nx; s.vy -= 1.5 * out * ny; }
-        }
-        if (Math.abs(s.r) > POND.maxTilt) { s.r = Math.sign(s.r) * POND.maxTilt; s.vr *= -0.4; }
-      }
-      // neighbours nudge each other instead of overlapping
-      for (let i = 0; i < tiles.length; i++) {
-        const a = tiles[i], sa = leafState(a.el);
-        for (let j = i + 1; j < tiles.length; j++) {
-          const b = tiles[j], sb = leafState(b.el);
-          if (!driftingLeaves.has(a.el) && !driftingLeaves.has(b.el)) continue;
-          const dx = b.cx - a.cx, dy = b.cy - a.cy;
-          const minD = a.rad + b.rad - 1; // touching is fine; only overlapping leaves push apart
-          const d = Math.hypot(dx, dy);
-          if (d > 0 && d < minD) {
-            const nx = dx / d, ny = dy / d, overlap = (minD - d) / 2;
-            sa.x -= nx * overlap; sa.y -= ny * overlap; sb.x += nx * overlap; sb.y += ny * overlap;
-            const rel = (sb.vx - sa.vx) * nx + (sb.vy - sa.vy) * ny;
-            if (rel < 0) { sa.vx += rel * nx * 0.5; sa.vy += rel * ny * 0.5; sb.vx -= rel * nx * 0.5; sb.vy -= rel * ny * 0.5; }
-            if (!driftingLeaves.has(b.el)) { sb.gust = sa.gust; driftingLeaves.add(b.el); }
-            if (!driftingLeaves.has(a.el)) { sa.gust = sb.gust; driftingLeaves.add(a.el); }
-          }
-        }
-      }
-      // write
-      for (const el of driftingLeaves) {
-        const s = leafStates.get(el);
-        const calm = now - s.gust > POND.calmAfter;
-        const energy = Math.abs(s.x) + Math.abs(s.y) + Math.abs(s.r) * 0.3 + (Math.abs(s.vx) + Math.abs(s.vy) + Math.abs(s.vr)) * 8;
-        if (calm && energy < 0.05) {
+        s.tx *= settle; s.ty *= settle; s.tr *= settle;
+        s.x += (s.tx - s.x) * follow;
+        s.y += (s.ty - s.y) * follow;
+        s.r += (s.tr - s.r) * follow;
+        if (Math.abs(s.x) + Math.abs(s.y) + Math.abs(s.tx) + Math.abs(s.ty) + (Math.abs(s.r) + Math.abs(s.tr)) * 0.3 < 0.02) {
           el.style.translate = ''; el.style.rotate = '';
-          s.x = s.y = s.vx = s.vy = s.r = s.vr = 0;
+          s.x = s.y = s.r = s.tx = s.ty = s.tr = 0;
           driftingLeaves.delete(el);
           continue;
         }
         el.style.translate = `${s.x.toFixed(2)}px ${s.y.toFixed(2)}px`;
         el.style.rotate = `${s.r.toFixed(2)}deg`;
       }
-      if (driftingLeaves.size) wakePond();
+      if (driftingLeaves.size) wakePond(); else pondLastT = 0;
     }
 
     document.addEventListener('pointermove', blowWind, { passive: true });
