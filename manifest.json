@@ -1,0 +1,9 @@
+{
+  "name": "Scholar Wordle",
+  "short_name": "Wordle",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#002147",
+  "theme_color": "#002147",
+  "description": "British English 5-letter word game."
+}
