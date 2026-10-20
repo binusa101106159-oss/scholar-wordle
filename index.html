@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Scholar Wordle</title>
-  <meta name="theme-color" content="#002147">
+  <meta name="theme-color" content="#000000">
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -157,6 +157,92 @@
       color: #ffffff !important;
       border-color: #94a3b8 !important;
     }
+    /* ===== OLED black + liquid glass theme (dark mode) ===== */
+    html.dark { --glass: rgba(255,255,255,0.055); --glass-hi: rgba(255,255,255,0.10); --glass-edge: rgba(255,255,255,0.14); --glass-shine: inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(255,255,255,0.04), 0 8px 24px rgba(0,0,0,0.6); }
+    html.dark, html.dark body { background: #000 !important; }
+    html.dark body::before {
+      content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(40vmax 30vmax at 15% 20%, rgba(197,160,89,0.10), transparent 70%),
+        radial-gradient(35vmax 30vmax at 85% 75%, rgba(56,120,255,0.09), transparent 70%),
+        radial-gradient(30vmax 25vmax at 60% 40%, rgba(21,128,61,0.06), transparent 70%);
+    }
+    html.dark header {
+      position: relative; background: rgba(255,255,255,0.04) !important;
+      -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
+      border-bottom: 1px solid var(--glass-edge) !important; box-shadow: inset 0 -1px 0 rgba(255,255,255,0.04), 0 10px 30px rgba(0,0,0,0.5) !important;
+    }
+    html.dark header + div {
+      position: relative; z-index: 10; background: rgba(255,255,255,0.025) !important;
+      -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+    }
+    html.dark header button, html.dark header .inline-flex {
+      background: var(--glass) !important; border: 1px solid var(--glass-edge) !important;
+      -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.20) !important; border-radius: 999px !important;
+    }
+    html.dark header .inline-flex button { border: 0 !important; box-shadow: none !important; background: transparent !important; }
+    html.dark header .inline-flex button.bg-oxford-gold,
+    html.dark #btn-new-game {
+      background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.10)) !important;
+      color: #fff !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 2px 10px rgba(0,0,0,0.4) !important;
+    }
+    html.dark header button:hover { background: var(--glass-hi) !important; }
+    html.dark header .w-9.h-9 { background: var(--glass) !important; border-color: var(--glass-edge) !important; border-radius: 12px !important; }
+    html.dark main { position: relative; }
+    html.dark #board-grid > div > div {
+      background: rgba(255,255,255,0.035) !important; border: 1px solid rgba(255,255,255,0.13) !important;
+      -webkit-backdrop-filter: blur(12px) saturate(160%); backdrop-filter: blur(12px) saturate(160%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -8px 16px rgba(255,255,255,0.015) !important;
+      border-radius: 14px !important; color: #fff !important;
+    }
+    html.dark #board-grid > div > div.border-oxford-navy { border-color: rgba(255,255,255,0.45) !important; }
+    html.dark #board-grid > div > div.tile-correct,
+    html.dark #keyboard-container button.key-correct {
+      background: linear-gradient(180deg, rgba(74,222,128,0.55), rgba(21,128,61,0.55)) !important;
+      border-color: rgba(134,239,172,0.55) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.40), 0 0 18px rgba(34,197,94,0.35) !important;
+    }
+    html.dark #board-grid > div > div.tile-present,
+    html.dark #keyboard-container button.key-present {
+      background: linear-gradient(180deg, rgba(251,191,36,0.55), rgba(180,83,9,0.55)) !important;
+      border-color: rgba(253,224,71,0.55) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.40), 0 0 18px rgba(245,158,11,0.30) !important;
+    }
+    html.dark body.high-contrast #board-grid > div > div.tile-correct,
+    html.dark body.high-contrast #keyboard-container button.key-correct { background: linear-gradient(180deg, rgba(251,146,60,0.6), rgba(194,65,12,0.6)) !important; border-color: rgba(253,186,116,0.6) !important; }
+    html.dark body.high-contrast #board-grid > div > div.tile-present,
+    html.dark body.high-contrast #keyboard-container button.key-present { background: linear-gradient(180deg, rgba(96,165,250,0.6), rgba(29,78,216,0.6)) !important; border-color: rgba(147,197,253,0.6) !important; }
+    html.dark #board-grid > div > div.tile-absent {
+      background: rgba(255,255,255,0.015) !important; border-color: rgba(255,255,255,0.06) !important; color: rgba(255,255,255,0.35) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05) !important;
+    }
+    html.dark #keyboard-container button {
+      background: rgba(255,255,255,0.07) !important; border: 1px solid rgba(255,255,255,0.12) !important; color: #fff !important;
+      -webkit-backdrop-filter: blur(14px) saturate(180%); backdrop-filter: blur(14px) saturate(180%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 8px rgba(0,0,0,0.5) !important; border-radius: 12px !important;
+    }
+    html.dark #keyboard-container button:hover { background: rgba(255,255,255,0.12) !important; }
+    html.dark #keyboard-container button.key-absent { background: rgba(255,255,255,0.02) !important; color: rgba(255,255,255,0.28) !important; border-color: rgba(255,255,255,0.05) !important; box-shadow: none !important; }
+    html.dark [id^="modal-"] { background: rgba(0,0,0,0.55) !important; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+    html.dark [id^="modal-"] > div, html.dark #lexicon-card, html.dark #toast-container > div {
+      background: rgba(28,28,30,0.55) !important; border: 1px solid var(--glass-edge) !important;
+      -webkit-backdrop-filter: blur(36px) saturate(180%); backdrop-filter: blur(36px) saturate(180%);
+      box-shadow: var(--glass-shine) !important; border-radius: 24px !important;
+    }
+    html.dark #toast-container > div { border-radius: 999px !important; color: #fff !important; }
+    html.dark [id^="modal-"] > div > div:first-child { background: rgba(255,255,255,0.04) !important; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    html.dark [id^="modal-"] .rounded-xl, html.dark #lexicon-card button, html.dark [id^="modal-"] button.rounded-lg, html.dark [id^="modal-"] a.rounded-lg {
+      background: rgba(255,255,255,0.06) !important; border: 1px solid rgba(255,255,255,0.10) !important; color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12) !important;
+    }
+    html.dark #lexicon-results-info, html.dark [id^="modal-"] .border-b { background: transparent !important; border-color: rgba(255,255,255,0.08) !important; }
+    html.dark input, html.dark select {
+      background: rgba(255,255,255,0.06) !important; border: 1px solid rgba(255,255,255,0.14) !important; color: #fff !important; border-radius: 10px !important;
+    }
+    html.dark select option { background: #111; color: #fff; }
+    html.dark #share-canvas-container { background: #000 !important; }
   </style>
 </head>
 <body class="bg-oxford-cream dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200 overflow-x-hidden">
@@ -225,12 +311,6 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
         </button>
 
-        <!-- Sound Toggle -->
-        <button id="btn-sound" type="button" title="Toggle Audio Effects" class="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-200 transition">
-          <svg id="icon-sound-on" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
-          <svg id="icon-sound-off" class="w-4 h-4 hidden text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
-        </button>
-
         <!-- Download Standalone HTML Button -->
         <button id="btn-export-html" type="button" title="Download Standalone Offline HTML Game" class="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-oxford-goldlight transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
@@ -291,10 +371,6 @@
           <div class="flex items-center gap-2 flex-wrap">
             <h2 id="entry-word" class="font-serif text-xl sm:text-2xl font-bold text-oxford-navy dark:text-oxford-goldlight tracking-wide">FIBRE</h2>
             <span id="entry-phonetic" class="text-xs sm:text-sm font-mono text-slate-500 dark:text-slate-400">/ˈfaɪbə(r)/</span>
-            <button id="btn-speak-word" type="button" title="Pronounce in British English (en-GB)" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-oxford-navy/10 dark:bg-oxford-gold/20 text-oxford-navy dark:text-oxford-goldlight hover:bg-oxford-navy/20 text-xs font-medium transition">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
-              <span>UK Audio</span>
-            </button>
             <span id="entry-pos" class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs italic font-serif">n.</span>
             <span id="entry-cefr" class="px-2 py-0.5 rounded bg-oxford-navy text-oxford-goldlight text-[11px] font-bold tracking-wider uppercase">CEFR B2</span>
           </div>
@@ -463,15 +539,6 @@
             </button>
           </div>
 
-          <div class="flex items-center justify-between pt-3">
-            <div>
-              <div class="font-semibold">Auto-Speak UK Pronunciation</div>
-              <div class="text-xs text-slate-500 dark:text-slate-400">Automatically speak the answer in British English (en-GB) when the round ends.</div>
-            </div>
-            <button id="toggle-autospeak" type="button" class="w-11 h-6 rounded-full bg-oxford-gold relative transition-colors p-0.5">
-              <span id="knob-autospeak" class="block w-5 h-5 rounded-full bg-white shadow transform translate-x-5 transition-transform"></span>
-            </button>
-          </div>
         </div>
 
         <!-- Standalone Game Export & Save Data Backup -->
@@ -698,6 +765,7 @@
     // Web Audio API Synthesizer
     let audioCtx = null;
     function ensureAudio() {
+      return null; // game is silent
       if (!state.soundEnabled) return null;
       try {
         if (!audioCtx) {
@@ -752,6 +820,7 @@
 
     // British English Speech Synthesis
     function speakWordUK(word) {
+      return; // game is silent
       try {
         if (!('speechSynthesis' in window)) return;
         window.speechSynthesis.cancel();
@@ -1355,7 +1424,7 @@
       canvas.width = w;
       canvas.height = h;
 
-      ctx.fillStyle = '#002147';
+      ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, w, h);
 
       ctx.strokeStyle = '#c5a059';
@@ -1525,10 +1594,7 @@
       setSwitch('toggle-hard-mode', 'knob-hard-mode', state.hardMode);
       setSwitch('toggle-dark-mode', 'knob-dark-mode', state.darkMode);
       setSwitch('toggle-contrast-mode', 'knob-contrast-mode', state.highContrast);
-      setSwitch('toggle-autospeak', 'knob-autospeak', state.autoSpeak);
 
-      document.getElementById('icon-sound-on').classList.toggle('hidden', !state.soundEnabled);
-      document.getElementById('icon-sound-off').classList.toggle('hidden', state.soundEnabled);
       document.getElementById('dict-pool-select').value = state.pool;
     }
 
@@ -1675,19 +1741,7 @@
         showToast(`Switched lexicon to ${e.target.options[e.target.selectedIndex].text}`);
       });
 
-      document.getElementById('btn-sound').addEventListener('click', () => {
-        state.soundEnabled = !state.soundEnabled;
-        saveStorage();
-        syncSettingsUI();
-        if (state.soundEnabled) sfxKey();
-        showToast(state.soundEnabled ? 'Sound effects enabled' : 'Sound effects muted');
-      });
-
       // Lexicon Entry Card Actions
-      document.getElementById('btn-speak-word').addEventListener('click', () => {
-        const w = document.getElementById('entry-word').textContent;
-        if (w) speakWordUK(w);
-      });
       document.getElementById('btn-close-entry').addEventListener('click', () => {
         document.getElementById('lexicon-card').classList.add('hidden');
       });
@@ -1826,11 +1880,6 @@
         saveStorage();
         syncSettingsUI();
         drawShareScorecardCanvas();
-      });
-      document.getElementById('toggle-autospeak').addEventListener('click', () => {
-        state.autoSpeak = !state.autoSpeak;
-        saveStorage();
-        syncSettingsUI();
       });
     };
   </script>

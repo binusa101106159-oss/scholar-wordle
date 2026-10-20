@@ -3,7 +3,7 @@
   "short_name": "Wordle",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#002147",
-  "theme_color": "#002147",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "description": "British English 5-letter word game."
 }
