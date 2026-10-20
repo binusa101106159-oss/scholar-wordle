@@ -256,8 +256,8 @@
       60%  { transform: scale(0.99, 1.01); }
       100% { transform: scale(1); }
     }
-    .bubble { animation: bubble 1.6s cubic-bezier(.37, 0, .25, 1) !important; }
-    #keyboard-container button.bubble { animation: bubble 1.3s cubic-bezier(.37, 0, .25, 1) !important; }
+    .bubble { animation: bubble 2.4s cubic-bezier(.37, 0, .25, 1) !important; }
+    #keyboard-container button.bubble { animation: bubble 2s cubic-bezier(.37, 0, .25, 1) !important; }
     @media (prefers-reduced-motion: reduce) { .bubble { animation: none !important; } }
   </style>
 </head>
@@ -1647,16 +1647,16 @@
     const LEAF_SEL = '#board-grid > div > div, #keyboard-container button';
     const POND = {
       reach: 130,        // how far the breeze reaches (px)
-      push: 0.025,       // strength of the gust along the cursor's path
-      blow: 0.04,        // gentle push away from the cursor
-      spin: 0.6,         // how much a gust twists a leaf
-      drag: 0.955,       // water drag per frame while floating freely
+      push: 0.012,       // strength of the gust along the cursor's path
+      blow: 0.02,        // gentle push away from the cursor
+      spin: 0.3,         // how much a gust twists a leaf
+      drag: 0.975,       // water drag per frame while floating freely
       roam: 4,           // board tiles may drift this far from home (px)
       roamKey: 1.5,      // keyboard keys stay close so they remain easy to tap
       maxTilt: 4,        // degrees
-      calmAfter: 1400,   // ms of no wind before leaves head home
-      homeK: 0.004,      // pull towards home once calm
-      homeDrag: 0.94
+      calmAfter: 1800,   // ms of no wind before leaves head home
+      homeK: 0.0015,     // pull towards home once calm
+      homeDrag: 0.955
     };
     const leafStates = new WeakMap();
     const driftingLeaves = new Set();
