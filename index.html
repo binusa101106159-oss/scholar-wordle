@@ -1136,6 +1136,7 @@
         if (!state.solved[L].includes(state.targetWord)) state.solved[L].push(state.targetWord);
         sfxWin();
         spawnVictoryConfetti();
+        startFxLoop();
         for (let c = 0; c < lastGuess.length; c++) {
           const tile = document.getElementById(`tile-${rowIdx}-${c}`);
           if (tile) {
@@ -1628,19 +1629,21 @@
       }
     }
 
-    function drawFxFrame() {
+    // Confetti physics is time-based (constants are per 1/60 s) so it looks the same at 60, 120 or 240 Hz
+    function drawFxFrame(frames) {
       const canvas = document.getElementById('fx-canvas');
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const f = frames || 1;
 
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.22;
-        p.rot += p.vrot;
-        p.life -= 0.011;
+        p.x += p.vx * f;
+        p.y += p.vy * f;
+        p.vy += 0.22 * f;
+        p.rot += p.vrot * f;
+        p.life -= 0.011 * f;
         if (p.life <= 0 || p.y > canvas.height + 20) {
           particles.splice(i, 1);
           continue;
@@ -1655,11 +1658,17 @@
       }
     }
 
+    // Runs at the display's native refresh rate (e.g. 240 Hz) only while confetti is on screen
+    let fxLastT = 0;
     function startFxLoop() {
-      if (fxAnimId) cancelAnimationFrame(fxAnimId);
-      function loop() {
-        drawFxFrame();
-        fxAnimId = requestAnimationFrame(loop);
+      if (fxAnimId) return;
+      fxLastT = 0;
+      function loop(now) {
+        const frames = fxLastT ? Math.min(4, (now - fxLastT) / (1000 / 60)) : 1;
+        fxLastT = now;
+        drawFxFrame(frames);
+        if (particles.length) fxAnimId = requestAnimationFrame(loop);
+        else { fxAnimId = null; drawFxFrame(1); }
       }
       fxAnimId = requestAnimationFrame(loop);
     }
