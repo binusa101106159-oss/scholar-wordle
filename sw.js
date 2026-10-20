@@ -1,4 +1,4 @@
-const CACHE_NAME = "scholar-wordle-v22";
+const CACHE_NAME = "scholar-wordle-v23";
 const ASSETS = ["./", "./index.html", "./manifest.json"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(ASSETS)));
