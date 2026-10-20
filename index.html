@@ -244,9 +244,13 @@
     html.dark select option { background: #111; color: #fff; }
     html.dark #share-canvas-container { background: #000 !important; }
     /* Circular keyboard keys; ENTER and backspace as pills */
-    #keyboard-container { --key: min(42px, calc((100vw - 60px) / 10)); align-items: center; }
-    html.dark #keyboard-container button { height: var(--key) !important; border-radius: 999px !important; }
+    /* Bigger keyboard: 10 keys + 9 small gaps fill the width on phones; up to 54px keys on larger screens */
+    #keyboard-container { --key: min(54px, calc((100vw - 16px - 27px) / 10)); align-items: center; max-width: calc(var(--key) * 10 + 27px) !important; gap: 6px !important; }
+    #keyboard-container > div { gap: 3px !important; }
+    html.dark #keyboard-container button { height: var(--key) !important; border-radius: 999px !important; font-size: calc(var(--key) * 0.42) !important; }
     html.dark #keyboard-container button:not(#key-ENTER):not(#key-BACKSPACE) { flex: 0 0 var(--key) !important; width: var(--key) !important; max-width: none !important; padding: 0 !important; }
+    html.dark #key-ENTER, html.dark #key-BACKSPACE { flex: 1 1 0 !important; min-width: 0 !important; max-width: calc(var(--key) * 1.7) !important; padding: 0 4px !important; font-size: calc(var(--key) * 0.32) !important; }
+    html.dark #key-BACKSPACE { font-size: calc(var(--key) * 0.45) !important; }
     html.dark #blitz-hud { background: rgba(244,63,94,0.12); border: 1px solid rgba(251,113,133,0.35); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
 
     /* Slow, water-like wobble: small squash/stretch with a gentle float, eased in and out */
