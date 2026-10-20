@@ -270,7 +270,7 @@
             <h1 class="font-serif font-bold tracking-wider text-base sm:text-lg text-white leading-none">SCHOLAR WORDLE</h1>
             <span class="hidden sm:inline-block text-[10px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded bg-emerald-500/25 text-emerald-300 border border-emerald-400/40">Web &amp; Mobile PWA</span>
           </div>
-          <p id="header-subtitle" class="text-[11px] text-slate-300 leading-tight mt-0.5">British English • 6,561 Words</p>
+          <p id="header-subtitle" class="text-[11px] text-slate-300 leading-tight mt-0.5">British English • 4–10 Letters</p>
         </div>
       </div>
 
@@ -278,16 +278,9 @@
       <div class="flex items-center gap-1.5 flex-wrap">
         <!-- Daily / Unlimited / Blitz Toggle -->
         <div class="inline-flex rounded-lg bg-slate-900/60 p-0.5 border border-slate-700/80 text-xs">
-          <button id="mode-daily-btn" type="button" class="px-2.5 py-1 rounded-md font-medium transition-colors bg-oxford-gold text-slate-950">Daily</button>
-          <button id="mode-free-btn" type="button" class="px-2.5 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">Unlimited</button>
+          <button id="mode-free-btn" type="button" class="px-2.5 py-1 rounded-md font-medium transition-colors bg-oxford-gold text-slate-950">Unlimited</button>
           <button id="mode-blitz-btn" type="button" class="px-2.5 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">Blitz</button>
         </div>
-
-        <!-- Hint Button -->
-        <button id="btn-hint" type="button" title="Lexicon Clue" class="px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-oxford-gold/40 text-oxford-goldlight text-xs font-medium flex items-center gap-1 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-          <span id="hint-label" class="hidden sm:inline">Clue</span>
-        </button>
 
         <!-- Friend Challenge Code Button -->
         <button id="btn-challenge" type="button" title="Create or Enter a Friend Challenge Code" class="px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium flex items-center gap-1 transition">
@@ -316,11 +309,6 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
         </button>
 
-        <!-- Settings & Rules Button -->
-        <button id="btn-settings" type="button" title="Settings & Rules" class="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-200 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        </button>
-
         <!-- New Word Button -->
         <button id="btn-new-game" type="button" title="Start New Unlimited Word" class="px-2.5 py-1.5 rounded-lg bg-oxford-gold hover:bg-oxford-goldlight text-slate-950 font-semibold text-xs transition shadow-sm">
           New Word
@@ -333,23 +321,25 @@
   <div class="w-full bg-oxford-parchment/80 dark:bg-slate-900/90 border-b border-amber-900/10 dark:border-slate-800/80 px-3 py-1.5">
     <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
       <div class="flex items-center gap-2 flex-wrap">
-        <span id="round-badge" class="font-semibold text-oxford-navy dark:text-oxford-goldlight">Daily Scholar Wordle</span>
+        <span id="round-badge" class="font-semibold text-oxford-navy dark:text-oxford-goldlight">Unlimited Practice</span>
         <span id="blitz-hud" class="hidden items-center gap-2 px-2 py-0.5 rounded bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-300 font-bold">
           <span id="blitz-timer">03:00</span>
           <span>•</span>
           <span id="blitz-score">Score: 0</span>
         </span>
         <span class="text-slate-400">•</span>
-        <label for="dict-pool-select" class="text-slate-600 dark:text-slate-400 font-medium">Lexicon:</label>
-        <select id="dict-pool-select" class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-0.5 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:border-oxford-gold">
+        <label for="len-select" class="text-slate-600 dark:text-slate-400 font-medium">Letters:</label>
+        <select id="len-select" class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-0.5 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:border-oxford-gold">
+          <option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+        </select>
+        <span class="text-slate-400 pool-only">•</span>
+        <label for="dict-pool-select" class="text-slate-600 dark:text-slate-400 font-medium pool-only">Lexicon:</label>
+        <select id="dict-pool-select" class="pool-only bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-0.5 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:border-oxford-gold">
           <option value="core">Core Common Words (580)</option>
           <option value="british">British Spellings (41 UK Words)</option>
           <option value="unabridged">Unabridged (2,993 Words)</option>
         </select>
         <span id="hard-mode-badge" class="hidden px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-semibold text-[10px] uppercase">Hard Mode</span>
-      </div>
-      <div id="clue-banner" class="text-slate-600 dark:text-slate-300 italic truncate max-w-full sm:max-w-md">
-        Click "Clue" for CEFR level, part of speech, or definition hint.
       </div>
     </div>
   </div>
@@ -498,80 +488,6 @@
     </div>
   </div>
 
-  <!-- Modal 3: Settings, Save Backup & Standalone Export -->
-  <div id="modal-settings" class="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-40 hidden items-center justify-center p-3">
-    <div class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl max-w-md w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
-      <div class="px-4 py-3 bg-oxford-navy text-white flex items-center justify-between">
-        <h3 class="font-serif font-bold text-base">Settings &amp; Standalone Options</h3>
-        <button id="btn-close-settings" type="button" class="p-1 rounded-lg text-slate-300 hover:text-white">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-      <div class="p-4 overflow-y-auto space-y-4 text-xs sm:text-sm">
-        <div class="space-y-3 divide-y divide-slate-200 dark:divide-slate-800">
-          <div class="flex items-center justify-between pt-1">
-            <div>
-              <div class="font-semibold">Hard Mode</div>
-              <div class="text-xs text-slate-500 dark:text-slate-400">Any revealed green or amber hints must be used in subsequent guesses.</div>
-            </div>
-            <button id="toggle-hard-mode" type="button" class="w-11 h-6 rounded-full bg-slate-300 dark:bg-slate-700 relative transition-colors p-0.5">
-              <span id="knob-hard-mode" class="block w-5 h-5 rounded-full bg-white shadow transform transition-transform"></span>
-            </button>
-          </div>
-
-          <div class="flex items-center justify-between pt-3">
-            <div>
-              <div class="font-semibold">Dark Theme (Navy)</div>
-              <div class="text-xs text-slate-500 dark:text-slate-400">Switch between dark slate mode and Bodleian parchment light mode.</div>
-            </div>
-            <button id="toggle-dark-mode" type="button" class="w-11 h-6 rounded-full bg-oxford-gold relative transition-colors p-0.5">
-              <span id="knob-dark-mode" class="block w-5 h-5 rounded-full bg-white shadow transform translate-x-5 transition-transform"></span>
-            </button>
-          </div>
-
-          <div class="flex items-center justify-between pt-3">
-            <div>
-              <div class="font-semibold">High-Contrast Colourblind Mode</div>
-              <div class="text-xs text-slate-500 dark:text-slate-400">Use high-visibility Orange (correct) and Royal Blue (present) tiles.</div>
-            </div>
-            <button id="toggle-contrast-mode" type="button" class="w-11 h-6 rounded-full bg-slate-300 dark:bg-slate-700 relative transition-colors p-0.5">
-              <span id="knob-contrast-mode" class="block w-5 h-5 rounded-full bg-white shadow transform transition-transform"></span>
-            </button>
-          </div>
-
-        </div>
-
-        <!-- Standalone Game Export & Save Data Backup -->
-        <div class="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-2">
-          <h4 class="font-serif font-bold text-oxford-navy dark:text-oxford-goldlight">Independent Web Game Portability</h4>
-          <p class="text-xs text-slate-600 dark:text-slate-300">
-            Save a complete single-file copy of this game to run offline in any browser, or export your statistics JSON.
-          </p>
-          <div class="flex flex-wrap gap-2 pt-1">
-            <button id="btn-settings-download-html" type="button" class="flex-1 py-2 px-3 rounded-xl bg-oxford-navy hover:bg-oxford-deep text-oxford-goldlight border border-oxford-gold/40 font-semibold text-xs transition">
-              Download Game (.html)
-            </button>
-            <button id="btn-export-save" type="button" class="py-2 px-3 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 font-semibold text-xs transition">
-              Export Stats JSON
-            </button>
-          </div>
-        </div>
-
-        <div class="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-2">
-          <h4 class="font-serif font-bold text-oxford-navy dark:text-oxford-goldlight">How to Play</h4>
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            Guess the 5-letter English word in 6 tries. Both British spellings (e.g. <em>FIBRE, LITRE, METRE, ODOUR, MOULD, SPELT, LORRY, SCONE, QUEUE</em>) and standard international English 5-letter words are accepted across all <strong>6,561</strong> valid dictionary entries.
-          </p>
-          <ul class="text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
-            <li class="flex items-center gap-2"><span class="w-5 h-5 rounded tile-correct inline-flex items-center justify-center font-bold text-white text-xs">O</span> <span><strong>Green:</strong> Letter is in the word and in the correct spot.</span></li>
-            <li class="flex items-center gap-2"><span class="w-5 h-5 rounded tile-present inline-flex items-center justify-center font-bold text-white text-xs">X</span> <span><strong>Amber:</strong> Letter is in the word but in another spot.</span></li>
-            <li class="flex items-center gap-2"><span class="w-5 h-5 rounded bg-slate-600 inline-flex items-center justify-center font-bold text-white text-xs">F</span> <span><strong>Slate:</strong> Letter is not in the word in any spot.</span></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Modal 4: Friend Challenge Code / Custom Seed -->
   <div id="modal-challenge" class="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-40 hidden items-center justify-center p-3">
     <div class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl max-w-md w-full flex flex-col shadow-2xl overflow-hidden">
@@ -608,9 +524,9 @@
 
         <div class="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-2">
           <div class="font-semibold">Create Custom Word Challenge</div>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Type any valid 5-letter dictionary word to generate a secret challenge code for friends:</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Type any valid 4–10 letter word to generate a secret challenge code for friends:</p>
           <div class="flex items-center gap-2">
-            <input id="custom-word-input" type="text" maxlength="5" placeholder="Enter 5-letter word..." class="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 uppercase text-sm focus:outline-none focus:border-oxford-gold">
+            <input id="custom-word-input" type="text" maxlength="10" placeholder="Enter a 4–10 letter word..." class="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 uppercase text-sm focus:outline-none focus:border-oxford-gold">
             <button id="btn-make-custom-code" type="button" class="px-3.5 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 font-semibold text-xs transition">
               Generate &amp; Copy
             </button>
@@ -680,8 +596,10 @@
 
     // Application State
     const state = {
-      mode: 'daily', // 'daily', 'free', 'blitz', 'challenge'
+      mode: 'free', // 'free', 'blitz', 'challenge'
       pool: 'core',  // 'core', 'british', 'unabridged'
+      wordLength: 5,
+      lenData: {},
       targetWord: 'fibre',
       dailyNumber: 1,
       guesses: [],
@@ -712,8 +630,8 @@
       const w = word.toLowerCase();
       const key = [19, 7, 14, 21, 5];
       let code = 'OXF-';
-      for (let i = 0; i < 5; i++) {
-        const c = ((w.charCodeAt(i) - 97) + key[i]) % 26;
+      for (let i = 0; i < w.length; i++) {
+        const c = ((w.charCodeAt(i) - 97) + key[i % 5]) % 26;
         code += String.fromCharCode(65 + c);
       }
       return code;
@@ -721,14 +639,14 @@
 
     function decodeChallengeCode(codeStr) {
       const cleaned = codeStr.trim().toUpperCase().replace(/^OXF-/, '');
-      if (!/^[A-Z]{5}$/.test(cleaned)) return null;
+      if (!/^[A-Z]{4,10}$/.test(cleaned)) return null;
       const key = [19, 7, 14, 21, 5];
       let word = '';
-      for (let i = 0; i < 5; i++) {
-        const c = ((cleaned.charCodeAt(i) - 65) - key[i] + 26) % 26;
+      for (let i = 0; i < cleaned.length; i++) {
+        const c = ((cleaned.charCodeAt(i) - 65) - key[i % 5] + 26) % 26;
         word += String.fromCharCode(97 + c);
       }
-      return VALID_GUESSES.has(word) ? word : null;
+      return word; // validated against the word list once that length is loaded
     }
 
     // Safe localStorage helpers
@@ -744,6 +662,7 @@
           if (typeof parsed.soundEnabled === 'boolean') state.soundEnabled = parsed.soundEnabled;
           if (typeof parsed.autoSpeak === 'boolean') state.autoSpeak = parsed.autoSpeak;
           if (parsed.pool) state.pool = parsed.pool;
+          if (parsed.wordLength >= 4 && parsed.wordLength <= 10) state.wordLength = parsed.wordLength;
         }
       } catch (e) {}
     }
@@ -757,7 +676,8 @@
           highContrast: state.highContrast,
           soundEnabled: state.soundEnabled,
           autoSpeak: state.autoSpeak,
-          pool: state.pool
+          pool: state.pool,
+          wordLength: state.wordLength
         }));
       } catch (e) {}
     }
@@ -848,8 +768,27 @@
       }, durationMs || 2200);
     }
 
+    // Word lists for 4, 6-10 letters load on demand from words/N.json
+    function getValidSet() {
+      return state.wordLength === 5 ? VALID_GUESSES : state.lenData[state.wordLength].valid;
+    }
+    async function ensureLenData(L) {
+      if (L === 5 || state.lenData[L]) return true;
+      try {
+        const r = await fetch(`words/${L}.json`);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const j = await r.json();
+        state.lenData[L] = { answers: j.answers.split(' '), valid: new Set(j.valid.split(' ')) };
+        return true;
+      } catch (e) {
+        showToast(`Couldn't load the ${L}-letter word list (needs internet)`, 3000);
+        return false;
+      }
+    }
+
     // Active Answer Pool helper
     function getActivePool() {
+      if (state.wordLength !== 5) return state.lenData[state.wordLength].answers;
       if (state.pool === 'british') return BRITISH_SPECIAL_ANSWERS;
       if (state.pool === 'unabridged') return UNABRIDGED_ANSWERS;
       return OXFORD_CORE_ANSWERS;
@@ -857,7 +796,7 @@
 
     // Daily Seed & Target Word Selection
     function selectTargetWord(customWord) {
-      if (customWord && VALID_GUESSES.has(customWord)) {
+      if (customWord && customWord.length === state.wordLength && getValidSet().has(customWord)) {
         state.targetWord = customWord;
         return;
       }
@@ -868,7 +807,7 @@
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
         const dayIndex = Math.max(1, Math.floor((today - epoch) / 86400000));
         state.dailyNumber = dayIndex;
-        const hash = (dayIndex * 2654435761) >>> 0;
+        const hash = ((dayIndex * 2654435761) + (state.wordLength === 5 ? 0 : state.wordLength * 40503)) >>> 0;
         state.targetWord = pool[hash % pool.length];
       } else {
         const randIdx = Math.floor(Math.random() * pool.length);
@@ -894,20 +833,26 @@
     // Build 6x5 Board DOM
     function renderBoardStructure() {
       const grid = document.getElementById('board-grid');
+      const L = state.wordLength;
       grid.innerHTML = '';
+      grid.style.setProperty('--tile', `min(56px, calc((100vw - ${28 + (L - 1) * 6}px) / ${L}))`);
       for (let r = 0; r < 6; r++) {
         const row = document.createElement('div');
         row.id = `row-${r}`;
-        row.className = 'grid grid-cols-5 gap-1.5 sm:gap-2 cursor-pointer';
+        row.className = 'grid gap-1.5 cursor-pointer';
+        row.style.gridTemplateColumns = `repeat(${L}, var(--tile))`;
         row.addEventListener('click', () => {
           if (r < state.guesses.length) {
             showLexiconEntry(state.guesses[r]);
           }
         });
-        for (let c = 0; c < 5; c++) {
+        for (let c = 0; c < L; c++) {
           const tile = document.createElement('div');
           tile.id = `tile-${r}-${c}`;
-          tile.className = 'w-12 h-12 sm:w-14 sm:h-14 rounded-lg border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-center text-xl sm:text-2xl font-extrabold uppercase tracking-wider select-none transition-colors';
+          tile.style.width = 'var(--tile)';
+          tile.style.height = 'var(--tile)';
+          tile.style.fontSize = 'calc(var(--tile) * 0.44)';
+          tile.className = 'rounded-lg border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-center font-extrabold uppercase select-none transition-colors';
           row.appendChild(tile);
         }
         grid.appendChild(row);
@@ -943,20 +888,21 @@
 
     // Evaluate a 5-letter guess against targetWord
     function evaluateGuess(guess, target) {
-      const res = ['absent', 'absent', 'absent', 'absent', 'absent'];
+      const n = target.length;
+      const res = new Array(n).fill('absent');
       const targetChars = target.split('');
       const guessChars = guess.split('');
-      const used = [false, false, false, false, false];
+      const used = new Array(n).fill(false);
 
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < n; i++) {
         if (guessChars[i] === targetChars[i]) {
           res[i] = 'correct';
           used[i] = true;
         }
       }
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < n; i++) {
         if (res[i] === 'correct') continue;
-        for (let j = 0; j < 5; j++) {
+        for (let j = 0; j < n; j++) {
           if (!used[j] && guessChars[i] === targetChars[j]) {
             res[i] = 'present';
             used[j] = true;
@@ -974,12 +920,12 @@
       const prevGuess = state.guesses[lastIdx];
       const prevEval = state.evaluations[lastIdx];
 
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < prevGuess.length; i++) {
         if (prevEval[i] === 'correct' && guess[i] !== prevGuess[i]) {
-          return `${i + 1}${['st','nd','rd','th','th'][i]} letter must be ${prevGuess[i].toUpperCase()}`;
+          return `${i + 1}${['st','nd','rd'][i] || 'th'} letter must be ${prevGuess[i].toUpperCase()}`;
         }
       }
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < prevGuess.length; i++) {
         if (prevEval[i] === 'present' && !guess.includes(prevGuess[i])) {
           return `Guess must contain ${prevGuess[i].toUpperCase()}`;
         }
@@ -991,7 +937,7 @@
     function updateCurrentRowUI() {
       const r = state.guesses.length;
       if (r >= 6) return;
-      for (let c = 0; c < 5; c++) {
+      for (let c = 0; c < state.wordLength; c++) {
         const tile = document.getElementById(`tile-${r}-${c}`);
         if (!tile) continue;
         const ch = state.currentGuess[c] || '';
@@ -1010,7 +956,7 @@
       const keyStatus = {};
       state.guesses.forEach((g, rIdx) => {
         const ev = state.evaluations[rIdx];
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < g.length; i++) {
           const ch = g[i];
           const st = ev[i];
           if (!keyStatus[ch] || priority[st] > priority[keyStatus[ch]]) {
@@ -1058,7 +1004,7 @@
         return;
       }
 
-      if (/^[a-z]$/.test(key) && state.currentGuess.length < 5) {
+      if (/^[a-z]$/.test(key) && state.currentGuess.length < state.wordLength) {
         const c = state.currentGuess.length;
         state.currentGuess += key;
         sfxKey();
@@ -1074,18 +1020,18 @@
 
     // Submit Guess
     function submitCurrentGuess() {
-      if (state.currentGuess.length < 5) {
+      if (state.currentGuess.length < state.wordLength) {
         sfxInvalid();
         shakeCurrentRow();
-        showToast('Not enough letters (5 required)');
+        showToast(`Not enough letters (${state.wordLength} required)`);
         return;
       }
 
       const guess = state.currentGuess.toLowerCase();
-      if (!VALID_GUESSES.has(guess)) {
+      if (!getValidSet().has(guess)) {
         sfxInvalid();
         shakeCurrentRow();
-        showToast(`"${guess.toUpperCase()}" is not in the 5-letter word list`);
+        showToast(`"${guess.toUpperCase()}" is not in the word list`);
         return;
       }
 
@@ -1104,7 +1050,8 @@
       state.currentGuess = '';
       state.isRevealing = true;
 
-      for (let c = 0; c < 5; c++) {
+      const L = guess.length;
+      for (let c = 0; c < L; c++) {
         const tile = document.getElementById(`tile-${rowIdx}-${c}`);
         sfxFlip(c, evalRes[c]);
         setTimeout(() => {
@@ -1122,7 +1069,7 @@
         state.isRevealing = false;
         updateKeyboardColors();
         checkRoundEnd(guess, rowIdx);
-      }, 5 * 130 + 280);
+      }, L * 130 + 280);
     }
 
     // Check if won or lost
@@ -1131,7 +1078,7 @@
         state.gameStatus = 'won';
         sfxWin();
         spawnVictoryConfetti();
-        for (let c = 0; c < 5; c++) {
+        for (let c = 0; c < lastGuess.length; c++) {
           const tile = document.getElementById(`tile-${rowIdx}-${c}`);
           if (tile) {
             setTimeout(() => tile.classList.add('tile-win'), c * 90);
@@ -1186,28 +1133,6 @@
       card.classList.remove('hidden');
     }
 
-    // Hint System
-    function triggerHint() {
-      if (state.gameStatus !== 'playing') {
-        showLexiconEntry(state.targetWord);
-        return;
-      }
-      const meta = getWordMeta(state.targetWord);
-      const banner = document.getElementById('clue-banner');
-      state.hintLevel += 1;
-      if (state.hintLevel === 1) {
-        banner.textContent = `Clue 1: Part of Speech is "${meta.pos}" • Level: ${meta.cefr} • IPA: ${meta.ipa || ''}`;
-        showToast(`Lexicon Clue 1: ${meta.pos} (${meta.cefr})`);
-      } else if (state.hintLevel === 2) {
-        const maskedDef = meta.def.replace(new RegExp(state.targetWord, 'gi'), '_____');
-        banner.textContent = `Definition Clue: "${maskedDef}"`;
-        showToast('Lexicon Clue 2: Definition revealed in banner!');
-      } else {
-        banner.textContent = `Starts with "${state.targetWord[0].toUpperCase()}" — ${meta.def}`;
-        showToast(`Clue 3: Word starts with "${state.targetWord[0].toUpperCase()}"`);
-      }
-    }
-
     // Blitz Timer Logic
     function stopBlitzTimer() {
       if (state.blitzTimerId) {
@@ -1246,7 +1171,21 @@
     }
 
     // Start or Reset Round
-    function startNewRound(modeOverride, customChallengeWord) {
+    async function startNewRound(modeOverride, customChallengeWord) {
+      if (customChallengeWord) state.wordLength = customChallengeWord.length;
+      if (!(await ensureLenData(state.wordLength))) {
+        state.wordLength = 5;
+        customChallengeWord = null;
+        if (modeOverride === 'challenge') modeOverride = 'free';
+      }
+      if (customChallengeWord && !getValidSet().has(customChallengeWord)) {
+        showToast('Invalid challenge code');
+        customChallengeWord = null;
+        if (modeOverride === 'challenge') modeOverride = 'free';
+      }
+      const lenSel = document.getElementById('len-select');
+      if (lenSel) lenSel.value = String(state.wordLength);
+      document.querySelectorAll('.pool-only').forEach(el => el.classList.toggle('hidden', state.wordLength !== 5));
       const prevMode = state.mode;
       if (modeOverride) state.mode = modeOverride;
 
@@ -1268,7 +1207,6 @@
       const codeInput = document.getElementById('current-challenge-code');
       if (codeInput) codeInput.value = encodeChallengeWord(state.targetWord);
 
-      const dailyBtn = document.getElementById('mode-daily-btn');
       const freeBtn = document.getElementById('mode-free-btn');
       const blitzBtn = document.getElementById('mode-blitz-btn');
       const roundBadge = document.getElementById('round-badge');
@@ -1277,12 +1215,11 @@
       const activeClass = 'px-2.5 py-1 rounded-md font-medium transition-colors bg-oxford-gold text-slate-950';
       const idleClass = 'px-2.5 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white';
 
-      dailyBtn.className = state.mode === 'daily' ? activeClass : idleClass;
       freeBtn.className = (state.mode === 'free' || state.mode === 'challenge') ? activeClass : idleClass;
       blitzBtn.className = state.mode === 'blitz' ? activeClass : idleClass;
 
       if (state.mode === 'daily') {
-        roundBadge.textContent = `Daily Scholar Wordle #${state.dailyNumber}`;
+        roundBadge.textContent = `Daily Scholar Wordle #${state.dailyNumber}${state.wordLength === 5 ? '' : ` · ${state.wordLength} letters`}`;
         blitzHud.classList.add('hidden');
         blitzHud.classList.remove('inline-flex');
       } else if (state.mode === 'blitz') {
@@ -1299,7 +1236,6 @@
         blitzHud.classList.remove('inline-flex');
       }
 
-      document.getElementById('clue-banner').textContent = 'Click "Clue" for CEFR level, part of speech, or definition hint.';
       document.getElementById('lexicon-card').classList.add('hidden');
       renderBoardStructure();
       renderKeyboardStructure();
@@ -1443,10 +1379,11 @@
 
       const startX = 26;
       const startY = 86;
-      const cell = 24;
-      const gap = 5;
+      const cols = state.wordLength;
+      const gap = cols > 7 ? 3 : 5;
+      const cell = Math.min(24, Math.floor((170 - (cols - 1) * gap) / cols));
       for (let r = 0; r < 6; r++) {
-        for (let c = 0; c < 5; c++) {
+        for (let c = 0; c < cols; c++) {
           let color = '#1e293b';
           if (r < state.evaluations.length) {
             const st = state.evaluations[r][c];
@@ -1491,7 +1428,8 @@
     }
 
     function buildEmojiShareText() {
-      const title = state.mode === 'daily' ? `Scholar Wordle #${state.dailyNumber}` : `Scholar Wordle (${encodeChallengeWord(state.targetWord)})`;
+      const lenTag = state.wordLength === 5 ? '' : ` (${state.wordLength} letters)`;
+      const title = state.mode === 'daily' ? `Scholar Wordle #${state.dailyNumber}${lenTag}` : `Scholar Wordle (${encodeChallengeWord(state.targetWord)})`;
       const score = state.gameStatus === 'won' ? `${state.guesses.length}/6` : (state.gameStatus === 'lost' ? 'X/6' : `${state.guesses.length}/6`);
       const rows = state.evaluations.map(ev =>
         ev.map(st => st === 'correct' ? (state.highContrast ? '🟧' : '🟩') : (st === 'present' ? (state.highContrast ? '🟦' : '🟨') : '⬛')).join('')
@@ -1673,6 +1611,10 @@
 
     window.onload = function() {
       loadStorage();
+      // Settings panel removed: always dark, normal mode, standard colours
+      state.darkMode = true;
+      state.hardMode = false;
+      state.highContrast = false;
       syncSettingsUI();
 
       // Check URL query & hash for ?sync=, ?challenge=, or ?mode=
@@ -1682,20 +1624,20 @@
         showToast('Synced player streak & statistics from URL!');
       }
 
-      const challengeMatch = fullUrlParams.match(/challenge=(OXF-[A-Za-z]{5})/i);
-      const modeMatch = fullUrlParams.match(/mode=(daily|free|blitz)/i);
+      const challengeMatch = fullUrlParams.match(/challenge=(OXF-[A-Za-z]{4,10})/i);
+      const modeMatch = fullUrlParams.match(/mode=(free|blitz)/i);
       if (challengeMatch) {
         const decoded = decodeChallengeCode(challengeMatch[1]);
         if (decoded) {
           startNewRound('challenge', decoded);
           showToast(`Loaded Friend Challenge ${challengeMatch[1].toUpperCase()}!`);
         } else {
-          startNewRound('daily');
+          startNewRound('free');
         }
       } else if (modeMatch) {
         startNewRound(modeMatch[1].toLowerCase());
       } else {
-        startNewRound('daily');
+        startNewRound('free');
       }
       updateShareableURLInputs();
 
@@ -1725,14 +1667,18 @@
       });
 
       // Header Controls
-      document.getElementById('mode-daily-btn').addEventListener('click', () => startNewRound('daily'));
       document.getElementById('mode-free-btn').addEventListener('click', () => startNewRound('free'));
       document.getElementById('mode-blitz-btn').addEventListener('click', () => startNewRound('blitz'));
       document.getElementById('btn-new-game').addEventListener('click', () => {
         startNewRound(state.mode === 'blitz' ? 'blitz' : 'free');
       });
-      document.getElementById('btn-hint').addEventListener('click', triggerHint);
       document.getElementById('btn-export-html').addEventListener('click', downloadStandaloneHTML);
+
+      document.getElementById('len-select').addEventListener('change', (e) => {
+        state.wordLength = parseInt(e.target.value, 10) || 5;
+        saveStorage();
+        startNewRound(state.mode === 'challenge' ? 'free' : state.mode);
+      });
 
       document.getElementById('dict-pool-select').addEventListener('change', (e) => {
         state.pool = e.target.value;
@@ -1847,11 +1793,13 @@
         startNewRound('challenge', word);
         showToast(`Challenge loaded! Guess the 5-letter word.`);
       });
-      document.getElementById('btn-make-custom-code').addEventListener('click', () => {
+      document.getElementById('btn-make-custom-code').addEventListener('click', async () => {
         const rawWord = (document.getElementById('custom-word-input').value || '').trim().toLowerCase();
-        if (rawWord.length !== 5 || !VALID_GUESSES.has(rawWord)) {
+        const okLen = /^[a-z]{4,10}$/.test(rawWord) && (await ensureLenData(rawWord.length));
+        const set = okLen ? (rawWord.length === 5 ? VALID_GUESSES : state.lenData[rawWord.length].valid) : null;
+        if (!set || !set.has(rawWord)) {
           sfxInvalid();
-          showToast('Enter a valid 5-letter dictionary word');
+          showToast('Enter a valid 4–10 letter dictionary word');
           return;
         }
         const code = encodeChallengeWord(rawWord);
@@ -1859,28 +1807,6 @@
         copyTextToClipboard(code, `Generated & Copied Code "${code}" for ${rawWord.toUpperCase()}!`);
       });
 
-      // Settings Modal
-      document.getElementById('btn-settings').addEventListener('click', () => openModal('modal-settings'));
-      document.getElementById('btn-close-settings').addEventListener('click', () => closeModal('modal-settings'));
-      document.getElementById('btn-settings-download-html').addEventListener('click', downloadStandaloneHTML);
-      document.getElementById('btn-export-save').addEventListener('click', exportSaveDataJSON);
-
-      document.getElementById('toggle-hard-mode').addEventListener('click', () => {
-        state.hardMode = !state.hardMode;
-        saveStorage();
-        syncSettingsUI();
-      });
-      document.getElementById('toggle-dark-mode').addEventListener('click', () => {
-        state.darkMode = !state.darkMode;
-        saveStorage();
-        syncSettingsUI();
-      });
-      document.getElementById('toggle-contrast-mode').addEventListener('click', () => {
-        state.highContrast = !state.highContrast;
-        saveStorage();
-        syncSettingsUI();
-        drawShareScorecardCanvas();
-      });
     };
   </script>
 </body>
