@@ -195,7 +195,7 @@
       background: rgba(255,255,255,0.035) !important; border: 1px solid rgba(255,255,255,0.13) !important;
       -webkit-backdrop-filter: blur(12px) saturate(160%); backdrop-filter: blur(12px) saturate(160%);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -8px 16px rgba(255,255,255,0.015) !important;
-      border-radius: 14px !important; color: #fff !important;
+      border-radius: calc(var(--tile, 56px) * 0.25) !important; color: #fff !important;
     }
     html.dark #board-grid > div > div.border-oxford-navy { border-color: rgba(255,255,255,0.45) !important; }
     html.dark #board-grid > div > div.tile-correct,
