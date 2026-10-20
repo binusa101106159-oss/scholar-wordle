@@ -243,6 +243,7 @@
     }
     html.dark select option { background: #111; color: #fff; }
     html.dark #share-canvas-container { background: #000 !important; }
+    html.dark #blitz-hud { background: rgba(244,63,94,0.12); border: 1px solid rgba(251,113,133,0.35); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
   </style>
 </head>
 <body class="bg-oxford-cream dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200 overflow-x-hidden">
@@ -276,11 +277,25 @@
 
       <!-- Controls -->
       <div class="flex items-center gap-1.5 flex-wrap">
-        <!-- Daily / Unlimited / Blitz Toggle -->
+        <!-- Word length tabs -->
+        <div id="len-tabs" class="inline-flex rounded-lg bg-slate-900/60 p-0.5 border border-slate-700/80 text-xs" title="Word length">
+          <button type="button" data-len="4" class="len-tab px-2 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">4</button><button type="button" data-len="5" class="len-tab px-2 py-1 rounded-md font-medium transition-colors bg-oxford-gold text-slate-950">5</button><button type="button" data-len="6" class="len-tab px-2 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">6</button><button type="button" data-len="7" class="len-tab px-2 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">7</button><button type="button" data-len="8" class="len-tab px-2 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">8</button><button type="button" data-len="9" class="len-tab px-2 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">9</button><button type="button" data-len="10" class="len-tab px-2 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">10</button>
+        </div>
+
+        <!-- Unlimited / Blitz Toggle -->
         <div class="inline-flex rounded-lg bg-slate-900/60 p-0.5 border border-slate-700/80 text-xs">
           <button id="mode-free-btn" type="button" class="px-2.5 py-1 rounded-md font-medium transition-colors bg-oxford-gold text-slate-950">Unlimited</button>
           <button id="mode-blitz-btn" type="button" class="px-2.5 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">Blitz</button>
         </div>
+
+        <!-- Blitz timer & score (only visible in Blitz) -->
+        <span id="blitz-hud" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-rose-300">
+          <span id="blitz-timer">03:00</span>
+          <span>•</span>
+          <span id="blitz-score">Score: 0</span>
+        </span>
+        <span id="round-badge" class="hidden"></span>
+        <span id="hard-mode-badge" class="hidden"></span>
 
         <!-- Friend Challenge Code Button -->
         <button id="btn-challenge" type="button" title="Create or Enter a Friend Challenge Code" class="px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium flex items-center gap-1 transition">
@@ -316,26 +331,6 @@
       </div>
     </div>
   </header>
-
-  <!-- Subheader Bar: Dictionary Pool, Blitz HUD & Active Clue Banner -->
-  <div class="w-full bg-oxford-parchment/80 dark:bg-slate-900/90 border-b border-amber-900/10 dark:border-slate-800/80 px-3 py-1.5">
-    <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
-      <div class="flex items-center gap-2 flex-wrap">
-        <span id="round-badge" class="font-semibold text-oxford-navy dark:text-oxford-goldlight">Unlimited Practice</span>
-        <span id="blitz-hud" class="hidden items-center gap-2 px-2 py-0.5 rounded bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-300 font-bold">
-          <span id="blitz-timer">03:00</span>
-          <span>•</span>
-          <span id="blitz-score">Score: 0</span>
-        </span>
-        <span class="text-slate-400">•</span>
-        <label for="len-select" class="text-slate-600 dark:text-slate-400 font-medium">Letters:</label>
-        <select id="len-select" class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-0.5 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:border-oxford-gold">
-          <option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
-        </select>
-        <span id="hard-mode-badge" class="hidden px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-semibold text-[10px] uppercase">Hard Mode</span>
-      </div>
-    </div>
-  </div>
 
   <!-- Main Content Area -->
   <main class="flex-1 flex flex-col items-center justify-between max-w-2xl w-full mx-auto px-2 sm:px-4 py-3 gap-3 z-10">
@@ -657,7 +652,7 @@
           if (typeof parsed.soundEnabled === 'boolean') state.soundEnabled = parsed.soundEnabled;
           if (typeof parsed.autoSpeak === 'boolean') state.autoSpeak = parsed.autoSpeak;
           if (parsed.pool) state.pool = parsed.pool;
-          if (parsed.wordLength >= 4 && parsed.wordLength <= 10) state.wordLength = parsed.wordLength;
+          // Always open on 5 letters (last length is not restored)
           if (parsed.solved && typeof parsed.solved === 'object') state.solved = parsed.solved;
         }
       } catch (e) {}
@@ -1190,8 +1185,10 @@
         customChallengeWord = null;
         if (modeOverride === 'challenge') modeOverride = 'free';
       }
-      const lenSel = document.getElementById('len-select');
-      if (lenSel) lenSel.value = String(state.wordLength);
+      document.querySelectorAll('#len-tabs .len-tab').forEach(btn => {
+        const on = Number(btn.dataset.len) === state.wordLength;
+        btn.className = `len-tab px-2 py-1 rounded-md font-medium transition-colors ${on ? 'bg-oxford-gold text-slate-950' : 'text-slate-300 hover:text-white'}`;
+      });
       const prevMode = state.mode;
       if (modeOverride) state.mode = modeOverride;
 
@@ -1679,10 +1676,12 @@
       });
       document.getElementById('btn-export-html').addEventListener('click', downloadStandaloneHTML);
 
-      document.getElementById('len-select').addEventListener('change', (e) => {
-        state.wordLength = parseInt(e.target.value, 10) || 5;
-        saveStorage();
-        startNewRound(state.mode === 'challenge' ? 'free' : state.mode);
+      document.querySelectorAll('#len-tabs .len-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.wordLength = Number(btn.dataset.len) || 5;
+          saveStorage();
+          startNewRound(state.mode === 'challenge' ? 'free' : state.mode);
+        });
       });
 
 
