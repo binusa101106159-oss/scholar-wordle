@@ -611,7 +611,7 @@
         wins: 0,
         streak: 0,
         maxStreak: 0,
-        dist: [0, 0, 0, 0, 0, 0]
+        dist: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     };
 
@@ -646,6 +646,7 @@
         if (raw) {
           const parsed = JSON.parse(raw);
           if (parsed.stats) state.stats = parsed.stats;
+          while (state.stats.dist.length < 10) state.stats.dist.push(0);
           if (typeof parsed.hardMode === 'boolean') state.hardMode = parsed.hardMode;
           if (typeof parsed.darkMode === 'boolean') state.darkMode = parsed.darkMode;
           if (typeof parsed.highContrast === 'boolean') state.highContrast = parsed.highContrast;
@@ -760,6 +761,9 @@
       }, durationMs || 2200);
     }
 
+    // Number of guesses equals word length (4 letters -> 4 tries ... 10 -> 10)
+    function maxGuesses() { return state.wordLength; }
+
     // Word lists for 4, 6-10 letters load on demand from words/N.json
     function getValidSet() {
       return state.wordLength === 5 ? VALID_GUESSES : state.lenData[state.wordLength].valid;
@@ -834,8 +838,9 @@
       const grid = document.getElementById('board-grid');
       const L = state.wordLength;
       grid.innerHTML = '';
-      grid.style.setProperty('--tile', `min(56px, calc((100vw - ${28 + (L - 1) * 6}px) / ${L}))`);
-      for (let r = 0; r < 6; r++) {
+      const R = maxGuesses();
+      grid.style.setProperty('--tile', `min(56px, calc((100vw - ${28 + (L - 1) * 6}px) / ${L}), calc((100vh - ${330 + (R - 1) * 6}px) / ${R}))`);
+      for (let r = 0; r < R; r++) {
         const row = document.createElement('div');
         row.id = `row-${r}`;
         row.className = 'grid gap-1.5 cursor-pointer';
@@ -935,7 +940,7 @@
     // Update active typing row
     function updateCurrentRowUI() {
       const r = state.guesses.length;
-      if (r >= 6) return;
+      if (r >= maxGuesses()) return;
       for (let c = 0; c < state.wordLength; c++) {
         const tile = document.getElementById(`tile-${r}-${c}`);
         if (!tile) continue;
@@ -1092,22 +1097,22 @@
         if (state.stats.streak > state.stats.maxStreak) {
           state.stats.maxStreak = state.stats.streak;
         }
-        state.stats.dist[rowIdx] += 1;
+        state.stats.dist[rowIdx] = (state.stats.dist[rowIdx] || 0) + 1;
         saveStorage();
 
         if (state.mode === 'blitz') {
-          const pts = (7 - (rowIdx + 1)) * 100 + (state.hintLevel === 0 ? 50 : 0);
+          const pts = (maxGuesses() - rowIdx) * 100 + (state.hintLevel === 0 ? 50 : 0);
           state.blitzScore += pts;
           state.blitzSeconds = Math.min(300, state.blitzSeconds + 15);
           updateBlitzHUD();
           showToast(`+${pts} Blitz Pts! (+15s Bonus)`, 2200);
         } else {
           const accolades = ['First-Class Honours!', 'Magdalen Genius!', 'Bodleian Scholar!', 'Splendid Deduction!', 'College Fellow!', 'Phew! Just in Time!'];
-          showToast(accolades[rowIdx] || 'Splendid!', 3000);
+          showToast(rowIdx === maxGuesses() - 1 ? 'Phew! Just in Time!' : (accolades[rowIdx] || 'Splendid!'), 3000);
         }
         showLexiconEntry(state.targetWord);
         if (state.autoSpeak) speakWordUK(state.targetWord);
-      } else if (state.guesses.length >= 6) {
+      } else if (state.guesses.length >= maxGuesses()) {
         state.gameStatus = 'lost';
         sfxLoss();
         state.stats.played += 1;
@@ -1375,7 +1380,7 @@
       ctx.fillText('SCHOLAR WORDLE', 26, 44);
 
       const sub = state.mode === 'daily' ? `Daily Puzzle #${state.dailyNumber}` : (state.mode === 'blitz' ? `Blitz Score: ${state.blitzScore}` : 'Unlimited Mode');
-      const scoreStr = state.gameStatus === 'won' ? `${state.guesses.length}/6` : (state.gameStatus === 'lost' ? 'X/6' : 'In Progress');
+      const scoreStr = state.gameStatus === 'won' ? `${state.guesses.length}/${maxGuesses()}` : (state.gameStatus === 'lost' ? `X/${maxGuesses()}` : 'In Progress');
       ctx.fillStyle = '#e2c58a';
       ctx.font = '600 13px Inter, sans-serif';
       ctx.fillText(`${sub} • Score: ${scoreStr}`, 26, 68);
@@ -1384,8 +1389,9 @@
       const startY = 86;
       const cols = state.wordLength;
       const gap = cols > 7 ? 3 : 5;
-      const cell = Math.min(24, Math.floor((170 - (cols - 1) * gap) / cols));
-      for (let r = 0; r < 6; r++) {
+      const rows = maxGuesses();
+      const cell = Math.min(24, Math.floor((170 - (cols - 1) * gap) / cols), Math.floor((172 - (rows - 1) * gap) / rows));
+      for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           let color = '#1e293b';
           if (r < state.evaluations.length) {
@@ -1433,7 +1439,7 @@
     function buildEmojiShareText() {
       const lenTag = state.wordLength === 5 ? '' : ` (${state.wordLength} letters)`;
       const title = state.mode === 'daily' ? `Scholar Wordle #${state.dailyNumber}${lenTag}` : `Scholar Wordle (${encodeChallengeWord(state.targetWord)})`;
-      const score = state.gameStatus === 'won' ? `${state.guesses.length}/6` : (state.gameStatus === 'lost' ? 'X/6' : `${state.guesses.length}/6`);
+      const score = state.gameStatus === 'won' ? `${state.guesses.length}/${maxGuesses()}` : (state.gameStatus === 'lost' ? `X/${maxGuesses()}` : `${state.guesses.length}/${maxGuesses()}`);
       const rows = state.evaluations.map(ev =>
         ev.map(st => st === 'correct' ? (state.highContrast ? '🟧' : '🟩') : (st === 'present' ? (state.highContrast ? '🟦' : '🟨') : '⬛')).join('')
       ).join('\n');
