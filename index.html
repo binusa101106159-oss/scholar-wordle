@@ -249,30 +249,6 @@
     html.dark #keyboard-container button:not(#key-ENTER):not(#key-BACKSPACE) { flex: 0 0 var(--key) !important; width: var(--key) !important; max-width: none !important; padding: 0 !important; }
     html.dark #blitz-hud { background: rgba(244,63,94,0.12); border: 1px solid rgba(251,113,133,0.35); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
 
-    /* ===== Liquid merge: blobs behind tiles/keys, filtered with #goo ===== */
-    #goo-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; filter: url(#goo); }
-    #goo-layer .blob { position: absolute; border-radius: 50%; background: #1a1a1d; will-change: transform; }
-    #goo-layer .blob[data-s="filled"] { background: #2c2c31; }
-    #goo-layer .blob[data-s="correct"] { background: #1e9e52; }
-    #goo-layer .blob[data-s="present"] { background: #c98a10; }
-    #goo-layer .blob[data-s="absent"] { background: #0e0e10; }
-    #goo-layer .blob[data-s="key"] { background: #232327; }
-    main > *:not(#goo-layer) { position: relative; z-index: 1; }
-    #board-grid, #board-grid > div { gap: 0 !important; }
-    html.dark #board-grid > div > div,
-    html.dark #board-grid > div > div.tile-correct,
-    html.dark #board-grid > div > div.tile-present,
-    html.dark #board-grid > div > div.tile-absent,
-    html.dark #keyboard-container button,
-    html.dark #keyboard-container button.key-correct,
-    html.dark #keyboard-container button.key-present,
-    html.dark #keyboard-container button.key-absent {
-      background: radial-gradient(circle at 32% 26%, rgba(255,255,255,0.20), rgba(255,255,255,0.05) 22%, transparent 46%) !important;
-      border: 0 !important; box-shadow: none !important;
-      -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
-    }
-    html.dark #board-grid > div > div.tile-absent { color: rgba(255,255,255,0.32) !important; }
-    html.dark #keyboard-container button.key-absent { color: rgba(255,255,255,0.28) !important; }
     @keyframes bubble {
       0%   { transform: scale(1); border-radius: 50%; }
       22%  { transform: scale(1.24, 1.12); border-radius: 46% 54% 50% 50% / 56% 44% 56% 44%; }
@@ -373,15 +349,6 @@
       </div>
     </div>
   </header>
-
-  <!-- Gooey filter: blurs blobs then sharpens alpha so touching circles melt together -->
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <filter id="goo" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
-      <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" result="goo"/>
-      <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-    </filter>
-  </svg>
 
   <!-- Main Content Area -->
   <main class="flex-1 flex flex-col items-center justify-between max-w-2xl w-full mx-auto px-2 sm:px-4 py-3 gap-3 z-10">
@@ -890,7 +857,7 @@
       const L = state.wordLength;
       grid.innerHTML = '';
       const R = maxGuesses();
-      grid.style.setProperty('--tile', `min(64px, calc((100vw - 28px) / ${L}), calc((100vh - 320px) / ${R}))`);
+      grid.style.setProperty('--tile', `min(60px, calc((100vw - ${28 + (L - 1) * 6}px) / ${L}), calc((100vh - ${320 + (R - 1) * 6}px) / ${R}))`);
       for (let r = 0; r < R; r++) {
         const row = document.createElement('div');
         row.id = `row-${r}`;
@@ -1661,7 +1628,7 @@
     }
 
 
-    // ===== Bubble wobble + liquid goo layer =====
+    // ===== Bubble wobble on hover / drag / typing =====
     function bubble(el) {
       if (!el) return;
       el.classList.remove('bubble');
@@ -1687,52 +1654,6 @@
     document.addEventListener('pointermove', (e) => bubbleAtPoint(e.clientX, e.clientY), { passive: true });
     document.addEventListener('pointerdown', (e) => { lastBubbled = null; bubbleAtPoint(e.clientX, e.clientY); }, { passive: true });
 
-    function blobState(el) {
-      const c = el.classList;
-      if (c.contains('tile-correct') || c.contains('key-correct')) return 'correct';
-      if (c.contains('tile-present') || c.contains('key-present')) return 'present';
-      if (c.contains('tile-absent') || c.contains('key-absent')) return 'absent';
-      if (el.tagName === 'BUTTON') return 'key';
-      return el.textContent ? 'filled' : 'empty';
-    }
-    function startGoo() {
-      const main = document.querySelector('main');
-      if (!main) return;
-      const layer = document.createElement('div');
-      layer.id = 'goo-layer';
-      main.prepend(layer);
-      const blobs = new Map();
-      function sync() {
-        const items = document.querySelectorAll(GOO_ITEMS);
-        const base = main.getBoundingClientRect();
-        const seen = new Set();
-        const reads = [];
-        items.forEach(el => {
-          const r = el.getBoundingClientRect();
-          const animating = el.classList.contains('bubble');
-          reads.push([el, r, blobState(el), animating ? getComputedStyle(el).borderRadius : null]);
-        });
-        for (const [el, r, s, br] of reads) {
-          seen.add(el);
-          let b = blobs.get(el);
-          if (!b) { b = document.createElement('div'); b.className = 'blob'; layer.appendChild(b); blobs.set(el, b); }
-          const key = `${r.left - base.left}|${r.top - base.top}|${r.width}|${r.height}`;
-          if (b._k !== key) {
-            b._k = key;
-            b.style.left = (r.left - base.left) + 'px';
-            b.style.top = (r.top - base.top) + 'px';
-            b.style.width = r.width + 'px';
-            b.style.height = r.height + 'px';
-          }
-          if (b.dataset.s !== s) b.dataset.s = s;
-          const radius = br || (el.tagName === 'BUTTON' ? '999px' : '50%');
-          if (b._r !== radius) { b._r = radius; b.style.borderRadius = radius; }
-        }
-        for (const [el, b] of blobs) if (!seen.has(el)) { b.remove(); blobs.delete(el); }
-        requestAnimationFrame(sync);
-      }
-      requestAnimationFrame(sync);
-    }
 
     // Wire All Event Listeners on Window Load
     if ('serviceWorker' in navigator && location.protocol === 'https:') {
@@ -1773,7 +1694,6 @@
 
       resizeFxCanvas();
       startFxLoop();
-      startGoo();
       window.addEventListener('resize', () => {
         resizeFxCanvas();
         drawShareScorecardCanvas();
