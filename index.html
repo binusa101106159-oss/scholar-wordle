@@ -251,6 +251,7 @@
     html.dark #keyboard-container button:not(#key-ENTER):not(#key-BACKSPACE) { flex: 0 0 var(--key) !important; width: var(--key) !important; max-width: none !important; padding: 0 !important; }
     html.dark #key-ENTER, html.dark #key-BACKSPACE { flex: 1 1 0 !important; min-width: 0 !important; max-width: calc(var(--key) * 1.7) !important; padding: 0 4px !important; font-size: calc(var(--key) * 0.32) !important; }
     html.dark #key-BACKSPACE { font-size: calc(var(--key) * 0.45) !important; }
+    html.dark #wl-pill { background: var(--glass) !important; border: 1px solid var(--glass-edge) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.18) !important; }
     html.dark #blitz-hud { background: rgba(244,63,94,0.12); border: 1px solid rgba(251,113,133,0.35); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
 
     /* Slow, water-like wobble: small squash/stretch with a gentle float, eased in and out */
@@ -312,6 +313,11 @@
         </div>
 
         <!-- Blitz timer & score (only visible in Blitz) -->
+        <!-- Win / loss record (tap for full stats) -->
+        <button id="wl-pill" type="button" title="Wins · Losses · W/L ratio" class="px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5">
+          <span class="text-emerald-300" id="wl-wins">0W</span><span class="text-slate-500">·</span><span class="text-rose-300" id="wl-losses">0L</span><span class="text-slate-500">·</span><span class="text-slate-200" id="wl-ratio">–</span>
+        </button>
+
         <span id="blitz-hud" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-rose-300">
           <span id="blitz-timer">03:00</span>
           <span>•</span>
@@ -457,6 +463,20 @@
         </button>
       </div>
       <div class="p-4 overflow-y-auto space-y-4">
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800">
+            <div id="stat-wins" class="text-xl font-bold text-emerald-400">0</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400">Wins</div>
+          </div>
+          <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800">
+            <div id="stat-losses" class="text-xl font-bold text-rose-400">0</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400">Losses</div>
+          </div>
+          <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800">
+            <div id="stat-wl" class="text-xl font-bold text-oxford-navy dark:text-oxford-goldlight">–</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400">W/L Ratio</div>
+          </div>
+        </div>
         <div class="grid grid-cols-4 gap-2 text-center">
           <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800">
             <div id="stat-played" class="text-xl font-bold text-oxford-navy dark:text-oxford-goldlight">0</div>
@@ -682,7 +702,20 @@
       } catch (e) {}
     }
 
+    function winLoss() {
+      const w = state.stats.wins || 0, l = Math.max(0, (state.stats.played || 0) - w);
+      const ratio = l === 0 ? (w > 0 ? `${w}.00` : '–') : (w / l).toFixed(2);
+      return { w, l, ratio };
+    }
+    function updateWinLoss() {
+      const { w, l, ratio } = winLoss();
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+      set('wl-wins', `${w}W`); set('wl-losses', `${l}L`); set('wl-ratio', ratio);
+      set('stat-wins', String(w)); set('stat-losses', String(l)); set('stat-wl', ratio);
+    }
+
     function saveStorage() {
+      updateWinLoss();
       try {
         localStorage.setItem('oxford_wordle_v1', JSON.stringify({
           stats: state.stats,
@@ -1352,6 +1385,7 @@
 
     // Render Stats & Visual Scorecard Canvas
     function renderStatsModal() {
+      updateWinLoss();
       document.getElementById('stat-played').textContent = String(state.stats.played);
       const pct = state.stats.played > 0 ? Math.round((state.stats.wins / state.stats.played) * 100) : 0;
       document.getElementById('stat-win-pct').textContent = `${pct}%`;
@@ -1774,6 +1808,8 @@
 
       resizeFxCanvas();
       startFxLoop();
+      updateWinLoss();
+      document.getElementById('wl-pill').addEventListener('click', () => { renderStatsModal(); const m = document.getElementById('modal-stats'); m.classList.remove('hidden'); m.classList.add('flex'); });
       window.addEventListener('resize', () => {
         resizeFxCanvas();
         drawShareScorecardCanvas();
