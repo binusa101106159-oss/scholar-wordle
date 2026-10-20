@@ -1650,12 +1650,12 @@
       push: 0.025,       // strength of the gust along the cursor's path
       blow: 0.04,        // gentle push away from the cursor
       spin: 0.6,         // how much a gust twists a leaf
-      drag: 0.985,       // water drag per frame while floating freely
-      roam: 7,           // board tiles may drift this far from home (px)
-      roamKey: 2,        // keyboard keys stay close so they remain easy to tap
-      maxTilt: 6,        // degrees
-      calmAfter: 2200,   // ms of no wind before leaves head home
-      homeK: 0.0028,     // pull towards home once calm
+      drag: 0.955,       // water drag per frame while floating freely
+      roam: 4,           // board tiles may drift this far from home (px)
+      roamKey: 1.5,      // keyboard keys stay close so they remain easy to tap
+      maxTilt: 4,        // degrees
+      calmAfter: 1400,   // ms of no wind before leaves head home
+      homeK: 0.004,      // pull towards home once calm
       homeDrag: 0.94
     };
     const leafStates = new WeakMap();
