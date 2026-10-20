@@ -1642,17 +1642,133 @@
       if (e.animationName === 'popIn') el.classList.remove('tile-pop');
     });
 
-    const GOO_ITEMS = '#board-grid > div > div, #keyboard-container button';
-    let lastBubbled = null;
-    function bubbleAtPoint(x, y) {
-      const el = document.elementFromPoint(x, y);
-      const item = el && el.closest ? el.closest(GOO_ITEMS) : null;
-      if (item && item !== lastBubbled) { lastBubbled = item; bubble(item); }
-      if (!item) lastBubbled = null;
-    }
-    document.addEventListener('pointermove', (e) => bubbleAtPoint(e.clientX, e.clientY), { passive: true });
-    document.addEventListener('pointerdown', (e) => { lastBubbled = null; bubbleAtPoint(e.clientX, e.clientY); }, { passive: true });
+    // ===== Leaves on a pond: the pointer is the wind =====
+    // A gust from the cursor/finger pushes nearby circles in the direction of travel and spins them.
+    // They then float freely (slow water drag) inside a small circle around their spot, bumping softly
+    // off its edge and off each other. After a calm spell they glide back to their starting position.
+    const LEAF_SEL = '#board-grid > div > div, #keyboard-container button';
+    const POND = {
+      reach: 130,        // how far the breeze reaches (px)
+      push: 0.06,        // strength of the gust along the cursor's path
+      blow: 0.10,        // gentle push away from the cursor
+      spin: 2.0,         // how much a gust twists a leaf
+      drag: 0.985,       // water drag per frame while floating freely
+      roam: 16,          // board tiles may drift this far from home (px)
+      roamKey: 4,        // keyboard keys stay close so they remain easy to tap
+      maxTilt: 22,       // degrees
+      calmAfter: 2200,   // ms of no wind before leaves head home
+      homeK: 0.0028,     // pull towards home once calm
+      homeDrag: 0.94
+    };
+    const leafStates = new WeakMap();
+    const driftingLeaves = new Set();
+    const calmWater = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let windLast = null;
+    let pondFrame = null;
 
+    function leafState(el) {
+      let s = leafStates.get(el);
+      if (!s) { s = { x: 0, y: 0, vx: 0, vy: 0, r: 0, vr: 0, gust: 0, key: el.tagName === 'BUTTON' }; leafStates.set(el, s); }
+      return s;
+    }
+    function wakePond() { if (!pondFrame) pondFrame = requestAnimationFrame(driftLeaves); }
+
+    function blowWind(e) {
+      if (calmWater) return;
+      const now = performance.now();
+      if (!windLast || now - windLast.t > 150) { windLast = { x: e.clientX, y: e.clientY, t: now }; return; }
+      const dx = e.clientX - windLast.x, dy = e.clientY - windLast.y;
+      windLast = { x: e.clientX, y: e.clientY, t: now };
+      const speed = Math.hypot(dx, dy);
+      if (speed < 0.4) return;
+      const gust = Math.min(1, 30 / speed);
+      const wx = dx * gust, wy = dy * gust;
+      const R = POND.reach;
+      document.querySelectorAll(LEAF_SEL).forEach(el => {
+        const b = el.getBoundingClientRect();
+        const rx = b.left + b.width / 2 - e.clientX, ry = b.top + b.height / 2 - e.clientY;
+        const d = Math.hypot(rx, ry);
+        if (d > R) return;
+        const f = (1 - d / R) ** 2;
+        const s = leafState(el);
+        const k = s.key ? 0.3 : 1;
+        s.vx += (wx * POND.push + (rx / (d || 1)) * POND.blow) * f * k;
+        s.vy += (wy * POND.push + (ry / (d || 1)) * POND.blow) * f * k;
+        s.vr += ((rx * wy - ry * wx) / (R * R)) * f * POND.spin * k;
+        s.gust = now;
+        driftingLeaves.add(el);
+      });
+      wakePond();
+    }
+
+    function driftLeaves(now) {
+      pondFrame = null;
+      // read: current centres of all board tiles (for gentle collisions between neighbours)
+      const tiles = [...document.querySelectorAll('#board-grid > div > div')].map(el => {
+        const b = el.getBoundingClientRect();
+        return { el, cx: b.left + b.width / 2, cy: b.top + b.height / 2, rad: b.width / 2 };
+      });
+      // simulate
+      for (const el of driftingLeaves) {
+        const s = leafStates.get(el);
+        if (!el.isConnected) { driftingLeaves.delete(el); continue; }
+        if (now - s.gust > POND.calmAfter) {
+          // calm: glide home
+          const ease = Math.min(1, (now - s.gust - POND.calmAfter) / 800);
+          s.vx += -s.x * POND.homeK * ease; s.vy += -s.y * POND.homeK * ease; s.vr += -s.r * POND.homeK * ease;
+          s.vx *= POND.homeDrag; s.vy *= POND.homeDrag; s.vr *= POND.homeDrag;
+        } else {
+          s.vx *= POND.drag; s.vy *= POND.drag; s.vr *= POND.drag;
+        }
+        s.x += s.vx; s.y += s.vy; s.r += s.vr;
+        // stay inside the leaf's little patch of water: soft bounce off the edge
+        const roam = s.key ? POND.roamKey : POND.roam;
+        const dist = Math.hypot(s.x, s.y);
+        if (dist > roam) {
+          const nx = s.x / dist, ny = s.y / dist;
+          s.x = nx * roam; s.y = ny * roam;
+          const out = s.vx * nx + s.vy * ny;
+          if (out > 0) { s.vx -= 1.5 * out * nx; s.vy -= 1.5 * out * ny; }
+        }
+        if (Math.abs(s.r) > POND.maxTilt) { s.r = Math.sign(s.r) * POND.maxTilt; s.vr *= -0.4; }
+      }
+      // neighbours nudge each other instead of overlapping
+      for (let i = 0; i < tiles.length; i++) {
+        const a = tiles[i], sa = leafState(a.el);
+        for (let j = i + 1; j < tiles.length; j++) {
+          const b = tiles[j], sb = leafState(b.el);
+          if (!driftingLeaves.has(a.el) && !driftingLeaves.has(b.el)) continue;
+          const dx = b.cx - a.cx, dy = b.cy - a.cy;
+          const minD = a.rad + b.rad - 1; // touching is fine; only overlapping leaves push apart
+          const d = Math.hypot(dx, dy);
+          if (d > 0 && d < minD) {
+            const nx = dx / d, ny = dy / d, overlap = (minD - d) / 2;
+            sa.x -= nx * overlap; sa.y -= ny * overlap; sb.x += nx * overlap; sb.y += ny * overlap;
+            const rel = (sb.vx - sa.vx) * nx + (sb.vy - sa.vy) * ny;
+            if (rel < 0) { sa.vx += rel * nx * 0.5; sa.vy += rel * ny * 0.5; sb.vx -= rel * nx * 0.5; sb.vy -= rel * ny * 0.5; }
+            if (!driftingLeaves.has(b.el)) { sb.gust = sa.gust; driftingLeaves.add(b.el); }
+            if (!driftingLeaves.has(a.el)) { sa.gust = sb.gust; driftingLeaves.add(a.el); }
+          }
+        }
+      }
+      // write
+      for (const el of driftingLeaves) {
+        const s = leafStates.get(el);
+        const calm = now - s.gust > POND.calmAfter;
+        const energy = Math.abs(s.x) + Math.abs(s.y) + Math.abs(s.r) * 0.3 + (Math.abs(s.vx) + Math.abs(s.vy) + Math.abs(s.vr)) * 8;
+        if (calm && energy < 0.05) {
+          el.style.translate = ''; el.style.rotate = '';
+          s.x = s.y = s.vx = s.vy = s.r = s.vr = 0;
+          driftingLeaves.delete(el);
+          continue;
+        }
+        el.style.translate = `${s.x.toFixed(2)}px ${s.y.toFixed(2)}px`;
+        el.style.rotate = `${s.r.toFixed(2)}deg`;
+      }
+      if (driftingLeaves.size) wakePond();
+    }
+
+    document.addEventListener('pointermove', blowWind, { passive: true });
 
     // Wire All Event Listeners on Window Load
     if ('serviceWorker' in navigator && location.protocol === 'https:') {
