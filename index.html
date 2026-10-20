@@ -1647,16 +1647,16 @@
     const LEAF_SEL = '#board-grid > div > div, #keyboard-container button';
     const POND = {
       reach: 130,        // how far the breeze reaches (px)
-      push: 0.012,       // strength of the gust along the cursor's path
-      blow: 0.02,        // gentle push away from the cursor
-      spin: 0.3,         // how much a gust twists a leaf
+      push: 0.02,        // strength of the gust along the cursor's path
+      blow: 0.03,        // gentle push away from the cursor
+      spin: 0.25,        // how much a gust twists a leaf
       drag: 0.975,       // water drag per frame while floating freely
-      roam: 4,           // board tiles may drift this far from home (px)
+      roam: 3,           // board tiles may drift this far from home (px)
       roamKey: 1.5,      // keyboard keys stay close so they remain easy to tap
-      maxTilt: 4,        // degrees
-      calmAfter: 1800,   // ms of no wind before leaves head home
-      homeK: 0.0015,     // pull towards home once calm
-      homeDrag: 0.955
+      maxTilt: 3,        // degrees
+      calmAfter: 0,      // anchored: always pulled home (rigid, not free-floating)
+      homeK: 0.012,      // firm tether back to the starting spot
+      homeDrag: 0.88
     };
     const leafStates = new WeakMap();
     const driftingLeaves = new Set();
@@ -1710,9 +1710,9 @@
       for (const el of driftingLeaves) {
         const s = leafStates.get(el);
         if (!el.isConnected) { driftingLeaves.delete(el); continue; }
-        if (now - s.gust > POND.calmAfter) {
+        if (now - s.gust >= POND.calmAfter) {
           // calm: glide home
-          const ease = Math.min(1, (now - s.gust - POND.calmAfter) / 800);
+          const ease = Math.min(1, (now - s.gust - POND.calmAfter) / 120);
           s.vx += -s.x * POND.homeK * ease; s.vy += -s.y * POND.homeK * ease; s.vr += -s.r * POND.homeK * ease;
           s.vx *= POND.homeDrag; s.vy *= POND.homeDrag; s.vr *= POND.homeDrag;
         } else {
