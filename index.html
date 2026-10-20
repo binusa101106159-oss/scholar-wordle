@@ -259,6 +259,26 @@
     .bubble { animation: bubble 2.4s cubic-bezier(.37, 0, .25, 1) !important; }
     #keyboard-container button.bubble { animation: bubble 2s cubic-bezier(.37, 0, .25, 1) !important; }
     @media (prefers-reduced-motion: reduce) { .bubble { animation: none !important; } }
+
+    /* Reveal: colour blooms in like ink in water, with a soft ripple ring */
+    #board-grid > div > div { position: relative; }
+    @keyframes inkIn {
+      0%   { filter: saturate(0) brightness(0.55); transform: scale(0.94); }
+      55%  { transform: scale(1.015); }
+      100% { filter: none; transform: scale(1); }
+    }
+    @keyframes inkRipple {
+      0%   { box-shadow: 0 0 0 0 var(--ripple); opacity: 0.9; }
+      100% { box-shadow: 0 0 0 12px var(--ripple); opacity: 0; }
+    }
+    .tile-reveal { animation: inkIn 0.75s cubic-bezier(.22, .61, .36, 1) both; }
+    .tile-reveal::after {
+      content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+      animation: inkRipple 0.9s cubic-bezier(.22, .61, .36, 1) both;
+    }
+    .tile-correct { --ripple: rgba(74, 222, 128, 0.45); }
+    .tile-present { --ripple: rgba(251, 191, 36, 0.45); }
+    .tile-absent  { --ripple: rgba(255, 255, 255, 0.10); }
   </style>
 </head>
 <body class="bg-oxford-cream dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200 overflow-x-hidden">
@@ -273,18 +293,9 @@
 
   <!-- Top Header -->
   <header class="w-full border-b border-amber-900/15 dark:border-slate-800 bg-oxford-navy text-white shadow-md z-20">
-    <div class="max-w-4xl mx-auto px-3 py-2.5 flex flex-wrap items-center justify-between gap-2">
-      <!-- Brand / Crest -->
-      <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-lg bg-oxford-gold/20 border border-oxford-gold/60 flex items-center justify-center shrink-0 shadow-inner">
-          <svg class="w-6 h-6 text-oxford-goldlight" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-        </div>
-      </div>
-
+    <div class="max-w-4xl mx-auto px-3 py-2.5 flex flex-wrap items-center justify-center gap-2">
       <!-- Controls -->
-      <div class="flex items-center gap-1.5 flex-wrap">
+      <div class="flex items-center justify-center gap-1.5 flex-wrap">
         <!-- Word length tabs -->
         <div id="len-tabs" class="inline-flex rounded-lg bg-slate-900/60 p-0.5 border border-slate-700/80 text-xs" title="Word length">
           <button type="button" data-len="4" class="len-tab px-2 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">4</button><button type="button" data-len="5" class="len-tab px-2 py-1 rounded-md font-medium transition-colors bg-oxford-gold text-slate-950">5</button><button type="button" data-len="6" class="len-tab px-2 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">6</button><button type="button" data-len="7" class="len-tab px-2 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">7</button><button type="button" data-len="8" class="len-tab px-2 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">8</button><button type="button" data-len="9" class="len-tab px-2 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">9</button><button type="button" data-len="10" class="len-tab px-2 py-1 rounded-md font-medium transition-colors text-slate-300 hover:text-white">10</button>
@@ -1065,20 +1076,18 @@
         sfxFlip(c, evalRes[c]);
         setTimeout(() => {
           if (tile) {
-            tile.classList.add('tile-flip');
-            setTimeout(() => {
-              tile.classList.remove('border-oxford-navy', 'dark:border-oxford-gold');
-              tile.classList.add(`tile-${evalRes[c]}`);
-            }, 240);
+            // colour blooms in like ink in water, with a soft ripple, one tile after another
+            tile.classList.remove('bubble', 'border-oxford-navy', 'dark:border-oxford-gold');
+            tile.classList.add(`tile-${evalRes[c]}`, 'tile-reveal');
           }
-        }, c * 130);
+        }, c * 150);
       }
 
       setTimeout(() => {
         state.isRevealing = false;
         updateKeyboardColors();
         checkRoundEnd(guess, rowIdx);
-      }, L * 130 + 280);
+      }, L * 150 + 650);
     }
 
     // Check if won or lost
@@ -1629,7 +1638,7 @@
       const el = e.target;
       if (!el.classList) return;
       if (e.animationName === 'bubble') el.classList.remove('bubble');
-      if (e.animationName === 'flipTile') el.classList.remove('tile-flip');
+      if (e.animationName === 'inkIn') el.classList.remove('tile-reveal');
       if (e.animationName === 'popIn') el.classList.remove('tile-pop');
     });
 
