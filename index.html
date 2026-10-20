@@ -600,6 +600,7 @@
       pool: 'core',  // 'core', 'british', 'unabridged'
       wordLength: 5,
       lenData: {},
+      solved: {}, // length -> words already solved; never served again as answers
       targetWord: 'fibre',
       dailyNumber: 1,
       guesses: [],
@@ -663,6 +664,7 @@
           if (typeof parsed.autoSpeak === 'boolean') state.autoSpeak = parsed.autoSpeak;
           if (parsed.pool) state.pool = parsed.pool;
           if (parsed.wordLength >= 4 && parsed.wordLength <= 10) state.wordLength = parsed.wordLength;
+          if (parsed.solved && typeof parsed.solved === 'object') state.solved = parsed.solved;
         }
       } catch (e) {}
     }
@@ -677,7 +679,8 @@
           soundEnabled: state.soundEnabled,
           autoSpeak: state.autoSpeak,
           pool: state.pool,
-          wordLength: state.wordLength
+          wordLength: state.wordLength,
+          solved: state.solved
         }));
       } catch (e) {}
     }
@@ -810,8 +813,17 @@
         const hash = ((dayIndex * 2654435761) + (state.wordLength === 5 ? 0 : state.wordLength * 40503)) >>> 0;
         state.targetWord = pool[hash % pool.length];
       } else {
-        const randIdx = Math.floor(Math.random() * pool.length);
-        state.targetWord = pool[randIdx];
+        // Never serve a word already solved at this length; missed/skipped words may return
+        const L = state.wordLength;
+        const solved = new Set(state.solved[L] || []);
+        let fresh = pool.filter(w => !solved.has(w));
+        if (fresh.length === 0) {
+          state.solved[L] = [];
+          saveStorage();
+          fresh = pool;
+          showToast(`You've solved every ${L}-letter word! Starting over.`, 3500);
+        }
+        state.targetWord = fresh[Math.floor(Math.random() * fresh.length)];
       }
     }
 
@@ -1076,6 +1088,9 @@
     function checkRoundEnd(lastGuess, rowIdx) {
       if (lastGuess === state.targetWord) {
         state.gameStatus = 'won';
+        const L = state.targetWord.length;
+        if (!state.solved[L]) state.solved[L] = [];
+        if (!state.solved[L].includes(state.targetWord)) state.solved[L].push(state.targetWord);
         sfxWin();
         spawnVictoryConfetti();
         for (let c = 0; c < lastGuess.length; c++) {
