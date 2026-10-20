@@ -247,7 +247,7 @@
     /* Bigger keyboard: 10 keys + 9 small gaps fill the width on phones; up to 54px keys on larger screens */
     #keyboard-container { --key: min(54px, calc((100vw - 16px - 27px) / 10)); align-items: center; max-width: calc(var(--key) * 10 + 27px) !important; gap: 6px !important; }
     #keyboard-container > div { gap: 3px !important; }
-    html.dark #keyboard-container button { height: var(--key) !important; border-radius: 999px !important; font-size: calc(var(--key) * 0.42) !important; }
+    html.dark #keyboard-container button { height: max(var(--key), min(calc(var(--key) * 1.4), 58px)) !important; border-radius: 999px !important; font-size: calc(var(--key) * 0.46) !important; }
     html.dark #keyboard-container button:not(#key-ENTER):not(#key-BACKSPACE) { flex: 0 0 var(--key) !important; width: var(--key) !important; max-width: none !important; padding: 0 !important; }
     html.dark #key-ENTER, html.dark #key-BACKSPACE { flex: 1 1 0 !important; min-width: 0 !important; max-width: calc(var(--key) * 1.7) !important; padding: 0 4px !important; font-size: calc(var(--key) * 0.32) !important; }
     html.dark #key-BACKSPACE { font-size: calc(var(--key) * 0.45) !important; }
