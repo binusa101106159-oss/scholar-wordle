@@ -249,18 +249,17 @@
     html.dark #keyboard-container button:not(#key-ENTER):not(#key-BACKSPACE) { flex: 0 0 var(--key) !important; width: var(--key) !important; max-width: none !important; padding: 0 !important; }
     html.dark #blitz-hud { background: rgba(244,63,94,0.12); border: 1px solid rgba(251,113,133,0.35); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
 
+    /* Slow, water-like wobble: small squash/stretch with a gentle float, eased in and out */
     @keyframes bubble {
-      0%   { transform: scale(1); border-radius: 50%; }
-      22%  { transform: scale(1.24, 1.12); border-radius: 46% 54% 50% 50% / 56% 44% 56% 44%; }
-      45%  { transform: scale(0.9, 1.06); border-radius: 54% 46% 48% 52% / 46% 54% 46% 54%; }
-      68%  { transform: scale(1.07, 0.95); }
-      100% { transform: scale(1); border-radius: 50%; }
+      0%   { transform: translateY(0) scale(1, 1); }
+      18%  { transform: translateY(-2px) scale(1.07, 1.04); }
+      38%  { transform: translateY(-1px) scale(0.97, 1.05); }
+      58%  { transform: translateY(1px) scale(1.04, 0.98); }
+      78%  { transform: translateY(0) scale(0.99, 1.015); }
+      100% { transform: translateY(0) scale(1, 1); }
     }
-    #keyboard-container button.bubble { animation-name: bubbleKey; }
-    @keyframes bubbleKey {
-      0% { transform: scale(1); } 25% { transform: scale(1.22, 1.12); } 50% { transform: scale(0.9, 1.05); } 72% { transform: scale(1.06, 0.96); } 100% { transform: scale(1); }
-    }
-    .bubble { animation: bubble 0.6s cubic-bezier(.3, 1.35, .5, 1) !important; }
+    .bubble { animation: bubble 1.6s cubic-bezier(.37, 0, .25, 1) !important; }
+    #keyboard-container button.bubble { animation: bubble 1.3s cubic-bezier(.37, 0, .25, 1) !important; }
     @media (prefers-reduced-motion: reduce) { .bubble { animation: none !important; } }
   </style>
 </head>
@@ -1630,7 +1629,7 @@
 
     // ===== Bubble wobble on hover / drag / typing =====
     function bubble(el) {
-      if (!el) return;
+      if (!el || el.classList.contains('bubble')) return; // let a running wobble finish smoothly
       el.classList.remove('bubble');
       void el.offsetWidth;
       el.classList.add('bubble');
@@ -1638,7 +1637,7 @@
     document.addEventListener('animationend', (e) => {
       const el = e.target;
       if (!el.classList) return;
-      if (e.animationName === 'bubble' || e.animationName === 'bubbleKey') el.classList.remove('bubble');
+      if (e.animationName === 'bubble') el.classList.remove('bubble');
       if (e.animationName === 'flipTile') el.classList.remove('tile-flip');
       if (e.animationName === 'popIn') el.classList.remove('tile-pop');
     });
