@@ -393,7 +393,8 @@
 
     /* ===== Dictionary-style result card ===== */
     .dict-head { line-height: 1.1; }
-    #lexicon-card .dict-word { font-size: 2.1rem; color: #a9c8ff; letter-spacing: -0.01em; }
+    #lexicon-card .dict-word { font-size: 2.1rem; color: #a9c8ff; letter-spacing: -0.01em; text-decoration: none; }
+    #lexicon-card .dict-word:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
     #lexicon-card .dict-pos { font-size: 1.15rem; color: rgba(255,255,255,0.78); font-style: italic !important; margin-left: 0.35rem; }
     .dict-pron { margin-top: 0.55rem; display: flex; flex-direction: column; gap: 0.35rem; }
     .dict-pron-line { display: flex; align-items: center; gap: 0.55rem; font-size: 1.05rem; color: rgba(255,255,255,0.92); }
@@ -509,7 +510,7 @@
     <!-- Oxford Dictionary Entry Card (Shown on Game Over or Word Inspection) -->
     <section id="lexicon-card" class="hidden w-full rounded-2xl p-4 sm:p-5 selectable-text dict-card">
       <div class="flex items-start justify-between gap-2">
-        <div class="dict-head"><span id="entry-word" class="dict-word">word</span> <span id="entry-pos" class="dict-pos"></span></div>
+        <div class="dict-head"><a id="entry-word" class="dict-word" target="_blank" rel="noopener noreferrer" title="Open in Oxford Learner's Dictionaries">word</a> <span id="entry-pos" class="dict-pos"></span></div>
         <button id="btn-close-entry" type="button" title="Close" aria-label="Close" class="dict-close p-1">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
@@ -1375,6 +1376,7 @@
       renderDictEntry(w, offline, meta ? '' : 'Looking up definition…');
       document.getElementById('link-oed').href = `https://www.oed.com/search/dictionary/?scope=Entries&q=${encodeURIComponent(w)}`;
       document.getElementById('link-old').href = `https://www.oxfordlearnersdictionaries.com/definition/english/${encodeURIComponent(w)}`;
+      document.getElementById('entry-word').href = `https://www.oxfordlearnersdictionaries.com/search/english/?q=${encodeURIComponent(w)}`;
       document.getElementById('lexicon-card').classList.remove('hidden');
       fetchDictionary(w).then(entry => {
         if (dictShowing !== w) return;
