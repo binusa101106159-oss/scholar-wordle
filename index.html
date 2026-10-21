@@ -378,6 +378,16 @@
       box-shadow: inset 0 1.5px 0.5px rgba(255,255,255,0.40), inset 0 0 24px rgba(255,255,255,0.04), 0 20px 50px rgba(0,0,0,0.7) !important;
     }
 
+    /* Performance: the circles and keys sit on a near-black backdrop, so a live backdrop blur adds little
+       but costs a full re-blur every frame they move (very expensive at 120-240 Hz). Glass look comes from
+       gradients, rim light and highlight instead; each circle gets its own compositor layer for smooth motion. */
+    html.dark #board-grid > div > div,
+    html.dark #keyboard-container button {
+      -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+      will-change: translate, rotate, transform;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+    }
+
     /* Roboto everywhere, regular weight only */
     body, body *:not(svg):not(path) { font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif !important; font-weight: 400 !important; font-style: normal !important; }
   </style>
@@ -1818,6 +1828,22 @@
     }
     function wakePond() { if (!pondFrame) pondFrame = requestAnimationFrame(driftLeaves); }
 
+    // Home positions of all circles/keys, measured once and reused until the layout changes
+    let leafCache = null;
+    function invalidateLeaves() { leafCache = null; }
+    function getLeafCenters() {
+      if (leafCache) return leafCache;
+      leafCache = [...document.querySelectorAll(LEAF_SEL)].map(el => {
+        const b = el.getBoundingClientRect();
+        const s = leafStates.get(el);
+        return { el, cx: b.left + b.width / 2 - (s ? s.x : 0), cy: b.top + b.height / 2 - (s ? s.y : 0) };
+      });
+      return leafCache;
+    }
+    window.addEventListener('resize', invalidateLeaves);
+    window.addEventListener('scroll', invalidateLeaves, { passive: true });
+    new MutationObserver(invalidateLeaves).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+
     function blowWind(e) {
       if (calmWater) return;
       const now = performance.now();
@@ -1829,9 +1855,8 @@
       const gust = Math.min(1, 30 / speed);
       const wx = dx * gust, wy = dy * gust;
       const R = POND.reach;
-      document.querySelectorAll(LEAF_SEL).forEach(el => {
-        const b = el.getBoundingClientRect();
-        const rx = b.left + b.width / 2 - e.clientX, ry = b.top + b.height / 2 - e.clientY;
+      getLeafCenters().forEach(({ el, cx, cy }) => {
+        const rx = cx - e.clientX, ry = cy - e.clientY;
         const d = Math.hypot(rx, ry);
         if (d > R) return;
         const f = (1 - d / R) ** 2;
