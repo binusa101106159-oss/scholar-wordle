@@ -278,6 +278,35 @@
     .tile-reveal.tile-present::before { background: linear-gradient(180deg, rgba(251,191,36,0.55), rgba(180,83,9,0.55)); }
     .tile-reveal.tile-absent::before  { background: rgba(255,255,255,0.015); }
     @keyframes crossfade { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ===== Responsive layout =====
+       Portrait (phone / vertical monitor): board on top, keyboard below.
+       Landscape (regular monitor / phone sideways): board left, keyboard right. */
+    #board-grid { row-gap: 6px !important; }
+    #board-grid {
+      --tile: min(60px,
+        calc((100vw - 28px - (var(--L, 5) - 1) * 6px) / var(--L, 5)),
+        calc((100vh - 320px - (var(--R, 5) - 1) * 6px) / var(--R, 5)));
+    }
+    @media (orientation: landscape) {
+      #game-main {
+        display: grid !important;
+        grid-template-columns: auto auto;
+        grid-template-areas: "board ." "board kb" "board card" "board .";
+        grid-template-rows: 1fr auto auto 1fr;
+        align-content: center; justify-content: center; align-items: center;
+        column-gap: clamp(24px, 5vw, 72px); row-gap: 16px;
+        max-width: 1280px !important;
+      }
+      #board-wrap { grid-area: board; flex: none !important; width: auto !important; margin: 0 !important; }
+      #keyboard-container { grid-area: kb; align-self: center; --key: min(56px, calc((42vw - 27px) / 10)) !important; width: calc(var(--key) * 10 + 27px) !important; }
+      #lexicon-card { grid-area: card; align-self: start; max-width: calc(var(--key, 50px) * 10 + 27px); }
+      #board-grid {
+        --tile: min(76px,
+          calc((52vw - 40px - (var(--L, 5) - 1) * 6px) / var(--L, 5)),
+          calc((100vh - 120px - (var(--R, 5) - 1) * 6px) / var(--R, 5)));
+      }
+    }
   </style>
 </head>
 <body class="bg-oxford-cream dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200 overflow-x-hidden">
@@ -356,10 +385,10 @@
   </header>
 
   <!-- Main Content Area -->
-  <main class="flex-1 flex flex-col items-center justify-between max-w-2xl w-full mx-auto px-2 sm:px-4 py-3 gap-3 z-10">
+  <main id="game-main" class="flex-1 flex flex-col items-center justify-between max-w-2xl w-full mx-auto px-2 sm:px-4 py-3 gap-3 z-10">
 
     <!-- Wordle 6x5 Board Grid -->
-    <div class="flex-1 flex flex-col items-center justify-center w-full my-auto">
+    <div id="board-wrap" class="flex-1 flex flex-col items-center justify-center w-full my-auto">
       <div id="board-grid" class="grid grid-rows-6 gap-1.5 sm:gap-2 p-1">
         <!-- Populated dynamically on init -->
       </div>
@@ -889,7 +918,9 @@
       const L = state.wordLength;
       grid.innerHTML = '';
       const R = maxGuesses();
-      grid.style.setProperty('--tile', `min(60px, calc((100vw - ${28 + (L - 1) * 6}px) / ${L}), calc((100vh - ${320 + (R - 1) * 6}px) / ${R}))`);
+      grid.style.setProperty('--L', L);
+      grid.style.setProperty('--R', R);
+      grid.style.gridTemplateRows = `repeat(${R}, auto)`; // exactly one row per guess
       for (let r = 0; r < R; r++) {
         const row = document.createElement('div');
         row.id = `row-${r}`;
