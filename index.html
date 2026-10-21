@@ -1774,7 +1774,17 @@
 
     // Wire All Event Listeners on Window Load
     if ('serviceWorker' in navigator && location.protocol === 'https:') {
-      try { navigator.serviceWorker.register('sw.js'); } catch (e) {}
+      try {
+        // When a newer version is published, the new service worker takes over and the page reloads once
+        const hadController = !!navigator.serviceWorker.controller;
+        let reloadedForUpdate = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!hadController || reloadedForUpdate) return;
+          reloadedForUpdate = true;
+          location.reload();
+        });
+        navigator.serviceWorker.register('sw.js').then(reg => reg.update()).catch(() => {});
+      } catch (e) {}
     }
 
     window.onload = function() {
