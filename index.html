@@ -265,25 +265,19 @@
     #keyboard-container button.bubble { animation: bubble 2s cubic-bezier(.37, 0, .25, 1) !important; }
     @media (prefers-reduced-motion: reduce) { .bubble { animation: none !important; } }
 
-    /* Reveal: colour blooms in like ink in water, with a soft ripple ring */
-    #board-grid > div > div { position: relative; }
-    @keyframes inkIn {
-      0%   { filter: saturate(0) brightness(0.55); transform: scale(0.94); }
-      55%  { transform: scale(1.015); }
-      100% { filter: none; transform: scale(1); }
+    /* Reveal: crossfade from the empty glass tile to its result colour */
+    html.dark #board-grid > div > div { position: relative; isolation: isolate; transition: border-color .6s ease, box-shadow .6s ease, color .6s ease; }
+    html.dark #board-grid > div > div.tile-reveal.tile-correct,
+    html.dark #board-grid > div > div.tile-reveal.tile-present,
+    html.dark #board-grid > div > div.tile-reveal.tile-absent { background: rgba(255,255,255,0.035) !important; }
+    .tile-reveal::before {
+      content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: -1; pointer-events: none;
+      opacity: 0; animation: crossfade 0.6s ease forwards;
     }
-    @keyframes inkRipple {
-      0%   { box-shadow: 0 0 0 0 var(--ripple); opacity: 0.9; }
-      100% { box-shadow: 0 0 0 12px var(--ripple); opacity: 0; }
-    }
-    .tile-reveal { animation: inkIn 0.75s cubic-bezier(.22, .61, .36, 1) both; }
-    .tile-reveal::after {
-      content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
-      animation: inkRipple 0.9s cubic-bezier(.22, .61, .36, 1) both;
-    }
-    .tile-correct { --ripple: rgba(74, 222, 128, 0.45); }
-    .tile-present { --ripple: rgba(251, 191, 36, 0.45); }
-    .tile-absent  { --ripple: rgba(255, 255, 255, 0.10); }
+    .tile-reveal.tile-correct::before { background: linear-gradient(180deg, rgba(74,222,128,0.55), rgba(21,128,61,0.55)); }
+    .tile-reveal.tile-present::before { background: linear-gradient(180deg, rgba(251,191,36,0.55), rgba(180,83,9,0.55)); }
+    .tile-reveal.tile-absent::before  { background: rgba(255,255,255,0.015); }
+    @keyframes crossfade { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
 <body class="bg-oxford-cream dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200 overflow-x-hidden">
@@ -1113,7 +1107,7 @@
         sfxFlip(c, evalRes[c]);
         setTimeout(() => {
           if (tile) {
-            // colour blooms in like ink in water, with a soft ripple, one tile after another
+            // colour crossfades in, one tile after another
             tile.classList.remove('bubble', 'border-oxford-navy', 'dark:border-oxford-gold');
             tile.classList.add(`tile-${evalRes[c]}`, 'tile-reveal');
           }
@@ -1685,7 +1679,7 @@
       const el = e.target;
       if (!el.classList) return;
       if (e.animationName === 'bubble') el.classList.remove('bubble');
-      if (e.animationName === 'inkIn') el.classList.remove('tile-reveal');
+      if (e.animationName === 'crossfade') el.classList.remove('tile-reveal');
       if (e.animationName === 'popIn') el.classList.remove('tile-pop');
     });
 
