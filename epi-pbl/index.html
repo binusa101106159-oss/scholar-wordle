@@ -76,6 +76,25 @@ pre.paste{background:var(--surface2);border:1px solid var(--line2);border-radius
   font-size:12px;padding:4px 10px;border-radius:999px;opacity:0;transition:opacity .3s}
 .saved.show{opacity:1}
 kbd{font:inherit;font-size:13px;border:1px solid var(--line2);border-radius:4px;padding:0 4px}
+
+details.concept{background:#06110f;border:1px solid var(--accent-dim);border-radius:12px;padding:4px 14px 10px;margin:12px 0 20px}
+details.concept>summary{cursor:pointer;color:var(--accent);font-weight:600;padding:8px 0;list-style:none}
+details.concept>summary::-webkit-details-marker{display:none}
+details.concept>summary::before{content:"▸ ";}
+details.concept[open]>summary::before{content:"▾ ";}
+details.concept h4{margin:14px 0 4px}
+details.concept ul{margin:4px 0;padding-left:20px}
+details.concept li{margin:3px 0}
+.f{display:block;background:#000;border:1px solid var(--line2);border-left:3px solid var(--accent);border-radius:6px;
+  padding:6px 10px;margin:6px 0;font-size:14.5px;overflow-x:auto;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:11.5px;border:1px solid var(--line2);border-radius:999px;padding:0 7px;color:var(--muted);margin-left:4px;vertical-align:1px}
+.tag.new{color:var(--accent);border-color:var(--accent-dim)}
+.tag.flip{color:var(--warn);border-color:#4a3a1c}
+.ov{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin:10px 0}
+.ov .card{margin:0}
+.ov .card h4{margin:0 0 6px;color:var(--text)}
+.ov .card h4 b{color:var(--accent);margin-right:6px}
+.ov ul{margin:0;padding-left:18px;font-size:14.5px}
 @media (max-width:560px){
   h1{font-size:14px}
   .tools button{padding:5px 8px;font-size:12px}
@@ -96,6 +115,7 @@ kbd{font:inherit;font-size:13px;border:1px solid var(--line2);border-radius:4px;
     </div>
   </div>
   <nav id="tabs">
+    <a href="#w0"><b>00</b>重點整理</a>
     <a href="#w1"><b>01</b>群聚事件</a>
     <a href="#w2"><b>02</b>JEM</a>
     <a href="#w3"><b>03</b>長期趨勢</a>
@@ -108,10 +128,112 @@ kbd{font:inherit;font-size:13px;border:1px solid var(--line2);border-radius:4px;
 
 <main>
 
+<!-- ============ W0 ============ -->
+<section class="week" id="w0">
+  <h2><span class="no">00</span>期中考重點整理</h2>
+  <p class="sub">範圍 01–07 共 7 章，以今年講義為準。<span class="tag new">今年新教</span>＝去年講義沒有；<span class="tag flip">說法改變</span>＝兩年寫法不同，考試照今年。</p>
+
+  <h3 style="border-top:0;padding-top:0;margin-top:12px">各章一句話與必背數字</h3>
+  <div class="ov">
+    <div class="card"><h4><b>01</b>職業流病・群聚 <span class="tag new">今年新教</span></h4><ul>
+      <li>三目的：建立因果、找高危險族群、介入改善</li>
+      <li>臺灣玉六步驟：訪視→危害辨識→環境測定→疾病診斷→篩檢→介入；aOR 2.9（0.9–9.2）</li>
+      <li>群聚＝時間＋地點的異常聚集；人、地、時</li>
+      <li>勞職保法 §73 非強制通報 vs 職安法 §37 重大職災 8 小時強制通報</li>
+      <li>通報資料五限制：低通報、差別通報、選擇、延遲、資訊偏差</li></ul></div>
+    <div class="card"><h4><b>02</b>JEM</h4><ul>
+      <li>JEM＝職業 × 危害因子（× 時期）指派群體暴露估計</li>
+      <li>P 暴露比例、L 暴露者平均程度；E＝P×L；CE＝Σ E×年數</li>
+      <li>等級分數只能叫「累積暴露分數」，不是濃度倍數</li>
+      <li>通用型 vs 特定型只是範圍不同 <span class="tag flip">說法改變</span></li>
+      <li>MCC-Spain：aOR 1.09（0.92–1.29），無劑量效應；5 年 lag ≠ 潛伏期</li></ul></div>
+    <div class="card"><h4><b>03</b>長期趨勢</h4><ul>
+      <li>直接標準化 ASR＝Σwᵢrᵢ；例題粗率 95.8→125.6，ASMR 124.3→101.7</li>
+      <li>APC＝100(e^β−1)；AAPC 依區段長度加權 β，不是平均 APC</li>
+      <li>APC 識別問題：世代＝年代－年齡；Poisson＋offset log(PY)</li>
+      <li>NCI 工具只吃病例數＋人年；輸出 net drift、local drifts、period／cohort RR</li>
+      <li>豐田：net drift 4.04%；Joinpoint 2010 轉折</li></ul></div>
+    <div class="card"><h4><b>04</b>地區 APC <span class="tag new">今年新教</span></h4><ul>
+      <li>CRIS 有五歲年齡層→做 APC；資料集 6399 只有逐年率→做 Joinpoint</li>
+      <li>PY＝所有癌症病例 ÷ 所有癌症率 × 10⁵</li>
+      <li>NCI 三錯誤：納入 85+、貼上率、起始年齡太低</li>
+      <li>零格 &gt; 三成只看 net drift 與中段世代</li>
+      <li>肝癌世代反轉 ↔ B 肝疫苗 1984／1986</li></ul></div>
+    <div class="card"><h4><b>05</b>監測・橫斷・病例交叉</h4><ul>
+      <li>Surveillance ≠ cross-sectional：監測沒有非暴露組</li>
+      <li>盛行率 ≈ 發生率 × 病程；評估風險用發生率</li>
+      <li>PR＝[a/(a+b)]÷[c/(c+d)]；OR＝ad/bc</li>
+      <li>干擾三條件；處理 MMRRSS；Hill 時序性為唯一必要條件</li>
+      <li>病例交叉 OR＝不一致配對比；conditional logistic</li></ul></div>
+    <div class="card"><h4><b>06</b>世代・人年・SMR</h4><ul>
+      <li>回溯性世代仍是由暴露往疾病</li>
+      <li>風險人年三步驟：累計到事件或結束、扣潛伏期、排除暴露不足</li>
+      <li>SMR＝O/E；E＝Σ 研究族群各層人年 × 參考族群各層率</li>
+      <li>健康工人效應：中藥 SIR 0.86；礦工肺結核 SMR 241</li>
+      <li>不同職業的 SMR 不宜直接比較</li></ul></div>
+    <div class="card"><h4><b>07</b>存活分析</h4><ul>
+      <li>2/11 對 1/9 是 IRR＝1.64，不是 RR <span class="tag flip">說法改變</span></li>
+      <li>Life table 5 年存活 0.088；KM 0.833→0.625→0.417→0</li>
+      <li>HR＝e^β；比例風險假設＝HR 不隨時間變</li>
+      <li>不死偏差＝人時錯誤分類；方向一定偏向「需先存活才能進入」的組</li>
+      <li>心臟移植 MRR：0.33 → 0.60 → 1.00</li></ul></div>
+  </div>
+
+  <h3>兩年說法不同（以今年為準）</h3>
+  <div class="tw"><table>
+    <tr><th>章</th><th class="l">今年</th><th class="l">去年</th></tr>
+    <tr><td>02</td><td class="l">特定型與通用型 JEM 只是適用範圍不同，不宜推論特定型必然較優</td><td class="l">特定型 JEM 通常優於通用型</td></tr>
+    <tr><td>05</td><td class="l">Hill 第 6 項：排除其他解釋因素</td><td class="l">考慮干擾因子影響</td></tr>
+    <tr><td>07</td><td class="l">2/11 對 1/9 是發生率比（IRR）</td><td class="l">放在 RR 公式頁</td></tr>
+  </table></div>
+
+  <h3>今年新教、去年沒教</h3>
+  <div class="tw"><table>
+    <tr><th>章</th><th class="l">內容</th></tr>
+    <tr><td>01</td><td class="l">職業流病定義、臺灣玉六步驟、群聚調查、§73 對 §37、通報資料五項限制</td></tr>
+    <tr><td>02</td><td class="l">指標表與 CE 公式、建構細節（編碼、LOD、盲性、SEG）、Pukkala、MCC-Spain 結果判讀、信效度；PBL 造船業</td></tr>
+    <tr><td>03</td><td class="l">ASR 公式、APC 公式、AAPC 算法、Poisson offset、NCI 工具輸出；PBL 豐田</td></tr>
+    <tr><td>04</td><td class="l">整章</td></tr>
+    <tr><td>05</td><td class="l">Surveillance 定義、統計方法一覽、盛行率 ≈ 發生率 × 病程；PBL 急性肝炎</td></tr>
+    <tr><td>06</td><td class="l">礦工 SMR 241、SMR 不可互比、健康工人效應減少法、偏差例子、干擾處理；PBL PVC</td></tr>
+    <tr><td>07</td><td class="l">IRR 區分、設限錯誤做法、Hazard／HR、比例風險假設、不死偏差方向；PBL 心臟移植</td></tr>
+  </table></div>
+
+  <h3>去年有教、今年沒有</h3>
+  <div class="tw"><table>
+    <tr><th>章</th><th class="l">內容</th></tr>
+    <tr><td>02</td><td class="l">張火炎矽 JEM（PEP、PPE 分數、EI 連乘）、多重暴露、JEM 比較表、Delphi、資料品質排序、WBGT 門檻</td></tr>
+    <tr><td>03</td><td class="l">各國粗率對 ASR、肺癌政策 Joinpoint、廣島／攝護腺癌／女性勞動例、七種模型 AIC／BIC、西班牙中風 APC</td></tr>
+    <tr><td>05</td><td class="l">MMRRSS 清單、勞工健檢頁</td></tr>
+    <tr><td>07</td><td class="l">假設二（早晚收案存活相同）、奧斯卡得主例、case-cohort、夜班研究全表、R 實作</td></tr>
+  </table></div>
+  <p class="note">第 05 章病例交叉今年講義尚未取得，目前依去年講義。</p>
+</section>
+
 <!-- ============ W1 ============ -->
 <section class="week" id="w1">
   <h2><span class="no">01</span>職業流行病學與群聚事件調查</h2>
   <p class="sub">本章講義沒有 PBL，以下為講義末「課後思考」三題。</p>
+  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
+
+    <h4>職業流行病學</h4>
+    <ul><li>流行病學方法用於勞工族群；三大目的：建立因果關係、找出高危險族群、介入改善（一級與二級預防）。</li>
+      <li>研究六步驟（臺灣玉）：現場訪視（47 次）→ 危害辨識（透閃石－陽起石，非石綿型態角閃石）→ 作業環境測定 → 疾病診斷（ILO ≥ 1/1 或囉音）→ 發展篩檢 → 介入（BOHS、WISE）。</li>
+      <li>測定方法：塊材 XRD／PLM／TEM；空氣 NIOSH 7400 以 PCM 計數；表面擦拭 48.4 f/mm²。TEM 可偵測到大量 PCM 看不見的細纖維（粗磨 PCM 4.70 vs TEM 24 f/cm³）。</li></ul>
+    <h4>群聚事件</h4>
+    <ul><li>群聚＝病例在「時間」與「地點」上異常密集地聚集。</li>
+      <li>描述性流病（人、地、時）回答三問：是否真有群聚、是否環境或職業因素造成、誰是易感族群。</li>
+      <li>例：CCl₄ 化學性肝炎（演繹法＋猜測與否證）、水俁症（甲基汞）、John Snow 點狀地圖、GIS 熱點圖。</li></ul>
+    <h4>兩種通報制度</h4>
+    <div class="tw"><table>
+      <tr><th class="l"></th><th class="l">職業傷病通報</th><th class="l">重大職災通報</th></tr>
+      <tr><td class="l">法源</td><td class="l">勞職保法第 73 條</td><td class="l">職安法第 37 條第 2 項</td></tr>
+      <tr><td class="l">性質</td><td class="l">非強制，「得」通報</td><td class="l">強制，雇主「應」於 8 小時內通報</td></tr>
+    </table></div>
+    <h4>通報資料五項限制</h4>
+    <ul><li>低通報率、差別通報（大醫院較常通報）、選擇性偏差（醫院興趣）、時間延遲、資訊偏差（缺暴露歷程）。</li></ul>
+  </details>
+
 
   <div class="card">
     <div class="lbl">資料：臺灣玉加工各作業區纖維濃度（f/cm³）</div>
@@ -139,6 +261,25 @@ kbd{font:inherit;font-size:13px;border:1px solid var(--line2);border-radius:4px;
 <section class="week" id="w2">
   <h2><span class="no">02</span>PBL 造船業二氧化矽暴露評估</h2>
   <p class="sub">第二章 工作暴露矩陣</p>
+  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
+
+    <h4>指標</h4>
+    <ul><li><b>P</b> 暴露盛行率＝暴露人數 ÷ 調查人數（0–1 的比例，百分比要換成小數）。</li>
+      <li><b>L</b> 暴露程度＝暴露者的平均濃度（算術平均）；不同 JEM 的 L 定義不同，先查資料字典。</li>
+      <li>P 與 L 回答不同問題：P×L 相同不代表個人暴露分布相同。</li></ul>
+    <h4>公式</h4>
+    <span class="f">E ＝ P × L　（職務群體平均濃度，含未暴露者，假設未暴露者＝0）</span>
+    <span class="f">CE ＝ Σ ( E<sub>j</sub> × 年數<sub>j</sub> )　單位 mg/m³·年</span>
+    <span class="f">CE ＝ Σ ( C<sub>j</sub> × D<sub>j</sub> )　或　Σ ( P<sub>j</sub> × L<sub>j</sub> × D<sub>j</sub> )</span>
+    <ul><li>CE 是依職業群體資訊估計的累積暴露，不是個人實際吸入量。</li>
+      <li>等級分數（1／2／3）乘年資 → 只能稱「累積暴露分數」，3 分不等於 3 倍濃度。</li></ul>
+    <h4>判讀重點</h4>
+    <ul><li>只看職稱編碼會把實際有暴露的人誤分為未暴露（暴露誤分類）。</li>
+      <li>個人採樣與區域採樣位置不同；短時間與全班測量時間基礎不同，要先處理可比性。</li>
+      <li>年資長不代表 CE 高：CE 取決於 E × 年數。</li>
+      <li>CE 表只有暴露，要回答「暴露與肺癌」還需要疾病結果、追蹤人年與干擾因子資料。</li></ul>
+  </details>
+
 
   <div class="card">
     <div class="lbl">案例情境</div>
@@ -202,6 +343,32 @@ kbd{font:inherit;font-size:13px;border:1px solid var(--line2);border-radius:4px;
 <section class="week" id="w3">
   <h2><span class="no">03</span>PBL 石綿礦停採後，肺癌風險還在上升嗎</h2>
   <p class="sub">第二章 環境對健康影響的長期趨勢分析</p>
+  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
+
+    <h4>率與標準化</h4>
+    <span class="f">rᵢ ＝ Dᵢ ÷ PYᵢ × 100,000　　wᵢ ＝ Sᵢ ÷ ΣSᵢ　　ASR ＝ Σ wᵢ rᵢ</span>
+    <ul><li>本 PBL 的表給的是「人口數」不是人年：病例 ÷ 人口 × 10⁵ ＝ 每十萬人「每十年」，與每十萬人年差 10 倍（不影響 APC 相對率）。</li>
+      <li>1 例／1 萬人與 100 例／100 萬人同為每十萬 10，但精確度差很多 → 永遠同時看分子與分母。</li></ul>
+    <h4>Joinpoint</h4>
+    <span class="f">ln(rateₜ) ＝ α ＋ βt　　APC ＝ 100 × (e^β − 1)</span>
+    <span class="f">AAPC ＝ 100 × { exp[ Σ(Lⱼβⱼ) ÷ ΣLⱼ ] − 1 }</span>
+    <ul><li>APC ＋5% 持續 10 年 → 1.05¹⁰ ＝ 1.63 倍。</li>
+      <li>APC 的 95% CI 含 0 → 該段上升或下降不明確；「方向」與「顯著」是兩件事（圖中星號＝顯著）。</li>
+      <li>轉折年與停採年重合不等於因果。</li></ul>
+    <h4>APC 模型</h4>
+    <span class="f">世代 c ＝ 年代 p − 年齡 a　→ 識別問題</span>
+    <span class="f">log μₐₚ ＝ log PYₐₚ ＋ α ＋ A(a) ＋ P(p) ＋ C(c)</span>
+    <ul><li>對角線（右移一個年代、下移一個同寬年齡組）＝ 近似同一出生世代。</li>
+      <li>NCI 工具：年齡與年代組距同寬；分母不可為 0、病例可為 0；只吃病例數＋人口／人年。</li>
+      <li>輸出：Net drift＝整體平均年變化；Local drifts＝各年齡層年變化；Period／Cohort RR＝相對參考組的率比；Longitudinal age curve＝控制年代與世代後的年齡曲線。</li>
+      <li>NCI 給 Wald 檢定；表 2-3 是 R Epi 的 deviance 次模型比較，兩者不能互相取代。</li></ul>
+    <h4>模型比較</h4>
+    <span class="f">離差差值 ＝ Deviance(簡單) − Deviance(複雜)　；　df 差 ＝ df(簡單) − df(複雜)</span>
+    <ul><li>Deviance／df ≈ 1 合理；明顯 &gt; 1 可能過度離散。AIC／BIC 越小越好。</li>
+      <li>概似比檢定：離差差值與 χ²(df 差) 比較；χ² 臨界值 df 1＝3.84、df 2＝5.99、df 3＝7.81（α＝0.05）。<span class="tag">通用統計知識</span></li>
+      <li>模型適配好 ≠ 因果關係。</li></ul>
+  </details>
+
 
   <div class="card">
     <div class="lbl">案例情境</div>
@@ -297,6 +464,29 @@ kbd{font:inherit;font-size:13px;border:1px solid var(--line2);border-radius:4px;
 <section class="week" id="w4">
   <h2><span class="no">04</span>PBL 選你關心的地區與癌別</h2>
   <p class="sub">第三章 臺灣癌症登記資料的地區年齡－年代－世代分析</p>
+  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
+
+    <h4>資料來源</h4>
+    <ul><li>CRIS（cris.hpa.gov.tw）：鄉鎮、18 個五歲年齡層、只給率 → 做 APC。資料集 6399：縣市逐年、無年齡層 → 做 Joinpoint。</li>
+      <li>癌登 1979 年起；1990 年代中期以後完整性大幅提升，1979–1995 的上升部分是通報改善。</li></ul>
+    <h4>人年反推</h4>
+    <span class="f">PYᵢ ＝ Dᵢ(所有癌症) ÷ rᵢ(所有癌症) × 100,000</span>
+    <ul><li>用「所有癌症」：病例多、四捨五入誤差小（相對誤差 ≈ 0.005 ÷ r）。零格推不出人年。</li>
+      <li>合計／十年組距：病例數、人年各自加總再算率，不能平均率。</li></ul>
+    <h4>算率</h4>
+    <span class="f">率（每十萬人年）＝ 病例數 ÷ 人年 × 100,000</span>
+    <ul><li>直向＝同一年代不同年齡；橫向＝同一年齡不同年代；對角線＝近似同一出生世代。</li>
+      <li>出生世代 ≈ 年代中點 − 年齡中點（例：30–39 歲於 1979–88 → 約 1940–1958 年出生）。</li></ul>
+    <h4>NCI 工具與稀疏資料</h4>
+    <ul><li>輸入：每列一個年齡層，病例數、人年成對；Start Year、Start Age、Interval（年齡與年代同寬）。</li>
+      <li>三錯誤：納入 85+（建議結束於 84）、貼上率、起始年齡太低。</li>
+      <li>零病例格 &gt; 三成 → 只解讀 net drift 與中段世代；最小人年 &lt; 數千 → 標準誤太大。</li></ul>
+    <h4>判讀與限制</h4>
+    <ul><li>年代效應＝所有年齡一起動；世代效應＝特定出生世代帶著動。Joinpoint 與 APC 都只是提出假說的起點。</li>
+      <li>非暴露解釋：登記完整性、行政區、戶籍地 ≠ 暴露地、子宮頸癌不含原位癌、篩檢與影像（攝護腺、甲狀腺、乳癌）。</li>
+      <li>B 肝疫苗：1984 年 7 月（帶原母親新生兒）、1986 年 7 月（全面）。</li></ul>
+  </details>
+
 
   <div class="card">
     <div class="lbl">情境</div>
@@ -367,6 +557,34 @@ kbd{font:inherit;font-size:13px;border:1px solid var(--line2);border-radius:4px;
 <section class="week" id="w5">
   <h2><span class="no">05</span>PBL 職業性急性肝炎調查</h2>
   <p class="sub">工作者健康監測與橫斷型研究</p>
+  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
+
+    <h4>研究設計</h4>
+    <ul><li>Surveillance ≠ cross-sectional：監測沒有比較組，只給 who／where／when；橫斷型研究同一時間取得暴露與疾病，有比較組。</li>
+      <li>爆發調查第一步常用橫斷型研究：快、便宜、可描述人時地並產生假說；缺點是時序不明、無法估計發生率。</li></ul>
+    <h4>盛行率與發生率</h4>
+    <span class="f">盛行率 ≈ 發生率 × 平均病程</span>
+    <ul><li>評估風險、探討病因 → 發生率；疾病負擔、規劃醫療 → 盛行率。</li></ul>
+    <h4>2×2 表</h4>
+    <div class="tw"><table><tr><th class="l"></th><th>D(+)</th><th>D(−)</th></tr>
+      <tr><td class="l">E(+)</td><td>a</td><td>b</td></tr><tr><td class="l">E(−)</td><td>c</td><td>d</td></tr></table></div>
+    <span class="f">PR ＝ [a/(a+b)] ÷ [c/(c+d)]　　OR ＝ (a/c) ÷ (b/d) ＝ ad / bc</span>
+    <ul><li>OR＝1 無相關；&gt;1 正相關；&lt;1 負相關。</li>
+      <li>格子出現 0 時，本 PBL 規定以 0.5 取代。</li></ul>
+    <h4>干擾因子與分層分析</h4>
+    <ul><li>干擾三條件：C 與暴露 A 相關；C 是疾病 B 的危險因子；C 不在 A→B 的因果路徑上。</li>
+      <li>處理 MMRRSS：多變項迴歸、配對、隨機分派、限制、分層、標準化。</li>
+      <li>分層判讀：各層 OR 相近但與未分層 OR 差很多 → 干擾；各層 OR 彼此差很多 → 交互作用（效應修飾），不該合併成單一 OR。<span class="tag">一般流病原則</span></li></ul>
+    <h4>Hill 因果準則</h4>
+    <ul><li>強度、一致性、<b>時序性（唯一必要條件）</b>、生物合理性、劑量效應、排除其他解釋、停止暴露風險下降、專一性。</li>
+      <li>建立暴露證據：MSDS／成分分析、作業環境測定、生物偵測；時序性：暴露（使用清潔劑）先於發病。</li></ul>
+    <h4>病例交叉設計<span class="tag">去年講義</span></h4>
+    <span class="f">OR ＝ 僅 case period 暴露的配對數 ÷ 僅 control period 暴露的配對數</span>
+    <ul><li>先刪除兩個時期暴露相同的配對（同為 E+ 或同為 E−）。</li>
+      <li>適用短期暴露誘發急性事件；自己當自己對照，消除不隨時間改變的干擾。</li>
+      <li>統計：McNemar（單變項）、conditional logistic regression（多變項）。</li></ul>
+  </details>
+
 
   <div class="card">
     <div class="lbl">情境介紹</div>
@@ -475,6 +693,27 @@ kbd{font:inherit;font-size:13px;border:1px solid var(--line2);border-radius:4px;
 <section class="week" id="w6">
   <h2><span class="no">06</span>PBL PVC 工廠肝血管肉瘤調查</h2>
   <p class="sub">世代研究、風險人年與 SMR</p>
+  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
+
+    <h4>人年與發生密度</h4>
+    <span class="f">發生密度 ＝ 新發病例數 ÷ Σ 風險人年</span>
+    <ul><li>1 人年＝1 位具罹病風險者觀察 1 年。</li></ul>
+    <h4>風險人年三步驟</h4>
+    <ul><li>① 從開始暴露累計到發病／死亡或研究結束；<b>離職、退休、不再暴露後仍繼續累計</b>（風險來自過去暴露）。</li>
+      <li>② 扣除潛伏期內的人年：只留高風險人年；否則年輕健康的人年使 E 增加而 O 幾乎不增，SMR 被稀釋（健康工人效應）。</li>
+      <li>③ 排除暴露時間不足者的人年；從未暴露者（行政人員）不列入暴露世代。</li>
+      <li>在度過潛伏期前就死亡的人，從未貢獻風險人年，不納入。</li></ul>
+    <h4>間接標準化</h4>
+    <span class="f">E ＝ Σ（研究族群各層人年 × 參考族群各層率）</span>
+    <span class="f">SMR ＝ O ÷ E　（＞1 或 ＞100：風險高於參考族群）</span>
+    <ul><li>例：礦工肺結核 O＝436、E＝181.09 → SMR 241。</li>
+      <li>參考族群率＝每年死亡數 ÷ 參考人口（例：27 ÷ 2 億）。</li>
+      <li>不同職業的 SMR 各用自己的年齡結構當權重，不宜直接互比。</li></ul>
+    <h4>偏差</h4>
+    <ul><li>健康工人效應：以一般民眾為參考常使職業世代風險偏低（中藥從業人員全部癌症 SIR 0.86）；減少法：扣潛伏期人年、廠內低暴露對照、劑量效應分析。</li>
+      <li>失去追蹤、結果評估偏差（應單盲）、資訊偏差（相同標準程序）、干擾（分層、Poisson、Cox）。</li></ul>
+  </details>
+
 
   <div class="card">
     <div class="lbl">情境介紹</div>
@@ -546,6 +785,30 @@ kbd{font:inherit;font-size:13px;border:1px solid var(--line2);border-radius:4px;
 <section class="week" id="w7">
   <h2><span class="no">07</span>PBL 心臟移植能延長存活嗎？</h2>
   <p class="sub">第七章 存活分析</p>
+  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
+
+    <h4>率比</h4>
+    <span class="f">IRR（或 MRR）＝ (事件數₁ ÷ 人年₁) ÷ (事件數₀ ÷ 人年₀)</span>
+    <ul><li>分母是人年 → 叫發生率比／死亡率比，不叫 RR（RR 分母是人數）。</li></ul>
+    <h4>設限與存活曲線</h4>
+    <ul><li>設限＝研究結束未發病或中途失追，只知存活時間下限；錯誤做法：刪除設限者、把設限者當沒發病（高估存活）。</li>
+      <li>非資訊性設限：被設限者與繼續追蹤者存活機率相同。</li></ul>
+    <span class="f">Life table：Pₖ ＝ 第 k 年底仍未發病 ÷ 第 k−1 年底仍未發病且有被追蹤到第 k 年者；累積存活 ＝ P₁×P₂×…</span>
+    <span class="f">KM：每個事件時點 存活機率 ＝ 1 − 發病數 ÷ 當時仍在追蹤且未發病人數；累積 ＝ 連乘</span>
+    <h4>Hazard 與 Cox</h4>
+    <span class="f">log HR ＝ β₁x₁ ＋ … ＋ βₚxₚ　　HR ＝ e^β</span>
+    <ul><li>例：β＝−0.38 → HR 0.68，危險降低 32%。</li>
+      <li>比例風險假設：HR 在追蹤期間固定；暴露會變時設為時間相依變項。</li></ul>
+    <h4>不死偏差</h4>
+    <ul><li>不死時間：依研究設計，研究對象不可能發生事件的追蹤時間（如移植前的等候期被算進移植組）。</li>
+      <li>本質是人時錯誤分類；必定讓「需先存活才能進入」的組看起來較好。</li></ul>
+    <div class="tw"><table><tr><th class="l">方法</th><th class="l">作法</th><th class="l">結果</th></tr>
+      <tr><td class="l">時間固定（含不死時間）</td><td class="l">曾移植者從收案起算移植組</td><td class="l">錯誤分類偏差</td></tr>
+      <tr><td class="l">時間固定（刪除不死時間）</td><td class="l">移植組從移植日起算，前段刪掉</td><td class="l">選擇偏差（等候人時沒歸組）</td></tr>
+      <tr><td class="l">時間相依</td><td class="l">移植前人時算未移植組，移植後算移植組（拆成兩筆紀錄）</td><td class="l">正確</td></tr></table></div>
+    <ul><li>拆紀錄：移植前那筆的結局是「存活（轉組）」，移植後那筆接續到追蹤結束；總人年不變。</li></ul>
+  </details>
+
 
   <div class="card">
     <div class="lbl">情境介紹</div>
@@ -787,14 +1050,17 @@ kbd{font:inherit;font-size:13px;border:1px solid var(--line2);border-radius:4px;
   /* ---------- tabs ---------- */
   var tabs = document.querySelectorAll("#tabs a");
   function show(id){
-    if(!document.getElementById(id)) id = "w1";
+    if(!document.getElementById(id)) id = "w0";
     document.querySelectorAll("section.week").forEach(function(s){ s.classList.toggle("on", s.id===id); });
-    tabs.forEach(function(a){ if(a.getAttribute("href")==="#"+id){ a.setAttribute("aria-current","page"); a.scrollIntoView({block:"nearest",inline:"nearest"}); } else a.removeAttribute("aria-current"); });
+    tabs.forEach(function(a){ if(a.getAttribute("href")==="#"+id){ a.setAttribute("aria-current","page"); var nav=a.parentNode; nav.scrollLeft = a.offsetLeft - nav.offsetLeft - 16; } else a.removeAttribute("aria-current"); });
     try{ localStorage.setItem(PREFIX+"_tab", id); }catch(e){}
   }
   window.addEventListener("hashchange", function(){ show(location.hash.slice(1)); window.scrollTo(0,0); });
-  var start = location.hash.slice(1); if(!start){ try{ start = localStorage.getItem(PREFIX+"_tab")||"w1"; }catch(e){ start="w1"; } }
+  var start = location.hash.slice(1); if(!start){ try{ start = localStorage.getItem(PREFIX+"_tab")||"w0"; }catch(e){ start="w0"; } }
   show(start);
+  tabs.forEach(function(a){ a.addEventListener("click", function(e){ e.preventDefault(); var id=a.getAttribute("href").slice(1);
+    try{ history.replaceState(null,"","#"+id); }catch(err){} show(id); window.scrollTo(0,0); }); });
+  window.addEventListener("load", function(){ setTimeout(function(){ window.scrollTo(0,0); }, 0); });
 
   /* ---------- export / import / clear ---------- */
   document.getElementById("exportBtn").addEventListener("click", function(){
