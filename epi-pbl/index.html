@@ -11,13 +11,15 @@
   --bg:#000;--surface:#0b0b0b;--surface2:#121212;--line:#222;--line2:#2e2e2e;
   --text:#e9e9e9;--muted:#8d8d8d;--accent:#5fd4c4;--accent-dim:#1c3f3a;
   --ok:#5fd48a;--bad:#ff6b6b;--warn:#e8b45a;
+  color-scheme:dark;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--text);
   font:16px/1.7 system-ui,-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
-header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);
-  padding:10px 16px 0;padding-top:max(10px,env(safe-area-inset-top))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);
+  padding-block:10px 0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:920px;margin:0 auto}
 h1{font-size:17px;margin:0;font-weight:600;letter-spacing:.02em;min-width:0;flex:1}
 .tools{display:flex;gap:6px}
@@ -28,7 +30,7 @@ nav a{flex:0 0 auto;color:var(--muted);text-decoration:none;padding:8px 12px 10p
   font-size:14px;white-space:nowrap}
 nav a b{color:var(--accent);font-weight:700;margin-right:4px}
 nav a[aria-current="page"]{color:var(--text);border-bottom-color:var(--accent)}
-main{max-width:920px;margin:0 auto;padding:16px 16px 80px}
+main{max-width:920px;margin:0 auto;padding-block:16px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 section.week{display:none}
 section.week.on{display:block}
 h2{font-size:21px;margin:8px 0 4px;line-height:1.4}
@@ -72,7 +74,7 @@ details.ref[open] summary{margin-bottom:6px}
 pre.paste{background:var(--surface2);border:1px solid var(--line2);border-radius:8px;padding:10px;overflow-x:auto;font-size:13px;line-height:1.5}
 .calc{display:grid;grid-template-columns:auto auto auto 1fr;gap:6px 8px;align-items:center;font-size:14px;margin:8px 0}
 .calc .out{color:var(--accent);font-variant-numeric:tabular-nums}
-.saved{position:fixed;right:16px;bottom:16px;background:var(--surface2);border:1px solid var(--line2);color:var(--muted);
+.saved{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;background:var(--surface2);border:1px solid var(--line2);color:var(--muted);
   font-size:12px;padding:4px 10px;border-radius:999px;opacity:0;transition:opacity .3s}
 .saved.show{opacity:1}
 kbd{font:inherit;font-size:13px;border:1px solid var(--line2);border-radius:4px;padding:0 4px}
@@ -95,6 +97,22 @@ details.concept li{margin:3px 0}
 .ov .card h4{margin:0 0 6px;color:var(--text)}
 .ov .card h4 b{color:var(--accent);margin-right:6px}
 .ov ul{margin:0;padding-left:18px;font-size:14.5px}
+
+.explain{margin:16px 0 4px;border-top:1px dashed var(--line2);padding-top:12px}
+.explain .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.explain button.ask{border-color:var(--accent);color:var(--accent);font-weight:600}
+.explain .status{color:var(--muted);font-size:13px}
+.explain .ans{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:15px;min-width:0}
+.explain .ans:empty{display:none}
+.explain .ans h4{color:var(--accent);margin:14px 0 4px;font-size:15px}
+.explain .ans h4:first-child{margin-top:4px}
+.explain .ans ul,.explain .ans ol{margin:4px 0;padding-left:20px}
+.explain .ans p{margin:6px 0}
+.explain .ans code{background:#000;border:1px solid var(--line2);border-radius:4px;padding:0 4px;font-size:.92em}
+.explain .ans .tw{margin:8px 0}
+.keyform{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;font-size:13.5px;color:var(--muted)}
+.keyform input{flex:1 1 220px;min-width:0;background:var(--surface2);color:var(--text);border:1px solid var(--line2);border-radius:6px;padding:5px 8px;font:inherit;font-size:14px}
+.linkbtn{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;font-size:13px;cursor:pointer}
 @media (max-width:560px){
   h1{font-size:14px}
   .tools button{padding:5px 8px;font-size:12px}
@@ -131,7 +149,7 @@ details.concept li{margin:3px 0}
 <!-- ============ W0 ============ -->
 <section class="week" id="w0">
   <h2><span class="no">00</span>期中考重點整理</h2>
-  <p class="sub">範圍 01–07 共 7 章，以今年講義為準。<span class="tag new">今年新教</span>＝去年講義沒有；<span class="tag flip">說法改變</span>＝兩年寫法不同，考試照今年。</p>
+  <p class="sub">範圍 01–07 共 7 章，以今年講義為準。<span class="tag new">今年新教</span>＝去年講義沒有；<span class="tag flip">說法改變</span>＝兩年寫法不同，考試照今年。每個題組下方的「詳解・批改」會把題目與你的作答送給 Claude 批改。</p>
 
   <h3 style="border-top:0;padding-top:0;margin-top:12px">各章一句話與必背數字</h3>
   <div class="ov">
@@ -905,7 +923,7 @@ details.concept li{margin:3px 0}
 </section>
 
 </main>
-<div class="saved" id="saved">已自動儲存</div>
+<div class="saved" id="saved" role="status">已自動儲存</div>
 
 <script>
 (function(){
@@ -913,7 +931,8 @@ details.concept li{margin:3px 0}
   var PREFIX = "epi-pbl:";
   function load(k){ try{ return localStorage.getItem(PREFIX+k); }catch(e){ return null; } }
   function save(k,v){ try{ if(v===""){ localStorage.removeItem(PREFIX+k); } else { localStorage.setItem(PREFIX+k,v); } flash(); }catch(e){} }
-  var t; function flash(){ var s=document.getElementById("saved"); s.classList.add("show"); clearTimeout(t); t=setTimeout(function(){s.classList.remove("show");},900); }
+  var t; function flash(msg, ms){ var s=document.getElementById("saved"); s.textContent = msg||"已自動儲存"; s.classList.add("show"); clearTimeout(t); t=setTimeout(function(){s.classList.remove("show");}, ms||900); }
+  window.__flash = flash;
 
   /* ---------- data tables ---------- */
   function fmt(n){ return typeof n==="number" ? n.toLocaleString("en-US") : n; }
@@ -1066,9 +1085,14 @@ details.concept li{margin:3px 0}
   document.getElementById("exportBtn").addEventListener("click", function(){
     var out = {};
     try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k.indexOf(PREFIX)===0 && k!==PREFIX+"_tab") out[k.slice(PREFIX.length)] = localStorage.getItem(k); } }catch(e){}
-    var blob = new Blob([JSON.stringify(out,null,1)], {type:"application/json"});
-    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "epi-pbl-answers.json"; a.click();
-    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    var json = JSON.stringify(out,null,1), name = "epi-pbl-answers.json";
+    var useDl = (window.claude && window.claude.use) ? window.claude.use("downloads") : Promise.resolve(null);
+    useDl.then(function(dl){
+      if(dl){ return dl.save({filename:name, data:json}).then(function(){ flash("已匯出", 1500); }).catch(function(e){ if(e && e.code!=="cancelled" && e.code!=="declined") flash("匯出失敗："+(e.code||""), 3000); }); }
+      var blob = new Blob([json], {type:"application/json"});
+      var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    });
   });
   document.getElementById("importBtn").addEventListener("click", function(){ document.getElementById("importFile").click(); });
   document.getElementById("importFile").addEventListener("change", function(e){
@@ -1077,16 +1101,258 @@ details.concept li{margin:3px 0}
       var data = JSON.parse(txt);
       Object.keys(data).forEach(function(k){ save(k, data[k]); var el=document.querySelector('[data-k="'+k+'"]'); if(el) el.value=data[k]; });
       document.querySelectorAll(".calc").forEach(function(b){ b._update && b._update(); });
-      alert("已匯入 "+Object.keys(data).length+" 項作答");
-    }).catch(function(){ alert("檔案格式不對"); });
+      flash("已匯入 "+Object.keys(data).length+" 項作答", 2500);
+    }).catch(function(){ flash("檔案格式不對，請選匯出的 .json 檔", 3000); });
   });
   document.getElementById("clearBtn").addEventListener("click", function(){
     var sec = document.querySelector("section.week.on"); if(!sec) return;
-    if(!confirm("清除「"+sec.querySelector("h2").textContent+"」的所有作答？")) return;
+    var btn = document.getElementById("clearBtn");
+    if(!btn.dataset.armed){ btn.dataset.armed = "1"; btn.textContent = "再按一次清除"; setTimeout(function(){ delete btn.dataset.armed; btn.textContent = "清除"; }, 3000); return; }
+    delete btn.dataset.armed; btn.textContent = "清除";
     sec.querySelectorAll("[data-k]").forEach(function(el){ el.value=""; save(el.getAttribute("data-k"),""); el.classList.remove("ok","bad"); });
     sec.querySelectorAll(".result").forEach(function(r){ r.textContent=""; });
+    sec.querySelectorAll(".explain .ans").forEach(function(r){ r.innerHTML=""; });
+    flash("已清除本週作答", 1500);
     document.querySelectorAll(".calc").forEach(function(b){ b._update && b._update(); });
   });
+})();
+</script>
+
+<script>
+(function(){
+  "use strict";
+  var KEY_STORE = "epi-pbl-apikey";           /* kept apart from answers; never exported */
+  var API_MODEL = "claude-sonnet-5-5";
+  function getKey(){ try{ return localStorage.getItem(KEY_STORE)||""; }catch(e){ return ""; } }
+  function setKey(v){ try{ if(v) localStorage.setItem(KEY_STORE,v); else localStorage.removeItem(KEY_STORE); }catch(e){} }
+
+  /* ---------- serialize page text for the prompt ---------- */
+  var SKIP = "input,textarea,button,script,style,.explain,details.concept,details.ref,.calc,.result,.keyform";
+  function ser(node){
+    var out = "";
+    node.childNodes.forEach(function(n){
+      if(n.nodeType===3){ out += n.nodeValue.replace(/\s+/g," "); return; }
+      if(n.nodeType!==1 || n.matches(SKIP)) return;
+      var t = n.tagName;
+      if(t==="TABLE"){ out += "\n" + Array.prototype.map.call(n.rows, function(r){ return Array.prototype.map.call(r.cells, function(c){ return c.textContent.replace(/\s+/g," ").trim(); }).join(" | "); }).join("\n") + "\n"; return; }
+      if(t==="IMG"){ out += "[圖：" + (n.alt||"") + "]"; return; }
+      if(t==="BR"){ out += "\n"; return; }
+      if(t==="SUP"){ out += "^" + n.textContent; return; }
+      if(t==="SUB"){ out += "_" + n.textContent; return; }
+      var block = /^(P|DIV|LI|H1|H2|H3|H4|FIGURE|FIGCAPTION|OL|UL|SECTION|PRE|SUMMARY|DETAILS)$/.test(t);
+      if(t==="LI") out += "\n- "; else if(block) out += "\n";
+      out += ser(n);
+      if(block) out += "\n";
+    });
+    return out;
+  }
+  function tidy(x){ return x.replace(/[ \t]+\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim(); }
+
+  function labelOf(el){
+    if(el.closest(".calc")){
+      var k = el.getAttribute("data-k"), m = k.match(/-(\d+)([lab])$/);
+      return "發生率計算器第 " + (m?m[1]:"?") + " 列・" + ({l:"哪一格",a:"病例數",b:"分母"}[m?m[2]:"l"]);
+    }
+    var tr = el.closest("tr");
+    if(tr){
+      var table = tr.closest("table"), td = el.closest("td");
+      var idx = Array.prototype.indexOf.call(tr.cells, td);
+      var head = table.rows[0].cells[Math.min(idx, table.rows[0].cells.length-1)];
+      var parts = Array.prototype.slice.call(tr.cells, 0, idx).map(function(c){ return c.textContent.replace(/\s+/g," ").trim(); }).filter(Boolean);
+      return "表格列「" + parts.join("／") + "」・欄「" + (head? head.textContent.replace(/\s+/g," ").trim() : "") + "」";
+    }
+    var near = "";
+    if(el.tagName === "INPUT"){
+      var ps = el.previousSibling;
+      while(ps && ps.nodeType === 1 && ps.tagName !== "INPUT" && !/\S/.test(ps.textContent)) ps = ps.previousSibling;
+      if(ps && ps.nodeType === 3) near = ps.nodeValue.replace(/\s+/g," ").trim().slice(-30);
+      if(near) near = "（緊接在「" + near + "」之後的空格）";
+    }
+    var li = el.closest("li"); if(li) return tidy(ser(li)) + near;
+    var p = el.closest("p"); if(p) return tidy(ser(p)) + near;
+    if(el.tagName==="TEXTAREA"){
+      var prev = el.previousElementSibling;
+      while(prev && !/^(P|H3|H4)$/.test(prev.tagName)) prev = prev.previousElementSibling;
+      return (el.placeholder? el.placeholder + "　" : "") + (prev? tidy(ser(prev)) : "");
+    }
+    return el.getAttribute("data-k");
+  }
+
+  function buildPrompt(section, group, title){
+    var ctx = tidy(ser(section)).slice(0, 24000);
+    var lines = [], answered = 0;
+    group.forEach(function(node){
+      var fields = node.matches && node.matches("[data-k]") ? [node] : Array.prototype.slice.call(node.querySelectorAll ? node.querySelectorAll("[data-k]") : []);
+      fields.forEach(function(el){
+        var v = (el.value||"").trim(); if(v) answered++;
+        var line = "- 【" + labelOf(el) + "】（" + el.getAttribute("data-k") + "）\n  學生答案：" + (v || "（未作答）");
+        if(el.hasAttribute("data-ans")) line += "\n  頁面參考值（作者自行計算，非官方，可能有誤）：" + el.getAttribute("data-ans");
+        lines.push(line);
+      });
+    });
+    var refText = "";
+    group.forEach(function(node){ if(node.matches && node.matches("details.ref")) refText += tidy(node.textContent) + "\n"; if(node.querySelectorAll) node.querySelectorAll("details.ref").forEach(function(d){ refText += tidy(d.textContent) + "\n"; }); });
+    var prompt =
+"你是臺大公衛學院「環境及職業流行病學」課程的助教，正在批改一位職業醫學科住院醫師的 PBL 作答（期中考複習用）。\n" +
+"請依據下面「講義內容」裡的題目與資料，批改「本題組」的每一個作答欄位。\n\n" +
+"規則：\n" +
+"1. 用繁體中文（臺灣用語）；專有名詞保留英文原文。\n" +
+"2. 逐題寫：小標（題目簡稱）→ 判定（✅ 正確／⚠️ 部分正確／❌ 錯誤／— 未作答）→ 學生答案的問題在哪 → 詳解（觀念與做法；計算題寫出算式與數字）。\n" +
+"3. 以講義內容為準。講義沒寫、你用一般流行病學知識補充的地方，句末標「（講義外補充）」。\n" +
+"4. 頁面附的參考值是作者自行計算，不是官方答案；你要自己驗算，若參考值有誤請明確指出。\n" +
+"5. 未作答的題目也給精簡詳解。表格欄位可以合併成一題批改。\n" +
+"6. 最後以「### 總評」一到兩句收尾，指出最該加強的觀念。\n" +
+"7. 只輸出 Markdown，用 ### 當每題小標，不要開場白，不要重抄題目全文。\n\n" +
+"## 講義內容（本週）\n" + ctx + "\n\n" +
+(refText ? "## 頁面附的參考數字（作者自行計算，非官方）\n" + refText + "\n" : "") +
+"## 本題組\n" + title + "\n\n" +
+"## 學生作答\n" + lines.join("\n");
+    return { prompt: prompt, answered: answered, total: lines.length };
+  }
+
+  /* ---------- tiny markdown renderer ---------- */
+  function esc(x){ return x.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function inline(x){ return esc(x).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>"); }
+  function md(src){
+    var L = src.replace(/\r/g,"").split("\n"), h = "", i = 0, list = null;
+    function close(){ if(list){ h += "</"+list+">"; list = null; } }
+    while(i < L.length){
+      var l = L[i];
+      if(/^\s*\|.*\|\s*$/.test(l) && i+1 < L.length && /^\s*\|?\s*:?-{2,}/.test(L[i+1])){
+        close(); var rows = [];
+        while(i < L.length && /^\s*\|.*\|\s*$/.test(L[i])){ rows.push(L[i]); i++; }
+        var cells = function(r){ return r.trim().replace(/^\||\|$/g,"").split("|").map(function(c){ return c.trim(); }); };
+        var t = '<div class="tw"><table><tr>' + cells(rows[0]).map(function(c){ return '<th class="l">'+inline(c)+"</th>"; }).join("") + "</tr>";
+        rows.slice(2).forEach(function(r){ t += "<tr>" + cells(r).map(function(c){ return '<td class="l">'+inline(c)+"</td>"; }).join("") + "</tr>"; });
+        h += t + "</table></div>"; continue;
+      }
+      var m;
+      if((m = l.match(/^#{1,6}\s+(.*)/))){ close(); h += "<h4>"+inline(m[1])+"</h4>"; }
+      else if((m = l.match(/^\s*[-*]\s+(.*)/))){ if(list!=="ul"){ close(); h += "<ul>"; list = "ul"; } h += "<li>"+inline(m[1])+"</li>"; }
+      else if((m = l.match(/^\s*\d+[.)]\s+(.*)/))){ if(list!=="ol"){ close(); h += "<ol>"; list = "ol"; } h += "<li>"+inline(m[1])+"</li>"; }
+      else if(/^\s*$/.test(l)){ close(); }
+      else if(/^\s*---+\s*$/.test(l)){ close(); }
+      else { close(); h += "<p>"+inline(l)+"</p>"; }
+      i++;
+    }
+    close(); return h;
+  }
+
+  /* ---------- engines ---------- */
+  var samplePromise = null;
+  function getSample(){
+    if(!(window.claude && window.claude.use)) return Promise.resolve(null);
+    if(!samplePromise) samplePromise = window.claude.use("sample");
+    return samplePromise;
+  }
+  function runSample(sample, prompt, onText, signal){
+    return sample(prompt, { onText: function(u){ onText(u.text); }, signal: signal, modelTier: "default" })
+      .then(function(r){ return { text: r.text, truncated: r.truncated }; });
+  }
+  function runApi(key, prompt, onText, signal){
+    return fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST", signal: signal,
+      headers: { "content-type":"application/json", "x-api-key": key, "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true" },
+      body: JSON.stringify({ model: API_MODEL, max_tokens: 4000, stream: true, messages: [{ role:"user", content: prompt }] })
+    }).then(function(res){
+      if(!res.ok){
+        return res.text().then(function(body){
+          var msg = ""; try{ msg = JSON.parse(body).error.message; }catch(e){ msg = body.slice(0,200); }
+          var err = new Error(msg); err.status = res.status; throw err;
+        });
+      }
+      var reader = res.body.getReader(), dec = new TextDecoder(), buf = "", text = "", stop = null;
+      function pump(){
+        return reader.read().then(function(r){
+          if(r.done) return { text: text, truncated: stop === "max_tokens" };
+          buf += dec.decode(r.value, { stream: true });
+          var parts = buf.split("\n\n"); buf = parts.pop();
+          parts.forEach(function(evt){
+            evt.split("\n").forEach(function(line){
+              if(line.indexOf("data:") !== 0) return;
+              var d; try{ d = JSON.parse(line.slice(5)); }catch(e){ return; }
+              if(d.type === "content_block_delta" && d.delta && d.delta.type === "text_delta"){ text += d.delta.text; onText(text); }
+              else if(d.type === "message_delta" && d.delta && d.delta.stop_reason){ stop = d.delta.stop_reason; }
+              else if(d.type === "error"){ var err = new Error(d.error && d.error.message || "API error"); err.status = 0; throw err; }
+            });
+          });
+          return pump();
+        });
+      }
+      return pump();
+    });
+  }
+  var SAMPLE_COPY = {
+    not_granted: "你沒有允許這個頁面使用 Claude。要使用詳解，請重新開啟頁面並在提示時選允許。",
+    sampling_disabled: "這個帳號目前無法在頁面中使用 Claude。",
+    rate_limited: "使用次數太頻繁或已達用量上限，請稍後再試。",
+    session_expired: "登入已過期，請重新登入 claude.ai。",
+    refused: "Claude 拒絕了這次請求，請修改作答內容再試。",
+    prompt_too_large: "這一題組的內容太長，請縮短作答。",
+    upstream_error: "連線中斷，請再按一次。"
+  };
+
+  /* ---------- panels ---------- */
+  function keyForm(panel, then){
+    var f = document.createElement("div"); f.className = "keyform";
+    f.innerHTML = '<span>貼上你的 Anthropic API key（只存在這台瀏覽器，費用依 API 計價）</span>' +
+      '<input type="password" autocomplete="off" placeholder="sk-ant-…" aria-label="Anthropic API key"><button type="button">儲存並批改</button>';
+    var inp = f.querySelector("input");
+    f.querySelector("button").addEventListener("click", function(){ var v = inp.value.trim(); if(!v) return; setKey(v); f.remove(); then(); });
+    panel.querySelector(".bar").after(f); inp.focus();
+  }
+
+  function attach(section){
+    var kids = Array.prototype.slice.call(section.children);
+    var groups = [], cur = null;
+    var startIdx = kids.findIndex(function(k){ return k.tagName === "H3"; });
+    if(startIdx === -1){
+      var after = kids.filter(function(k){ return !k.matches("h2,.sub,details.concept"); });
+      groups.push({ title: section.querySelector("h2").textContent, nodes: after, anchor: kids[kids.length-1] });
+    } else {
+      kids.slice(startIdx).forEach(function(k){
+        if(k.tagName === "H3"){ cur = { title: k.textContent, nodes: [], anchor: k }; groups.push(cur); }
+        else { cur.nodes.push(k); cur.anchor = k; }
+      });
+    }
+    groups.forEach(function(g){
+      if(!g.nodes.some(function(n){ return (n.matches && n.matches("[data-k]")) || (n.querySelector && n.querySelector("[data-k]")); })) return;
+      var panel = document.createElement("div"); panel.className = "explain";
+      panel.innerHTML = '<div class="bar"><button type="button" class="ask">詳解・批改</button><button type="button" class="stop" hidden>停止</button><span class="status"></span><button type="button" class="linkbtn rekey" hidden>更換 API key</button></div><div class="ans" aria-live="polite"></div>';
+      g.anchor.after(panel);
+      var ask = panel.querySelector(".ask"), stopB = panel.querySelector(".stop"), status = panel.querySelector(".status"), out = panel.querySelector(".ans"), rekey = panel.querySelector(".rekey");
+      var ctl = null;
+      stopB.addEventListener("click", function(){ if(ctl) ctl.abort(); });
+      rekey.addEventListener("click", function(){ setKey(""); rekey.hidden = true; keyForm(panel, go); });
+      function go(){
+        var built = buildPrompt(section, g.nodes, (section.querySelector("h2").textContent + "｜" + g.title).trim());
+        if(!built.answered){ status.textContent = "這一題組還沒作答。再按一次會直接給詳解。"; if(!panel.dataset.warned){ panel.dataset.warned = "1"; return; } }
+        ask.disabled = true; stopB.hidden = false; status.textContent = "Claude 思考中…"; out.innerHTML = "";
+        ctl = new AbortController();
+        var onText = function(t){ status.textContent = "撰寫中…"; out.innerHTML = md(t); };
+        getSample().then(function(sample){
+          if(sample) return runSample(sample, built.prompt, onText, ctl.signal);
+          var key = getKey();
+          if(!key){ ask.disabled = false; stopB.hidden = true; status.textContent = ""; keyForm(panel, go); return null; }
+          rekey.hidden = false;
+          return runApi(key, built.prompt, onText, ctl.signal);
+        }).then(function(r){
+          if(!r) return;
+          out.innerHTML = md(r.text);
+          status.textContent = r.truncated ? "回答被截斷，可以分開批改較少題目。" : "批改完成（Claude 判斷僅供參考）";
+        }).catch(function(e){
+          if(e && e.text) out.innerHTML = md(e.text);
+          if(e && (e.code === "cancelled" || e.name === "AbortError")){ status.textContent = "已停止"; return; }
+          if(e && e.code){ status.textContent = SAMPLE_COPY[e.code] || ("批改失敗（" + e.code + "）"); if(e.code==="refused") out.innerHTML = ""; return; }
+          if(e && e.status === 401){ setKey(""); status.textContent = "API key 無效，請重新輸入。"; keyForm(panel, go); return; }
+          if(e && e.status === 429){ status.textContent = "API 請求太頻繁或額度不足，請稍後再試。"; return; }
+          status.textContent = "批改失敗：" + ((e && e.message) || "無法連線到 Anthropic API");
+        }).then(function(){ ask.disabled = false; stopB.hidden = true; ctl = null; });
+      }
+      ask.addEventListener("click", go);
+    });
+  }
+  document.querySelectorAll("section.week").forEach(function(sec){ if(sec.id !== "w0") attach(sec); });
 })();
 </script>
 </body>
