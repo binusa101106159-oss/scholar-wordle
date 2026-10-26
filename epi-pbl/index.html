@@ -14,6 +14,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--text);
   font:16px/1.7 system-ui,-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
@@ -129,6 +130,15 @@ dl.sym dt{color:var(--accent);font-weight:600;white-space:nowrap}
 dl.sym dd{margin:0;min-width:0}
 .deriv{border-left:2px solid var(--line2);padding-left:10px;margin:8px 0}
 .dl{font-size:14.5px;margin:4px 0}
+
+details.fold{margin:6px 0 10px}
+details.fold>summary{cursor:pointer;display:inline-block;list-style:none;font-size:13.5px;color:var(--accent);
+  border:1px solid var(--accent-dim);border-radius:999px;padding:1px 12px;user-select:none}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::before{content:"＋ ";}
+details.fold[open]>summary::before{content:"－ ";}
+details.fold[open]>summary{margin-bottom:6px}
+details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:none;border-color:var(--accent)}
 @media (max-width:560px){dl.sym{grid-template-columns:minmax(0,1fr)} dl.sym dt{margin-top:6px} dl.sym dd{padding-left:8px}}
 @media (max-width:560px){
   h1{font-size:14px}
@@ -259,8 +269,8 @@ dl.sym dd{margin:0;min-width:0}
   <p class="sub">本章講義沒有 PBL，以下為講義末「課後思考」三題。</p>
 
   <details class="concept" open><summary>本週觀念與名詞</summary>
-    <h4>名詞定義</h4>
-    <dl class="sym">
+    <details class="fold"><summary>名詞定義
+    </summary><dl class="sym">
       <dt>職業流行病學</dt><dd>把流行病學方法用在勞工族群，研究工作場所暴露對疾病與傷害頻率、分布的影響。三大目的：建立因果關係、找出高危險族群、介入改善（一級與二級預防）。</dd>
       <dt>群聚 cluster</dt><dd>病例在「時間」與「地點」上異常密集地聚集。</dd>
       <dt>人、地、時</dt><dd>描述性流行病學的三個面向（person、place、time），用來回答：是否真有群聚、是否環境或職業因素造成、誰是易感族群。</dd>
@@ -268,7 +278,7 @@ dl.sym dd{margin:0;min-width:0}
       <dt>TEM</dt><dd>穿透式電子顯微鏡（transmission electron microscopy），可辨識礦物種類並看到 PCM 看不見的細纖維。</dd>
       <dt>f/cm³</dt><dd>每立方公分空氣中的纖維根數（fibers per cubic centimeter）。</dd>
       <dt>aOR</dt><dd>校正勝算比（adjusted odds ratio），已用多變項模型校正干擾因子（臺灣玉研究校正吸菸包-年與年齡）。</dd>
-    </dl>
+    </dl></details>
     <h4>臺灣玉研究六步驟</h4>
     <ul><li>① 現場訪視（47 次）→ ② 危害辨識（透閃石－陽起石，非石綿型態角閃石）→ ③ 作業環境測定 → ④ 疾病診斷（胸部 X 光 ILO ≥ 1/1 或聽診囉音）→ ⑤ 發展篩檢方法 → ⑥ 介入改善（BOHS、WISE 檢核表）。</li>
       <li>結果：從事軟玉加工之肺纖維化 aOR 2.9（95% CI 0.9–9.2）。</li>
@@ -314,8 +324,8 @@ dl.sym dd{margin:0;min-width:0}
   <p class="sub">第二章 工作暴露矩陣</p>
 
   <details class="concept" open><summary>本週觀念與公式</summary>
-    <h4>代號定義</h4>
-    <dl class="sym">
+    <details class="fold"><summary>代號定義
+    </summary><dl class="sym">
       <dt>RCS</dt><dd>可吸入結晶型二氧化矽（respirable crystalline silica）。</dd>
       <dt>N</dt><dd>某職務的調查人數（人）。</dd>
       <dt>n</dt><dd>其中判定為暴露者的人數（人）。</dd>
@@ -327,18 +337,19 @@ dl.sym dd{margin:0;min-width:0}
       <dt>D<sub>j</sub></dt><dd>第 j 段工作的持續期間（年）＝本題的「工作年數」。</dd>
       <dt>Σ</dt><dd>加總：把每一段工作的值加起來。</dd>
       <dt>CE</dt><dd>累積暴露（cumulative exposure），單位 mg/m³·年。</dd>
-    </dl>
+    </dl></details>
 
     <h4>公式一：E ＝ P × L</h4>
-    <div class="deriv">
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">某職務共 N 人：n 人暴露、平均濃度 L；N − n 人未暴露、濃度假設為 0。</div>
       <span class="f">E ＝ 全部人員濃度總和 ÷ 全部人數 ＝ [ n × L ＋ (N − n) × 0 ] ÷ N</span>
       <span class="f">　 ＝ (n ÷ N) × L ＝ P × L</span>
       <div class="dl">例：噴砂工 N＝10、n＝8 → P＝0.8；L＝(0.10＋0.20＋0.20＋0.30＋0.20) ÷ 5＝0.20 → E＝0.8 × 0.20＝0.16 mg/m³。</div>
-    </div>
+    </div></details>
 
     <h4>公式二：累積暴露的三種寫法其實是同一個式子</h4>
-    <div class="deriv">
+    <span class="f">CE ＝ Σ ( C<sub>j</sub> × D<sub>j</sub> ) ＝ Σ ( E<sub>j</sub> × D<sub>j</sub> ) ＝ Σ ( P<sub>j</sub> × L<sub>j</sub> × D<sub>j</sub> )　單位 mg/m³·年</span>
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">每段工作貢獻的暴露量＝「這段工作的濃度」×「做了幾年」。把每段加起來：</div>
       <span class="f">CE ＝ Σ ( C<sub>j</sub> × D<sub>j</sub> ) ＝ C<sub>1</sub> × D<sub>1</sub> ＋ C<sub>2</sub> × D<sub>2</sub> ＋ …</span>
       <div class="dl">本 PBL 每段工作的濃度用該職務的群體平均 E<sub>j</sub>（即 C<sub>j</sub> ＝ E<sub>j</sub>）：</div>
@@ -346,7 +357,7 @@ dl.sym dd{margin:0;min-width:0}
       <div class="dl">再把公式一 E<sub>j</sub> ＝ P<sub>j</sub> × L<sub>j</sub> 代進去：</div>
       <span class="f">CE ＝ Σ ( P<sub>j</sub> × L<sub>j</sub> × D<sub>j</sub> )</span>
       <div class="dl">例（講義 2.2.2）：A 工作 10 年（P 0.6、L 0.2）＋ B 工作 5 年（P 0.3、L 0.1）→ CE＝0.6×0.2×10 ＋ 0.3×0.1×5＝1.2＋0.15＝1.35 mg/m³·年。</div>
-    </div>
+    </div></details>
     <ul><li>CE 是依職業群體資訊估計的累積暴露，不是這個人實際吸入多少毫克。</li>
       <li>L 若只是低／中／高＝1／2／3 分，乘上年資後只能稱「累積暴露分數」：3 分不等於 1 分的 3 倍濃度。</li>
       <li>P 與 L 回答不同問題：P × L 相同（少數人高濃度 vs 多數人低濃度）不代表個人暴露分布相同。</li></ul>
@@ -435,8 +446,8 @@ dl.sym dd{margin:0;min-width:0}
   <p class="sub">第二章 環境對健康影響的長期趨勢分析</p>
 
   <details class="concept" open><summary>本週觀念與公式</summary>
-    <h4>代號定義</h4>
-    <dl class="sym">
+    <details class="fold"><summary>代號定義
+    </summary><dl class="sym">
       <dt>i</dt><dd>年齡層編號（例如 30–39 歲為一層）。</dd>
       <dt>D<sub>i</sub></dt><dd>第 i 年齡層的病例數（人）。</dd>
       <dt>PY<sub>i</sub></dt><dd>第 i 年齡層的人年（person-years）：每人被觀察 1 年算 1 人年。</dd>
@@ -452,59 +463,60 @@ dl.sym dd{margin:0;min-width:0}
       <dt>a、p、c</dt><dd>年齡（age）、年代（period，診斷年份）、出生世代（cohort）。</dd>
       <dt>μ<sub>ap</sub></dt><dd>年齡 a、年代 p 那一格模型預期的病例數。</dd>
       <dt>A(a)、P(p)、C(c)</dt><dd>年齡效應、年代效應、世代效應。</dd>
-    </dl>
+    </dl></details>
 
     <h4>公式一：直接年齡標準化</h4>
     <span class="f">r<sub>i</sub> ＝ D<sub>i</sub> ÷ PY<sub>i</sub> × 100,000　　w<sub>i</sub> ＝ S<sub>i</sub> ÷ ΣS<sub>i</sub>　　ASR ＝ Σ ( w<sub>i</sub> × r<sub>i</sub> )</span>
-    <div class="deriv">
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">推導：假設研究族群有「標準人口」的年齡結構，算出標準人口中會有幾個病例，再除以標準人口總數。</div>
       <span class="f">標準人口第 i 層的預期病例 ＝ S<sub>i</sub> × r<sub>i</sub> ÷ 100,000</span>
       <span class="f">ASR ＝ Σ 預期病例 ÷ ΣS<sub>i</sub> × 100,000 ＝ Σ ( S<sub>i</sub> × r<sub>i</sub> ) ÷ ΣS<sub>i</sub> ＝ Σ ( w<sub>i</sub> × r<sub>i</sub> )</span>
       <div class="dl">例（講義）：早期 ASMR＝(800,000×12 ＋ 700,000×132 ＋ 300,000×406) ÷ 1,800,000＝124.3；晚期＝101.7。r<sub>i</sub> 已是每十萬，加權後不要再乘 100,000。</div>
-    </div>
+    </div></details>
 
     <h4>公式二：Joinpoint 的 APC</h4>
     <span class="f">ln(rate<sub>t</sub>) ＝ α ＋ β t　　→　　APC ＝ 100 × ( e<sup>β</sup> − 1 )</span>
-    <div class="deriv">
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">推導：相鄰兩年的率相除</div>
       <span class="f">rate<sub>t+1</sub> ÷ rate<sub>t</sub> ＝ e<sup>α＋β(t＋1)</sup> ÷ e<sup>α＋βt</sup> ＝ e<sup>β</sup></span>
       <span class="f">每年變化的百分比 ＝ ( rate<sub>t+1</sub> − rate<sub>t</sub> ) ÷ rate<sub>t</sub> × 100 ＝ ( e<sup>β</sup> − 1 ) × 100</span>
       <div class="dl">APC ＋5% 持續 10 年 → 第 10 年的率＝起始 × 1.05<sup>10</sup>＝1.63 倍。CI 含 0 → 該段方向不明確；Joinpoint 圖例中的 * 表示該段 APC 顯著不為 0。</div>
-    </div>
+    </div></details>
 
     <h4>公式三：AAPC（不是 APC 的算術平均）</h4>
     <span class="f">AAPC ＝ 100 × { exp[ Σ ( L<sub>j</sub> × β<sub>j</sub> ) ÷ ΣL<sub>j</sub> ] − 1 }</span>
-    <div class="deriv">
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">推導：先算各段斜率依年數加權的平均斜率 β̄ ＝ Σ(L<sub>j</sub>β<sub>j</sub>) ÷ ΣL<sub>j</sub>，再用公式二轉成百分比。</div>
       <div class="dl">例（講義）：前 5 年 APC＋10%（β<sub>1</sub>＝ln 1.10）、後 5 年 −10%（β<sub>2</sub>＝ln 0.90）</div>
       <span class="f">β̄ ＝ (5 ln1.10 ＋ 5 ln0.90) ÷ 10 ＝ ln √(1.10 × 0.90)　→　AAPC ＝ 100 × ( √0.99 − 1 ) ≈ −0.50%</span>
       <div class="dl">不是 (＋10% − 10%) ÷ 2 ＝ 0%。</div>
-    </div>
+    </div></details>
 
     <h4>公式四：年齡－年代－世代（APC）模型</h4>
     <span class="f">c ＝ p − a　（出生世代 ＝ 年代 − 年齡）</span>
     <span class="f">D<sub>ap</sub> ~ Poisson(μ<sub>ap</sub>)　　log μ<sub>ap</sub> ＝ log PY<sub>ap</sub> ＋ α ＋ A(a) ＋ P(p) ＋ C(c)</span>
-    <div class="deriv">
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">推導 offset：模型要描述的是「率」＝ μ ÷ PY</div>
       <span class="f">log( μ<sub>ap</sub> ÷ PY<sub>ap</sub> ) ＝ α ＋ A(a) ＋ P(p) ＋ C(c)　→　log μ<sub>ap</sub> ＝ log PY<sub>ap</sub> ＋ α ＋ A(a) ＋ P(p) ＋ C(c)</span>
       <div class="dl">log PY 的係數固定為 1（offset），所以一定要輸入病例數與人年，不能輸入率。識別問題：三者中知道兩個就知道第三個，模型很難單獨分辨變化來自哪一個。</div>
-    </div>
+    </div></details>
     <h4>本 PBL 的單位陷阱</h4>
-    <div class="deriv">
+    <span class="f">病例數 ÷ 人口數 × 10<sup>5</sup> ＝ 每十萬人「每十年」（≈ 每十萬人年 × 10）</span>
+    <details class="fold"><summary>說明</summary><div class="deriv">
       <div class="dl">表 2-1 給的是「該期人口數」，每期 10 年，每人約貢獻 10 人年：</div>
       <span class="f">人年 ≈ 人口數 × 10　→　病例數 ÷ 人口數 × 10<sup>5</sup> ＝ 每十萬人「每十年」 ≈ 每十萬人年 × 10</span>
       <div class="dl">此常數倍差不影響 APC 的相對率與 drift。</div>
-    </div>
+    </div></details>
 
     <h4>NCI 工具輸出</h4>
-    <dl class="sym">
+    <details class="fold"><summary>代號定義</summary><dl class="sym">
       <dt>Net drift</dt><dd>整體疾病率的平均年度百分比變化。</dd>
       <dt>Local drifts</dt><dd>各年齡層的平均年度百分比變化。</dd>
       <dt>Period RR</dt><dd>相對於參考年代的率比。</dd>
       <dt>Cohort RR</dt><dd>相對於參考出生世代的率比。</dd>
       <dt>Long. age curve</dt><dd>控制年代與世代後，疾病率隨年齡的變化。</dd>
       <dt>Wald 檢定</dt><dd>檢定某組參數是否全為 0（例：All Period RR＝1）；X² 越大、P 越小越顯著。</dd>
-    </dl>
+    </dl></details>
 
     <h4>公式五：模型比較（表 2-3）</h4>
     <span class="f">離差差值 ΔDev ＝ Deviance(簡單模型) − Deviance(複雜模型)　；　Δdf ＝ df(簡單) − df(複雜)</span>
@@ -643,8 +655,8 @@ dl.sym dd{margin:0;min-width:0}
   <p class="sub">第三章 臺灣癌症登記資料的地區年齡－年代－世代分析</p>
 
   <details class="concept" open><summary>本週觀念與公式</summary>
-    <h4>代號定義</h4>
-    <dl class="sym">
+    <details class="fold"><summary>代號定義
+    </summary><dl class="sym">
       <dt>CRIS</dt><dd>國健署癌症登記線上互動查詢系統：鄉鎮層級、18 個五歲年齡層，只給率不給人口 → 做 APC。</dd>
       <dt>資料集 6399</dt><dd>政府資料開放平臺「癌症發生統計」：縣市逐年、無年齡層 → 做 Joinpoint。</dd>
       <dt>i</dt><dd>年齡層編號（同一地區、同一期、同一性別）。</dd>
@@ -652,26 +664,28 @@ dl.sym dd{margin:0;min-width:0}
       <dt>r<sub>i</sub>(all)</dt><dd>第 i 層「所有癌症」的年齡別率（每十萬，系統顯示到小數第二位）。</dd>
       <dt>PY<sub>i</sub></dt><dd>第 i 層的人年（多年合併時＝各年年底人口數加總）。</dd>
       <dt>率</dt><dd>本章一律指每十萬人年＝病例數 ÷ 人年 × 100,000。</dd>
-    </dl>
+    </dl></details>
 
     <h4>公式一：人年反推</h4>
-    <div class="deriv">
+    <span class="f">PY<sub>i</sub> ＝ D<sub>i</sub>(all) ÷ r<sub>i</sub>(all) × 100,000</span>
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">率的定義 r ＝ D ÷ PY × 100,000，移項：</div>
       <span class="f">PY<sub>i</sub> ＝ D<sub>i</sub>(all) ÷ r<sub>i</sub>(all) × 100,000</span>
       <div class="dl">為什麼用「所有癌症」：率只到小數第二位，四捨五入誤差最多 0.005。PY 與 r 成反比，所以 PY 的相對誤差 ≈ r 的相對誤差：</div>
       <span class="f">PY 的相對誤差 ≈ 0.005 ÷ r　（成人 r 常 ＞100 → ＜0.005%；兒童 r≈10 → ≈0.05%）</span>
       <div class="dl">病例數為 0 時率也是 0，0 ÷ 0 推不出人年（「人年缺」）。</div>
-    </div>
+    </div></details>
 
     <h4>公式二：合併組距或男女合計</h4>
     <span class="f">合併後的率 ＝ ( D<sub>1</sub> ＋ D<sub>2</sub> ＋ … ) ÷ ( PY<sub>1</sub> ＋ PY<sub>2</sub> ＋ … ) × 100,000</span>
     <ul><li>先把病例數、人年各自加總再算率，不能把幾個率平均（各格人年不同，平均會給小格過大的權重）。</li></ul>
 
     <h4>公式三：對角線＝近似出生世代</h4>
-    <div class="deriv">
+    <span class="f">出生年 ＝ 診斷年 − 年齡</span>
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <span class="f">出生年 ＝ 診斷年 − 年齡</span>
       <div class="dl">例：30–39 歲於 1979–88 年 → 最早出生 1979 − 39 ＝ 1940，最晚 1988 − 30 ＝ 1958 → 約 1940–1958 年出生世代。往右下一格（40–49 歲於 1989–98）算出的範圍相同，所以對角線追蹤的是同一群人。</div>
-    </div>
+    </div></details>
 
     <h4>NCI 工具與稀疏資料</h4>
     <ul><li>輸入：每列一個年齡層，「病例數、人年」成對；Start Year、Start Age、Interval（年齡與年代組距必須同寬）。</li>
@@ -794,8 +808,8 @@ dl.sym dd{margin:0;min-width:0}
   <p class="sub">工作者健康監測與橫斷型研究</p>
 
   <details class="concept" open><summary>本週觀念與公式</summary>
-    <h4>代號定義</h4>
-    <dl class="sym">
+    <details class="fold"><summary>代號定義
+    </summary><dl class="sym">
       <dt>E(+)、E(−)</dt><dd>有暴露、無暴露（本 PBL：印刷部門、非印刷部門）。</dd>
       <dt>D(+)、D(−)</dt><dd>有病、無病（本 PBL：第 10 天 ALT ＞ 40 U/L 為肝功能異常）。</dd>
       <dt>a</dt><dd>有暴露且有病的人數。</dd>
@@ -806,7 +820,7 @@ dl.sym dd{margin:0;min-width:0}
       <dt>PR</dt><dd>盛行率比（prevalence ratio）。</dd>
       <dt>OR</dt><dd>勝算比（odds ratio）。</dd>
       <dt>HBsAg</dt><dd>B 型肝炎表面抗原，陽性＝B 肝帶原。</dd>
-    </dl>
+    </dl></details>
     <div class="tw"><table><tr><th class="l"></th><th>D(+) 有病</th><th>D(−) 無病</th><th>合計</th></tr>
       <tr><td class="l">E(+) 有暴露</td><td>a</td><td>b</td><td>a＋b</td></tr>
       <tr><td class="l">E(−) 無暴露</td><td>c</td><td>d</td><td>c＋d</td></tr></table></div>
@@ -815,23 +829,24 @@ dl.sym dd{margin:0;min-width:0}
     <span class="f">PR ＝ [ a ÷ (a＋b) ] ÷ [ c ÷ (c＋d) ]　＝ 暴露組盛行率 ÷ 無暴露組盛行率</span>
 
     <h4>公式二：勝算比的兩種寫法相等</h4>
-    <div class="deriv">
+    <span class="f">OR ＝ (a ÷ c) ÷ (b ÷ d) ＝ (a ÷ b) ÷ (c ÷ d) ＝ ad ／ bc</span>
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">寫法 A（講義）：比較「有病者」與「無病者」的暴露勝算</div>
       <span class="f">OR ＝ (a ÷ c) ÷ (b ÷ d) ＝ (a × d) ÷ (b × c) ＝ ad ／ bc</span>
       <div class="dl">寫法 B：比較「暴露組」與「無暴露組」的有病勝算</div>
       <span class="f">OR ＝ (a ÷ b) ÷ (c ÷ d) ＝ (a × d) ÷ (b × c) ＝ ad ／ bc</span>
       <div class="dl">兩種寫法化簡後都是 ad／bc，所以結果相同。OR＝1 無相關；＞1 正相關；＜1 負相關。</div>
       <div class="dl">格子出現 0 時，本 PBL 規定以 0.5 取代那一格再計算（例：a＝5、b＝0 → b 改為 0.5）。</div>
-    </div>
+    </div></details>
 
     <h4>公式三：盛行率與發生率</h4>
     <span class="f">盛行率 ≈ 發生率 × 平均病程</span>
-    <div class="deriv">
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">代號：盛行率＝某時點有病人數 ÷ 族群人數；發生率＝單位時間新病例 ÷ 未病人數；平均病程＝從發病到痊癒或死亡的平均時間。</div>
       <div class="dl">推導（講義外補充）：疾病狀態穩定時，水槽「流入＝流出」。流入＝發生率 × 未病人數；流出＝有病人數 ÷ 平均病程。</div>
       <span class="f">發生率 × 未病人數 ＝ 有病人數 ÷ 平均病程　→　有病人數 ÷ 未病人數 ＝ 發生率 × 平均病程</span>
       <div class="dl">當盛行率很低，未病人數 ≈ 全部人數，左邊 ≈ 盛行率，得到講義的近似式。</div>
-    </div>
+    </div></details>
     <ul><li>評估風險、探討病因用發生率；疾病負擔、規劃醫療用盛行率。</li></ul>
 
     <h4>干擾因子與分層分析</h4>
@@ -842,19 +857,20 @@ dl.sym dd{margin:0;min-width:0}
     <ul><li>強度、一致性、<b>時序性（唯一必要條件）</b>、生物合理性、劑量效應、排除其他解釋、停止暴露風險下降、專一性。</li></ul>
 
     <h4>病例交叉設計<span class="tag">去年講義</span></h4>
-    <dl class="sym">
+    <details class="fold"><summary>代號定義</summary><dl class="sym">
       <dt>case period</dt><dd>病例發病當時的暴露時段。</dd>
       <dt>control period</dt><dd>同一位病例在發病前、未發病時的暴露時段（自己當自己的對照）。</dd>
       <dt>w</dt><dd>兩個時段都有暴露的配對數。</dd>
       <dt>x</dt><dd>只有 control period 有暴露的配對數。</dd>
       <dt>y</dt><dd>只有 case period 有暴露的配對數。</dd>
       <dt>z</dt><dd>兩個時段都沒有暴露的配對數。</dd>
-    </dl>
-    <div class="deriv">
+    </dl></details>
+    <span class="f">OR ＝ y ÷ x ＝ 僅 case period 暴露的配對數 ÷ 僅 control period 暴露的配對數</span>
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <span class="f">OR ＝ y ÷ x ＝ 僅 case period 暴露的配對數 ÷ 僅 control period 暴露的配對數</span>
       <div class="dl">推導：w 與 z 兩個時段暴露相同，比不出差異，所以先刪除；剩下暴露不一致的配對，兩種方向的數量比就是 OR。例：5 個配對中 2 個屬 y、1 個屬 x → OR＝2/1＝2。</div>
       <div class="dl">統計：單變項 McNemar's test；多變項 conditional logistic regression。</div>
-    </div>
+    </div></details>
   </details>
 
   <div class="card">
@@ -971,8 +987,8 @@ dl.sym dd{margin:0;min-width:0}
   <p class="sub">世代研究、風險人年與 SMR</p>
 
   <details class="concept" open><summary>本週觀念與公式</summary>
-    <h4>代號定義</h4>
-    <dl class="sym">
+    <details class="fold"><summary>代號定義
+    </summary><dl class="sym">
       <dt>人年 PY</dt><dd>1 位具罹病風險的人觀察 1 年＝1 人年。10 人年可以是 1 人 10 年，也可以是 10 人各 1 年。</dd>
       <dt>風險人年</dt><dd>person-years at risk：扣掉潛伏期、暴露不足的時間後，真正「可能發生由暴露引起之疾病」的人年。</dd>
       <dt>i</dt><dd>年齡層（或年齡×年代層）編號。</dd>
@@ -982,7 +998,7 @@ dl.sym dd{margin:0;min-width:0}
       <dt>E</dt><dd>expected：若研究族群的死亡率和參考族群一樣，預期會有的死亡數。</dd>
       <dt>SMR</dt><dd>標準化死亡比（standardized mortality ratio）＝O ÷ E；結局為發病時稱 SIR（標準化發生比）。</dd>
       <dt>潛伏期</dt><dd>從開始暴露到疾病出現臨床表現的延遲（本 PBL 設定 10 年）。</dd>
-    </dl>
+    </dl></details>
 
     <h4>公式一：發生密度</h4>
     <span class="f">發生密度 ＝ 新發病例數 ÷ Σ 風險人年　（單位：每人年）</span>
@@ -990,11 +1006,11 @@ dl.sym dd{margin:0;min-width:0}
 
     <h4>公式二：間接標準化與 SMR</h4>
     <span class="f">E ＝ Σ ( PY<sub>i</sub> × λ<sub>i</sub> )　　SMR ＝ O ÷ E　（有些教科書再 × 100）</span>
-    <div class="deriv">
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">推導：假設研究族群每一層的死亡率都和參考族群相同（λ<sub>i</sub>），則第 i 層預期死亡＝該層人年 × λ<sub>i</sub>，各層加總即 E。實際觀察 O 與 E 相比：SMR ＞ 1（或 ＞ 100）表示風險高於參考族群。</div>
       <div class="dl">若只有一層（不分年齡），E ＝ PY × λ。本 PBL 任務一：λ ＝ 27 ÷ 200,000,000（每人年），PY ＝ 500 人 × 10 年。</div>
       <div class="dl">例（講義）：礦工肺結核 E＝181.09、O＝436 → SMR＝436 ÷ 181.09＝2.41（241）。</div>
-    </div>
+    </div></details>
     <ul><li>每個 SMR 用的是自己研究族群的年齡結構當權重，兩個不同職業的 SMR 一般不宜直接互比。</li></ul>
 
     <h4>風險人年三步驟</h4>
@@ -1003,11 +1019,11 @@ dl.sym dd{margin:0;min-width:0}
       <li>扣除潛伏期內的人年（本 PBL：自開始暴露起 10 年內）。</li>
       <li>排除暴露時間不足者的人年（本 PBL：PVC 暴露未滿 5 年者）；從未暴露的人（行政人員）不列入暴露世代。</li>
     </ol>
-    <div class="deriv">
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">為什麼不扣潛伏期會低估 SMR：把人年分成暴露 10 年內（&lt;10）與 10 年以上（10+）</div>
       <span class="f">SMR ＝ ( O<sub>&lt;10</sub> ＋ O<sub>10+</sub> ) ÷ ( E<sub>&lt;10</sub> ＋ E<sub>10+</sub> )</span>
       <div class="dl">暴露 10 年內工人年輕健康、幾乎不會死於此癌（O<sub>&lt;10</sub> ≈ 0），但這段人年仍產生 E<sub>&lt;10</sub>：分子不變、分母變大 → SMR 被稀釋（健康工人效應）。</div>
-    </div>
+    </div></details>
     <h4>相對危險性</h4>
     <span class="f">RR ＝ [ a ÷ (a＋b) ] ÷ [ c ÷ (c＋d) ]</span>
     <div class="dl">a、b、c、d 定義同第 05 週 2×2 表。例：石綿 84/3,000 ÷ 87/5,000＝0.028 ÷ 0.0174＝1.61。</div>
@@ -1087,8 +1103,8 @@ dl.sym dd{margin:0;min-width:0}
   <p class="sub">第七章 存活分析</p>
 
   <details class="concept" open><summary>本週觀念與公式</summary>
-    <h4>代號定義</h4>
-    <dl class="sym">
+    <details class="fold"><summary>代號定義
+    </summary><dl class="sym">
       <dt>d</dt><dd>某組的事件數（本 PBL：死亡數）。</dd>
       <dt>PY</dt><dd>某組貢獻的人年。</dd>
       <dt>IRR／MRR</dt><dd>發生率比（incidence rate ratio）／死亡率比（mortality rate ratio）：兩組「事件數 ÷ 人年」相除。</dd>
@@ -1106,7 +1122,7 @@ dl.sym dd{margin:0;min-width:0}
       <dt>h<sub>0</sub>(t)</dt><dd>基準危險：所有預測因子都等於 0 時的 hazard。</dd>
       <dt>x、β</dt><dd>Cox 模型的預測因子（例：配戴 PPE＝1、否＝0）與其迴歸係數。</dd>
       <dt>HR</dt><dd>危險比（hazard ratio）：兩組 hazard 相除。</dd>
-    </dl>
+    </dl></details>
 
     <h4>公式一：率比</h4>
     <span class="f">IRR（或 MRR）＝ ( d<sub>1</sub> ÷ PY<sub>1</sub> ) ÷ ( d<sub>0</sub> ÷ PY<sub>0</sub> )</span>
@@ -1114,28 +1130,28 @@ dl.sym dd{margin:0;min-width:0}
 
     <h4>公式二：Life table 累積存活率</h4>
     <span class="f">P<sub>k</sub> ＝ s<sub>k</sub> ÷ n<sub>k</sub>　　S(k) ＝ P<sub>1</sub> × P<sub>2</sub> × … × P<sub>k</sub></span>
-    <div class="deriv">
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">推導：要活過第 k 年，必須先活過第 k−1 年，再在「已活過 k−1 年」的條件下活過第 k 年（條件機率）</div>
       <span class="f">S(k) ＝ S(k−1) × P<sub>k</sub>　→　一路展開 ＝ P<sub>1</sub> × P<sub>2</sub> × … × P<sub>k</sub></span>
       <div class="dl">例：P<sub>1</sub>＝197/375＝0.525、P<sub>2</sub>＝71/154＝0.461 …… S(5)＝0.525×0.461×0.655×0.696×0.800＝0.088。2004 年到職者只追蹤 1 年，不列入 n<sub>2</sub>。</div>
-    </div>
+    </div></details>
 
     <h4>公式三：Kaplan-Meier</h4>
     <span class="f">S(t<sub>j</sub>) ＝ Π ( 1 − d<sub>j</sub> ÷ n<sub>j</sub> )　（Π＝把每個事件時間點的值連乘）</span>
-    <div class="deriv">
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">和 Life table 同一個連乘原理，只是不切固定區間，在每個事件時間點重算；1 − d<sub>j</sub>/n<sub>j</sub> 就是該時間點的條件存活機率。</div>
       <div class="dl">例（Gordis）：第 4 月 1 − 1/6＝0.833；第 10 月 n＝4（1 人已發病、1 人已設限）→ 0.833 × (1 − 1/4)＝0.625；第 14 月 0.417；第 24 月 0。</div>
-    </div>
+    </div></details>
 
     <h4>公式四：Cox 模型與 HR ＝ e<sup>β</sup></h4>
     <span class="f">log [ h(t｜x) ÷ h<sub>0</sub>(t) ] ＝ β<sub>1</sub>x<sub>1</sub> ＋ … ＋ β<sub>p</sub>x<sub>p</sub>　⇔　h(t｜x) ＝ h<sub>0</sub>(t) × e<sup>β<sub>1</sub>x<sub>1</sub> ＋ … ＋ β<sub>p</sub>x<sub>p</sub></sup></span>
-    <div class="deriv">
+    <details class="fold"><summary>推導與例題</summary><div class="deriv">
       <div class="dl">推導：比較 x＝1 與 x＝0（其他因子相同），h<sub>0</sub>(t) 相消</div>
       <span class="f">HR ＝ h(t｜x＝1) ÷ h(t｜x＝0) ＝ e<sup>β×1</sup> ÷ e<sup>β×0</sup> ＝ e<sup>β</sup></span>
       <span class="f">危險改變的百分比 ＝ ( HR − 1 ) × 100%</span>
       <div class="dl">例：PPE β＝−0.38 → HR＝e<sup>−0.38</sup>＝0.68 → 危險降低 32%。年齡 β＝−0.06 → 每多 1 歲 HR 0.94（降低約 6%）。</div>
       <div class="dl">比例風險假設：HR 不隨時間改變（h<sub>0</sub>(t) 可以變，但兩組比值固定）。暴露會改變時，把 x 設為時間相依變項。</div>
-    </div>
+    </div></details>
 
     <h4>不死偏差與三種分析</h4>
     <ul><li>不死時間：依研究設計，研究對象不可能發生事件的追蹤時間（本 PBL：移植前的等候期被算進移植組）。</li>
