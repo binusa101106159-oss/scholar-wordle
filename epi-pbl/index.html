@@ -246,6 +246,7 @@ td .fix-inline{display:block;margin:4px 0 0;max-width:22em;white-space:normal}
 .fix b,.fix-inline b{font-weight:700}
 body.nofix .fix,body.nofix .fix-inline{display:none}
 body.nofix textarea.has-fix{border-radius:6px;border-bottom-color:var(--line2)}
+#reviewLink{color:var(--accent);font-size:13px;text-decoration:none;border:1px solid var(--line2);border-radius:6px;padding:5px 9px;align-self:center}
 @media (max-width:560px){.fx-key dl{grid-template-columns:minmax(4.5em,max-content) minmax(0,1fr)} .fx-key dt{white-space:normal}}
 @media (max-width:560px){dl.sym{grid-template-columns:minmax(0,1fr)} dl.sym dt{margin-top:6px} dl.sym dd{padding-left:8px}}
 @media (max-width:560px){
@@ -265,6 +266,7 @@ body.nofix textarea.has-fix{border-radius:6px;border-bottom-color:var(--line2)}
       <button id="keyBtn" title="設定批改用的 Anthropic API key" hidden>API key</button>
       <button id="exportBtn" title="把作答下載成 .json">匯出</button>
       <button id="importBtn" title="從 .json 匯入作答">匯入</button>
+      <a id="reviewLink" href="review.html" title="作答固定為 10/27 匯出版本的唯讀批改頁">批改版</a>
       <button id="fixBtn" title="顯示／隱藏批改（綠＝正確、黃＝部分正確、紅＝錯誤）">批改：開</button>
       <button id="clearBtn" title="清除這一週的作答">清除</button>
       <input type="file" id="importFile" accept="application/json" hidden>
