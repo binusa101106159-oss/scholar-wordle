@@ -199,6 +199,15 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
   .calcpanel .rp-close,.rpbtns{display:none}
   .c-keys button{padding:6px 0;font-size:14px}
 }
+
+.nci{background:#000;border:1px solid var(--line2);border-radius:10px;padding:10px 12px;margin:10px 0}
+.nci-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.nci-head b{font-size:14.5px}
+.nci-head button{border-color:var(--accent);color:var(--accent);font-weight:600}
+.nci-set{font-size:13.5px;color:var(--muted);margin:6px 0}
+.nci-set b{color:var(--text);font-variant-numeric:tabular-nums}
+.nci .paste{margin:6px 0 0}
+.nci-note{font-size:13px;color:var(--muted);margin-top:6px}
 @media (max-width:560px){.fx-key dl{grid-template-columns:minmax(4.5em,max-content) minmax(0,1fr)} .fx-key dt{white-space:normal}}
 @media (max-width:560px){dl.sym{grid-template-columns:minmax(0,1fr)} dl.sym dt{margin-top:6px} dl.sym dd{padding-left:8px}}
 @media (max-width:560px){
@@ -629,13 +638,25 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
 
   <h3>任務三、NCI（NIH）APC 網頁工具上機實作</h3>
   <p>工具網址：<a href="https://analysistools.cancer.gov/apc/" target="_blank" rel="noopener" style="color:var(--accent)">analysistools.cancer.gov/apc</a>。左上選「Copy and Paste Data」，在「Paste Here」貼上下列 6 列（每列：第 1 期病例數、第 1 期人口數、第 2 期……）。Start Year 1980、Start Age 30、Interval 10，Reference 保持 Default，按 Calculate。</p>
-  <pre class="paste" id="w3paste">0	26185	2	33621	2	29020	1	24615
+  <div class="nci"><div class="nci-head"><b>表 2-1 男女合計（任務三主要資料）</b><button type="button" data-copy="w3paste">複製資料</button></div><div class="nci-set">Start Year <b>1980</b>　Start Age <b>30</b>　Interval <b>10</b>　Reference：Default</div><pre class="paste" id="w3paste">0	26185	2	33621	2	29020	1	24615
 1	22287	0	23984	5	31421	4	26922
 5	25914	11	20927	9	23598	23	31747
 16	20412	20	20300	17	18660	19	22218
 5	7505	19	12321	41	15006	23	14061
-0	1567	4	3457	25	6288	27	9230</pre>
-  <button data-copy="w3paste">複製資料</button>
+0	1567	4	3457	25	6288	27	9230</pre><div class="nci-note">第一列 30–39 歲、最後一列 80–89 歲；每期兩欄為「病例數、人口數」。</div></div>
+  <div class="nci"><div class="nci-head"><b>表 2-2 男性（問題 3-3 用）</b><button type="button" data-copy="w3male">複製資料</button></div><div class="nci-set">Start Year <b>1980</b>　Start Age <b>30</b>　Interval <b>10</b>　Reference：Default</div><pre class="paste" id="w3male">0	14623	1	19899	0	16651	1	13530
+0	11540	0	13135	4	18254	4	15217
+5	16541	8	10787	5	12750	17	17770
+14	14575	15	12015	10	9425	10	11869
+4	4338	16	8100	29	8526	16	6668
+0	736	2	1908	17	3854	18	4565</pre></div>
+  <div class="nci"><div class="nci-head"><b>表 2-2 女性（對照用）</b><button type="button" data-copy="w3female">複製資料</button></div><div class="nci-set">Start Year <b>1980</b>　Start Age <b>30</b>　Interval <b>10</b>　Reference：Default</div><pre class="paste" id="w3female">0	11562	1	13722	2	12369	0	11085
+1	10747	0	10849	1	13167	0	11705
+0	9373	3	10140	4	10848	6	13977
+2	5837	5	8285	7	9235	9	10349
+1	3167	3	4221	12	6480	7	7393
+0	831	2	1549	8	2434	9	4665</pre></div>
+  
 
   <h4>學生作答表</h4>
   <div class="tw"><table>
@@ -787,7 +808,12 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
   </ol>
 
   <h3>任務二、NCI APC 網頁工具上機：全國女性肺癌</h3>
-  <p class="note">工作台選「全國」、「肺、支氣管及氣管癌」、「女性」，組距 5 年、30–84 歲、1979–1983 至 2019–2023，按「複製（貼上 NCI）」，到 NCI 工具貼上，Start Year 1979、Start Age 30、Interval 5，Reference 保持 Default。</p>
+  <div class="nci"><div class="nci-head"><b>全國女性肺癌（表 3-1，10 歲 × 10 年）</b><button type="button" data-copy="w4paste1">複製資料</button></div><div class="nci-set">Start Year <b>1979</b>　Start Age <b>30</b>　Interval <b>10</b>　Reference：Default</div><pre class="paste" id="w4paste1">261	12850846	445	18206739	718	18488788	1028	19293120
+670	8544343	1336	12609890	2758	18052317	4458	18617280
+1477	6584987	2332	8230826	4677	12275956	11381	17805771
+1767	4110405	3725	6009457	6598	7646792	14357	11788518
+917	2104966	3451	3173116	7777	4901648	12633	6602174</pre><div class="nci-note">講義任務指定用工作台的 5 歲 × 5 年、1979–2023 資料（Start Year 1979、Start Age 30、Interval 5）；講義只附 10 × 10 的表 3-1，這裡先以它代替，結果的組距與年代範圍會和工作台版不同。問題 2-4 的「全國男性」講義沒有附資料，需從工作台匯出。</div></div>
+    <p class="note">工作台選「全國」、「肺、支氣管及氣管癌」、「女性」，組距 5 年、30–84 歲、1979–1983 至 2019–2023，按「複製（貼上 NCI）」，到 NCI 工具貼上，Start Year 1979、Start Age 30、Interval 5，Reference 保持 Default。</p>
   <h4>表 3-4　學生作答表</h4>
   <div class="tw"><table>
     <tr><th class="l">輸出項目</th><th class="l">工具中的位置</th><th class="l">填入數值</th><th class="l">判讀重點</th></tr>
@@ -827,6 +853,11 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
   <h3>任務三、地區比較：花蓮縣肺癌（表 3-2）</h3>
   <div data-table="w4t32"></div>
   <p class="note">花蓮縣 1979–1983 年五年間肺癌合計 152 例，2019–2023 年 1,120 例；請先想想這 7 倍的增加中，人口老化、登記完整性與真實風險各占多少。</p>
+  <div class="nci"><div class="nci-head"><b>花蓮縣肺癌男女合計（表 3-2）</b><button type="button" data-copy="w4paste2">複製資料</button></div><div class="nci-set">Start Year <b>1979</b>　Start Age <b>30</b>　Interval <b>10</b>　Reference：Default</div><pre class="paste" id="w4paste2">5	435777	15	572889	26	545212	24	504525
+47	323456	37	411693	77	539435	122	516603
+120	333261	111	298464	163	385082	320	516094
+174	233100	275	276667	283	256586	427	346792
+78	98077	300	154940	516	194729	496	196986</pre></div>
   <ol class="q sub">
     <li><span class="qn">21</span>比較花蓮與全國（合計）的 net drift 與信賴區間寬度、零病例格比例、最小人年。<textarea data-k="w4-3-1"></textarea></li>
     <li><span class="qn">22</span>花蓮的世代曲線在哪些世代開始變得不穩定？<textarea data-k="w4-3-2"></textarea></li>
@@ -837,6 +868,11 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
   <h3>任務四、世代效應的反轉：全國肝癌（表 3-3）</h3>
   <div data-table="w4t33"></div>
   <p class="note">臺灣自 1984 年 7 月起對 B 型肝炎帶原母親的新生兒、1986 年 7 月起對所有新生兒接種 B 肝疫苗。</p>
+  <div class="nci"><div class="nci-head"><b>全國肝及肝內膽管癌男女合計（表 3-3）</b><button type="button" data-copy="w4paste3">複製資料</button></div><div class="nci-set">Start Year <b>1979</b>　Start Age <b>30</b>　Interval <b>10</b>　Reference：Default</div><pre class="paste" id="w4paste3">1674	26328778	3177	37156260	4238	37410998	2626	38414175
+3075	17556315	6656	25643503	12233	36417703	9770	36976032
+5936	15279513	11489	16593450	21271	24452380	25148	35129387
+4869	9548014	14897	13417174	27577	14875539	32759	22751304
+1848	4209061	9129	6958760	24251	10312844	29451	12182794</pre></div>
   <ol class="q sub">
     <li><span class="qn">25</span>看 CohortRR 分頁：相對率在哪一出生世代最高、之後如何變化？<textarea data-k="w4-4-1"></textarea></li>
     <li><span class="qn">26</span>看 Local Drifts 分頁：哪些年齡層的年變化為負？<textarea data-k="w4-4-2"></textarea></li>
@@ -848,6 +884,12 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
   <h3>任務五、自選地區與癌別</h3>
   <p>每組選一個縣市或鄉鎮、一個癌別、一個性別（或合計），寫下暴露假說後再開始。跑 NCI 工具，填一份表 3-4，與同癌別的全國結果並列。</p>
   <p class="note">建議題材：高雄臨海工業區鄉鎮（前鎮、小港、林園、大寮）的肺癌與肝癌；臺南北門、學甲與雲林、嘉義沿海的膀胱癌與腎癌；彰化和美、伸港的皮膚癌與膀胱癌；花蓮秀林、新城、壽豐的肺癌；桃園觀音的口腔癌與肺癌。</p>
+  <div class="nci"><div class="nci-head"><b>示範組：花蓮壽豐鄉豐田社區肺癌男女合計（第 03 週表 2-1）</b><button type="button" data-copy="w4paste4">複製資料</button></div><div class="nci-set">Start Year <b>1980</b>　Start Age <b>30</b>　Interval <b>10</b>　Reference：Default</div><pre class="paste" id="w4paste4">0	26185	2	33621	2	29020	1	24615
+1	22287	0	23984	5	31421	4	26922
+5	25914	11	20927	9	23598	23	31747
+16	20412	20	20300	17	18660	19	22218
+5	7505	19	12321	41	15006	23	14061
+0	1567	4	3457	25	6288	27	9230</pre><div class="nci-note">題目沒有指定資料，先用這組練習：豐田社區位於講義建議題材「花蓮秀林、新城、壽豐的肺癌」中的壽豐鄉。資料為 10 年期人口數（非人年）；30–39 至 80–89 歲、1980–2019 年。</div></div>
   <ol class="q sub">
     <li><span class="qn">30</span>選定的地區、癌別、性別與暴露假說。<textarea data-k="w4-5-0"></textarea></li>
     <li><span class="qn">31</span>一項可支持的發現。<textarea data-k="w4-5-1"></textarea></li>
