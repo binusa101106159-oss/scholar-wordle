@@ -152,17 +152,14 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
 .fx-line{padding:2px 0;white-space:normal}
 .fx-note{border-top:1px dashed var(--line2);margin-top:6px;padding-top:6px;font-size:13.5px;color:var(--muted)}
 
-/* ---------- side panel: shared data + calculator ---------- */
-.refpanel{position:fixed;left:0;right:0;bottom:0;z-index:30;max-height:64vh;overflow:auto;background:var(--surface);
+/* ---------- side panels: calculator (left) + shared data (right) ---------- */
+.sidepanel{position:fixed;left:0;right:0;bottom:0;z-index:30;max-height:64vh;overflow:auto;background:var(--surface);
   border-top:1px solid var(--line2);border-radius:14px 14px 0 0;box-shadow:0 -10px 30px #000;
   padding-block:10px calc(14px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   transform:translateY(105%);transition:transform .2s ease;visibility:hidden}
-.refpanel.open{transform:none;visibility:visible}
-.rp-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-.rp-tabs{display:flex;gap:6px}
-.rp-tabs button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
-.refpanel[data-tab="data"] .rp-calc,.refpanel[data-tab="calc"] .rp-data{display:none}
-.rp-sec h4{margin:4px 0 6px;color:var(--accent);font-size:14px}
+.sidepanel.open{transform:none;visibility:visible}
+.rp-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.rp-head h4{margin:0;color:var(--accent);font-size:14px}
 .rp-data .card{margin:8px 0}
 .rp-data figure{margin:8px 0}
 .rp-empty{color:var(--muted);font-size:13.5px}
@@ -176,19 +173,31 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
 .c-keys .op{color:var(--accent)}
 .c-keys .eq{grid-column:1 / -1;background:var(--accent-dim);color:var(--text);font-weight:700}
 .c-hist{list-style:none;padding:0;margin:8px 0 0;font-size:13px;color:var(--muted)}
-.c-hist li{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed var(--line);cursor:pointer}
+.c-hist li{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed var(--line);cursor:pointer;min-width:0}
+.c-hist li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .c-hist li b{color:var(--text);font-weight:600;white-space:nowrap}
-@media (prefers-reduced-motion:reduce){.refpanel{transition:none}}
+@media (prefers-reduced-motion:reduce){.sidepanel{transition:none}}
+/* medium desktop: data docked on the right, calculator floats bottom-right on demand */
 @media (min-width:1100px){
   .top,nav,.topkey{max-width:1320px}
   main{max-width:1320px;display:grid;grid-template-columns:minmax(0,1fr) 360px;column-gap:28px;align-items:start}
-  main>section.week{grid-column:1;min-width:0}
+  main>section.week{grid-column:1;grid-row:1;min-width:0}
   .refpanel{grid-column:2;grid-row:1;position:sticky;top:calc(var(--hdr,100px) + 12px);left:auto;right:auto;bottom:auto;z-index:auto;
     max-height:calc(100vh - var(--hdr,100px) - 24px);transform:none;visibility:visible;box-shadow:none;border:1px solid var(--line);border-radius:12px;padding:10px 14px 14px}
-  .refpanel .rp-calc,.refpanel .rp-data{display:block!important}
-  .rp-tabs,.rp-close,.rpbtns{display:none!important}
-  .rp-calc{padding-bottom:12px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+  .refpanel .rp-close,.rpbtns [data-open="refpanel"]{display:none}
+  .calcpanel{left:auto;right:calc(16px + env(safe-area-inset-right,0px));bottom:16px;width:330px;max-height:80vh;border:1px solid var(--line2);border-radius:12px}
   .ref-src{display:none!important}
+}
+/* wide desktop: three columns, calculator left and data right, both fixed */
+@media (min-width:1280px){
+  .top,nav,.topkey{max-width:1500px}
+  main{max-width:1500px;grid-template-columns:270px minmax(0,1fr) 380px;column-gap:24px}
+  main>section.week{grid-column:2}
+  .refpanel{grid-column:3}
+  .calcpanel{grid-column:1;grid-row:1;position:sticky;top:calc(var(--hdr,100px) + 12px);left:auto;right:auto;bottom:auto;width:auto;z-index:auto;
+    max-height:calc(100vh - var(--hdr,100px) - 24px);transform:none;visibility:visible;box-shadow:none;border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px}
+  .calcpanel .rp-close,.rpbtns{display:none}
+  .c-keys button{padding:6px 0;font-size:14px}
 }
 @media (max-width:560px){.fx-key dl{grid-template-columns:minmax(4.5em,max-content) minmax(0,1fr)} .fx-key dt{white-space:normal}}
 @media (max-width:560px){dl.sym{grid-template-columns:minmax(0,1fr)} dl.sym dt{margin-top:6px} dl.sym dd{padding-left:8px}}
@@ -1320,13 +1329,8 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
   </details>
 </section>
 
-<aside class="refpanel" id="refpanel" data-tab="data" aria-label="本週資料與計算機">
-  <div class="rp-head">
-    <div class="rp-tabs"><button type="button" data-tab="data" aria-pressed="true">本週資料</button><button type="button" data-tab="calc" aria-pressed="false">計算機</button></div>
-    <button type="button" class="rp-close">收起</button>
-  </div>
-  <div class="rp-sec rp-calc">
-    <h4>計算機</h4>
+<aside class="sidepanel calcpanel" id="calcpanel" aria-label="計算機">
+  <div class="rp-head"><h4>計算機</h4><button type="button" class="rp-close">收起</button></div>
     <div class="calc2">
       <input class="c-expr" id="calcExpr" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="例：(2/36)/(4/24)、exp(-0.38)" aria-label="算式">
       <div class="c-out" id="calcOut" aria-live="polite"></div>
@@ -1340,10 +1344,12 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
       </div>
       <ol class="c-hist" id="calcHist"></ol>
     </div>
-  </div>
-  <div class="rp-sec rp-data" id="rpData"><h4>本週資料</h4></div>
 </aside>
-<div class="rpbtns" id="rpBtns"><button type="button" data-open="data">資料</button><button type="button" data-open="calc">計算機</button></div>
+<aside class="sidepanel refpanel" id="refpanel" aria-label="本週資料">
+  <div class="rp-head"><h4>本週資料</h4><button type="button" class="rp-close">收起</button></div>
+  <div class="rp-data" id="rpData"></div>
+</aside>
+<div class="rpbtns" id="rpBtns"><button type="button" data-open="refpanel">資料</button><button type="button" data-open="calcpanel">計算機</button></div>
 </main>
 <div class="saved" id="saved" role="status">已自動儲存</div>
 
@@ -1557,7 +1563,7 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
 <script>
 (function(){
   "use strict";
-  var panel = document.getElementById("refpanel"), dataBox = document.getElementById("rpData");
+  var dataBox = document.getElementById("rpData");
   var header = document.querySelector("header");
   function setHdr(){ document.documentElement.style.setProperty("--hdr", header.offsetHeight + "px"); }
   setHdr(); window.addEventListener("resize", setHdr);
@@ -1603,16 +1609,15 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
   var mo = new MutationObserver(syncWeek);
   document.querySelectorAll("section.week").forEach(function(sec){ mo.observe(sec, { attributes: true, attributeFilter: ["class"] }); });
 
-  /* ---------- phone: bottom sheet ---------- */
-  function setTab(t){ panel.setAttribute("data-tab", t); panel.querySelectorAll(".rp-tabs button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-tab") === t)); }); }
+  /* ---------- sheets on narrow screens ---------- */
   document.getElementById("rpBtns").addEventListener("click", function(e){
     var b = e.target.closest("button"); if(!b) return;
-    var t = b.getAttribute("data-open");
-    if(panel.classList.contains("open") && panel.getAttribute("data-tab") === t){ panel.classList.remove("open"); return; }
-    setTab(t); panel.classList.add("open");
+    var el = document.getElementById(b.getAttribute("data-open"));
+    document.querySelectorAll(".sidepanel").forEach(function(x){ if(x !== el) x.classList.remove("open"); });
+    el.classList.toggle("open");
+    if(el.id === "calcpanel" && el.classList.contains("open")){ try{ document.getElementById("calcExpr").focus({preventScroll:true}); }catch(err){} }
   });
-  panel.querySelector(".rp-tabs").addEventListener("click", function(e){ var b = e.target.closest("button"); if(b) setTab(b.getAttribute("data-tab")); });
-  panel.querySelector(".rp-close").addEventListener("click", function(){ panel.classList.remove("open"); });
+  document.querySelectorAll(".sidepanel .rp-close").forEach(function(btn){ btn.addEventListener("click", function(){ btn.closest(".sidepanel").classList.remove("open"); }); });
 
   /* ---------- calculator ---------- */
   var ans = 0, inp = document.getElementById("calcExpr"), out = document.getElementById("calcOut"), hist = document.getElementById("calcHist");
