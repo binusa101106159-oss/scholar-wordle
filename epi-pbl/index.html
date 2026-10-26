@@ -112,6 +112,8 @@ details.concept li{margin:3px 0}
 .explain .ans .tw{margin:8px 0}
 .keyform{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;font-size:13.5px;color:var(--muted)}
 .keyform input{flex:1 1 220px;min-width:0;background:var(--surface2);color:var(--text);border:1px solid var(--line2);border-radius:6px;padding:5px 8px;font:inherit;font-size:14px}
+.topkey{max-width:920px;margin:8px auto 0}
+.topkey .note{flex-basis:100%;font-size:12.5px}
 .linkbtn{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;font-size:13px;cursor:pointer}
 @media (max-width:560px){
   h1{font-size:14px}
@@ -126,11 +128,19 @@ details.concept li{margin:3px 0}
   <div class="top">
     <h1>環境及職業流行病學・PBL 練習</h1>
     <div class="tools">
+      <button id="keyBtn" title="設定批改用的 Anthropic API key" hidden>API key</button>
       <button id="exportBtn" title="把作答下載成 .json">匯出</button>
       <button id="importBtn" title="從 .json 匯入作答">匯入</button>
       <button id="clearBtn" title="清除這一週的作答">清除</button>
       <input type="file" id="importFile" accept="application/json" hidden>
     </div>
+  </div>
+  <div id="keyBar" class="keyform topkey" hidden>
+    <span id="keyState">尚未設定 API key</span>
+    <input id="keyInput" type="password" autocomplete="off" placeholder="sk-ant-…" aria-label="Anthropic API key">
+    <button type="button" id="keySave">儲存</button>
+    <button type="button" id="keyClear">刪除 key</button>
+    <span class="note">key 只存在這台瀏覽器，不會被匯出；到 console.anthropic.com 的 API Keys 建立，費用依 API 計價。</span>
   </div>
   <nav id="tabs">
     <a href="#w0"><b>00</b>重點整理</a>
@@ -1124,7 +1134,8 @@ details.concept li{margin:3px 0}
   var KEY_STORE = "epi-pbl-apikey";           /* kept apart from answers; never exported */
   var API_MODEL = "claude-sonnet-5-5";
   function getKey(){ try{ return localStorage.getItem(KEY_STORE)||""; }catch(e){ return ""; } }
-  function setKey(v){ try{ if(v) localStorage.setItem(KEY_STORE,v); else localStorage.removeItem(KEY_STORE); }catch(e){} }
+  function setKey(v){ try{ if(v) localStorage.setItem(KEY_STORE,v); else localStorage.removeItem(KEY_STORE); }catch(e){}
+    var kb = document.getElementById("keyBtn"); if(kb && !kb.hidden){ kb.textContent = v ? "API key ✓" : "API key"; var ks = document.getElementById("keyState"); if(ks) ks.textContent = v ? ("已設定 API key（末四碼 " + v.slice(-4) + "）") : "尚未設定 API key"; } }
 
   /* ---------- serialize page text for the prompt ---------- */
   var SKIP = "input,textarea,button,script,style,.explain,details.concept,details.ref,.calc,.result,.keyform";
@@ -1353,6 +1364,21 @@ details.concept li{margin:3px 0}
     });
   }
   document.querySelectorAll("section.week").forEach(function(sec){ if(sec.id !== "w0") attach(sec); });
+
+  /* ---------- header API key control (only where claude.ai sampling is absent) ---------- */
+  var keyBtn = document.getElementById("keyBtn"), keyBar = document.getElementById("keyBar");
+  var keyState = document.getElementById("keyState"), keyInput = document.getElementById("keyInput");
+  function showKeyState(){ var k = getKey(); keyState.textContent = k ? ("已設定 API key（末四碼 " + k.slice(-4) + "）") : "尚未設定 API key"; keyBtn.textContent = k ? "API key ✓" : "API key"; }
+  if(!(window.claude && window.claude.use)){
+    keyBtn.hidden = false; showKeyState();
+    keyBtn.addEventListener("click", function(){ keyBar.hidden = !keyBar.hidden; if(!keyBar.hidden) keyInput.focus(); });
+    document.getElementById("keySave").addEventListener("click", function(){
+      var v = keyInput.value.trim(); if(!v) return; setKey(v); keyInput.value = ""; showKeyState();
+      document.querySelectorAll(".explain .keyform").forEach(function(f){ f.remove(); });
+      if(window.__flash) window.__flash("已儲存 API key", 1500);
+    });
+    document.getElementById("keyClear").addEventListener("click", function(){ setKey(""); showKeyState(); if(window.__flash) window.__flash("已刪除 API key", 1500); });
+  }
 })();
 </script>
 </body>
