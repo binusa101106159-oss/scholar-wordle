@@ -312,12 +312,11 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
       <li>NCI 三錯誤：納入 85+、貼上率、起始年齡太低</li>
       <li>零格 &gt; 三成只看 net drift 與中段世代</li>
       <li>肝癌世代反轉 ↔ B 肝疫苗 1984／1986</li></ul></div>
-    <div class="card"><h4><b>05</b>監測・橫斷・病例交叉</h4><ul>
+    <div class="card"><h4><b>05</b>監測・橫斷</h4><ul>
       <li>Surveillance ≠ cross-sectional：監測沒有非暴露組</li>
       <li>盛行率 ≈ 發生率 × 病程；評估風險用發生率</li>
       <li>PR＝[a/(a+b)]÷[c/(c+d)]；OR＝ad/bc</li>
-      <li>干擾三條件；處理 MMRRSS；Hill 時序性為唯一必要條件</li>
-      <li>病例交叉 OR＝不一致配對比；conditional logistic</li></ul></div>
+      <li>干擾三條件；處理 MMRRSS；Hill 時序性為唯一必要條件</li></ul></div>
     <div class="card"><h4><b>06</b>世代・人年・SMR</h4><ul>
       <li>回溯性世代仍是由暴露往疾病</li>
       <li>風險人年三步驟：累計到事件或結束、扣潛伏期、排除暴露不足</li>
@@ -362,8 +361,7 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
   </table></div>
   <h3>公式總整理</h3>
   <p class="note">各週「觀念與公式」的精簡版；代號定義與推導請看各週分頁。<span class="hl-key">青色</span>＝PBL 題目有用到，右欄標出題號。</p>
-  <div class="tw"><table class="ftable"><tr><th>章</th><th class="l">公式</th><th class="l">說明</th></tr><tr class="hl"><td>02</td><td class="l f2">E ＝ P × L</td><td class="l">職務群體平均濃度；P＝暴露人數 ÷ 調查人數，L＝暴露者平均濃度<span class="use">W2 第 6–7 題</span></td></tr><tr class="hl"><td>02</td><td class="l f2">CE ＝ Σ ( C<sub>j</sub> × D<sub>j</sub> ) ＝ Σ ( P<sub>j</sub> × L<sub>j</sub> × D<sub>j</sub> )</td><td class="l">累積暴露（mg/m³·年）：各段工作「濃度 × 年數」加總<span class="use">W2 第 10 題</span></td></tr><tr class="hl"><td>03</td><td class="l f2">r<sub>i</sub> ＝ 病例數 ÷ 人年 × 10<sup>5</sup></td><td class="l">年齡別率<span class="use">W3 第 5 題、W4 第 7 題</span></td></tr><tr><td>03</td><td class="l f2">ASR ＝ Σ ( w<sub>i</sub> × r<sub>i</sub> )，w<sub>i</sub> ＝ S<sub>i</sub> ÷ ΣS<sub>i</sub></td><td class="l">直接年齡標準化；權重取自標準人口</td></tr><tr class="hl"><td>03</td><td class="l f2">APC ＝ 100 × ( e<sup>β</sup> − 1 )</td><td class="l">Joinpoint 年度百分比變化；β＝ln（率）的年斜率<span class="use">W3 第 11、16 題（判讀）</span></td></tr><tr><td>03</td><td class="l f2">AAPC ＝ 100 × { exp[ Σ(L<sub>j</sub>β<sub>j</sub>) ÷ ΣL<sub>j</sub> ] − 1 }</td><td class="l">依各段年數加權平均斜率再換算；不是 APC 的算術平均</td></tr><tr class="hl"><td>03</td><td class="l f2">c ＝ p − a</td><td class="l">出生世代 ＝ 年代 − 年齡（APC 的識別問題）<span class="use">W3 第 8 題、W4 第 10、18、27 題</span></td></tr><tr class="hl"><td>03</td><td class="l f2">log μ ＝ log PY ＋ α ＋ A(a) ＋ P(p) ＋ C(c)</td><td class="l">APC Poisson 模型；log PY 為 offset，只能輸入病例數與人年<span class="use">W3 第 22–23 題、NCI 上機</span></td></tr><tr class="hl"><td>03</td><td class="l f2">ΔDev ＝ Dev<sub>簡單</sub> − Dev<sub>複雜</sub>；Δdf 同理</td><td class="l">巢狀模型比較：ΔDev 對 Δdf 做卡方檢定<span class="use">W3 第 24–25 題</span></td></tr><tr><td>04</td><td class="l f2">PY<sub>i</sub> ＝ D<sub>i</sub>(all) ÷ r<sub>i</sub>(all) × 10<sup>5</sup></td><td class="l">用「所有癌症」病例數與率反推人年</td></tr><tr><td>04</td><td class="l f2">合併率 ＝ ΣD ÷ ΣPY × 10<sup>5</sup></td><td class="l">合併組距或男女：先加總病例與人年再算率</td></tr><tr><td>05</td><td class="l f2">PR ＝ [ a ÷ (a＋b) ] ÷ [ c ÷ (c＋d) ]</td><td class="l">盛行率比</td></tr><tr class="hl"><td>05</td><td class="l f2">OR ＝ (a ÷ c) ÷ (b ÷ d) ＝ (a ÷ b) ÷ (c ÷ d) ＝ ad ／ bc</td><td class="l">勝算比；三種寫法等價<span class="use">W5 第 7、12 題</span></td></tr><tr><td>05</td><td class="l f2">盛行率 ≈ 發生率 × 平均病程</td><td class="l">疾病穩定、盛行率低時成立</td></tr><tr class="hl"><td>05</td><td class="l f2">OR ＝ y ÷ x</td><td class="l">病例交叉：只有 case period 暴露 ÷ 只有 control period 暴露的配對數<span class="use">W5 第 17–18 題</span></td></tr><tr><td>06</td><td class="l f2">RR ＝ [ a ÷ (a＋b) ] ÷ [ c ÷ (c＋d) ]</td><td class="l">相對危險性（分母是人數）</td></tr><tr><td>06</td><td class="l f2">發生密度 ＝ 新發病例數 ÷ 風險人年總和</td><td class="l">單位：每人年</td></tr><tr class="hl"><td>06</td><td class="l f2">E ＝ Σ ( PY<sub>i</sub> × λ<sub>i</sub> )；SMR ＝ O ÷ E</td><td class="l">間接標準化；PY 用扣除潛伏期與暴露不足後的風險人年<span class="use">W6 第 1–4、12–14 題</span></td></tr><tr class="hl"><td>07</td><td class="l f2">IRR ＝ ( d<sub>1</sub> ÷ PY<sub>1</sub> ) ÷ ( d<sub>0</sub> ÷ PY<sub>0</sub> )</td><td class="l">發生率比／死亡率比（MRR）；分母是人年<span class="use">W7 第 3、12、19、23 題</span></td></tr><tr><td>07</td><td class="l f2">P<sub>k</sub> ＝ s<sub>k</sub> ÷ n<sub>k</sub>；S(k) ＝ P<sub>1</sub> × … × P<sub>k</sub></td><td class="l">Life table：條件存活機率連乘</td></tr><tr><td>07</td><td class="l f2">S(t<sub>j</sub>) ＝ Π ( 1 − d<sub>j</sub> ÷ n<sub>j</sub> )</td><td class="l">Kaplan-Meier：每個事件時點重算，已設限者不算入 n</td></tr><tr><td>07</td><td class="l f2">HR ＝ e<sup>β</sup></td><td class="l">Cox 模型危險比；( HR − 1 ) × 100% ＝ 危險改變百分比</td></tr></table></div>
-  <p class="note">第 05 章病例交叉今年講義尚未取得，目前依去年講義。</p>
+  <div class="tw"><table class="ftable"><tr><th>章</th><th class="l">公式</th><th class="l">說明</th></tr><tr class="hl"><td>02</td><td class="l f2">E ＝ P × L</td><td class="l">職務群體平均濃度；P＝暴露人數 ÷ 調查人數，L＝暴露者平均濃度<span class="use">W2 第 6–7 題</span></td></tr><tr class="hl"><td>02</td><td class="l f2">CE ＝ Σ ( C<sub>j</sub> × D<sub>j</sub> ) ＝ Σ ( P<sub>j</sub> × L<sub>j</sub> × D<sub>j</sub> )</td><td class="l">累積暴露（mg/m³·年）：各段工作「濃度 × 年數」加總<span class="use">W2 第 10 題</span></td></tr><tr class="hl"><td>03</td><td class="l f2">r<sub>i</sub> ＝ 病例數 ÷ 人年 × 10<sup>5</sup></td><td class="l">年齡別率<span class="use">W3 第 5 題、W4 第 7 題</span></td></tr><tr><td>03</td><td class="l f2">ASR ＝ Σ ( w<sub>i</sub> × r<sub>i</sub> )，w<sub>i</sub> ＝ S<sub>i</sub> ÷ ΣS<sub>i</sub></td><td class="l">直接年齡標準化；權重取自標準人口</td></tr><tr class="hl"><td>03</td><td class="l f2">APC ＝ 100 × ( e<sup>β</sup> − 1 )</td><td class="l">Joinpoint 年度百分比變化；β＝ln（率）的年斜率<span class="use">W3 第 11、16 題（判讀）</span></td></tr><tr><td>03</td><td class="l f2">AAPC ＝ 100 × { exp[ Σ(L<sub>j</sub>β<sub>j</sub>) ÷ ΣL<sub>j</sub> ] − 1 }</td><td class="l">依各段年數加權平均斜率再換算；不是 APC 的算術平均</td></tr><tr class="hl"><td>03</td><td class="l f2">c ＝ p − a</td><td class="l">出生世代 ＝ 年代 − 年齡（APC 的識別問題）<span class="use">W3 第 8 題、W4 第 10、18、27 題</span></td></tr><tr class="hl"><td>03</td><td class="l f2">log μ ＝ log PY ＋ α ＋ A(a) ＋ P(p) ＋ C(c)</td><td class="l">APC Poisson 模型；log PY 為 offset，只能輸入病例數與人年<span class="use">W3 第 22–23 題、NCI 上機</span></td></tr><tr class="hl"><td>03</td><td class="l f2">ΔDev ＝ Dev<sub>簡單</sub> − Dev<sub>複雜</sub>；Δdf 同理</td><td class="l">巢狀模型比較：ΔDev 對 Δdf 做卡方檢定<span class="use">W3 第 24–25 題</span></td></tr><tr><td>04</td><td class="l f2">PY<sub>i</sub> ＝ D<sub>i</sub>(all) ÷ r<sub>i</sub>(all) × 10<sup>5</sup></td><td class="l">用「所有癌症」病例數與率反推人年</td></tr><tr><td>04</td><td class="l f2">合併率 ＝ ΣD ÷ ΣPY × 10<sup>5</sup></td><td class="l">合併組距或男女：先加總病例與人年再算率</td></tr><tr><td>05</td><td class="l f2">PR ＝ [ a ÷ (a＋b) ] ÷ [ c ÷ (c＋d) ]</td><td class="l">盛行率比</td></tr><tr class="hl"><td>05</td><td class="l f2">OR ＝ (a ÷ c) ÷ (b ÷ d) ＝ (a ÷ b) ÷ (c ÷ d) ＝ ad ／ bc</td><td class="l">勝算比；三種寫法等價<span class="use">W5 第 7、12 題</span></td></tr><tr><td>05</td><td class="l f2">盛行率 ≈ 發生率 × 平均病程</td><td class="l">疾病穩定、盛行率低時成立</td></tr><tr><td>06</td><td class="l f2">RR ＝ [ a ÷ (a＋b) ] ÷ [ c ÷ (c＋d) ]</td><td class="l">相對危險性（分母是人數）</td></tr><tr><td>06</td><td class="l f2">發生密度 ＝ 新發病例數 ÷ 風險人年總和</td><td class="l">單位：每人年</td></tr><tr class="hl"><td>06</td><td class="l f2">E ＝ Σ ( PY<sub>i</sub> × λ<sub>i</sub> )；SMR ＝ O ÷ E</td><td class="l">間接標準化；PY 用扣除潛伏期與暴露不足後的風險人年<span class="use">W6 第 1–4、12–14 題</span></td></tr><tr class="hl"><td>07</td><td class="l f2">IRR ＝ ( d<sub>1</sub> ÷ PY<sub>1</sub> ) ÷ ( d<sub>0</sub> ÷ PY<sub>0</sub> )</td><td class="l">發生率比／死亡率比（MRR）；分母是人年<span class="use">W7 第 3、12、19、23 題</span></td></tr><tr><td>07</td><td class="l f2">P<sub>k</sub> ＝ s<sub>k</sub> ÷ n<sub>k</sub>；S(k) ＝ P<sub>1</sub> × … × P<sub>k</sub></td><td class="l">Life table：條件存活機率連乘</td></tr><tr><td>07</td><td class="l f2">S(t<sub>j</sub>) ＝ Π ( 1 − d<sub>j</sub> ÷ n<sub>j</sub> )</td><td class="l">Kaplan-Meier：每個事件時點重算，已設限者不算入 n</td></tr><tr><td>07</td><td class="l f2">HR ＝ e<sup>β</sup></td><td class="l">Cox 模型危險比；( HR − 1 ) × 100% ＝ 危險改變百分比</td></tr></table></div>
 </section>
 
 <!-- ============ W1 ============ -->
@@ -1005,21 +1003,6 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
     <h4>Hill 因果準則</h4>
     <ul><li>強度、一致性、<b>時序性（唯一必要條件）</b>、生物合理性、劑量效應、排除其他解釋、停止暴露風險下降、專一性。</li></ul>
 
-    <h4>病例交叉設計<span class="tag">去年講義</span></h4>
-    <details class="fold"><summary>代號定義</summary><dl class="sym">
-      <dt>case period</dt><dd>病例發病當時的暴露時段。</dd>
-      <dt>control period</dt><dd>同一位病例在發病前、未發病時的暴露時段（自己當自己的對照）。</dd>
-      <dt>w</dt><dd>兩個時段都有暴露的配對數。</dd>
-      <dt>x</dt><dd>只有 control period 有暴露的配對數。</dd>
-      <dt>y</dt><dd>只有 case period 有暴露的配對數。</dd>
-      <dt>z</dt><dd>兩個時段都沒有暴露的配對數。</dd>
-    </dl></details>
-    <div class="fx"><div class="fx-eq"><div class="fx-line">OR ＝ y ÷ x</div></div><div class="fx-key"><dl><dt>y</dt><dd>只有 case period 有暴露的配對數</dd><dt>x</dt><dd>只有 control period 有暴露的配對數</dd></dl></div><div class="fx-note">兩個時段暴露相同的配對先刪除。</div></div>
-    <details class="fold"><summary>推導與例題</summary><div class="deriv">
-      <span class="f">OR ＝ y ÷ x ＝ 僅 case period 暴露的配對數 ÷ 僅 control period 暴露的配對數</span>
-      <div class="dl">推導：w 與 z 兩個時段暴露相同，比不出差異，所以先刪除；剩下暴露不一致的配對，兩種方向的數量比就是 OR。例：5 個配對中 2 個屬 y、1 個屬 x → OR＝2/1＝2。</div>
-      <div class="dl">統計：單變項 McNemar's test；多變項 conditional logistic regression。</div>
-    </div></details>
   </details>
 
   <div class="card">
@@ -1109,25 +1092,6 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
     <li><span class="qn">16</span>要如何建立時序性？<textarea data-k="w5-6c"></textarea></li>
   </ol>
 
-  <h3>病例交叉設計</h3>
-  <p class="note">今年講義尚未取得；以下為去年講義（20251104）中的計算練習。</p>
-  <div class="card">
-    <p>5 位心肌梗塞病例，各以發病前一段時間為 control period、發病時為 case period，比較是否過勞（E(+)＝過勞、E(−)＝無過勞）：</p>
-    <div class="tw"><table>
-      <tr><th>配對</th><th>Control period</th><th>Case period</th></tr>
-      <tr><td>1</td><td>E(+)</td><td>E(+)</td></tr>
-      <tr><td>2</td><td>E(−)</td><td>E(+)</td></tr>
-      <tr><td>3</td><td>E(−)</td><td>E(+)</td></tr>
-      <tr><td>4</td><td>E(+)</td><td>E(+)</td></tr>
-      <tr><td>5</td><td>E(+)</td><td>E(−)</td></tr>
-    </table></div>
-  </div>
-  <p><span class="qn">17</span>OR＝<input class="num" data-k="w5-cc" data-ans="2">　<button class="check">核對</button><span class="result"></span></p>
-  <ol class="q sub">
-    <li><span class="qn">18</span>寫出計算方式（哪些配對算 y、哪些算 x）。<textarea data-k="w5-cc2a"></textarea></li>
-    <li><span class="qn">19</span>為什麼要刪除暴露狀況相同的配對？<textarea data-k="w5-cc2b"></textarea></li>
-    <li><span class="qn">20</span>多變項分析要用什麼模型？<textarea data-k="w5-cc2c"></textarea></li>
-  </ol>
 </section>
 
 <!-- ============ W6 ============ -->
