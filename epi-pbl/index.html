@@ -1648,7 +1648,7 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
       c.querySelectorAll("input,textarea,button,.result,.calc,[id]").forEach(function(x){ if(x.matches("input,textarea,button,.result,.calc")) x.remove(); else x.removeAttribute("id"); });
       c.querySelectorAll("[data-k]").forEach(function(x){ x.removeAttribute("data-k"); });
       box.appendChild(c);
-      if(!el.querySelector("input,textarea")) el.classList.add("ref-src");
+      if(!el.querySelector("input,textarea") && !el.matches("p")) el.classList.add("ref-src"); // short stems stay with their questions
     });
     if(!box.children.length){ var e = document.createElement("p"); e.className = "rp-empty"; e.textContent = "這一週沒有共用資料表。"; box.appendChild(e); }
     dataBox.appendChild(box); boxes[sec.id] = box;
