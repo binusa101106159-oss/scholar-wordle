@@ -63,6 +63,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:ta
 th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:center;white-space:nowrap}
 th{background:var(--surface);color:var(--muted);font-weight:600}
 td.l,th.l{text-align:left;white-space:normal}
+td.l:first-child,th.l:first-child{min-width:4.5em}
 tr:last-child td{border-bottom:0}
 tr.grey td{color:var(--muted)}
 figure{margin:12px 0}
@@ -115,6 +116,20 @@ details.concept li{margin:3px 0}
 .topkey{max-width:920px;margin:8px auto 0}
 .topkey .note{flex-basis:100%;font-size:12.5px}
 .linkbtn{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;font-size:13px;cursor:pointer}
+
+ol.q{list-style:none;padding-left:0}
+ol.q>li{margin:16px 0}
+ol.q ol.sub{list-style:none;padding-left:12px;border-left:2px solid var(--line);margin:8px 0 4px}
+ol.sub>li{margin:12px 0}
+.qn{display:inline-block;min-width:2em;padding:0 6px;margin-right:8px;border:1px solid var(--accent-dim);border-radius:6px;
+  color:var(--accent);font-size:13px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;line-height:1.6;vertical-align:1px}
+.stem{display:block;font-weight:600;color:var(--muted);font-size:14px}
+dl.sym{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 12px;margin:6px 0;font-size:14.5px}
+dl.sym dt{color:var(--accent);font-weight:600;white-space:nowrap}
+dl.sym dd{margin:0;min-width:0}
+.deriv{border-left:2px solid var(--line2);padding-left:10px;margin:8px 0}
+.dl{font-size:14.5px;margin:4px 0}
+@media (max-width:560px){dl.sym{grid-template-columns:minmax(0,1fr)} dl.sym dt{margin-top:6px} dl.sym dd{padding-left:8px}}
 @media (max-width:560px){
   h1{font-size:14px}
   .tools button{padding:5px 8px;font-size:12px}
@@ -242,26 +257,31 @@ details.concept li{margin:3px 0}
 <section class="week" id="w1">
   <h2><span class="no">01</span>職業流行病學與群聚事件調查</h2>
   <p class="sub">本章講義沒有 PBL，以下為講義末「課後思考」三題。</p>
-  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
 
-    <h4>職業流行病學</h4>
-    <ul><li>流行病學方法用於勞工族群；三大目的：建立因果關係、找出高危險族群、介入改善（一級與二級預防）。</li>
-      <li>研究六步驟（臺灣玉）：現場訪視（47 次）→ 危害辨識（透閃石－陽起石，非石綿型態角閃石）→ 作業環境測定 → 疾病診斷（ILO ≥ 1/1 或囉音）→ 發展篩檢 → 介入（BOHS、WISE）。</li>
-      <li>測定方法：塊材 XRD／PLM／TEM；空氣 NIOSH 7400 以 PCM 計數；表面擦拭 48.4 f/mm²。TEM 可偵測到大量 PCM 看不見的細纖維（粗磨 PCM 4.70 vs TEM 24 f/cm³）。</li></ul>
-    <h4>群聚事件</h4>
-    <ul><li>群聚＝病例在「時間」與「地點」上異常密集地聚集。</li>
-      <li>描述性流病（人、地、時）回答三問：是否真有群聚、是否環境或職業因素造成、誰是易感族群。</li>
-      <li>例：CCl₄ 化學性肝炎（演繹法＋猜測與否證）、水俁症（甲基汞）、John Snow 點狀地圖、GIS 熱點圖。</li></ul>
+  <details class="concept" open><summary>本週觀念與名詞</summary>
+    <h4>名詞定義</h4>
+    <dl class="sym">
+      <dt>職業流行病學</dt><dd>把流行病學方法用在勞工族群，研究工作場所暴露對疾病與傷害頻率、分布的影響。三大目的：建立因果關係、找出高危險族群、介入改善（一級與二級預防）。</dd>
+      <dt>群聚 cluster</dt><dd>病例在「時間」與「地點」上異常密集地聚集。</dd>
+      <dt>人、地、時</dt><dd>描述性流行病學的三個面向（person、place、time），用來回答：是否真有群聚、是否環境或職業因素造成、誰是易感族群。</dd>
+      <dt>PCM</dt><dd>相位差顯微鏡（phase contrast microscopy），NIOSH 7400 方法用它計數空氣中的纖維。</dd>
+      <dt>TEM</dt><dd>穿透式電子顯微鏡（transmission electron microscopy），可辨識礦物種類並看到 PCM 看不見的細纖維。</dd>
+      <dt>f/cm³</dt><dd>每立方公分空氣中的纖維根數（fibers per cubic centimeter）。</dd>
+      <dt>aOR</dt><dd>校正勝算比（adjusted odds ratio），已用多變項模型校正干擾因子（臺灣玉研究校正吸菸包-年與年齡）。</dd>
+    </dl>
+    <h4>臺灣玉研究六步驟</h4>
+    <ul><li>① 現場訪視（47 次）→ ② 危害辨識（透閃石－陽起石，非石綿型態角閃石）→ ③ 作業環境測定 → ④ 疾病診斷（胸部 X 光 ILO ≥ 1/1 或聽診囉音）→ ⑤ 發展篩檢方法 → ⑥ 介入改善（BOHS、WISE 檢核表）。</li>
+      <li>結果：從事軟玉加工之肺纖維化 aOR 2.9（95% CI 0.9–9.2）。</li>
+      <li>粗磨作業 PCM 4.70 f/cm³，TEM（長度 ≥0.5 μm）24 f/cm³：TEM 可看到大量 PCM 看不見的細纖維。</li></ul>
     <h4>兩種通報制度</h4>
     <div class="tw"><table>
       <tr><th class="l"></th><th class="l">職業傷病通報</th><th class="l">重大職災通報</th></tr>
-      <tr><td class="l">法源</td><td class="l">勞職保法第 73 條</td><td class="l">職安法第 37 條第 2 項</td></tr>
-      <tr><td class="l">性質</td><td class="l">非強制，「得」通報</td><td class="l">強制，雇主「應」於 8 小時內通報</td></tr>
+      <tr><td class="l">法源</td><td class="l">勞工職業災害保險及保護法第 73 條</td><td class="l">職業安全衛生法第 37 條第 2 項</td></tr>
+      <tr><td class="l">性質</td><td class="l">非強制，醫療機構、雇主、勞工「得」通報</td><td class="l">強制，雇主「應」於 8 小時內通報勞動檢查機構</td></tr>
     </table></div>
-    <h4>通報資料五項限制</h4>
-    <ul><li>低通報率、差別通報（大醫院較常通報）、選擇性偏差（醫院興趣）、時間延遲、資訊偏差（缺暴露歷程）。</li></ul>
+    <h4>通報資料用於研究的五項限制</h4>
+    <ul><li>低通報率、差別通報（大型醫院較常通報）、選擇性偏差（受醫院興趣影響）、時間延遲、資訊偏差（表單缺暴露歷程）。</li></ul>
   </details>
-
 
   <div class="card">
     <div class="lbl">資料：臺灣玉加工各作業區纖維濃度（f/cm³）</div>
@@ -276,11 +296,14 @@ details.concept li{margin:3px 0}
   </div>
 
   <ol class="q">
-    <li>若你在通報系統中發現某縣市三個月內出現多例不明原因肺纖維化，你會如何依「人、地、時」設計初步調查？
+    <li><span class="qn">1</span>若你在通報系統中發現某縣市三個月內出現多例不明原因肺纖維化，你會如何依「人、地、時」設計初步調查？
       <textarea data-k="w1-1"></textarea></li>
-    <li>在臺灣玉研究中，為何 PCM 與 TEM 的測值差異很大？這對暴露評估有什麼意義？
-      <textarea data-k="w1-2"></textarea></li>
-    <li>若僅用通報資料推論「臺灣職業病發生率上升」，可能犯了哪些偏差？
+    <li><span class="stem">臺灣玉研究的 PCM 與 TEM 測值</span>
+      <ol class="sub">
+        <li><span class="qn">2</span>為何 PCM 與 TEM 的測值差異很大？<textarea data-k="w1-2a"></textarea></li>
+        <li><span class="qn">3</span>這對暴露評估有什麼意義？<textarea data-k="w1-2b"></textarea></li>
+      </ol></li>
+    <li><span class="qn">4</span>若僅用通報資料推論「臺灣職業病發生率上升」，可能犯了哪些偏差？
       <textarea data-k="w1-3"></textarea></li>
   </ol>
 </section>
@@ -289,25 +312,50 @@ details.concept li{margin:3px 0}
 <section class="week" id="w2">
   <h2><span class="no">02</span>PBL 造船業二氧化矽暴露評估</h2>
   <p class="sub">第二章 工作暴露矩陣</p>
-  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
 
-    <h4>指標</h4>
-    <ul><li><b>P</b> 暴露盛行率＝暴露人數 ÷ 調查人數（0–1 的比例，百分比要換成小數）。</li>
-      <li><b>L</b> 暴露程度＝暴露者的平均濃度（算術平均）；不同 JEM 的 L 定義不同，先查資料字典。</li>
-      <li>P 與 L 回答不同問題：P×L 相同不代表個人暴露分布相同。</li></ul>
-    <h4>公式</h4>
-    <span class="f">E ＝ P × L　（職務群體平均濃度，含未暴露者，假設未暴露者＝0）</span>
-    <span class="f">CE ＝ Σ ( E<sub>j</sub> × 年數<sub>j</sub> )　單位 mg/m³·年</span>
-    <span class="f">CE ＝ Σ ( C<sub>j</sub> × D<sub>j</sub> )　或　Σ ( P<sub>j</sub> × L<sub>j</sub> × D<sub>j</sub> )</span>
-    <ul><li>CE 是依職業群體資訊估計的累積暴露，不是個人實際吸入量。</li>
-      <li>等級分數（1／2／3）乘年資 → 只能稱「累積暴露分數」，3 分不等於 3 倍濃度。</li></ul>
+  <details class="concept" open><summary>本週觀念與公式</summary>
+    <h4>代號定義</h4>
+    <dl class="sym">
+      <dt>RCS</dt><dd>可吸入結晶型二氧化矽（respirable crystalline silica）。</dd>
+      <dt>N</dt><dd>某職務的調查人數（人）。</dd>
+      <dt>n</dt><dd>其中判定為暴露者的人數（人）。</dd>
+      <dt>P</dt><dd>暴露盛行率＝n ÷ N，介於 0–1 的比例（百分比要先換成小數）。</dd>
+      <dt>L</dt><dd>暴露程度：<b>暴露者</b>的平均濃度（mg/m³），等於暴露者濃度測值的算術平均。</dd>
+      <dt>E</dt><dd>職務群體平均濃度：<b>全部人員</b>（含未暴露者）的平均濃度（mg/m³）。</dd>
+      <dt>j</dt><dd>工作段的編號。一個人做過的每份工作依序記為第 1 段、第 2 段……第 j 段。</dd>
+      <dt>C<sub>j</sub></dt><dd>第 j 段工作的濃度估計值（mg/m³）。講義的通用寫法；本 PBL 用 E<sub>j</sub> 當作 C<sub>j</sub>。</dd>
+      <dt>D<sub>j</sub></dt><dd>第 j 段工作的持續期間（年）＝本題的「工作年數」。</dd>
+      <dt>Σ</dt><dd>加總：把每一段工作的值加起來。</dd>
+      <dt>CE</dt><dd>累積暴露（cumulative exposure），單位 mg/m³·年。</dd>
+    </dl>
+
+    <h4>公式一：E ＝ P × L</h4>
+    <div class="deriv">
+      <div class="dl">某職務共 N 人：n 人暴露、平均濃度 L；N − n 人未暴露、濃度假設為 0。</div>
+      <span class="f">E ＝ 全部人員濃度總和 ÷ 全部人數 ＝ [ n × L ＋ (N − n) × 0 ] ÷ N</span>
+      <span class="f">　 ＝ (n ÷ N) × L ＝ P × L</span>
+      <div class="dl">例：噴砂工 N＝10、n＝8 → P＝0.8；L＝(0.10＋0.20＋0.20＋0.30＋0.20) ÷ 5＝0.20 → E＝0.8 × 0.20＝0.16 mg/m³。</div>
+    </div>
+
+    <h4>公式二：累積暴露的三種寫法其實是同一個式子</h4>
+    <div class="deriv">
+      <div class="dl">每段工作貢獻的暴露量＝「這段工作的濃度」×「做了幾年」。把每段加起來：</div>
+      <span class="f">CE ＝ Σ ( C<sub>j</sub> × D<sub>j</sub> ) ＝ C<sub>1</sub> × D<sub>1</sub> ＋ C<sub>2</sub> × D<sub>2</sub> ＋ …</span>
+      <div class="dl">本 PBL 每段工作的濃度用該職務的群體平均 E<sub>j</sub>（即 C<sub>j</sub> ＝ E<sub>j</sub>）：</div>
+      <span class="f">CE ＝ Σ ( E<sub>j</sub> × D<sub>j</sub> )</span>
+      <div class="dl">再把公式一 E<sub>j</sub> ＝ P<sub>j</sub> × L<sub>j</sub> 代進去：</div>
+      <span class="f">CE ＝ Σ ( P<sub>j</sub> × L<sub>j</sub> × D<sub>j</sub> )</span>
+      <div class="dl">例（講義 2.2.2）：A 工作 10 年（P 0.6、L 0.2）＋ B 工作 5 年（P 0.3、L 0.1）→ CE＝0.6×0.2×10 ＋ 0.3×0.1×5＝1.2＋0.15＝1.35 mg/m³·年。</div>
+    </div>
+    <ul><li>CE 是依職業群體資訊估計的累積暴露，不是這個人實際吸入多少毫克。</li>
+      <li>L 若只是低／中／高＝1／2／3 分，乘上年資後只能稱「累積暴露分數」：3 分不等於 1 分的 3 倍濃度。</li>
+      <li>P 與 L 回答不同問題：P × L 相同（少數人高濃度 vs 多數人低濃度）不代表個人暴露分布相同。</li></ul>
     <h4>判讀重點</h4>
-    <ul><li>只看職稱編碼會把實際有暴露的人誤分為未暴露（暴露誤分類）。</li>
-      <li>個人採樣與區域採樣位置不同；短時間與全班測量時間基礎不同，要先處理可比性。</li>
-      <li>年資長不代表 CE 高：CE 取決於 E × 年數。</li>
-      <li>CE 表只有暴露，要回答「暴露與肺癌」還需要疾病結果、追蹤人年與干擾因子資料。</li></ul>
+    <ul><li>只看人事表職稱，會把實際有暴露的人誤分為未暴露（暴露誤分類）。</li>
+      <li>個人採樣與區域採樣的位置不同；短時間與全班（8-h TWA）測量的時間基礎不同，整合前要先處理可比性。</li>
+      <li>年資長不代表 CE 高：CE 由「濃度 × 年數」決定。</li>
+      <li>CE 表只有暴露資料；要回答「暴露與肺癌」還需要疾病結果、追蹤人年與干擾因子資料。</li></ul>
   </details>
-
 
   <div class="card">
     <div class="lbl">案例情境</div>
@@ -317,49 +365,63 @@ details.concept li{margin:3px 0}
   <div class="card">
     <div class="lbl">共同資料（每個濃度為一個完整工作日的 8-h TWA）</div>
     <div class="tw"><table>
-      <tr><th class="l">職務</th><th>調查人數</th><th>暴露人數</th><th class="l">暴露者的濃度測值（mg/m³）</th></tr>
+      <tr><th class="l">職務</th><th>調查人數 N</th><th>暴露人數 n</th><th class="l">暴露者的濃度測值（mg/m³）</th></tr>
       <tr><td class="l">噴砂工</td><td>10</td><td>8</td><td class="l">0.10、0.20、0.20、0.30、0.20</td></tr>
       <tr><td class="l">油漆工</td><td>10</td><td>10</td><td class="l">0.08、0.10、0.12</td></tr>
       <tr><td class="l">監工</td><td>10</td><td>4</td><td class="l">0.04、0.06</td></tr>
     </table></div>
-    <p class="note">10 名油漆工均參與噴砂，因此都被判定為暴露者。人數用來算暴露者比例；濃度測值用來算暴露者平均濃度。假設未暴露者的 RCS 濃度為零。</p>
-    <p class="note">三個計算步驟：P＝暴露人數 ÷ 調查人數；L＝暴露者濃度測值的算術平均；E＝P × L；CE＝各段工作的「E × 工作年數」加總（mg/m³·年）。</p>
+    <p class="note">10 名油漆工均參與噴砂，因此都被判定為暴露者。人數用來算 P；濃度測值用來算 L。假設未暴露者的 RCS 濃度為零。</p>
   </div>
 
   <h3>第一題　辨識暴露來源與需要的資料</h3>
   <ol class="q">
-    <li>1A　三種職務可能如何接觸 RCS？若研究者只看人事表上的「油漆工」職稱，就將他們列為沒有 RCS 暴露，會漏掉什麼作業？這會使其暴露估計偏高或偏低？
-      <textarea data-k="w2-1a"></textarea></li>
-    <li>1B　若要了解工作者吸入的 RCS 濃度，應優先採取工作者呼吸帶的個人空氣採樣，還是只在廠房門口放一台固定採樣器？除了濃度，還需記錄哪兩項工作史資料，才能計算 CE？
-      <textarea data-k="w2-1b"></textarea></li>
+    <li><span class="stem">職稱與實際作業</span>
+      <ol class="sub">
+        <li><span class="qn">1</span>三種職務可能如何接觸 RCS？<textarea data-k="w2-1a-1"></textarea></li>
+        <li><span class="qn">2</span>若研究者只看人事表上的「油漆工」職稱，就將他們列為沒有 RCS 暴露，會漏掉什麼作業？<textarea data-k="w2-1a-2"></textarea></li>
+        <li><span class="qn">3</span>這會使其暴露估計偏高或偏低？<textarea data-k="w2-1a-3"></textarea></li>
+      </ol></li>
+    <li><span class="stem">採樣與工作史</span>
+      <ol class="sub">
+        <li><span class="qn">4</span>若要了解工作者吸入的 RCS 濃度，應優先採取工作者呼吸帶的個人空氣採樣，還是只在廠房門口放一台固定採樣器？<textarea data-k="w2-1b-1"></textarea></li>
+        <li><span class="qn">5</span>除了濃度，還需記錄哪兩項工作史資料，才能計算 CE？<textarea data-k="w2-1b-2"></textarea></li>
+      </ol></li>
   </ol>
 
   <h3>第二題　將調查資料整理成 JEM</h3>
-  <p>2A　計算三種職務的 P 與 L。2B　計算 E，完成下表。</p>
+  <p><span class="qn">6</span>計算三種職務的 P 與 L；<span class="qn">7</span>計算 E，完成下表。</p>
   <div class="tw"><table>
-    <tr><th class="l">職務</th><th>P</th><th>L（mg/m³）</th><th>E＝P×L（mg/m³）</th></tr>
+    <tr><th class="l">職務</th><th>P＝n÷N</th><th>L（mg/m³）</th><th>E＝P×L（mg/m³）</th></tr>
     <tr><td class="l">噴砂工</td><td><input class="num" data-k="w2-p1" data-ans="0.8"></td><td><input class="num" data-k="w2-l1" data-ans="0.2"></td><td><input class="num" data-k="w2-e1" data-ans="0.16"></td></tr>
     <tr><td class="l">油漆工</td><td><input class="num" data-k="w2-p2" data-ans="1"></td><td><input class="num" data-k="w2-l2" data-ans="0.1"></td><td><input class="num" data-k="w2-e2" data-ans="0.1"></td></tr>
     <tr><td class="l">監工</td><td><input class="num" data-k="w2-p3" data-ans="0.4"></td><td><input class="num" data-k="w2-l3" data-ans="0.05"></td><td><input class="num" data-k="w2-e3" data-ans="0.02"></td></tr>
   </table></div>
-  <button class="check">核對本題數字</button><span class="result"></span>
-  <p>哪種職務的群體平均濃度較高？這是否代表該職務每個人的濃度都相同？</p>
-  <textarea data-k="w2-2b"></textarea>
+  <button class="check">核對</button><span class="result"></span>
+  <ol class="q sub">
+    <li><span class="qn">8</span>哪種職務的群體平均濃度（E）較高？<textarea data-k="w2-2b-1"></textarea></li>
+    <li><span class="qn">9</span>這是否代表該職務每個人的濃度都相同？<textarea data-k="w2-2b-2"></textarea></li>
+  </ol>
 
   <h3>第三題　連結工作史與累積暴露</h3>
-  <p class="note">可直接使用：噴砂工 E＝0.160、油漆工 E＝0.100、監工 E＝0.020 mg/m³（職務群體估計值，非個人實測）。</p>
+  <p class="note">可直接使用：噴砂工 E＝0.160、油漆工 E＝0.100、監工 E＝0.020 mg/m³（職務群體估計值，非個人實測）。CE＝Σ（E<sub>j</sub> × 工作年數 D<sub>j</sub>）。</p>
   <div class="tw"><table>
     <tr><th class="l">工作者</th><th class="l">工作史</th><th>CE（mg/m³·年）</th></tr>
     <tr><td class="l">甲</td><td class="l">噴砂工 10 年</td><td><input class="num" data-k="w2-ce1" data-ans="1.6"></td></tr>
     <tr><td class="l">乙</td><td class="l">監工 20 年</td><td><input class="num" data-k="w2-ce2" data-ans="0.4"></td></tr>
     <tr><td class="l">丙</td><td class="l">油漆工 5 年，再任監工 5 年</td><td><input class="num" data-k="w2-ce3" data-ans="0.6"></td></tr>
   </table></div>
-  <button class="check">核對本題數字</button><span class="result"></span>
+  <button class="check">核對</button><span class="result"></span>
   <ol class="q">
-    <li>3A　依高至低排序。工作年數較長的人，CE 是否一定較高？
-      <textarea data-k="w2-3a"></textarea></li>
-    <li>3B　如果公司想知道「累積暴露較高的人，肺癌發生率是否較高」，只靠這張 CE 表能回答嗎？還需要哪些資料？
-      <textarea data-k="w2-3b"></textarea></li>
+    <li><span class="stem">排序與年資</span>
+      <ol class="sub">
+        <li><span class="qn">10</span>把三人的 CE 依高至低排序。<textarea data-k="w2-3a-1"></textarea></li>
+        <li><span class="qn">11</span>工作年數較長的人，CE 是否一定較高？<textarea data-k="w2-3a-2"></textarea></li>
+      </ol></li>
+    <li><span class="stem">公司想知道「累積暴露較高的人，肺癌發生率是否較高」</span>
+      <ol class="sub">
+        <li><span class="qn">12</span>只靠這張 CE 表能回答嗎？<textarea data-k="w2-3b-1"></textarea></li>
+        <li><span class="qn">13</span>還需要哪些資料？<textarea data-k="w2-3b-2"></textarea></li>
+      </ol></li>
   </ol>
   <details class="ref"><summary>參考數字（依講義資料自行計算，非官方答案）</summary>
     <p>噴砂工 P＝8/10＝0.8，L＝(0.10+0.20+0.20+0.30+0.20)/5＝0.20，E＝0.16；油漆工 P＝1.0，L＝0.10，E＝0.10；監工 P＝0.4，L＝0.05，E＝0.02。</p>
@@ -371,61 +433,124 @@ details.concept li{margin:3px 0}
 <section class="week" id="w3">
   <h2><span class="no">03</span>PBL 石綿礦停採後，肺癌風險還在上升嗎</h2>
   <p class="sub">第二章 環境對健康影響的長期趨勢分析</p>
-  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
 
-    <h4>率與標準化</h4>
-    <span class="f">rᵢ ＝ Dᵢ ÷ PYᵢ × 100,000　　wᵢ ＝ Sᵢ ÷ ΣSᵢ　　ASR ＝ Σ wᵢ rᵢ</span>
-    <ul><li>本 PBL 的表給的是「人口數」不是人年：病例 ÷ 人口 × 10⁵ ＝ 每十萬人「每十年」，與每十萬人年差 10 倍（不影響 APC 相對率）。</li>
-      <li>1 例／1 萬人與 100 例／100 萬人同為每十萬 10，但精確度差很多 → 永遠同時看分子與分母。</li></ul>
-    <h4>Joinpoint</h4>
-    <span class="f">ln(rateₜ) ＝ α ＋ βt　　APC ＝ 100 × (e^β − 1)</span>
-    <span class="f">AAPC ＝ 100 × { exp[ Σ(Lⱼβⱼ) ÷ ΣLⱼ ] − 1 }</span>
-    <ul><li>APC ＋5% 持續 10 年 → 1.05¹⁰ ＝ 1.63 倍。</li>
-      <li>APC 的 95% CI 含 0 → 該段上升或下降不明確；「方向」與「顯著」是兩件事（圖中星號＝顯著）。</li>
-      <li>轉折年與停採年重合不等於因果。</li></ul>
-    <h4>APC 模型</h4>
-    <span class="f">世代 c ＝ 年代 p − 年齡 a　→ 識別問題</span>
-    <span class="f">log μₐₚ ＝ log PYₐₚ ＋ α ＋ A(a) ＋ P(p) ＋ C(c)</span>
-    <ul><li>對角線（右移一個年代、下移一個同寬年齡組）＝ 近似同一出生世代。</li>
-      <li>NCI 工具：年齡與年代組距同寬；分母不可為 0、病例可為 0；只吃病例數＋人口／人年。</li>
-      <li>輸出：Net drift＝整體平均年變化；Local drifts＝各年齡層年變化；Period／Cohort RR＝相對參考組的率比；Longitudinal age curve＝控制年代與世代後的年齡曲線。</li>
-      <li>NCI 給 Wald 檢定；表 2-3 是 R Epi 的 deviance 次模型比較，兩者不能互相取代。</li></ul>
-    <h4>模型比較</h4>
-    <span class="f">離差差值 ＝ Deviance(簡單) − Deviance(複雜)　；　df 差 ＝ df(簡單) − df(複雜)</span>
-    <ul><li>Deviance／df ≈ 1 合理；明顯 &gt; 1 可能過度離散。AIC／BIC 越小越好。</li>
-      <li>概似比檢定：離差差值與 χ²(df 差) 比較；χ² 臨界值 df 1＝3.84、df 2＝5.99、df 3＝7.81（α＝0.05）。<span class="tag">通用統計知識</span></li>
-      <li>模型適配好 ≠ 因果關係。</li></ul>
+  <details class="concept" open><summary>本週觀念與公式</summary>
+    <h4>代號定義</h4>
+    <dl class="sym">
+      <dt>i</dt><dd>年齡層編號（例如 30–39 歲為一層）。</dd>
+      <dt>D<sub>i</sub></dt><dd>第 i 年齡層的病例數（人）。</dd>
+      <dt>PY<sub>i</sub></dt><dd>第 i 年齡層的人年（person-years）：每人被觀察 1 年算 1 人年。</dd>
+      <dt>r<sub>i</sub></dt><dd>第 i 年齡層的年齡別率（每十萬人年）。</dd>
+      <dt>S<sub>i</sub></dt><dd>標準人口第 i 層的人數（例：WHO 2000 世界標準人口，或兩期人口合併）。</dd>
+      <dt>w<sub>i</sub></dt><dd>第 i 層的權重＝S<sub>i</sub> ÷ ΣS<sub>i</sub>，所有權重加起來＝1。</dd>
+      <dt>ASR</dt><dd>年齡標準化率（age-standardized rate）；發生用 ASIR，死亡用 ASMR。</dd>
+      <dt>t</dt><dd>年份。</dd>
+      <dt>α、β</dt><dd>Joinpoint 迴歸的截距與斜率；β＝ln（率）每年的變化量。</dd>
+      <dt>APC</dt><dd>年度百分比變化（annual percentage change）：某一段趨勢中，率平均每年變化幾 %。注意：與「年齡－年代－世代（APC）分析」同名不同義。</dd>
+      <dt>L<sub>j</sub>、β<sub>j</sub></dt><dd>AAPC 公式中：第 j 段 Joinpoint 區段落在指定期間內的年數、該段斜率。</dd>
+      <dt>AAPC</dt><dd>平均年度百分比變化（average annual percentage change）。</dd>
+      <dt>a、p、c</dt><dd>年齡（age）、年代（period，診斷年份）、出生世代（cohort）。</dd>
+      <dt>μ<sub>ap</sub></dt><dd>年齡 a、年代 p 那一格模型預期的病例數。</dd>
+      <dt>A(a)、P(p)、C(c)</dt><dd>年齡效應、年代效應、世代效應。</dd>
+    </dl>
+
+    <h4>公式一：直接年齡標準化</h4>
+    <span class="f">r<sub>i</sub> ＝ D<sub>i</sub> ÷ PY<sub>i</sub> × 100,000　　w<sub>i</sub> ＝ S<sub>i</sub> ÷ ΣS<sub>i</sub>　　ASR ＝ Σ ( w<sub>i</sub> × r<sub>i</sub> )</span>
+    <div class="deriv">
+      <div class="dl">推導：假設研究族群有「標準人口」的年齡結構，算出標準人口中會有幾個病例，再除以標準人口總數。</div>
+      <span class="f">標準人口第 i 層的預期病例 ＝ S<sub>i</sub> × r<sub>i</sub> ÷ 100,000</span>
+      <span class="f">ASR ＝ Σ 預期病例 ÷ ΣS<sub>i</sub> × 100,000 ＝ Σ ( S<sub>i</sub> × r<sub>i</sub> ) ÷ ΣS<sub>i</sub> ＝ Σ ( w<sub>i</sub> × r<sub>i</sub> )</span>
+      <div class="dl">例（講義）：早期 ASMR＝(800,000×12 ＋ 700,000×132 ＋ 300,000×406) ÷ 1,800,000＝124.3；晚期＝101.7。r<sub>i</sub> 已是每十萬，加權後不要再乘 100,000。</div>
+    </div>
+
+    <h4>公式二：Joinpoint 的 APC</h4>
+    <span class="f">ln(rate<sub>t</sub>) ＝ α ＋ β t　　→　　APC ＝ 100 × ( e<sup>β</sup> − 1 )</span>
+    <div class="deriv">
+      <div class="dl">推導：相鄰兩年的率相除</div>
+      <span class="f">rate<sub>t+1</sub> ÷ rate<sub>t</sub> ＝ e<sup>α＋β(t＋1)</sup> ÷ e<sup>α＋βt</sup> ＝ e<sup>β</sup></span>
+      <span class="f">每年變化的百分比 ＝ ( rate<sub>t+1</sub> − rate<sub>t</sub> ) ÷ rate<sub>t</sub> × 100 ＝ ( e<sup>β</sup> − 1 ) × 100</span>
+      <div class="dl">APC ＋5% 持續 10 年 → 第 10 年的率＝起始 × 1.05<sup>10</sup>＝1.63 倍。CI 含 0 → 該段方向不明確；Joinpoint 圖例中的 * 表示該段 APC 顯著不為 0。</div>
+    </div>
+
+    <h4>公式三：AAPC（不是 APC 的算術平均）</h4>
+    <span class="f">AAPC ＝ 100 × { exp[ Σ ( L<sub>j</sub> × β<sub>j</sub> ) ÷ ΣL<sub>j</sub> ] − 1 }</span>
+    <div class="deriv">
+      <div class="dl">推導：先算各段斜率依年數加權的平均斜率 β̄ ＝ Σ(L<sub>j</sub>β<sub>j</sub>) ÷ ΣL<sub>j</sub>，再用公式二轉成百分比。</div>
+      <div class="dl">例（講義）：前 5 年 APC＋10%（β<sub>1</sub>＝ln 1.10）、後 5 年 −10%（β<sub>2</sub>＝ln 0.90）</div>
+      <span class="f">β̄ ＝ (5 ln1.10 ＋ 5 ln0.90) ÷ 10 ＝ ln √(1.10 × 0.90)　→　AAPC ＝ 100 × ( √0.99 − 1 ) ≈ −0.50%</span>
+      <div class="dl">不是 (＋10% − 10%) ÷ 2 ＝ 0%。</div>
+    </div>
+
+    <h4>公式四：年齡－年代－世代（APC）模型</h4>
+    <span class="f">c ＝ p − a　（出生世代 ＝ 年代 − 年齡）</span>
+    <span class="f">D<sub>ap</sub> ~ Poisson(μ<sub>ap</sub>)　　log μ<sub>ap</sub> ＝ log PY<sub>ap</sub> ＋ α ＋ A(a) ＋ P(p) ＋ C(c)</span>
+    <div class="deriv">
+      <div class="dl">推導 offset：模型要描述的是「率」＝ μ ÷ PY</div>
+      <span class="f">log( μ<sub>ap</sub> ÷ PY<sub>ap</sub> ) ＝ α ＋ A(a) ＋ P(p) ＋ C(c)　→　log μ<sub>ap</sub> ＝ log PY<sub>ap</sub> ＋ α ＋ A(a) ＋ P(p) ＋ C(c)</span>
+      <div class="dl">log PY 的係數固定為 1（offset），所以一定要輸入病例數與人年，不能輸入率。識別問題：三者中知道兩個就知道第三個，模型很難單獨分辨變化來自哪一個。</div>
+    </div>
+    <h4>本 PBL 的單位陷阱</h4>
+    <div class="deriv">
+      <div class="dl">表 2-1 給的是「該期人口數」，每期 10 年，每人約貢獻 10 人年：</div>
+      <span class="f">人年 ≈ 人口數 × 10　→　病例數 ÷ 人口數 × 10<sup>5</sup> ＝ 每十萬人「每十年」 ≈ 每十萬人年 × 10</span>
+      <div class="dl">此常數倍差不影響 APC 的相對率與 drift。</div>
+    </div>
+
+    <h4>NCI 工具輸出</h4>
+    <dl class="sym">
+      <dt>Net drift</dt><dd>整體疾病率的平均年度百分比變化。</dd>
+      <dt>Local drifts</dt><dd>各年齡層的平均年度百分比變化。</dd>
+      <dt>Period RR</dt><dd>相對於參考年代的率比。</dd>
+      <dt>Cohort RR</dt><dd>相對於參考出生世代的率比。</dd>
+      <dt>Long. age curve</dt><dd>控制年代與世代後，疾病率隨年齡的變化。</dd>
+      <dt>Wald 檢定</dt><dd>檢定某組參數是否全為 0（例：All Period RR＝1）；X² 越大、P 越小越顯著。</dd>
+    </dl>
+
+    <h4>公式五：模型比較（表 2-3）</h4>
+    <span class="f">離差差值 ΔDev ＝ Deviance(簡單模型) − Deviance(複雜模型)　；　Δdf ＝ df(簡單) − df(複雜)</span>
+    <ul><li>Deviance ÷ df ≈ 1：Poisson 變異假設大致合理；明顯 &gt; 1：可能過度離散。AIC／BIC 越小越好。</li>
+      <li>ΔDev 與 χ²（自由度 Δdf）比較即概似比檢定；α＝0.05 時 χ² 臨界值：df 1＝3.84、df 2＝5.99、df 3＝7.81。<span class="tag">講義外補充</span></li>
+      <li>模型適配好 ≠ 因果關係；NCI 網頁工具只給 Wald 檢定，跑不出這張 deviance 表（表 2-3 來自 R Epi 套件）。</li></ul>
   </details>
-
 
   <div class="card">
     <div class="lbl">案例情境</div>
-    <p>豐田是一個曾開採石綿的社區，情境指定 1954 年開始、1985 年停止石綿開採，並於 1970–1980 年間轉向臺灣玉（nephrite）相關產業。地方衛生單位注意到肺癌通報數波動，希望評估過去與殘留暴露對長期健康的影響。學習任務是提出可執行的調查方案，並判讀下列資料。能否判斷肺癌較可能由石綿或臺灣玉開採造成？需要哪些額外資料來區分兩種產業的影響？</p>
+    <p>豐田是一個曾開採石綿的社區，情境指定 1954 年開始、1985 年停止石綿開採，並於 1970–1980 年間轉向臺灣玉（nephrite）相關產業。地方衛生單位注意到肺癌通報數波動，希望評估過去與殘留暴露對長期健康的影響。學習任務是提出可執行的調查方案，並判讀下列資料。</p>
   </div>
   <figure><img src="img/w3-fig2-3.jpg" alt="礦產活動與肺癌標準化發生率的時間對照" loading="lazy">
     <figcaption>圖 2-3　礦產活動與肺癌標準化發生率的時間對照。圖上不同縱軸及時間差只供提出假說；礦產產量不等於個人暴露劑量。</figcaption></figure>
-  <textarea data-k="w3-0" placeholder="能否判斷較可能由石綿或臺灣玉造成？需要哪些額外資料？"></textarea>
+  <ol class="q sub">
+    <li><span class="qn">1</span>能否判斷肺癌較可能由石綿或臺灣玉開採造成？<textarea data-k="w3-0a"></textarea></li>
+    <li><span class="qn">2</span>需要哪些額外資料來區分兩種產業的影響？<textarea data-k="w3-0b"></textarea></li>
+  </ol>
 
   <h3>任務一、年齡與年代矩陣（以病例數與人口數判讀）</h3>
-  <p class="note">來源：Yang HY, Furuya S, Toyama N. J Formos Med Assoc 2024;123(7):796–801, Table 1。表列「人口數」為該期的人口數，非人年；病例數 ÷ 人口數 × 100,000 所得之率為「每十萬人、每十年」，與「每十萬人年」相差十倍。</p>
+  <p class="note">來源：Yang HY, Furuya S, Toyama N. J Formos Med Assoc 2024;123(7):796–801, Table 1。表列「人口數」為該期的人口數，非人年。</p>
   <div data-table="w3t21"></div>
   <div data-table="w3t22"></div>
-  <p>先只看病例數，指出哪一格最多、哪一格為零；再對照同一格的人口數，說明為什麼「病例數多」不等於「風險高」。</p>
-  <textarea data-k="w3-1a"></textarea>
-  <p>自行計算至少三格的發生率（病例數 ÷ 人口數 × 100,000）：</p>
-  <div class="calc" data-calc="w3c" data-mult="100000" data-n="3"></div>
-  <p>列出一組直向比較（同一年代、不同年齡）、一組橫向比較（同一年齡、不同年代）與一條對角線（近似同一出生世代）。最後說明哪些結論不能由此表確認。</p>
-  <textarea data-k="w3-1b"></textarea>
+  <ol class="q sub">
+    <li><span class="qn">3</span>先只看病例數，指出哪一格最多、哪一格為零。<textarea data-k="w3-1a-1"></textarea></li>
+    <li><span class="qn">4</span>對照同一格的人口數，說明為什麼「病例數多」不等於「風險高」。<textarea data-k="w3-1a-2"></textarea></li>
+    <li><span class="qn">5</span>自行計算至少三格的發生率（病例數 ÷ 人口數 × 100,000）：
+      <div class="calc" data-calc="w3c" data-mult="100000" data-n="3"></div></li>
+    <li><span class="qn">6</span>列出一組直向比較（同一年代、不同年齡）。<textarea data-k="w3-1b-1"></textarea></li>
+    <li><span class="qn">7</span>列出一組橫向比較（同一年齡、不同年代）。<textarea data-k="w3-1b-2"></textarea></li>
+    <li><span class="qn">8</span>列出一條對角線（近似同一出生世代）。<textarea data-k="w3-1b-3"></textarea></li>
+    <li><span class="qn">9</span>哪些結論不能由此表確認？<textarea data-k="w3-1b-4"></textarea></li>
+  </ol>
 
   <h3>任務二、停採後的趨勢：Joinpoint 迴歸判讀</h3>
   <figure><img src="img/w3-fig2-2.jpg" alt="Joinpoint 迴歸結果" loading="lazy">
     <figcaption>圖 2-2　圖例分段為 1980–2010 年及 2010–2018 年，本題依圖例採 2010 年為轉折點。</figcaption></figure>
-  <ol class="q">
-    <li>轉折點在哪一年？<input class="num" data-k="w3-jp" data-ans="2010" data-tol="0"><br>
-      兩段 APC：1980–2010 <input class="num" data-k="w3-apc1" data-ans="6.78">%／年；2010–2018 <input class="num" data-k="w3-apc2" data-ans="-13.79">%／年
-      <br><button class="check">核對</button><span class="result"></span></li>
-    <li>兩段 APC 各表示什麼？1985 年停採後的趨勢如何描述？下降段是否能判定為顯著下降？
-      <textarea data-k="w3-2"></textarea></li>
+  <ol class="q sub">
+    <li><span class="qn">10</span>轉折點在哪一年？<input class="num" data-k="w3-jp" data-ans="2010" data-tol="0"></li>
+    <li><span class="qn">11</span>兩段 APC：1980–2010 <input class="num" data-k="w3-apc1" data-ans="6.78">%／年；2010–2018 <input class="num" data-k="w3-apc2" data-ans="-13.79">%／年</li>
+  </ol>
+  <button class="check">核對</button><span class="result"></span>
+  <ol class="q sub">
+    <li><span class="qn">12</span>兩段 APC 各表示什麼？<textarea data-k="w3-2-1"></textarea></li>
+    <li><span class="qn">13</span>1985 年停採後的趨勢如何描述？<textarea data-k="w3-2-2"></textarea></li>
+    <li><span class="qn">14</span>下降段是否能判定為顯著下降？<textarea data-k="w3-2-3"></textarea></li>
   </ol>
 
   <h3>任務三、NCI（NIH）APC 網頁工具上機實作</h3>
@@ -451,10 +576,27 @@ details.concept li{margin:3px 0}
     <tr><td class="l">Cohort Rate Ratios</td><td class="l">CohortRR 分頁</td><td class="l"><input class="txt" data-k="w3-crr"></td><td class="l">哪一出生世代最高？CI 多寬？</td></tr>
   </table></div>
   <ol class="q">
-    <li>問題一　Net Drift 的點估計與信賴區間各代表什麼？它與 Joinpoint 估計的 APC = 6.8%／年為何不同？<textarea data-k="w3-3q1"></textarea></li>
-    <li>問題二　Cohort Rate Ratios 中最高的是哪一出生世代？它的 95% 信賴區間有多寬？這個區間允許你下什麼樣的結論、不允許下什麼樣的結論？<textarea data-k="w3-3q2"></textarea></li>
-    <li>問題三　把表 2-2 的男性資料單獨貼進工具再跑一次，與合計結果比較。哪些結論維持一致、哪些改變？這是否足以宣稱男女風險不同？<textarea data-k="w3-3q3"></textarea></li>
-    <li>問題四　工具要求「病例數＋人口數」而不能輸入發生率。若手上只有表 2-1 換算後的率，你還能做什麼分析、不能做什麼分析？<textarea data-k="w3-3q4"></textarea></li>
+    <li><span class="stem">Net Drift</span>
+      <ol class="sub">
+        <li><span class="qn">15</span>Net Drift 的點估計與信賴區間各代表什麼？<textarea data-k="w3-3q1a"></textarea></li>
+        <li><span class="qn">16</span>它與 Joinpoint 估計的 APC = 6.8%／年為何不同？<textarea data-k="w3-3q1b"></textarea></li>
+      </ol></li>
+    <li><span class="stem">Cohort Rate Ratios</span>
+      <ol class="sub">
+        <li><span class="qn">17</span>最高的是哪一出生世代？<textarea data-k="w3-3q2a"></textarea></li>
+        <li><span class="qn">18</span>它的 95% 信賴區間有多寬？<textarea data-k="w3-3q2b"></textarea></li>
+        <li><span class="qn">19</span>這個區間允許你下什麼樣的結論、不允許下什麼樣的結論？<textarea data-k="w3-3q2c"></textarea></li>
+      </ol></li>
+    <li><span class="stem">把表 2-2 的男性資料單獨貼進工具再跑一次，與合計結果比較</span>
+      <ol class="sub">
+        <li><span class="qn">20</span>哪些結論維持一致、哪些改變？<textarea data-k="w3-3q3a"></textarea></li>
+        <li><span class="qn">21</span>這是否足以宣稱男女風險不同？<textarea data-k="w3-3q3b"></textarea></li>
+      </ol></li>
+    <li><span class="stem">工具要求「病例數＋人口數」而不能輸入發生率。若手上只有表 2-1 換算後的率</span>
+      <ol class="sub">
+        <li><span class="qn">22</span>你還能做什麼分析？<textarea data-k="w3-3q4a"></textarea></li>
+        <li><span class="qn">23</span>不能做什麼分析？<textarea data-k="w3-3q4b"></textarea></li>
+      </ol></li>
   </ol>
   <details class="ref"><summary>講義提供的檢核點</summary>
     <p>以表 2-1 資料執行後，應與論文一致：net drift 4.04%（95% CI 0.94–7.24）、period Wald X² = 10.87（df = 3）、cohort Wald X² = 21.78（df = 8）。</p>
@@ -469,69 +611,104 @@ details.concept li{margin:3px 0}
     <tr><td class="l">Age + period</td><td>25.88</td><td>17</td><td>1.52</td></tr>
     <tr><td class="l">Age + period + cohort</td><td>19.02</td><td>14</td><td>1.36</td></tr>
   </table></div>
-  <p class="note">表 2-3　來源：Yang HY et al. J Formos Med Assoc 2024, Table 2（R 的 Epi 套件）。</p>
-  <p>加入漂移、世代與年代後，適配是否改善？請用離差差值與自由度差舉例，並說明「模型適配良好」與「存在因果關係」有何不同。網頁工具為什麼跑不出這張表？</p>
+  <p class="note">表 2-3　來源：Yang HY et al. J Formos Med Assoc 2024, Table 2（R 的 Epi 套件）。講義任務編號由任務三直接跳到任務五。</p>
+  <p><span class="qn">24</span>計算離差差值與自由度差：</p>
   <div class="tw"><table>
-    <tr><th class="l">比較</th><th>離差差值</th><th>df 差</th></tr>
+    <tr><th class="l">比較</th><th>ΔDev</th><th>Δdf</th></tr>
     <tr><td class="l">Age → Age + drift</td><td><input class="num" data-k="w3-d1" data-ans="23.69"></td><td><input class="num" data-k="w3-f1" data-ans="1" data-tol="0"></td></tr>
     <tr><td class="l">Age + drift → Age + cohort</td><td><input class="num" data-k="w3-d2" data-ans="8.6"></td><td><input class="num" data-k="w3-f2" data-ans="3" data-tol="0"></td></tr>
     <tr><td class="l">Age + drift → Age + period</td><td><input class="num" data-k="w3-d3" data-ans="8.43"></td><td><input class="num" data-k="w3-f3" data-ans="2" data-tol="0"></td></tr>
     <tr><td class="l">Age + cohort → APC</td><td><input class="num" data-k="w3-d4" data-ans="6.69"></td><td><input class="num" data-k="w3-f4" data-ans="2" data-tol="0"></td></tr>
   </table></div>
-  <button class="check">核對差值</button><span class="result"></span>
-  <textarea data-k="w3-5"></textarea>
+  <button class="check">核對</button><span class="result"></span>
+  <ol class="q sub">
+    <li><span class="qn">25</span>加入漂移、世代與年代後，適配是否改善？請用離差差值與自由度差舉例說明。<textarea data-k="w3-5a"></textarea></li>
+    <li><span class="qn">26</span>「模型適配良好」與「存在因果關係」有何不同？<textarea data-k="w3-5b"></textarea></li>
+    <li><span class="qn">27</span>網頁工具為什麼跑不出這張表？<textarea data-k="w3-5c"></textarea></li>
+  </ol>
 
   <h3>任務六、世代曲線與暴露時間</h3>
   <figure><img src="img/w3-fig2-1.jpg" alt="APC 模型曲線" loading="lazy">
     <figcaption>圖 2-1　APC 模型曲線。原教材以藍線為簡單方法、紅線為加權方法，涉及漂移分配；未提供完整估計方法、信賴區間與參考組定義。</figcaption></figure>
-  <p>閱讀你自己跑出的 CohortRR 分頁（並對照圖 2-1）。哪些年齡、出生世代與年代的估計值較高？原教材將 1970–1980 年出生世代標為高值，這能否直接說明其受石綿影響最大？請討論模型限制、年輕世代的追蹤時間、停採當時的年齡，以及信賴區間的寬度。</p>
-  <textarea data-k="w3-6"></textarea>
+  <p class="note">閱讀你自己跑出的 CohortRR 分頁（並對照圖 2-1）。</p>
+  <ol class="q sub">
+    <li><span class="qn">28</span>哪些年齡、出生世代與年代的估計值較高？<textarea data-k="w3-6a"></textarea></li>
+    <li><span class="qn">29</span>原教材將 1970–1980 年出生世代標為高值，這能否直接說明其受石綿影響最大？請討論模型限制、年輕世代的追蹤時間、停採當時的年齡，以及信賴區間的寬度。<textarea data-k="w3-6b"></textarea></li>
+  </ol>
 </section>
 
 <!-- ============ W4 ============ -->
 <section class="week" id="w4">
   <h2><span class="no">04</span>PBL 選你關心的地區與癌別</h2>
   <p class="sub">第三章 臺灣癌症登記資料的地區年齡－年代－世代分析</p>
-  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
 
-    <h4>資料來源</h4>
-    <ul><li>CRIS（cris.hpa.gov.tw）：鄉鎮、18 個五歲年齡層、只給率 → 做 APC。資料集 6399：縣市逐年、無年齡層 → 做 Joinpoint。</li>
-      <li>癌登 1979 年起；1990 年代中期以後完整性大幅提升，1979–1995 的上升部分是通報改善。</li></ul>
-    <h4>人年反推</h4>
-    <span class="f">PYᵢ ＝ Dᵢ(所有癌症) ÷ rᵢ(所有癌症) × 100,000</span>
-    <ul><li>用「所有癌症」：病例多、四捨五入誤差小（相對誤差 ≈ 0.005 ÷ r）。零格推不出人年。</li>
-      <li>合計／十年組距：病例數、人年各自加總再算率，不能平均率。</li></ul>
-    <h4>算率</h4>
-    <span class="f">率（每十萬人年）＝ 病例數 ÷ 人年 × 100,000</span>
-    <ul><li>直向＝同一年代不同年齡；橫向＝同一年齡不同年代；對角線＝近似同一出生世代。</li>
-      <li>出生世代 ≈ 年代中點 − 年齡中點（例：30–39 歲於 1979–88 → 約 1940–1958 年出生）。</li></ul>
+  <details class="concept" open><summary>本週觀念與公式</summary>
+    <h4>代號定義</h4>
+    <dl class="sym">
+      <dt>CRIS</dt><dd>國健署癌症登記線上互動查詢系統：鄉鎮層級、18 個五歲年齡層，只給率不給人口 → 做 APC。</dd>
+      <dt>資料集 6399</dt><dd>政府資料開放平臺「癌症發生統計」：縣市逐年、無年齡層 → 做 Joinpoint。</dd>
+      <dt>i</dt><dd>年齡層編號（同一地區、同一期、同一性別）。</dd>
+      <dt>D<sub>i</sub>(all)</dt><dd>第 i 層「所有癌症」的病例數。</dd>
+      <dt>r<sub>i</sub>(all)</dt><dd>第 i 層「所有癌症」的年齡別率（每十萬，系統顯示到小數第二位）。</dd>
+      <dt>PY<sub>i</sub></dt><dd>第 i 層的人年（多年合併時＝各年年底人口數加總）。</dd>
+      <dt>率</dt><dd>本章一律指每十萬人年＝病例數 ÷ 人年 × 100,000。</dd>
+    </dl>
+
+    <h4>公式一：人年反推</h4>
+    <div class="deriv">
+      <div class="dl">率的定義 r ＝ D ÷ PY × 100,000，移項：</div>
+      <span class="f">PY<sub>i</sub> ＝ D<sub>i</sub>(all) ÷ r<sub>i</sub>(all) × 100,000</span>
+      <div class="dl">為什麼用「所有癌症」：率只到小數第二位，四捨五入誤差最多 0.005。PY 與 r 成反比，所以 PY 的相對誤差 ≈ r 的相對誤差：</div>
+      <span class="f">PY 的相對誤差 ≈ 0.005 ÷ r　（成人 r 常 ＞100 → ＜0.005%；兒童 r≈10 → ≈0.05%）</span>
+      <div class="dl">病例數為 0 時率也是 0，0 ÷ 0 推不出人年（「人年缺」）。</div>
+    </div>
+
+    <h4>公式二：合併組距或男女合計</h4>
+    <span class="f">合併後的率 ＝ ( D<sub>1</sub> ＋ D<sub>2</sub> ＋ … ) ÷ ( PY<sub>1</sub> ＋ PY<sub>2</sub> ＋ … ) × 100,000</span>
+    <ul><li>先把病例數、人年各自加總再算率，不能把幾個率平均（各格人年不同，平均會給小格過大的權重）。</li></ul>
+
+    <h4>公式三：對角線＝近似出生世代</h4>
+    <div class="deriv">
+      <span class="f">出生年 ＝ 診斷年 − 年齡</span>
+      <div class="dl">例：30–39 歲於 1979–88 年 → 最早出生 1979 − 39 ＝ 1940，最晚 1988 − 30 ＝ 1958 → 約 1940–1958 年出生世代。往右下一格（40–49 歲於 1989–98）算出的範圍相同，所以對角線追蹤的是同一群人。</div>
+    </div>
+
     <h4>NCI 工具與稀疏資料</h4>
-    <ul><li>輸入：每列一個年齡層，病例數、人年成對；Start Year、Start Age、Interval（年齡與年代同寬）。</li>
-      <li>三錯誤：納入 85+（建議結束於 84）、貼上率、起始年齡太低。</li>
-      <li>零病例格 &gt; 三成 → 只解讀 net drift 與中段世代；最小人年 &lt; 數千 → 標準誤太大。</li></ul>
+    <ul><li>輸入：每列一個年齡層，「病例數、人年」成對；Start Year、Start Age、Interval（年齡與年代組距必須同寬）。</li>
+      <li>三個常見錯誤：① 納入 85+（開放組被當成 85–89，建議結束於 84）② 貼上率 ③ 起始年齡太低（0–29 歲零格多）。</li>
+      <li>零病例格 &gt; 三成 → 只解讀 net drift 與中段世代；最小人年 &lt; 數千 → 標準誤太大。</li>
+      <li>輸出名詞（net drift、local drifts、period／cohort RR、Wald 檢定）同第 03 週。</li></ul>
     <h4>判讀與限制</h4>
-    <ul><li>年代效應＝所有年齡一起動；世代效應＝特定出生世代帶著動。Joinpoint 與 APC 都只是提出假說的起點。</li>
-      <li>非暴露解釋：登記完整性、行政區、戶籍地 ≠ 暴露地、子宮頸癌不含原位癌、篩檢與影像（攝護腺、甲狀腺、乳癌）。</li>
+    <ul><li>年代效應＝所有年齡一起變；世代效應＝特定出生世代帶著變。Joinpoint 與 APC 都只是提出假說的起點。</li>
+      <li>非暴露解釋：1995 年前登記完整性低、行政區劃、戶籍地 ≠ 暴露地、子宮頸癌不含原位癌、篩檢與影像（攝護腺、甲狀腺、乳癌）。</li>
       <li>B 肝疫苗：1984 年 7 月（帶原母親新生兒）、1986 年 7 月（全面）。</li></ul>
   </details>
-
 
   <div class="card">
     <div class="lbl">情境</div>
     <p>某縣衛生局希望知道轄區內哪一種癌症的長期趨勢與全國不同、是不是特定年齡層或出生世代在上升，並判斷這能否與地方的環境或職業暴露史連結。你們小組被要求先用公開的癌症登記資料做一次初步分析，再提出需要哪些資料才能往下走。</p>
-    <p>開始前請先討論並寫下：(1) 要看的地區層級與地區；(2) 癌別與性別；(3) 為什麼是這個組合，背後的暴露假說是什麼；(4) 預期矩陣會多稀疏。</p>
   </div>
-  <textarea data-k="w4-0"></textarea>
   <p class="note">工具：<a href="https://sites.google.com/view/ntu-eoh-apc" target="_blank" rel="noopener" style="color:var(--accent)">教學網站（工作台）</a>・<a href="https://analysistools.cancer.gov/apc/" target="_blank" rel="noopener" style="color:var(--accent)">NCI APC Web Tool</a></p>
+  <p>開始前請先討論並寫下：</p>
+  <ol class="q sub">
+    <li><span class="qn">1</span>要看的地區層級與地區。<textarea data-k="w4-0-1"></textarea></li>
+    <li><span class="qn">2</span>癌別與性別。<textarea data-k="w4-0-2"></textarea></li>
+    <li><span class="qn">3</span>為什麼是這個組合，背後的暴露假說是什麼？<textarea data-k="w4-0-3"></textarea></li>
+    <li><span class="qn">4</span>預期矩陣會多稀疏？<textarea data-k="w4-0-4"></textarea></li>
+  </ol>
 
   <h3>任務一、全國女性肺癌的矩陣判讀（表 3-1）</h3>
   <div data-table="w4t31"></div>
-  <p>先只看病例數：哪一格最多？病例數最多的年齡層在四個年代之間如何移動？</p>
-  <textarea data-k="w4-1a"></textarea>
-  <p>對照同一格的人年，自算至少三格的率（每十萬人年）：</p>
-  <div class="calc" data-calc="w4c" data-mult="100000" data-n="4"></div>
-  <p>列出一組直向比較、一組橫向比較與一條對角線（30–39 歲於 1979–88 → 40–49 歲於 1989–98 → 50–59 歲於 1999–2008 → 60–69 歲於 2009–18，近似 1940–1958 年出生世代）。從表中能不能區分「每一世代都在上升」與「愈晚出生的世代率愈高」？</p>
-  <textarea data-k="w4-1b"></textarea>
+  <ol class="q sub">
+    <li><span class="qn">5</span>先只看病例數：哪一格最多？<textarea data-k="w4-1a-1"></textarea></li>
+    <li><span class="qn">6</span>病例數最多的年齡層在四個年代之間如何移動？<textarea data-k="w4-1a-2"></textarea></li>
+    <li><span class="qn">7</span>對照同一格的人年，自算至少三格的率（每十萬人年）：
+      <div class="calc" data-calc="w4c" data-mult="100000" data-n="4"></div></li>
+    <li><span class="qn">8</span>列出一組直向比較（同一年代、不同年齡）。<textarea data-k="w4-1b-1"></textarea></li>
+    <li><span class="qn">9</span>列出一組橫向比較（同一年齡、不同年代）。<textarea data-k="w4-1b-2"></textarea></li>
+    <li><span class="qn">10</span>列出一條對角線：30–39 歲於 1979–88 → 40–49 歲於 1989–98 → 50–59 歲於 1999–2008 → 60–69 歲於 2009–18（近似 1940–1958 年出生世代）。<textarea data-k="w4-1b-3"></textarea></li>
+    <li><span class="qn">11</span>從表中能不能區分「每一世代都在上升」與「愈晚出生的世代率愈高」？<textarea data-k="w4-1b-4"></textarea></li>
+  </ol>
 
   <h3>任務二、NCI APC 網頁工具上機：全國女性肺癌</h3>
   <p class="note">工作台選「全國」、「肺、支氣管及氣管癌」、「女性」，組距 5 年、30–84 歲、1979–1983 至 2019–2023，按「複製（貼上 NCI）」，到 NCI 工具貼上，Start Year 1979、Start Age 30、Interval 5，Reference 保持 Default。</p>
@@ -548,36 +725,66 @@ details.concept li{margin:3px 0}
     <tr><td class="l">Longitudinal Age Curve</td><td class="l">Long Age 分頁</td><td class="l"><input class="txt" data-k="w4-la"></td><td class="l">控制年代與世代後的年齡曲線</td></tr>
   </table></div>
   <ol class="q">
-    <li>問題一　Net Drift 的點估計與信賴區間各代表什麼？它與工作台年齡標準化率曲線的斜率有什麼關係、又為什麼不完全一樣？<textarea data-k="w4-2q1"></textarea></li>
-    <li>問題二　Period Deviations 的 Wald 檢定與 Cohort Deviations 的 Wald 檢定，哪一個顯著、哪一個不顯著？這告訴你變化主要是「所有年齡一起動」還是「特定世代帶著動」？<textarea data-k="w4-2q2"></textarea></li>
-    <li>問題三　Cohort Rate Ratios 中最高的是哪一出生世代？它的 95% 信賴區間有多寬？這個世代在 2023 年幾歲、在矩陣裡由幾格支持？<textarea data-k="w4-2q3"></textarea></li>
-    <li>問題四　把「男性」再跑一次。男性的 net drift 與世代曲線和女性有何不同？臺灣女性吸菸率長期低於 5%，這對解讀女性肺癌的世代上升有什麼含意、又不能推論什麼？<textarea data-k="w4-2q4"></textarea></li>
+    <li><span class="stem">Net Drift</span>
+      <ol class="sub">
+        <li><span class="qn">12</span>Net Drift 的點估計與信賴區間各代表什麼？<textarea data-k="w4-2q1a"></textarea></li>
+        <li><span class="qn">13</span>它與工作台年齡標準化率曲線的斜率有什麼關係、又為什麼不完全一樣？<textarea data-k="w4-2q1b"></textarea></li>
+      </ol></li>
+    <li><span class="stem">Wald 檢定</span>
+      <ol class="sub">
+        <li><span class="qn">14</span>Period Deviations 與 Cohort Deviations 的 Wald 檢定，哪一個顯著、哪一個不顯著？<textarea data-k="w4-2q2a"></textarea></li>
+        <li><span class="qn">15</span>這告訴你變化主要是「所有年齡一起動」還是「特定世代帶著動」？<textarea data-k="w4-2q2b"></textarea></li>
+      </ol></li>
+    <li><span class="stem">Cohort Rate Ratios</span>
+      <ol class="sub">
+        <li><span class="qn">16</span>最高的是哪一出生世代？<textarea data-k="w4-2q3a"></textarea></li>
+        <li><span class="qn">17</span>它的 95% 信賴區間有多寬？<textarea data-k="w4-2q3b"></textarea></li>
+        <li><span class="qn">18</span>這個世代在 2023 年幾歲、在矩陣裡由幾格支持？<textarea data-k="w4-2q3c"></textarea></li>
+      </ol></li>
+    <li><span class="stem">把「男性」再跑一次</span>
+      <ol class="sub">
+        <li><span class="qn">19</span>男性的 net drift 與世代曲線和女性有何不同？<textarea data-k="w4-2q4a"></textarea></li>
+        <li><span class="qn">20</span>臺灣女性吸菸率長期低於 5%，這對解讀女性肺癌的世代上升有什麼含意、又不能推論什麼？<textarea data-k="w4-2q4b"></textarea></li>
+      </ol></li>
   </ol>
 
   <h3>任務三、地區比較：花蓮縣肺癌（表 3-2）</h3>
   <div data-table="w4t32"></div>
   <p class="note">花蓮縣 1979–1983 年五年間肺癌合計 152 例，2019–2023 年 1,120 例；請先想想這 7 倍的增加中，人口老化、登記完整性與真實風險各占多少。</p>
-  <p>比較花蓮與全國（合計）的 net drift 與信賴區間寬度、零病例格比例、最小人年。花蓮的世代曲線在哪些世代開始變得不穩定？如果只看花蓮的點估計，你會下什麼結論；加上信賴區間之後呢？</p>
-  <textarea data-k="w4-3"></textarea>
+  <ol class="q sub">
+    <li><span class="qn">21</span>比較花蓮與全國（合計）的 net drift 與信賴區間寬度、零病例格比例、最小人年。<textarea data-k="w4-3-1"></textarea></li>
+    <li><span class="qn">22</span>花蓮的世代曲線在哪些世代開始變得不穩定？<textarea data-k="w4-3-2"></textarea></li>
+    <li><span class="qn">23</span>如果只看花蓮的點估計，你會下什麼結論？<textarea data-k="w4-3-3"></textarea></li>
+    <li><span class="qn">24</span>加上信賴區間之後呢？<textarea data-k="w4-3-4"></textarea></li>
+  </ol>
 
   <h3>任務四、世代效應的反轉：全國肝癌（表 3-3）</h3>
   <div data-table="w4t33"></div>
-  <p>看 CohortRR 分頁：相對率在哪一出生世代最高、之後如何變化？看 Local Drifts 分頁：哪些年齡層的年變化為負？臺灣自 1984 年 7 月起對 B 型肝炎帶原母親的新生兒、1986 年 7 月起對所有新生兒接種 B 肝疫苗。</p>
-  <p>1984–1986 年出生者在 2019–2023 年約幾歲？<input class="txt" data-k="w4-4age"></p>
-  <p>對照世代曲線與 local drifts 轉負的年齡，說明資料與疫苗假說相容之處，以及還不能排除的其他解釋（C 型肝炎治療、飲酒、黃麴毒素管制、篩檢與診斷改變）。</p>
-  <textarea data-k="w4-4"></textarea>
+  <p class="note">臺灣自 1984 年 7 月起對 B 型肝炎帶原母親的新生兒、1986 年 7 月起對所有新生兒接種 B 肝疫苗。</p>
+  <ol class="q sub">
+    <li><span class="qn">25</span>看 CohortRR 分頁：相對率在哪一出生世代最高、之後如何變化？<textarea data-k="w4-4-1"></textarea></li>
+    <li><span class="qn">26</span>看 Local Drifts 分頁：哪些年齡層的年變化為負？<textarea data-k="w4-4-2"></textarea></li>
+    <li><span class="qn">27</span>1984–1986 年出生者在 2019–2023 年約幾歲？<input class="txt" data-k="w4-4age"></li>
+    <li><span class="qn">28</span>對照世代曲線與 local drifts 轉負的年齡，說明資料與疫苗假說相容之處。<textarea data-k="w4-4-4"></textarea></li>
+    <li><span class="qn">29</span>還不能排除的其他解釋有哪些（C 型肝炎治療、飲酒、黃麴毒素管制、篩檢與診斷改變）？<textarea data-k="w4-4-5"></textarea></li>
+  </ol>
 
   <h3>任務五、自選地區與癌別</h3>
-  <p>每組選一個縣市或鄉鎮、一個癌別、一個性別（或合計），寫下暴露假說後再開始。跑 NCI 工具，填一份表 3-4，與同癌別的全國結果並列。產出一頁摘要：一項可支持的發現、兩項限制、下一步需要的資料。</p>
+  <p>每組選一個縣市或鄉鎮、一個癌別、一個性別（或合計），寫下暴露假說後再開始。跑 NCI 工具，填一份表 3-4，與同癌別的全國結果並列。</p>
   <p class="note">建議題材：高雄臨海工業區鄉鎮（前鎮、小港、林園、大寮）的肺癌與肝癌；臺南北門、學甲與雲林、嘉義沿海的膀胱癌與腎癌；彰化和美、伸港的皮膚癌與膀胱癌；花蓮秀林、新城、壽豐的肺癌；桃園觀音的口腔癌與肺癌。</p>
-  <textarea data-k="w4-5" style="min-height:140px"></textarea>
+  <ol class="q sub">
+    <li><span class="qn">30</span>選定的地區、癌別、性別與暴露假說。<textarea data-k="w4-5-0"></textarea></li>
+    <li><span class="qn">31</span>一項可支持的發現。<textarea data-k="w4-5-1"></textarea></li>
+    <li><span class="qn">32</span>兩項限制。<textarea data-k="w4-5-2"></textarea></li>
+    <li><span class="qn">33</span>下一步需要的資料。<textarea data-k="w4-5-3"></textarea></li>
+  </ol>
 
   <h3>任務六、從 APC 到暴露假說</h3>
-  <ol class="q">
-    <li>你觀察到的是年代效應、世代效應，還是兩者都有？依據是哪個輸出？<textarea data-k="w4-6a"></textarea></li>
-    <li>若是世代效應，高風險世代在假設的暴露年份時幾歲？這與已知的暴露途徑（職業、居住、飲食、母嬰）是否相容？<textarea data-k="w4-6b"></textarea></li>
-    <li>若是年代效應，有哪些非暴露的解釋（篩檢、診斷、通報、編碼）必須先排除？<textarea data-k="w4-6c"></textarea></li>
-    <li>要驗證假說，最少需要哪三種資料，各從哪裡取得？<textarea data-k="w4-6d"></textarea></li>
+  <ol class="q sub">
+    <li><span class="qn">34</span>你觀察到的是年代效應、世代效應，還是兩者都有？依據是哪個輸出？<textarea data-k="w4-6a"></textarea></li>
+    <li><span class="qn">35</span>若是世代效應，高風險世代在假設的暴露年份時幾歲？這與已知的暴露途徑（職業、居住、飲食、母嬰）是否相容？<textarea data-k="w4-6b"></textarea></li>
+    <li><span class="qn">36</span>若是年代效應，有哪些非暴露的解釋（篩檢、診斷、通報、編碼）必須先排除？<textarea data-k="w4-6c"></textarea></li>
+    <li><span class="qn">37</span>要驗證假說，最少需要哪三種資料，各從哪裡取得？<textarea data-k="w4-6d"></textarea></li>
   </ol>
 </section>
 
@@ -585,34 +792,70 @@ details.concept li{margin:3px 0}
 <section class="week" id="w5">
   <h2><span class="no">05</span>PBL 職業性急性肝炎調查</h2>
   <p class="sub">工作者健康監測與橫斷型研究</p>
-  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
 
-    <h4>研究設計</h4>
-    <ul><li>Surveillance ≠ cross-sectional：監測沒有比較組，只給 who／where／when；橫斷型研究同一時間取得暴露與疾病，有比較組。</li>
-      <li>爆發調查第一步常用橫斷型研究：快、便宜、可描述人時地並產生假說；缺點是時序不明、無法估計發生率。</li></ul>
-    <h4>盛行率與發生率</h4>
+  <details class="concept" open><summary>本週觀念與公式</summary>
+    <h4>代號定義</h4>
+    <dl class="sym">
+      <dt>E(+)、E(−)</dt><dd>有暴露、無暴露（本 PBL：印刷部門、非印刷部門）。</dd>
+      <dt>D(+)、D(−)</dt><dd>有病、無病（本 PBL：第 10 天 ALT ＞ 40 U/L 為肝功能異常）。</dd>
+      <dt>a</dt><dd>有暴露且有病的人數。</dd>
+      <dt>b</dt><dd>有暴露但無病的人數。</dd>
+      <dt>c</dt><dd>無暴露但有病的人數。</dd>
+      <dt>d</dt><dd>無暴露且無病的人數。</dd>
+      <dt>odds（勝算）</dt><dd>某事發生數 ÷ 不發生數（例：暴露組有病的勝算＝a ÷ b）；和「比例」a ÷ (a＋b) 不同。</dd>
+      <dt>PR</dt><dd>盛行率比（prevalence ratio）。</dd>
+      <dt>OR</dt><dd>勝算比（odds ratio）。</dd>
+      <dt>HBsAg</dt><dd>B 型肝炎表面抗原，陽性＝B 肝帶原。</dd>
+    </dl>
+    <div class="tw"><table><tr><th class="l"></th><th>D(+) 有病</th><th>D(−) 無病</th><th>合計</th></tr>
+      <tr><td class="l">E(+) 有暴露</td><td>a</td><td>b</td><td>a＋b</td></tr>
+      <tr><td class="l">E(−) 無暴露</td><td>c</td><td>d</td><td>c＋d</td></tr></table></div>
+
+    <h4>公式一：盛行率比</h4>
+    <span class="f">PR ＝ [ a ÷ (a＋b) ] ÷ [ c ÷ (c＋d) ]　＝ 暴露組盛行率 ÷ 無暴露組盛行率</span>
+
+    <h4>公式二：勝算比的兩種寫法相等</h4>
+    <div class="deriv">
+      <div class="dl">寫法 A（講義）：比較「有病者」與「無病者」的暴露勝算</div>
+      <span class="f">OR ＝ (a ÷ c) ÷ (b ÷ d) ＝ (a × d) ÷ (b × c) ＝ ad ／ bc</span>
+      <div class="dl">寫法 B：比較「暴露組」與「無暴露組」的有病勝算</div>
+      <span class="f">OR ＝ (a ÷ b) ÷ (c ÷ d) ＝ (a × d) ÷ (b × c) ＝ ad ／ bc</span>
+      <div class="dl">兩種寫法化簡後都是 ad／bc，所以結果相同。OR＝1 無相關；＞1 正相關；＜1 負相關。</div>
+      <div class="dl">格子出現 0 時，本 PBL 規定以 0.5 取代那一格再計算（例：a＝5、b＝0 → b 改為 0.5）。</div>
+    </div>
+
+    <h4>公式三：盛行率與發生率</h4>
     <span class="f">盛行率 ≈ 發生率 × 平均病程</span>
-    <ul><li>評估風險、探討病因 → 發生率；疾病負擔、規劃醫療 → 盛行率。</li></ul>
-    <h4>2×2 表</h4>
-    <div class="tw"><table><tr><th class="l"></th><th>D(+)</th><th>D(−)</th></tr>
-      <tr><td class="l">E(+)</td><td>a</td><td>b</td></tr><tr><td class="l">E(−)</td><td>c</td><td>d</td></tr></table></div>
-    <span class="f">PR ＝ [a/(a+b)] ÷ [c/(c+d)]　　OR ＝ (a/c) ÷ (b/d) ＝ ad / bc</span>
-    <ul><li>OR＝1 無相關；&gt;1 正相關；&lt;1 負相關。</li>
-      <li>格子出現 0 時，本 PBL 規定以 0.5 取代。</li></ul>
-    <h4>干擾因子與分層分析</h4>
-    <ul><li>干擾三條件：C 與暴露 A 相關；C 是疾病 B 的危險因子；C 不在 A→B 的因果路徑上。</li>
-      <li>處理 MMRRSS：多變項迴歸、配對、隨機分派、限制、分層、標準化。</li>
-      <li>分層判讀：各層 OR 相近但與未分層 OR 差很多 → 干擾；各層 OR 彼此差很多 → 交互作用（效應修飾），不該合併成單一 OR。<span class="tag">一般流病原則</span></li></ul>
-    <h4>Hill 因果準則</h4>
-    <ul><li>強度、一致性、<b>時序性（唯一必要條件）</b>、生物合理性、劑量效應、排除其他解釋、停止暴露風險下降、專一性。</li>
-      <li>建立暴露證據：MSDS／成分分析、作業環境測定、生物偵測；時序性：暴露（使用清潔劑）先於發病。</li></ul>
-    <h4>病例交叉設計<span class="tag">去年講義</span></h4>
-    <span class="f">OR ＝ 僅 case period 暴露的配對數 ÷ 僅 control period 暴露的配對數</span>
-    <ul><li>先刪除兩個時期暴露相同的配對（同為 E+ 或同為 E−）。</li>
-      <li>適用短期暴露誘發急性事件；自己當自己對照，消除不隨時間改變的干擾。</li>
-      <li>統計：McNemar（單變項）、conditional logistic regression（多變項）。</li></ul>
-  </details>
+    <div class="deriv">
+      <div class="dl">代號：盛行率＝某時點有病人數 ÷ 族群人數；發生率＝單位時間新病例 ÷ 未病人數；平均病程＝從發病到痊癒或死亡的平均時間。</div>
+      <div class="dl">推導（講義外補充）：疾病狀態穩定時，水槽「流入＝流出」。流入＝發生率 × 未病人數；流出＝有病人數 ÷ 平均病程。</div>
+      <span class="f">發生率 × 未病人數 ＝ 有病人數 ÷ 平均病程　→　有病人數 ÷ 未病人數 ＝ 發生率 × 平均病程</span>
+      <div class="dl">當盛行率很低，未病人數 ≈ 全部人數，左邊 ≈ 盛行率，得到講義的近似式。</div>
+    </div>
+    <ul><li>評估風險、探討病因用發生率；疾病負擔、規劃醫療用盛行率。</li></ul>
 
+    <h4>干擾因子與分層分析</h4>
+    <ul><li>干擾因子 C 的三條件：① 與暴露 A 相關 ② 是疾病 B 的危險因子 ③ 不在 A→B 的因果路徑上。</li>
+      <li>處理方法 MMRRSS：多變項迴歸、配對、隨機分派、限制、分層、標準化。</li>
+      <li>分層判讀：各層 OR 彼此相近、但與未分層 OR 差很多 → 干擾；各層 OR 彼此差很多 → 交互作用（效應修飾），不該合併成單一 OR。<span class="tag">講義外補充</span></li></ul>
+    <h4>Hill 因果準則</h4>
+    <ul><li>強度、一致性、<b>時序性（唯一必要條件）</b>、生物合理性、劑量效應、排除其他解釋、停止暴露風險下降、專一性。</li></ul>
+
+    <h4>病例交叉設計<span class="tag">去年講義</span></h4>
+    <dl class="sym">
+      <dt>case period</dt><dd>病例發病當時的暴露時段。</dd>
+      <dt>control period</dt><dd>同一位病例在發病前、未發病時的暴露時段（自己當自己的對照）。</dd>
+      <dt>w</dt><dd>兩個時段都有暴露的配對數。</dd>
+      <dt>x</dt><dd>只有 control period 有暴露的配對數。</dd>
+      <dt>y</dt><dd>只有 case period 有暴露的配對數。</dd>
+      <dt>z</dt><dd>兩個時段都沒有暴露的配對數。</dd>
+    </dl>
+    <div class="deriv">
+      <span class="f">OR ＝ y ÷ x ＝ 僅 case period 暴露的配對數 ÷ 僅 control period 暴露的配對數</span>
+      <div class="dl">推導：w 與 z 兩個時段暴露相同，比不出差異，所以先刪除；剩下暴露不一致的配對，兩種方向的數量比就是 OR。例：5 個配對中 2 個屬 y、1 個屬 x → OR＝2/1＝2。</div>
+      <div class="dl">統計：單變項 McNemar's test；多變項 conditional logistic regression。</div>
+    </div>
+  </details>
 
   <div class="card">
     <div class="lbl">情境介紹</div>
@@ -621,10 +864,10 @@ details.concept li{margin:3px 0}
   <figure><img src="img/w5-jaundice.jpg" alt="病人黃疸" loading="lazy" style="max-height:340px"><figcaption>圖 3-1　病人出現黃疸，診斷為急性肝炎</figcaption></figure>
 
   <h3>任務 1　描述疫情分布與辨識高風險群</h3>
-  <ol class="q">
-    <li>資料收集：工作現場訪視的目的是要蒐集哪些資料？<textarea data-k="w5-1a"></textarea></li>
-    <li>分布分析：請使用「人、事、時、地、物」的框架，描述疾病在工廠內的分布情況。<textarea data-k="w5-1b"></textarea></li>
-    <li>高風險群體識別：根據分析的結果，辨識工廠內的高風險群體。<textarea data-k="w5-1c"></textarea></li>
+  <ol class="q sub">
+    <li><span class="qn">1</span>資料收集：工作現場訪視的目的是要蒐集哪些資料？<textarea data-k="w5-1a"></textarea></li>
+    <li><span class="qn">2</span>分布分析：請使用「人、事、時、地、物」的框架，描述疾病在工廠內的分布情況。<textarea data-k="w5-1b"></textarea></li>
+    <li><span class="qn">3</span>高風險群體識別：根據分析的結果，辨識工廠內的高風險群體。<textarea data-k="w5-1c"></textarea></li>
   </ol>
 
   <div class="card">
@@ -643,9 +886,9 @@ details.concept li{margin:3px 0}
   </div>
 
   <h3>任務 2　選擇適當的研究設計</h3>
-  <ol class="q">
-    <li>工廠急性肝炎爆發的第一時間，您的假設是什麼？<textarea data-k="w5-2a"></textarea></li>
-    <li>您要用什麼研究設計來驗證職業危害的相關性？是 cross-sectional study、case-control study，還是 cohort study？請說明原因。<textarea data-k="w5-2b"></textarea></li>
+  <ol class="q sub">
+    <li><span class="qn">4</span>工廠急性肝炎爆發的第一時間，您的假設是什麼？<textarea data-k="w5-2a"></textarea></li>
+    <li><span class="qn">5</span>您要用什麼研究設計來驗證職業危害的相關性？是 cross-sectional study、case-control study，還是 cohort study？請說明原因。<textarea data-k="w5-2b"></textarea></li>
   </ol>
 
   <div class="card">
@@ -655,25 +898,25 @@ details.concept li{margin:3px 0}
   </div>
 
   <h3>任務 3　整理資料並計算勝算比</h3>
-  <p>依發病第 10 天的檢查結果，製作 2×2 表並計算 OR（可用 Epi Info StatCalc 算 95% CI）。</p>
+  <p><span class="qn">6</span>依發病第 10 天的檢查結果，製作 2×2 表：</p>
   <div class="tw"><table>
     <tr><th class="l"></th><th>肝功能異常 D(+)</th><th>無肝功能異常 D(−)</th></tr>
-    <tr><td class="l">印刷部門 E(+)</td><td><input class="num" data-k="w5-a" data-ans="12" data-tol="0"></td><td><input class="num" data-k="w5-b" data-ans="1" data-tol="0"></td></tr>
-    <tr><td class="l">非印刷部門 E(−)</td><td><input class="num" data-k="w5-c" data-ans="5" data-tol="0"></td><td><input class="num" data-k="w5-d" data-ans="1" data-tol="0"></td></tr>
+    <tr><td class="l">印刷部門 E(+)</td><td>a＝<input class="num" data-k="w5-a" data-ans="12" data-tol="0"></td><td>b＝<input class="num" data-k="w5-b" data-ans="1" data-tol="0"></td></tr>
+    <tr><td class="l">非印刷部門 E(−)</td><td>c＝<input class="num" data-k="w5-c" data-ans="5" data-tol="0"></td><td>d＝<input class="num" data-k="w5-d" data-ans="1" data-tol="0"></td></tr>
   </table></div>
-  <p>OR＝<input class="num" data-k="w5-or" data-ans="2.4">　95% CI＝<input class="txt" data-k="w5-ci"></p>
+  <p><span class="qn">7</span>OR＝ad／bc＝<input class="num" data-k="w5-or" data-ans="2.4">　<span class="qn">8</span>95% CI（Epi Info StatCalc）＝<input class="txt" data-k="w5-ci"></p>
   <button class="check">核對</button><span class="result"></span>
 
   <h3>任務 4　干擾因子</h3>
   <p class="note">從表 3-1 可以發現，B 型肝炎帶原似乎是造成肝功能異常的干擾因子。</p>
-  <ol class="q">
-    <li>何謂干擾因子（confounding factor / confounder）？<textarea data-k="w5-4a"></textarea></li>
-    <li>流行病學上如何處理干擾因子？<textarea data-k="w5-4b"></textarea></li>
+  <ol class="q sub">
+    <li><span class="qn">9</span>何謂干擾因子（confounding factor / confounder）？<textarea data-k="w5-4a"></textarea></li>
+    <li><span class="qn">10</span>流行病學上如何處理干擾因子？<textarea data-k="w5-4b"></textarea></li>
   </ol>
   <div class="card"><div class="lbl">老闆的主張</div><p>這些工人自己本身的身體狀況就不好，因為他們有 B 型肝炎帶原，所以才會生病住院，與工廠的作業無關。</p></div>
 
   <h3>任務 5　分層分析</h3>
-  <p>以 B 型肝炎帶原的有無做分層，依發病第 10 天的資料重新製作表格，分別計算印刷部門相對於非印刷部門的 OR（若格子出現 0，請以 0.5 取代）。</p>
+  <p><span class="qn">11</span>以 B 型肝炎帶原的有無做分層，依發病第 10 天的資料重新製作表格：</p>
   <div class="tw"><table>
     <tr><th class="l">HBsAg</th><th class="l">部門</th><th>肝功能異常</th><th>無肝功能異常</th></tr>
     <tr><td class="l" rowspan="2">帶原 (+)</td><td class="l">印刷</td><td><input class="num" data-k="w5-s1a" data-ans="5" data-tol="0"></td><td><input class="num" data-k="w5-s1b" data-ans="0" data-tol="0"></td></tr>
@@ -681,28 +924,30 @@ details.concept li{margin:3px 0}
     <tr><td class="l" rowspan="2">無帶原 (−)</td><td class="l">印刷</td><td><input class="num" data-k="w5-s2a" data-ans="7" data-tol="0"></td><td><input class="num" data-k="w5-s2b" data-ans="1" data-tol="0"></td></tr>
     <tr><td class="l">非印刷</td><td><input class="num" data-k="w5-s2c" data-ans="4" data-tol="0"></td><td><input class="num" data-k="w5-s2d" data-ans="0" data-tol="0"></td></tr>
   </table></div>
-  <p>B 肝帶原者 OR＝<input class="num" data-k="w5-or1" data-ans="10">　無 B 肝帶原者 OR＝<input class="num" data-k="w5-or2" data-ans="0.875">　未分層 OR＝<input class="num" data-k="w5-or0" data-ans="2.4"></p>
+  <p><span class="qn">12</span>分別計算印刷部門相對於非印刷部門的 OR（若格子出現 0，請以 0.5 取代）：<br>
+    B 肝帶原者 OR＝<input class="num" data-k="w5-or1" data-ans="10">　無 B 肝帶原者 OR＝<input class="num" data-k="w5-or2" data-ans="0.875">　未分層 OR＝<input class="num" data-k="w5-or0" data-ans="2.4"></p>
   <button class="check">核對</button><span class="result"></span>
-  <p>根據分析結果，回答 B 型肝炎帶原是不是造成這次急性肝炎的干擾因子。</p>
-  <textarea data-k="w5-5"></textarea>
+  <ol class="q sub">
+    <li><span class="qn">13</span>根據分析結果，回答 B 型肝炎帶原是不是造成這次急性肝炎的干擾因子。<textarea data-k="w5-5"></textarea></li>
+  </ol>
   <details class="ref"><summary>參考數字（依講義表 3-1 自行計算，非官方答案）</summary>
-    <p>第 10 天 ALT &gt; 40：印刷部門 13 人中僅 #6（24）正常 → 12／1；非印刷部門 6 人中僅 #19（36）正常 → 5／1。OR＝12×1／(1×5)＝2.4。</p>
+    <p>第 10 天 ALT &gt; 40：印刷部門 13 人中僅 #6（24）正常 → a＝12、b＝1；非印刷部門 6 人中僅 #19（36）正常 → c＝5、d＝1。OR＝12×1／(1×5)＝2.4。</p>
     <p>帶原者：印刷 #3、7、9、11、13 全異常（5／0）；非印刷 #17 異常、#19 正常（1／1）→ 0 以 0.5 取代：5×1／(0.5×1)＝10。</p>
     <p>無帶原：印刷 #1、2、4、5、8、10、12 異常、#6 正常（7／1）；非印刷 #14、15、16、18 全異常（4／0）→ 7×0.5／(1×4)＝0.875。</p>
   </details>
 
   <h3>任務 6　建立因果關係</h3>
   <p class="note">老闆說那罐清潔劑是三氯乙烷，一般印刷廠都常用，應該沒有問題。</p>
-  <ol class="q">
-    <li>要如何建立暴露證據？<textarea data-k="w5-6a"></textarea></li>
-    <li>要如何建立生物合理性的證據？<textarea data-k="w5-6b"></textarea></li>
-    <li>要如何建立時序性？<textarea data-k="w5-6c"></textarea></li>
+  <ol class="q sub">
+    <li><span class="qn">14</span>要如何建立暴露證據？<textarea data-k="w5-6a"></textarea></li>
+    <li><span class="qn">15</span>要如何建立生物合理性的證據？<textarea data-k="w5-6b"></textarea></li>
+    <li><span class="qn">16</span>要如何建立時序性？<textarea data-k="w5-6c"></textarea></li>
   </ol>
 
   <h3>病例交叉設計</h3>
   <p class="note">今年講義尚未取得；以下為去年講義（20251104）中的計算練習。</p>
   <div class="card">
-    <p>5 位心肌梗塞病例，各以發病前一段時間為 control period、發病時為 case period，比較是否過勞：</p>
+    <p>5 位心肌梗塞病例，各以發病前一段時間為 control period、發病時為 case period，比較是否過勞（E(+)＝過勞、E(−)＝無過勞）：</p>
     <div class="tw"><table>
       <tr><th>配對</th><th>Control period</th><th>Case period</th></tr>
       <tr><td>1</td><td>E(+)</td><td>E(+)</td></tr>
@@ -712,36 +957,61 @@ details.concept li{margin:3px 0}
       <tr><td>5</td><td>E(+)</td><td>E(−)</td></tr>
     </table></div>
   </div>
-  <p>OR＝<input class="num" data-k="w5-cc" data-ans="2">　<button class="check">核對</button><span class="result"></span></p>
-  <p>計算方式、為什麼要刪除暴露狀況相同的配對？多變項分析要用什麼模型？</p>
-  <textarea data-k="w5-cc2"></textarea>
+  <p><span class="qn">17</span>OR＝<input class="num" data-k="w5-cc" data-ans="2">　<button class="check">核對</button><span class="result"></span></p>
+  <ol class="q sub">
+    <li><span class="qn">18</span>寫出計算方式（哪些配對算 y、哪些算 x）。<textarea data-k="w5-cc2a"></textarea></li>
+    <li><span class="qn">19</span>為什麼要刪除暴露狀況相同的配對？<textarea data-k="w5-cc2b"></textarea></li>
+    <li><span class="qn">20</span>多變項分析要用什麼模型？<textarea data-k="w5-cc2c"></textarea></li>
+  </ol>
 </section>
 
 <!-- ============ W6 ============ -->
 <section class="week" id="w6">
   <h2><span class="no">06</span>PBL PVC 工廠肝血管肉瘤調查</h2>
   <p class="sub">世代研究、風險人年與 SMR</p>
-  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
 
-    <h4>人年與發生密度</h4>
-    <span class="f">發生密度 ＝ 新發病例數 ÷ Σ 風險人年</span>
-    <ul><li>1 人年＝1 位具罹病風險者觀察 1 年。</li></ul>
+  <details class="concept" open><summary>本週觀念與公式</summary>
+    <h4>代號定義</h4>
+    <dl class="sym">
+      <dt>人年 PY</dt><dd>1 位具罹病風險的人觀察 1 年＝1 人年。10 人年可以是 1 人 10 年，也可以是 10 人各 1 年。</dd>
+      <dt>風險人年</dt><dd>person-years at risk：扣掉潛伏期、暴露不足的時間後，真正「可能發生由暴露引起之疾病」的人年。</dd>
+      <dt>i</dt><dd>年齡層（或年齡×年代層）編號。</dd>
+      <dt>PY<sub>i</sub></dt><dd>研究族群（例：PVC 工人）在第 i 層貢獻的風險人年。</dd>
+      <dt>λ<sub>i</sub></dt><dd>參考族群（例：全美人口）第 i 層的疾病死亡率（每人年）。</dd>
+      <dt>O</dt><dd>observed：研究族群實際觀察到的死亡（或病例）數。</dd>
+      <dt>E</dt><dd>expected：若研究族群的死亡率和參考族群一樣，預期會有的死亡數。</dd>
+      <dt>SMR</dt><dd>標準化死亡比（standardized mortality ratio）＝O ÷ E；結局為發病時稱 SIR（標準化發生比）。</dd>
+      <dt>潛伏期</dt><dd>從開始暴露到疾病出現臨床表現的延遲（本 PBL 設定 10 年）。</dd>
+    </dl>
+
+    <h4>公式一：發生密度</h4>
+    <span class="f">發生密度 ＝ 新發病例數 ÷ Σ 風險人年　（單位：每人年）</span>
+    <div class="dl">例：5 人分別追蹤 5、4、2、1、5 年 → 17 人年；2 人發病 → 2 ÷ 17 ≈ 0.118／人年。</div>
+
+    <h4>公式二：間接標準化與 SMR</h4>
+    <span class="f">E ＝ Σ ( PY<sub>i</sub> × λ<sub>i</sub> )　　SMR ＝ O ÷ E　（有些教科書再 × 100）</span>
+    <div class="deriv">
+      <div class="dl">推導：假設研究族群每一層的死亡率都和參考族群相同（λ<sub>i</sub>），則第 i 層預期死亡＝該層人年 × λ<sub>i</sub>，各層加總即 E。實際觀察 O 與 E 相比：SMR ＞ 1（或 ＞ 100）表示風險高於參考族群。</div>
+      <div class="dl">若只有一層（不分年齡），E ＝ PY × λ。本 PBL 任務一：λ ＝ 27 ÷ 200,000,000（每人年），PY ＝ 500 人 × 10 年。</div>
+      <div class="dl">例（講義）：礦工肺結核 E＝181.09、O＝436 → SMR＝436 ÷ 181.09＝2.41（241）。</div>
+    </div>
+    <ul><li>每個 SMR 用的是自己研究族群的年齡結構當權重，兩個不同職業的 SMR 一般不宜直接互比。</li></ul>
+
     <h4>風險人年三步驟</h4>
-    <ul><li>① 從開始暴露累計到發病／死亡或研究結束；<b>離職、退休、不再暴露後仍繼續累計</b>（風險來自過去暴露）。</li>
-      <li>② 扣除潛伏期內的人年：只留高風險人年；否則年輕健康的人年使 E 增加而 O 幾乎不增，SMR 被稀釋（健康工人效應）。</li>
-      <li>③ 排除暴露時間不足者的人年；從未暴露者（行政人員）不列入暴露世代。</li>
-      <li>在度過潛伏期前就死亡的人，從未貢獻風險人年，不納入。</li></ul>
-    <h4>間接標準化</h4>
-    <span class="f">E ＝ Σ（研究族群各層人年 × 參考族群各層率）</span>
-    <span class="f">SMR ＝ O ÷ E　（＞1 或 ＞100：風險高於參考族群）</span>
-    <ul><li>例：礦工肺結核 O＝436、E＝181.09 → SMR 241。</li>
-      <li>參考族群率＝每年死亡數 ÷ 參考人口（例：27 ÷ 2 億）。</li>
-      <li>不同職業的 SMR 各用自己的年齡結構當權重，不宜直接互比。</li></ul>
-    <h4>偏差</h4>
-    <ul><li>健康工人效應：以一般民眾為參考常使職業世代風險偏低（中藥從業人員全部癌症 SIR 0.86）；減少法：扣潛伏期人年、廠內低暴露對照、劑量效應分析。</li>
-      <li>失去追蹤、結果評估偏差（應單盲）、資訊偏差（相同標準程序）、干擾（分層、Poisson、Cox）。</li></ul>
+    <ol>
+      <li>從開始工作（開始暴露）起累計，直到發病／死亡或研究結束。<b>離職、退休、不再暴露後仍繼續累計</b>，因為風險來自過去的暴露。度過潛伏期前就死亡的人不納入。</li>
+      <li>扣除潛伏期內的人年（本 PBL：自開始暴露起 10 年內）。</li>
+      <li>排除暴露時間不足者的人年（本 PBL：PVC 暴露未滿 5 年者）；從未暴露的人（行政人員）不列入暴露世代。</li>
+    </ol>
+    <div class="deriv">
+      <div class="dl">為什麼不扣潛伏期會低估 SMR：把人年分成暴露 10 年內（&lt;10）與 10 年以上（10+）</div>
+      <span class="f">SMR ＝ ( O<sub>&lt;10</sub> ＋ O<sub>10+</sub> ) ÷ ( E<sub>&lt;10</sub> ＋ E<sub>10+</sub> )</span>
+      <div class="dl">暴露 10 年內工人年輕健康、幾乎不會死於此癌（O<sub>&lt;10</sub> ≈ 0），但這段人年仍產生 E<sub>&lt;10</sub>：分子不變、分母變大 → SMR 被稀釋（健康工人效應）。</div>
+    </div>
+    <h4>相對危險性</h4>
+    <span class="f">RR ＝ [ a ÷ (a＋b) ] ÷ [ c ÷ (c＋d) ]</span>
+    <div class="dl">a、b、c、d 定義同第 05 週 2×2 表。例：石綿 84/3,000 ÷ 87/5,000＝0.028 ÷ 0.0174＝1.61。</div>
   </details>
-
 
   <div class="card">
     <div class="lbl">情境介紹</div>
@@ -750,11 +1020,11 @@ details.concept li{margin:3px 0}
 
   <h3>任務一：計算間接標準化死亡比</h3>
   <p class="note">該工廠在 10 年觀察期中，有 500 名長期暴露 PVC 且具罹癌風險的工人，其中 4 人死於肝血管肉瘤。全美 2 億人口中每年有 27 例肝血管肉瘤死亡。</p>
-  <ol class="q">
-    <li>500 名工人在 10 年觀察期中具罹癌風險的累積人年：<input class="num" data-k="w6-py" data-ans="5000"> 人年</li>
-    <li>全美每年肝血管肉瘤死亡率：<input class="num" data-k="w6-rate" data-ans="1.35e-7"> ／人年（可輸入 1.35e-7）</li>
-    <li>PVC 工人在 10 年觀察期中預期的肝血管肉瘤死亡人數：<input class="num" data-k="w6-e" data-ans="6.75e-4"></li>
-    <li>PVC 暴露工人肝血管肉瘤的 SMR：<input class="num" data-k="w6-smr" data-ans="5926" data-tol="0.01"></li>
+  <ol class="q sub">
+    <li><span class="qn">1</span>500 名工人在 10 年觀察期中具罹癌風險的累積人年 PY：<input class="num" data-k="w6-py" data-ans="5000"> 人年</li>
+    <li><span class="qn">2</span>全美每年肝血管肉瘤死亡率 λ：<input class="num" data-k="w6-rate" data-ans="1.35e-7"> ／人年（可輸入 1.35e-7）</li>
+    <li><span class="qn">3</span>PVC 工人在 10 年觀察期中預期的肝血管肉瘤死亡人數 E＝PY×λ：<input class="num" data-k="w6-e" data-ans="6.75e-4"></li>
+    <li><span class="qn">4</span>PVC 暴露工人肝血管肉瘤的 SMR＝O÷E：<input class="num" data-k="w6-smr" data-ans="5926" data-tol="0.01"></li>
   </ol>
   <button class="check">核對</button><span class="result"></span>
   <details class="ref"><summary>參考數字（自行計算，非官方答案）</summary>
@@ -763,15 +1033,16 @@ details.concept li{margin:3px 0}
 
   <h3>任務二：學習人年的計算原則</h3>
   <p class="note">假設需要 5 年的 PVC 暴露時間，以及自開始暴露起 10 年的潛伏期，才會有罹患肝血管肉瘤的風險。</p>
-  <ol class="q">
-    <li>什麼時候人年會停止累積？<textarea data-k="w6-2a"></textarea></li>
-    <li>為什麼在工人辭職或退休後，人年仍會繼續累積？<textarea data-k="w6-2b"></textarea></li>
-    <li>暴露時間未達 5 年的人年是否要刪除？<textarea data-k="w6-2c"></textarea></li>
-    <li>小於 10 年潛伏期的人年是否要刪除？<textarea data-k="w6-2d"></textarea></li>
+  <ol class="q sub">
+    <li><span class="qn">5</span>什麼時候人年會停止累積？<textarea data-k="w6-2a"></textarea></li>
+    <li><span class="qn">6</span>為什麼在工人辭職或退休後，人年仍會繼續累積？<textarea data-k="w6-2b"></textarea></li>
+    <li><span class="qn">7</span>暴露時間未達 5 年的人年是否要刪除？<textarea data-k="w6-2c"></textarea></li>
+    <li><span class="qn">8</span>小於 10 年潛伏期的人年是否要刪除？<textarea data-k="w6-2d"></textarea></li>
   </ol>
 
   <h3>任務三：學習如何整理人年</h3>
   <p>以下為 1974 年調查時 10 名勞工的職業史（觀察期為 1944–1973 年）。依任務二的條件，將每位工人的風險人年依年齡層與年代整理。</p>
+  <p><span class="qn">9</span>每位工人的風險人年：</p>
   <div class="tw"><table>
     <tr><th>編號</th><th class="l">職業史</th><th>風險人年</th></tr>
     <tr><td>#1</td><td class="l">1944 年 20 歲時開始工作至今，都在 PVC 聚合工作。</td><td>20（範例）</td></tr>
@@ -786,7 +1057,7 @@ details.concept li{margin:3px 0}
     <tr><td>#10</td><td class="l">1965 年 20 歲時開始工作。一直從事 PVC 聚合工作至今。</td><td><input class="num" data-k="w6-p10"></td></tr>
   </table></div>
   <p class="note">範例（工人 #1）：1944–1953 年為潛伏期，其 10 人年需扣除（10 − 10 = 0）。1954–1963 年 30–39 歲貢獻 10 人年；1964–1973 年 40–49 歲再貢獻 10 人年，合計 20 人年。</p>
-  <h4>10 人合計的風險人年（年齡 × 年代）</h4>
+  <p><span class="qn">10</span>10 人合計的風險人年（年齡 × 年代）：</p>
   <div class="tw"><table>
     <tr><th>年齡</th><th>1944–1953</th><th>1954–1963</th><th>1964–1973</th><th>小計</th></tr>
     <tr><td>20–29</td><td><input class="num" data-k="w6-g11"></td><td><input class="num" data-k="w6-g12"></td><td><input class="num" data-k="w6-g13"></td><td><input class="num" data-k="w6-g1s"></td></tr>
@@ -796,47 +1067,85 @@ details.concept li{margin:3px 0}
     <tr><td>60–69</td><td><input class="num" data-k="w6-g51"></td><td><input class="num" data-k="w6-g52"></td><td><input class="num" data-k="w6-g53"></td><td><input class="num" data-k="w6-g5s"></td></tr>
     <tr><td>小計</td><td><input class="num" data-k="w6-gs1"></td><td><input class="num" data-k="w6-gs2"></td><td><input class="num" data-k="w6-gs3"></td><td><input class="num" data-k="w6-gss"></td></tr>
   </table></div>
-  <textarea data-k="w6-3" placeholder="每位工人的判斷理由（哪些人不納入、從哪一年開始算）"></textarea>
+  <ol class="q sub">
+    <li><span class="qn">11</span>每位工人的判斷理由（哪些人不納入、從哪一年開始算）。<textarea data-k="w6-3"></textarea></li>
+  </ol>
 
   <h3>任務四：SMR 計算</h3>
-  <p class="note">講義任務四、任務五題目相同。</p>
-  <p>請以風險人口（population at risk）的資料，計算這 10 位工人肝血管肉瘤的 SMR。</p>
-  <ol class="q">
-    <li>累計 10 人的風險人年：<input class="num" data-k="w6-4py"></li>
-    <li>預期死亡人數：<input class="num" data-k="w6-4e"></li>
-    <li>SMR：<input class="num" data-k="w6-4smr"></li>
+  <p class="note">講義任務四、任務五題目相同。請以風險人口（population at risk）的資料，計算這 10 位工人肝血管肉瘤的 SMR。</p>
+  <ol class="q sub">
+    <li><span class="qn">12</span>累計 10 人的風險人年 PY：<input class="num" data-k="w6-4py"></li>
+    <li><span class="qn">13</span>預期死亡人數 E＝PY×λ：<input class="num" data-k="w6-4e"></li>
+    <li><span class="qn">14</span>SMR＝O÷E：<input class="num" data-k="w6-4smr"></li>
+    <li><span class="qn">15</span>計算過程。<textarea data-k="w6-4"></textarea></li>
   </ol>
-  <textarea data-k="w6-4" placeholder="計算過程"></textarea>
 </section>
 
 <!-- ============ W7 ============ -->
 <section class="week" id="w7">
   <h2><span class="no">07</span>PBL 心臟移植能延長存活嗎？</h2>
   <p class="sub">第七章 存活分析</p>
-  <details class="concept" open><summary>本週 PBL 觀念與公式</summary>
 
-    <h4>率比</h4>
-    <span class="f">IRR（或 MRR）＝ (事件數₁ ÷ 人年₁) ÷ (事件數₀ ÷ 人年₀)</span>
-    <ul><li>分母是人年 → 叫發生率比／死亡率比，不叫 RR（RR 分母是人數）。</li></ul>
-    <h4>設限與存活曲線</h4>
-    <ul><li>設限＝研究結束未發病或中途失追，只知存活時間下限；錯誤做法：刪除設限者、把設限者當沒發病（高估存活）。</li>
-      <li>非資訊性設限：被設限者與繼續追蹤者存活機率相同。</li></ul>
-    <span class="f">Life table：Pₖ ＝ 第 k 年底仍未發病 ÷ 第 k−1 年底仍未發病且有被追蹤到第 k 年者；累積存活 ＝ P₁×P₂×…</span>
-    <span class="f">KM：每個事件時點 存活機率 ＝ 1 − 發病數 ÷ 當時仍在追蹤且未發病人數；累積 ＝ 連乘</span>
-    <h4>Hazard 與 Cox</h4>
-    <span class="f">log HR ＝ β₁x₁ ＋ … ＋ βₚxₚ　　HR ＝ e^β</span>
-    <ul><li>例：β＝−0.38 → HR 0.68，危險降低 32%。</li>
-      <li>比例風險假設：HR 在追蹤期間固定；暴露會變時設為時間相依變項。</li></ul>
-    <h4>不死偏差</h4>
-    <ul><li>不死時間：依研究設計，研究對象不可能發生事件的追蹤時間（如移植前的等候期被算進移植組）。</li>
-      <li>本質是人時錯誤分類；必定讓「需先存活才能進入」的組看起來較好。</li></ul>
+  <details class="concept" open><summary>本週觀念與公式</summary>
+    <h4>代號定義</h4>
+    <dl class="sym">
+      <dt>d</dt><dd>某組的事件數（本 PBL：死亡數）。</dd>
+      <dt>PY</dt><dd>某組貢獻的人年。</dd>
+      <dt>IRR／MRR</dt><dd>發生率比（incidence rate ratio）／死亡率比（mortality rate ratio）：兩組「事件數 ÷ 人年」相除。</dd>
+      <dt>RR</dt><dd>相對危險性：兩組「事件數 ÷ 人數」（累積發生率）相除；分母是人數不是人年。</dd>
+      <dt>設限 censored</dt><dd>研究結束時未發病或中途失去追蹤：只知道存活時間「至少」有多長。</dd>
+      <dt>k</dt><dd>Life table 中「到職後第 k 年」。</dd>
+      <dt>n<sub>k</sub></dt><dd>第 k−1 年底仍未發病、且有被追蹤到第 k 年底的人數（第 k 年的分母）。</dd>
+      <dt>s<sub>k</sub></dt><dd>上述 n<sub>k</sub> 人中，第 k 年底仍未發病的人數。</dd>
+      <dt>P<sub>k</sub></dt><dd>第 k 年的條件存活機率＝s<sub>k</sub> ÷ n<sub>k</sub>。</dd>
+      <dt>S(k)</dt><dd>到第 k 年底的累積存活率（仍未發生事件的機率）。</dd>
+      <dt>t<sub>j</sub></dt><dd>KM 法中第 j 個事件發生的時間點。</dd>
+      <dt>n<sub>j</sub></dt><dd>t<sub>j</sub> 之前仍在追蹤且未發病的人數（已設限者不算）。</dd>
+      <dt>d<sub>j</sub></dt><dd>t<sub>j</sub> 時發病的人數。</dd>
+      <dt>h(t)</dt><dd>hazard（危險）：在時間 t 仍未發病者，接下來極短時間內發病的速率。</dd>
+      <dt>h<sub>0</sub>(t)</dt><dd>基準危險：所有預測因子都等於 0 時的 hazard。</dd>
+      <dt>x、β</dt><dd>Cox 模型的預測因子（例：配戴 PPE＝1、否＝0）與其迴歸係數。</dd>
+      <dt>HR</dt><dd>危險比（hazard ratio）：兩組 hazard 相除。</dd>
+    </dl>
+
+    <h4>公式一：率比</h4>
+    <span class="f">IRR（或 MRR）＝ ( d<sub>1</sub> ÷ PY<sub>1</sub> ) ÷ ( d<sub>0</sub> ÷ PY<sub>0</sub> )</span>
+    <div class="dl">例：輪班 2 ÷ 11 人年、不輪班 1 ÷ 9 人年 → IRR＝(2/11) ÷ (1/9)＝1.64。下標 1＝暴露組、0＝對照組。</div>
+
+    <h4>公式二：Life table 累積存活率</h4>
+    <span class="f">P<sub>k</sub> ＝ s<sub>k</sub> ÷ n<sub>k</sub>　　S(k) ＝ P<sub>1</sub> × P<sub>2</sub> × … × P<sub>k</sub></span>
+    <div class="deriv">
+      <div class="dl">推導：要活過第 k 年，必須先活過第 k−1 年，再在「已活過 k−1 年」的條件下活過第 k 年（條件機率）</div>
+      <span class="f">S(k) ＝ S(k−1) × P<sub>k</sub>　→　一路展開 ＝ P<sub>1</sub> × P<sub>2</sub> × … × P<sub>k</sub></span>
+      <div class="dl">例：P<sub>1</sub>＝197/375＝0.525、P<sub>2</sub>＝71/154＝0.461 …… S(5)＝0.525×0.461×0.655×0.696×0.800＝0.088。2004 年到職者只追蹤 1 年，不列入 n<sub>2</sub>。</div>
+    </div>
+
+    <h4>公式三：Kaplan-Meier</h4>
+    <span class="f">S(t<sub>j</sub>) ＝ Π ( 1 − d<sub>j</sub> ÷ n<sub>j</sub> )　（Π＝把每個事件時間點的值連乘）</span>
+    <div class="deriv">
+      <div class="dl">和 Life table 同一個連乘原理，只是不切固定區間，在每個事件時間點重算；1 − d<sub>j</sub>/n<sub>j</sub> 就是該時間點的條件存活機率。</div>
+      <div class="dl">例（Gordis）：第 4 月 1 − 1/6＝0.833；第 10 月 n＝4（1 人已發病、1 人已設限）→ 0.833 × (1 − 1/4)＝0.625；第 14 月 0.417；第 24 月 0。</div>
+    </div>
+
+    <h4>公式四：Cox 模型與 HR ＝ e<sup>β</sup></h4>
+    <span class="f">log [ h(t｜x) ÷ h<sub>0</sub>(t) ] ＝ β<sub>1</sub>x<sub>1</sub> ＋ … ＋ β<sub>p</sub>x<sub>p</sub>　⇔　h(t｜x) ＝ h<sub>0</sub>(t) × e<sup>β<sub>1</sub>x<sub>1</sub> ＋ … ＋ β<sub>p</sub>x<sub>p</sub></sup></span>
+    <div class="deriv">
+      <div class="dl">推導：比較 x＝1 與 x＝0（其他因子相同），h<sub>0</sub>(t) 相消</div>
+      <span class="f">HR ＝ h(t｜x＝1) ÷ h(t｜x＝0) ＝ e<sup>β×1</sup> ÷ e<sup>β×0</sup> ＝ e<sup>β</sup></span>
+      <span class="f">危險改變的百分比 ＝ ( HR − 1 ) × 100%</span>
+      <div class="dl">例：PPE β＝−0.38 → HR＝e<sup>−0.38</sup>＝0.68 → 危險降低 32%。年齡 β＝−0.06 → 每多 1 歲 HR 0.94（降低約 6%）。</div>
+      <div class="dl">比例風險假設：HR 不隨時間改變（h<sub>0</sub>(t) 可以變，但兩組比值固定）。暴露會改變時，把 x 設為時間相依變項。</div>
+    </div>
+
+    <h4>不死偏差與三種分析</h4>
+    <ul><li>不死時間：依研究設計，研究對象不可能發生事件的追蹤時間（本 PBL：移植前的等候期被算進移植組）。</li>
+      <li>本質是人時錯誤分類；方向可預測：一定讓「需先存活一段時間才能進入」的組看起來較好。</li></ul>
     <div class="tw"><table><tr><th class="l">方法</th><th class="l">作法</th><th class="l">結果</th></tr>
-      <tr><td class="l">時間固定（含不死時間）</td><td class="l">曾移植者從收案起算移植組</td><td class="l">錯誤分類偏差</td></tr>
-      <tr><td class="l">時間固定（刪除不死時間）</td><td class="l">移植組從移植日起算，前段刪掉</td><td class="l">選擇偏差（等候人時沒歸組）</td></tr>
-      <tr><td class="l">時間相依</td><td class="l">移植前人時算未移植組，移植後算移植組（拆成兩筆紀錄）</td><td class="l">正確</td></tr></table></div>
-    <ul><li>拆紀錄：移植前那筆的結局是「存活（轉組）」，移植後那筆接續到追蹤結束；總人年不變。</li></ul>
+      <tr><td class="l">時間固定（含不死時間）</td><td class="l">曾移植者從收案起就算移植組</td><td class="l">錯誤分類偏差</td></tr>
+      <tr><td class="l">時間固定（刪除不死時間）</td><td class="l">移植組從移植日起算，等候期直接刪掉</td><td class="l">選擇偏差（等候人時沒歸入任何一組）</td></tr>
+      <tr><td class="l">時間相依</td><td class="l">移植前人時算未移植組，移植後算移植組（每人拆成兩筆紀錄）</td><td class="l">正確</td></tr></table></div>
+    <ul><li>拆紀錄：移植前那筆結局為「存活（轉組）」，移植後那筆接續到追蹤結束；拆完後總人年與原本相同。</li></ul>
   </details>
-
 
   <div class="card">
     <div class="lbl">情境介紹</div>
@@ -862,67 +1171,77 @@ details.concept li{margin:3px 0}
   <h3>任務一：醫院報告的死亡率比</h3>
   <p class="note">醫院把「追蹤期間曾經接受移植」的病人歸為移植組，人年從收案日開始計算。</p>
   <div class="tw"><table>
-    <tr><th class="l">組別</th><th>死亡數</th><th>人年</th></tr>
-    <tr><td class="l">移植組（A–E）</td><td><input class="num" data-k="w7-1d1" data-ans="2" data-tol="0"></td><td><input class="num" data-k="w7-1p1" data-ans="36" data-tol="0"></td></tr>
-    <tr><td class="l">未移植組（F–J）</td><td><input class="num" data-k="w7-1d2" data-ans="4" data-tol="0"></td><td><input class="num" data-k="w7-1p2" data-ans="24" data-tol="0"></td></tr>
+    <tr><th class="l">組別</th><th>死亡數 d</th><th>人年 PY</th></tr>
+    <tr><td class="l"><span class="qn">1</span>移植組（A–E）</td><td><input class="num" data-k="w7-1d1" data-ans="2" data-tol="0"></td><td><input class="num" data-k="w7-1p1" data-ans="36" data-tol="0"></td></tr>
+    <tr><td class="l"><span class="qn">2</span>未移植組（F–J）</td><td><input class="num" data-k="w7-1d2" data-ans="4" data-tol="0"></td><td><input class="num" data-k="w7-1p2" data-ans="24" data-tol="0"></td></tr>
   </table></div>
-  <p>MRR＝<input class="num" data-k="w7-1mrr" data-ans="0.333" data-tol="0.02"></p>
+  <p><span class="qn">3</span>MRR＝(d<sub>移植</sub>÷PY<sub>移植</sub>)÷(d<sub>未移植</sub>÷PY<sub>未移植</sub>)＝<input class="num" data-k="w7-1mrr" data-ans="0.333" data-tol="0.02"></p>
   <button class="check">核對</button><span class="result"></span>
 
   <h3>任務二：找出不死時間</h3>
-  <ol class="q">
-    <li>在時間軸上標出 A–E 從收案到移植的期間。這段期間他們的狀態和未移植病人有何不同？<textarea data-k="w7-2a"></textarea></li>
-    <li>這段期間在任務一中被算進哪一組？共有多少人年？<input class="num" data-k="w7-2py" data-ans="16" data-tol="0"> <button class="check">核對</button><span class="result"></span><textarea data-k="w7-2b"></textarea></li>
-    <li>病人在這段期間有可能以「移植組死亡」被記錄嗎？為什麼？<textarea data-k="w7-2c"></textarea></li>
-    <li>等候期間發生的死亡（如 F、G）被算進哪一組？這對兩組死亡率有什麼影響？<textarea data-k="w7-2d"></textarea></li>
+  <ol class="q sub">
+    <li><span class="qn">4</span>在時間軸上標出 A–E 從收案到移植的期間。這段期間他們的狀態和未移植病人有何不同？<textarea data-k="w7-2a"></textarea></li>
+    <li><span class="qn">5</span>這段期間在任務一中被算進哪一組？<textarea data-k="w7-2b"></textarea></li>
+    <li><span class="qn">6</span>這段期間共有多少人年？<input class="num" data-k="w7-2py" data-ans="16" data-tol="0"> <button class="check">核對</button><span class="result"></span></li>
+    <li><span class="qn">7</span>病人在這段期間有可能以「移植組死亡」被記錄嗎？為什麼？<textarea data-k="w7-2c"></textarea></li>
+    <li><span class="qn">8</span>等候期間發生的死亡（如 F、G）被算進哪一組？<textarea data-k="w7-2d-1"></textarea></li>
+    <li><span class="qn">9</span>這對兩組死亡率有什麼影響？<textarea data-k="w7-2d-2"></textarea></li>
   </ol>
 
   <h3>任務三：直接刪除不死時間</h3>
   <p class="note">有人建議：把 16 人年不死時間從移植組刪掉，移植組改從移植日開始計算人年，未移植組維持不變。</p>
   <div class="tw"><table>
-    <tr><th class="l">組別</th><th>死亡數</th><th>人年</th></tr>
-    <tr><td class="l">移植組</td><td><input class="num" data-k="w7-3d1" data-ans="2" data-tol="0"></td><td><input class="num" data-k="w7-3p1" data-ans="20" data-tol="0"></td></tr>
-    <tr><td class="l">未移植組</td><td><input class="num" data-k="w7-3d2" data-ans="4" data-tol="0"></td><td><input class="num" data-k="w7-3p2" data-ans="24" data-tol="0"></td></tr>
+    <tr><th class="l">組別</th><th>死亡數 d</th><th>人年 PY</th></tr>
+    <tr><td class="l"><span class="qn">10</span>移植組</td><td><input class="num" data-k="w7-3d1" data-ans="2" data-tol="0"></td><td><input class="num" data-k="w7-3p1" data-ans="20" data-tol="0"></td></tr>
+    <tr><td class="l"><span class="qn">11</span>未移植組</td><td><input class="num" data-k="w7-3d2" data-ans="4" data-tol="0"></td><td><input class="num" data-k="w7-3p2" data-ans="24" data-tol="0"></td></tr>
   </table></div>
-  <p>MRR＝<input class="num" data-k="w7-3mrr" data-ans="0.6" data-tol="0.02"></p>
+  <p><span class="qn">12</span>MRR＝<input class="num" data-k="w7-3mrr" data-ans="0.6" data-tol="0.02"></p>
   <button class="check">核對</button><span class="result"></span>
-  <p>這樣做可以消除偏差嗎？為什麼？</p>
-  <textarea data-k="w7-3"></textarea>
+  <ol class="q sub">
+    <li><span class="qn">13</span>這樣做可以消除偏差嗎？為什麼？<textarea data-k="w7-3"></textarea></li>
+  </ol>
 
   <h3>任務四：把移植病人拆成兩筆紀錄</h3>
-  <p>以病人 B 為例，寫出兩筆紀錄的組別、起訖時間、人年與結局：</p>
+  <p><span class="qn">14</span>以病人 B 為例，寫出兩筆紀錄的組別、起訖時間、人年與結局：</p>
   <div class="tw"><table>
     <tr><th>紀錄</th><th class="l">組別</th><th>起</th><th>訖</th><th>人年</th><th class="l">結局</th></tr>
     <tr><td>B-1</td><td><input class="txt" data-k="w7-b1g"></td><td><input class="num" data-k="w7-b1s" data-ans="0" data-tol="0"></td><td><input class="num" data-k="w7-b1e" data-ans="2" data-tol="0"></td><td><input class="num" data-k="w7-b1p" data-ans="2" data-tol="0"></td><td><input class="txt" data-k="w7-b1o"></td></tr>
     <tr><td>B-2</td><td><input class="txt" data-k="w7-b2g"></td><td><input class="num" data-k="w7-b2s" data-ans="2" data-tol="0"></td><td><input class="num" data-k="w7-b2e" data-ans="5" data-tol="0"></td><td><input class="num" data-k="w7-b2p" data-ans="3" data-tol="0"></td><td><input class="txt" data-k="w7-b2o"></td></tr>
   </table></div>
-  <p>用同樣的方法拆開 A、C、D、E。10 位病人一共變成幾筆紀錄？<input class="num" data-k="w7-4n" data-ans="15" data-tol="0"></p>
+  <p><span class="qn">15</span>10 位病人一共變成幾筆紀錄？<input class="num" data-k="w7-4n" data-ans="15" data-tol="0"></p>
   <button class="check">核對</button><span class="result"></span>
-  <textarea data-k="w7-4" placeholder="A、C、D、E 的兩筆紀錄"></textarea>
+  <ol class="q sub">
+    <li><span class="qn">16</span>用同樣的方法拆開 A、C、D、E（寫出各兩筆紀錄）。<textarea data-k="w7-4"></textarea></li>
+  </ol>
 
   <h3>任務五：用 15 筆紀錄計算死亡率比</h3>
   <div class="tw"><table>
-    <tr><th class="l">組別</th><th>死亡數</th><th>人年</th></tr>
-    <tr><td class="l">移植</td><td><input class="num" data-k="w7-5d1" data-ans="2" data-tol="0"></td><td><input class="num" data-k="w7-5p1" data-ans="20" data-tol="0"></td></tr>
-    <tr><td class="l">未移植</td><td><input class="num" data-k="w7-5d2" data-ans="4" data-tol="0"></td><td><input class="num" data-k="w7-5p2" data-ans="40" data-tol="0"></td></tr>
+    <tr><th class="l">組別</th><th>死亡數 d</th><th>人年 PY</th></tr>
+    <tr><td class="l"><span class="qn">17</span>移植</td><td><input class="num" data-k="w7-5d1" data-ans="2" data-tol="0"></td><td><input class="num" data-k="w7-5p1" data-ans="20" data-tol="0"></td></tr>
+    <tr><td class="l"><span class="qn">18</span>未移植</td><td><input class="num" data-k="w7-5d2" data-ans="4" data-tol="0"></td><td><input class="num" data-k="w7-5p2" data-ans="40" data-tol="0"></td></tr>
   </table></div>
-  <p>MRR＝<input class="num" data-k="w7-5mrr" data-ans="1" data-tol="0.02">　兩組合計人年＝<input class="num" data-k="w7-5tot" data-ans="60" data-tol="0"></p>
+  <p><span class="qn">19</span>MRR＝<input class="num" data-k="w7-5mrr" data-ans="1" data-tol="0.02">　<span class="qn">20</span>兩組合計人年＝<input class="num" data-k="w7-5tot" data-ans="60" data-tol="0"></p>
   <button class="check">核對</button><span class="result"></span>
-  <p>合計人年和任務一相比是否相同？根據結果，醫院的結論是否成立？</p>
-  <textarea data-k="w7-5"></textarea>
+  <ol class="q sub">
+    <li><span class="qn">21</span>合計人年和任務一相比是否相同？<textarea data-k="w7-5a"></textarea></li>
+    <li><span class="qn">22</span>根據結果，醫院的結論是否成立？<textarea data-k="w7-5b"></textarea></li>
+  </ol>
 
   <h3>任務六：比較三種分析方法</h3>
+  <p><span class="qn">23</span>把任務一、三、五的結果填入下表（死亡數 / 人年）：</p>
   <div class="tw"><table>
-    <tr><th class="l">分析方法</th><th>移植組（死亡/人年）</th><th>未移植組</th><th>總人年</th><th>MRR</th></tr>
+    <tr><th class="l">分析方法</th><th>移植組</th><th>未移植組</th><th>總人年</th><th>MRR</th></tr>
     <tr><td class="l">時間固定分析（任務一）</td><td><input class="txt" data-k="w7-6a1"></td><td><input class="txt" data-k="w7-6a2"></td><td><input class="num" data-k="w7-6a3" data-ans="60" data-tol="0"></td><td><input class="num" data-k="w7-6a4" data-ans="0.333" data-tol="0.02"></td></tr>
     <tr><td class="l">刪除不死時間（任務三）</td><td><input class="txt" data-k="w7-6b1"></td><td><input class="txt" data-k="w7-6b2"></td><td><input class="num" data-k="w7-6b3" data-ans="44" data-tol="0"></td><td><input class="num" data-k="w7-6b4" data-ans="0.6" data-tol="0.02"></td></tr>
     <tr><td class="l">時間相依分析（任務五）</td><td><input class="txt" data-k="w7-6c1"></td><td><input class="txt" data-k="w7-6c2"></td><td><input class="num" data-k="w7-6c3" data-ans="60" data-tol="0"></td><td><input class="num" data-k="w7-6c4" data-ans="1" data-tol="0.02"></td></tr>
   </table></div>
   <button class="check">核對</button><span class="result"></span>
-  <ol class="q">
-    <li>三種方法的總人年各是多少？任務三為什麼比較少？<textarea data-k="w7-6q2"></textarea></li>
-    <li>時間固定分析讓移植組看起來比較好還是比較差？為什麼？<textarea data-k="w7-6q3"></textarea></li>
-    <li>如果要回答「移植能否延長存活」，應該用哪一種方法分析？<textarea data-k="w7-6q4"></textarea></li>
+  <ol class="q sub">
+    <li><span class="qn">24</span>三種方法的總人年各是多少？<textarea data-k="w7-6q2a"></textarea></li>
+    <li><span class="qn">25</span>任務三的總人年為什麼比較少？<textarea data-k="w7-6q2b"></textarea></li>
+    <li><span class="qn">26</span>時間固定分析讓移植組看起來比較好還是比較差？<textarea data-k="w7-6q3a"></textarea></li>
+    <li><span class="qn">27</span>為什麼？<textarea data-k="w7-6q3b"></textarea></li>
+    <li><span class="qn">28</span>如果要回答「移植能否延長存活」，應該用哪一種方法分析？<textarea data-k="w7-6q4"></textarea></li>
   </ol>
   <details class="ref"><summary>參考數字（自行計算，非官方答案）</summary>
     <p>任務一：移植組人年 8+5+8+7+8＝36、死亡 2（B、D）；未移植組 2+3+5+8+6＝24、死亡 4 → MRR＝(2/36)／(4/24)＝0.33。</p>
@@ -1030,6 +1349,20 @@ details.concept li{margin:3px 0}
   }
 
   /* ---------- autosave ---------- */
+  /* ---------- one-time move of answers whose question was split into sub-questions ---------- */
+  (function(){
+    var MIG = {"w1-2": ["w1-2a", "w1-2b"], "w2-1a": ["w2-1a-1", "w2-1a-2", "w2-1a-3"], "w2-1b": ["w2-1b-1", "w2-1b-2"], "w2-2b": ["w2-2b-1", "w2-2b-2"], "w2-3a": ["w2-3a-1", "w2-3a-2"], "w2-3b": ["w2-3b-1", "w2-3b-2"], "w3-0": ["w3-0a", "w3-0b"], "w3-1a": ["w3-1a-1", "w3-1a-2"], "w3-1b": ["w3-1b-1", "w3-1b-2", "w3-1b-3", "w3-1b-4"], "w3-2": ["w3-2-1", "w3-2-2", "w3-2-3"], "w3-3q1": ["w3-3q1a", "w3-3q1b"], "w3-3q2": ["w3-3q2a", "w3-3q2b", "w3-3q2c"], "w3-3q3": ["w3-3q3a", "w3-3q3b"], "w3-3q4": ["w3-3q4a", "w3-3q4b"], "w3-5": ["w3-5a", "w3-5b", "w3-5c"], "w3-6": ["w3-6a", "w3-6b"], "w4-0": ["w4-0-1", "w4-0-2", "w4-0-3", "w4-0-4"], "w4-1a": ["w4-1a-1", "w4-1a-2"], "w4-1b": ["w4-1b-1", "w4-1b-2", "w4-1b-3", "w4-1b-4"], "w4-2q1": ["w4-2q1a", "w4-2q1b"], "w4-2q2": ["w4-2q2a", "w4-2q2b"], "w4-2q3": ["w4-2q3a", "w4-2q3b", "w4-2q3c"], "w4-2q4": ["w4-2q4a", "w4-2q4b"], "w4-3": ["w4-3-1", "w4-3-2", "w4-3-3", "w4-3-4"], "w4-4": ["w4-4-1", "w4-4-2", "w4-4-4", "w4-4-5"], "w4-5": ["w4-5-0", "w4-5-1", "w4-5-2", "w4-5-3"], "w5-cc2": ["w5-cc2a", "w5-cc2b", "w5-cc2c"], "w7-2d": ["w7-2d-1", "w7-2d-2"], "w7-5": ["w7-5a", "w7-5b"], "w7-6q2": ["w7-6q2a", "w7-6q2b"], "w7-6q3": ["w7-6q3a", "w7-6q3b"]};
+    try{
+      if(localStorage.getItem(PREFIX+"_mig_split_v1")) return;
+      Object.keys(MIG).forEach(function(oldK){
+        var v = localStorage.getItem(PREFIX+oldK); if(!v) return;
+        var targets = MIG[oldK];
+        var anyFilled = targets.some(function(t){ return localStorage.getItem(PREFIX+t); });
+        if(!anyFilled) localStorage.setItem(PREFIX+targets[0], v);   /* old value is kept too */
+      });
+      localStorage.setItem(PREFIX+"_mig_split_v1", "1");
+    }catch(e){}
+  })();
   var fields = document.querySelectorAll("[data-k]");
   fields.forEach(function(el){
     var v = load(el.getAttribute("data-k")); if(v!==null) el.value = v;
@@ -1094,7 +1427,7 @@ details.concept li{margin:3px 0}
   /* ---------- export / import / clear ---------- */
   document.getElementById("exportBtn").addEventListener("click", function(){
     var out = {};
-    try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k.indexOf(PREFIX)===0 && k!==PREFIX+"_tab") out[k.slice(PREFIX.length)] = localStorage.getItem(k); } }catch(e){}
+    try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k.indexOf(PREFIX)===0 && k.charAt(PREFIX.length)!=="_") out[k.slice(PREFIX.length)] = localStorage.getItem(k); } }catch(e){}
     var json = JSON.stringify(out,null,1), name = "epi-pbl-answers.json";
     var useDl = (window.claude && window.claude.use) ? window.claude.use("downloads") : Promise.resolve(null);
     useDl.then(function(dl){
