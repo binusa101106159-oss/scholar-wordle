@@ -208,6 +208,12 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
 .nci-set b{color:var(--text);font-variant-numeric:tabular-nums}
 .nci .paste{margin:6px 0 0}
 .nci-note{font-size:13px;color:var(--muted);margin-top:6px}
+
+.cloudbar{flex-direction:column;align-items:stretch;gap:8px}
+.cloudbar .cb-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.cloudbar .cb-main{border-color:var(--accent);color:var(--accent);font-weight:600}
+#cloudNotice{background:#06110f;border:1px solid var(--accent-dim);border-radius:8px;padding:6px 10px;color:var(--text)}
+#cloudBtn.dirty::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-left:6px;vertical-align:1px}
 @media (max-width:560px){.fx-key dl{grid-template-columns:minmax(4.5em,max-content) minmax(0,1fr)} .fx-key dt{white-space:normal}}
 @media (max-width:560px){dl.sym{grid-template-columns:minmax(0,1fr)} dl.sym dt{margin-top:6px} dl.sym dd{padding-left:8px}}
 @media (max-width:560px){
@@ -223,11 +229,27 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
   <div class="top">
     <h1>環境及職業流行病學・PBL 練習</h1>
     <div class="tools">
+      <button id="cloudBtn" title="把作答存到雲端，換裝置也能載入">雲端</button>
       <button id="keyBtn" title="設定批改用的 Anthropic API key" hidden>API key</button>
       <button id="exportBtn" title="把作答下載成 .json">匯出</button>
       <button id="importBtn" title="從 .json 匯入作答">匯入</button>
       <button id="clearBtn" title="清除這一週的作答">清除</button>
       <input type="file" id="importFile" accept="application/json" hidden>
+    </div>
+  </div>
+  <div id="cloudBar" class="keyform topkey cloudbar" hidden>
+    <div class="cb-row"><span id="cloudState">雲端儲存</span></div>
+    <div class="cb-row" id="cloudNotice" hidden></div>
+    <div class="cb-row">
+      <button type="button" id="cloudSave" class="cb-main">儲存到雲端</button>
+      <button type="button" id="cloudLoad">從雲端載入</button>
+      <button type="button" id="cloudUndo" hidden>復原載入前的作答</button>
+    </div>
+    <div class="cb-row" id="ghSetup" hidden>
+      <input id="ghToken" type="password" autocomplete="off" placeholder="GitHub token（ghp_… 或 github_pat_…）" aria-label="GitHub token">
+      <button type="button" id="ghSave">儲存 token</button>
+      <button type="button" id="ghClear">刪除 token</button>
+      <span class="note">GitHub 版存到你帳號下的私人 Gist。到 github.com/settings/tokens 建立 token：classic 勾選 <b>gist</b> 權限，或 fine-grained 給 Gists 讀寫權限。token 只存在這台瀏覽器，不會被匯出。</span>
     </div>
   </div>
   <div id="keyBar" class="keyform topkey" hidden>
@@ -1400,7 +1422,7 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
   "use strict";
   var PREFIX = "epi-pbl:";
   function load(k){ try{ return localStorage.getItem(PREFIX+k); }catch(e){ return null; } }
-  function save(k,v){ try{ if(v===""){ localStorage.removeItem(PREFIX+k); } else { localStorage.setItem(PREFIX+k,v); } flash(); }catch(e){} }
+  function save(k,v){ try{ if(v===""){ localStorage.removeItem(PREFIX+k); } else { localStorage.setItem(PREFIX+k,v); } if(k.charAt(0)!=="_") localStorage.setItem(PREFIX+"_mod", String(Date.now())); flash(); }catch(e){} }
   var t; function flash(msg, ms){ var s=document.getElementById("saved"); s.textContent = msg||"已自動儲存"; s.classList.add("show"); clearTimeout(t); t=setTimeout(function(){s.classList.remove("show");}, ms||900); }
   window.__flash = flash;
 
@@ -1609,6 +1631,7 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
   var header = document.querySelector("header");
   function setHdr(){ document.documentElement.style.setProperty("--hdr", header.offsetHeight + "px"); }
   setHdr(); window.addEventListener("resize", setHdr);
+  if(window.ResizeObserver) new ResizeObserver(setHdr).observe(header);
 
   /* ---------- shared data per week: cloned into the panel ---------- */
   var REF = {
@@ -1727,6 +1750,191 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
     insert(k);
   });
   window.__calcEval = evaluate;
+})();
+</script>
+
+<script>
+(function(){
+  "use strict";
+  var PREFIX = "epi-pbl:", GH_TOKEN = "epi-pbl-ghtoken", GH_GIST = "epi-pbl-gistid", BACKUP = "epi-pbl-backup";
+  var FILE = "epi-pbl-answers.json";
+  var $ = function(id){ return document.getElementById(id); };
+  var bar = $("cloudBar"), btn = $("cloudBtn"), state = $("cloudState"), notice = $("cloudNotice");
+  function ls(k, v){ try{ if(v === undefined) return localStorage.getItem(k); if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }catch(e){ return null; } }
+  function flash(m, ms){ if(window.__flash) window.__flash(m, ms || 2000); }
+  function when(t){ if(!t) return "—"; var d = new Date(+t || t); return d.toLocaleString("zh-TW", { hour12:false, month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit" }); }
+
+  function collect(){
+    var items = {};
+    try{ for(var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if(k.indexOf(PREFIX) === 0 && k.charAt(PREFIX.length) !== "_") items[k.slice(PREFIX.length)] = localStorage.getItem(k); } }catch(e){}
+    return items;
+  }
+  function apply(items){
+    var cur = collect();
+    ls(BACKUP, JSON.stringify({ at: Date.now(), items: cur }));
+    Object.keys(cur).forEach(function(k){ if(!(k in items)) ls(PREFIX + k, null); });
+    Object.keys(items).forEach(function(k){ ls(PREFIX + k, String(items[k])); });
+  }
+  function markSynced(t){ ls(PREFIX + "_synced", String(t)); ls(PREFIX + "_mod", String(t)); refreshDirty(); }
+  function refreshDirty(){
+    var mod = +ls(PREFIX + "_mod") || 0, syn = +ls(PREFIX + "_synced") || 0;
+    btn.classList.toggle("dirty", mod > syn + 1000);
+    btn.title = mod > syn + 1000 ? "有尚未存到雲端的變更" : "把作答存到雲端，換裝置也能載入";
+  }
+  setInterval(refreshDirty, 4000); refreshDirty();
+  document.addEventListener("input", function(){ setTimeout(refreshDirty, 50); });
+
+  /* ---------- backends ---------- */
+  var backend = null;   // { name, ready():Promise<bool>, save(payload), load():Promise<payload|null> }
+
+  function claudeBackend(){
+    var dbP = null;
+    function ref(){
+      if(!dbP) dbP = Promise.all([window.claude.use("db"), window.claude.use("user")]).then(function(r){
+        var db = r[0], user = r[1]; if(!db || !user) return null;
+        return user.id().then(function(uid){ return uid ? db.doc("data/users/" + uid + "/answers") : null; });
+      });
+      return dbP;
+    }
+    return {
+      name: "claude",
+      ready: function(){ return ref().then(function(r){ return !!r; }); },
+      save: function(payload){ return ref().then(function(r){ if(!r) throw { msg: "這個檢視無法使用雲端儲存（請登入 claude.ai 開啟）" }; return r.set(payload); }); },
+      load: function(){ return ref().then(function(r){ if(!r) return null; return r.get().then(function(snap){ return snap.exists ? snap.data() : null; }); }); }
+    };
+  }
+
+  function ghBackend(){
+    function token(){ return ls(GH_TOKEN) || ""; }
+    function api(path, opt){
+      opt = opt || {};
+      opt.headers = { "Authorization": "Bearer " + token(), "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
+      if(opt.body) opt.headers["Content-Type"] = "application/json";
+      return fetch("https://api.github.com" + path, opt).then(function(res){
+        if(res.status === 401) throw { msg: "GitHub token 無效或已過期，請重新設定。", bad: true };
+        if(res.status === 403) throw { msg: "GitHub token 沒有 gist 權限，或請求太頻繁。" };
+        if(res.status === 404) throw { msg: "找不到雲端檔案。", nf: true };
+        if(!res.ok) throw { msg: "GitHub 回應錯誤（" + res.status + "）" };
+        return res.json();
+      });
+    }
+    function findGist(){
+      var id = ls(GH_GIST); if(id) return Promise.resolve(id);
+      return api("/gists?per_page=100").then(function(list){
+        var g = list.find(function(x){ return x.files && x.files[FILE]; });
+        if(g){ ls(GH_GIST, g.id); return g.id; }
+        return null;
+      });
+    }
+    function readGist(id){
+      return api("/gists/" + id).then(function(g){
+        var f = g.files && g.files[FILE]; if(!f) return null;
+        if(f.truncated && f.raw_url) return fetch(f.raw_url).then(function(r){ return r.json(); });
+        return JSON.parse(f.content);
+      });
+    }
+    return {
+      name: "github",
+      ready: function(){ return Promise.resolve(!!token()); },
+      save: function(payload){
+        if(!token()) return Promise.reject({ msg: "請先在下方貼上 GitHub token。", needToken: true });
+        var body = { description: "epi-pbl answers (環境及職業流行病學 PBL 作答)", files: {} };
+        body.files[FILE] = { content: JSON.stringify(payload) };
+        return findGist().then(function(id){
+          if(id) return api("/gists/" + id, { method: "PATCH", body: JSON.stringify(body) }).catch(function(e){ if(e.nf){ ls(GH_GIST, null); return create(); } throw e; });
+          return create();
+        });
+        function create(){ body.public = false; return api("/gists", { method: "POST", body: JSON.stringify(body) }).then(function(g){ ls(GH_GIST, g.id); }); }
+      },
+      load: function(){
+        if(!token()) return Promise.reject({ msg: "請先在下方貼上 GitHub token。", needToken: true });
+        return findGist().then(function(id){ if(!id) return null; return readGist(id).catch(function(e){ if(e.nf){ ls(GH_GIST, null); return null; } throw e; }); });
+      }
+    };
+  }
+
+  backend = (window.claude && window.claude.use) ? claudeBackend() : ghBackend();
+  if(backend.name === "github"){ $("ghSetup").hidden = false; }
+
+  function showState(){
+    var syn = ls(PREFIX + "_synced");
+    var where = backend.name === "claude" ? "存到你的 Claude 帳號（只有你看得到）" : "存到你 GitHub 帳號的私人 Gist";
+    var tok = backend.name === "github" ? (ls(GH_TOKEN) ? "　token 已設定" : "　尚未設定 token") : "";
+    state.textContent = where + "。上次同步：" + when(syn) + tok;
+  }
+  showState();
+
+  btn.addEventListener("click", function(){ bar.hidden = !bar.hidden; if(!bar.hidden) showState(); });
+
+  function busy(on){ $("cloudSave").disabled = on; $("cloudLoad").disabled = on; }
+  function fail(e){
+    busy(false);
+    var m = (e && e.msg) || (e && e.code === "quota_exceeded" ? "雲端空間已滿" : e && e.code ? "雲端儲存失敗（" + e.code + "）" : "連線失敗，請稍後再試");
+    if(e && e.bad) ls(GH_TOKEN, null);
+    showState(); state.textContent = m; bar.hidden = false;
+  }
+
+  $("cloudSave").addEventListener("click", function(){
+    busy(true); state.textContent = "儲存中…";
+    var t = Date.now(), items = collect();
+    backend.save({ savedAt: t, count: Object.keys(items).length, items: items }).then(function(){
+      busy(false); markSynced(t); showState(); notice.hidden = true;
+      flash("已存到雲端（" + Object.keys(items).length + " 項）");
+    }).catch(fail);
+  });
+
+  function doLoad(data){
+    if(!data || !data.items){ busy(false); state.textContent = "雲端還沒有存過作答。"; return; }
+    apply(data.items); ls(PREFIX + "_synced", String(data.savedAt || Date.now())); ls(PREFIX + "_mod", String(data.savedAt || Date.now()));
+    flash("已載入雲端作答，重新整理中…", 1500);
+    setTimeout(function(){ location.reload(); }, 600);
+  }
+  $("cloudLoad").addEventListener("click", function(){
+    var btnL = $("cloudLoad");
+    if(!btnL.dataset.armed){ btnL.dataset.armed = "1"; btnL.textContent = "再按一次：用雲端覆蓋這台的作答"; setTimeout(function(){ delete btnL.dataset.armed; btnL.textContent = "從雲端載入"; }, 4000); return; }
+    delete btnL.dataset.armed; btnL.textContent = "從雲端載入";
+    busy(true); state.textContent = "載入中…";
+    backend.load().then(doLoad).catch(fail);
+  });
+
+  // undo the last cloud load
+  try{ if(localStorage.getItem(BACKUP)) $("cloudUndo").hidden = false; }catch(e){}
+  $("cloudUndo").addEventListener("click", function(){
+    var b; try{ b = JSON.parse(localStorage.getItem(BACKUP)); }catch(e){}
+    if(!b || !b.items) return;
+    var cur = collect();
+    Object.keys(cur).forEach(function(k){ if(!(k in b.items)) ls(PREFIX + k, null); });
+    Object.keys(b.items).forEach(function(k){ ls(PREFIX + k, String(b.items[k])); });
+    ls(BACKUP, null); ls(PREFIX + "_mod", String(Date.now()));
+    flash("已復原載入前的作答", 1500); setTimeout(function(){ location.reload(); }, 600);
+  });
+
+  // GitHub token controls
+  $("ghSave").addEventListener("click", function(){ var v = $("ghToken").value.trim(); if(!v) return; ls(GH_TOKEN, v); ls(GH_GIST, null); $("ghToken").value = ""; showState(); flash("已儲存 GitHub token"); checkNewer(); });
+  $("ghClear").addEventListener("click", function(){ ls(GH_TOKEN, null); ls(GH_GIST, null); showState(); flash("已刪除 GitHub token"); });
+
+  // on open: tell the viewer when the cloud copy is newer than this device
+  function checkNewer(){
+    backend.ready().then(function(ok){
+      if(!ok) return;
+      return backend.load().then(function(data){
+        if(!data || !data.savedAt) return;
+        var mod = +ls(PREFIX + "_mod") || 0, syn = +ls(PREFIX + "_synced") || 0;
+        if(data.savedAt > syn && data.savedAt > mod){
+          notice.hidden = false;
+          notice.innerHTML = "";
+          var span = document.createElement("span"); span.textContent = "雲端有 " + when(data.savedAt) + " 存的作答，比這台新。";
+          var go = document.createElement("button"); go.type = "button"; go.textContent = "載入雲端版本"; go.className = "cb-main";
+          var no = document.createElement("button"); no.type = "button"; no.textContent = "保留這台的";
+          go.addEventListener("click", function(){ busy(true); doLoad(data); });
+          no.addEventListener("click", function(){ notice.hidden = true; ls(PREFIX + "_synced", String(data.savedAt)); refreshDirty(); });
+          notice.append(span, " ", go, " ", no);
+          bar.hidden = false;
+        }
+      });
+    }).catch(function(){});
+  }
+  setTimeout(checkNewer, 800);
 })();
 </script>
 
