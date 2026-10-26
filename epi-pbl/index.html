@@ -9,7 +9,7 @@
 <style>
 :root{
   --bg:#000;--surface:#0b0b0b;--surface2:#121212;--line:#222;--line2:#2e2e2e;
-  --text:#e9e9e9;--muted:#8d8d8d;--accent:#5fd4c4;--accent-dim:#1c3f3a;
+  --text:#e9e9e9;--muted:#8d8d8d;--accent:#5fd4c4;--accent-dim:#1c3f3a;--fixc:#ff6b6b;--fixb:#5a2626;--fixbg:#120707;
   --ok:#5fd48a;--bad:#ff6b6b;--warn:#e8b45a;
   color-scheme:dark;
 }
@@ -234,6 +234,12 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
 .pyt input.num{width:3.6em;padding:3px 4px;text-align:center}
 .pyt td.sum,.pyt tr.tot td{color:var(--accent);font-variant-numeric:tabular-nums}
 .pyt tr.tot td{border-top:1px solid var(--line2);border-bottom:0}
+.fix{color:var(--fixc);font-size:14px;line-height:1.65;padding:7px 10px 8px;border:1px solid var(--line2);border-top:1px dashed var(--fixb);border-radius:0 0 6px 6px;background:var(--fixbg);margin:-5px 0 4px;white-space:pre-wrap}
+textarea.has-fix{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent}
+.fix-inline{color:var(--fixc);font-size:13px;line-height:1.5;display:inline-block;margin-left:6px;vertical-align:middle}
+td .fix-inline{display:block;margin:4px 0 0;max-width:22em;white-space:normal}
+body.nofix .fix,body.nofix .fix-inline{display:none}
+body.nofix textarea.has-fix{border-radius:6px;border-bottom-color:var(--line2)}
 @media (max-width:560px){.fx-key dl{grid-template-columns:minmax(4.5em,max-content) minmax(0,1fr)} .fx-key dt{white-space:normal}}
 @media (max-width:560px){dl.sym{grid-template-columns:minmax(0,1fr)} dl.sym dt{margin-top:6px} dl.sym dd{padding-left:8px}}
 @media (max-width:560px){
@@ -253,6 +259,7 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
       <button id="keyBtn" title="設定批改用的 Anthropic API key" hidden>API key</button>
       <button id="exportBtn" title="把作答下載成 .json">匯出</button>
       <button id="importBtn" title="從 .json 匯入作答">匯入</button>
+      <button id="fixBtn" title="顯示／隱藏紅字批改">批改：開</button>
       <button id="clearBtn" title="清除這一週的作答">清除</button>
       <input type="file" id="importFile" accept="application/json" hidden>
     </div>
@@ -1960,14 +1967,14 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
     var kb = document.getElementById("keyBtn"); if(kb && !kb.hidden){ kb.textContent = v ? "API key ✓" : "API key"; var ks = document.getElementById("keyState"); if(ks) ks.textContent = v ? ("已設定 API key（末四碼 " + v.slice(-4) + "）") : "尚未設定 API key"; } }
 
   /* ---------- serialize page text for the prompt ---------- */
-  var SKIP = "input,textarea,button,script,style,.explain,details.concept,details.ref,.calc,.result,.keyform";
+  var SKIP = "input,textarea,button,script,style,.explain,details.concept,details.ref,.calc,.result,.keyform,.fix,.fix-inline";
   function ser(node){
     var out = "";
     node.childNodes.forEach(function(n){
       if(n.nodeType===3){ out += n.nodeValue.replace(/\s+/g," "); return; }
       if(n.nodeType!==1 || n.matches(SKIP)) return;
       var t = n.tagName;
-      if(t==="TABLE"){ out += "\n" + Array.prototype.map.call(n.rows, function(r){ return Array.prototype.map.call(r.cells, function(c){ return c.textContent.replace(/\s+/g," ").trim(); }).join(" | "); }).join("\n") + "\n"; return; }
+      if(t==="TABLE"){ out += "\n" + Array.prototype.map.call(n.rows, function(r){ return Array.prototype.map.call(r.cells, function(c){ var cc = c.cloneNode(true); cc.querySelectorAll(".fix,.fix-inline").forEach(function(x){ x.remove(); }); return cc.textContent.replace(/\s+/g," ").trim(); }).join(" | "); }).join("\n") + "\n"; return; }
       if(t==="IMG"){ out += "[圖：" + (n.alt||"") + "]"; return; }
       if(t==="BR"){ out += "\n"; return; }
       if(t==="SUP"){ out += "^" + n.textContent; return; }
@@ -1991,7 +1998,7 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
       var table = tr.closest("table"), td = el.closest("td");
       var idx = Array.prototype.indexOf.call(tr.cells, td);
       var head = table.rows[0].cells[Math.min(idx, table.rows[0].cells.length-1)];
-      var parts = Array.prototype.slice.call(tr.cells, 0, idx).map(function(c){ return c.textContent.replace(/\s+/g," ").trim(); }).filter(Boolean);
+      var parts = Array.prototype.slice.call(tr.cells, 0, idx).map(function(c){ var cc = c.cloneNode(true); cc.querySelectorAll(".fix,.fix-inline").forEach(function(x){ x.remove(); }); return cc.textContent.replace(/\s+/g," ").trim(); }).filter(Boolean);
       return "表格列「" + parts.join("／") + "」・欄「" + (head? head.textContent.replace(/\s+/g," ").trim() : "") + "」";
     }
     var near = "";
@@ -2217,6 +2224,28 @@ details.fold:focus-within>summary,details.fold>summary:focus-visible{outline:non
   }
   var ts=document.querySelectorAll("table.pyg");
   ts.forEach(function(t){ t._update=function(){upd(t);}; t.addEventListener("input",function(){upd(t);}); upd(t); });
+})();
+</script>
+
+<script>
+/* ---------- 批改（2026-10-27）：紅字訂正，原答案保留不動 ---------- */
+(function(){
+  var CORR = {"w1-2a": "補充：關鍵是兩種方法看得到的纖維不同。PCM（光學相位差）只數長 ≥5 μm、寬 ＞0.25 μm 的纖維，看不到細纖維，也分不出礦物種類；TEM 解析度高，看得到細短纖維並能鑑定為透閃石、陽起石。所以 TEM 數值遠高於 PCM（切割：PCM 0.44 vs TEM 12.1 f/cm³）。", "w1-2b": "未作答 → 只用 PCM 會低估暴露（漏掉細纖維），也無法確認是不是石綿；暴露評估要搭配 TEM 鑑定纖維種類，而且不同方法的數值不能直接比較或套用同一標準。", "w1-3": "回憶偏差不是通報資料的主要問題。講義列五項：低通報率（非強制，會低估）、差別通報（大醫院較常通報）、選擇性偏差（某些病如矽肺較易被通報）、時間延遲、資訊偏差（缺暴露史→暴露分類錯誤）。另外「上升」可能只是通報變積極或制度改變，且通報資料沒有分母（工作人口），本身算不出發生率。", "w2-1b-2": "要的是「每段工作的職務」和「每段工作的年數」（CE＝Σ E_j × D_j）。每日接觸時間不必另外記：濃度已是 8 小時 TWA，講義假設各年暴露相同，不再乘每日工時。", "w2-3b-2": "吸菸、年齡是干擾因子，對；但最先缺的是：① 肺癌結果資料（誰得病、何時診斷，例如連結癌症登記）；② 追蹤期間／人年，才能算發生率；③ 比較組（低或無暴露者）；並考慮潛伏期。", "w3-1a-1": "最多 ✓。零病例有 3 格：1980–89 年 30–39 歲、1990–99 年 40–49 歲、1980–89 年 80–89 歲。", "w3-ld": "沒有下降的年齡層，各年齡 local drift 都是正值：35 歲 3.1%（−4.2～11.1）、45 歲 4.7%（0.7～8.8）、55 歲 2.8%（0.7～5.0）、65 歲 0.5%（−1.2～2.3）、75 歲 3.4%（1.1～5.8）、85 歲 13.5%（−5.8～36.7）。65 歲（60–69）最低且 CI 含 0；35、85 歲病例少、CI 很寬。年齡標籤是組中點（35＝30–39 歲）。", "w3-la": "Long Age 是控制年代與世代後「率隨年齡的變化」，不是各年齡的時間趨勢；應寫：率隨年齡增加而上升。", "w3-3q1b": "兩者的資料、期間、模型都不同：Joinpoint 的 6.8% 用逐年年齡標準化率，只描述 1980–2010 那一段；net drift 由 APC 模型以年齡 × 年代的病例數與人口數估計，涵蓋整段 1980–2019（含 2010 後下降），並依各格病例數加權。所以 net drift（4.0%）比 6.8% 小。", "w3-3q2c": "CI 下限剛好 1.00，在顯著邊界，不能說「顯著上升」。只能說：1970 世代的率點估計約為參考世代（1940）的 3.4 倍，但真實倍數可能從 1 到 11 倍，量級很不確定。不允許：歸因石綿或臺灣玉，也不能確定它就是最高的世代。", "w3-3q4b": "重點是：只有率就不能跑 APC 模型（NCI 工具要病例數＋人口數），也算不出 CI 與 Wald 檢定，因為不知道每格有幾例、估計多精確。仍可做描述性比較（直向、橫向、對角線）、畫年齡別率曲線；有標準人口時可做直接年齡標準化。", "w3-5c": "原因是工具的輸出設計：NCI 網頁工具不輸出 deviance 次模型比較表，改以 Wald 檢定呈現；表 2-3 是用 R 的 Epi 套件配適。識別問題兩種軟體都有，不是跑不出這張表的理由。", "w4-0-4": "稀疏主要因為地區人口少、癌別罕見，很多格是 0 或個位數病例。0 病例仍可算率（＝0），人年來自人口資料，不必靠病例數回推；問題是估計不穩定、CI 很寬，APC 模型對零格很敏感。", "w4-1b-1": "50–59 歲應為 1,477 ÷ 6,584,987 × 10⁵＝22.43／十萬；42.99 是 60–69 歲那格（1,767 ÷ 4,110,405）。", "w4-1b-3": "前三格 ✓。題目的對角線有四格，補第 4 格：2009–18 年 60–69 歲＝14,357 ÷ 11,788,518 × 10⁵＝121.79／十萬。", "w4-nd": "Interval 設錯：表 3-1 是 10 歲 × 10 年，Interval 要填 10（設 5 會讓年變化率約變兩倍）。正確：3.93%／年（3.53～4.32）", "w4-ld": "（Interval 10，年齡 35、45、55、65、75）全部為正且顯著：3.9%、4.2%、3.6%、3.2%、5.0%；70–79 歲最高、60–69 歲最低", "w4-prr": "年代應為 1984、1994（參考）、2004、2014：RR 0.69、1、1.49、2.19，逐期上升，CI 都不含 1（1986.5 是 Interval 設 5 造成的錯誤標籤）", "w4-crr": "數值對、標籤錯位：最高是 1979 世代 4.49（3.20～6.30），最低是 1909 世代 0.22（0.17～0.28）", "w4-la": "Long Age 是「率隨年齡的變化」（控制年代與世代後），不是各年齡的時間趨勢；應寫：率隨年齡增加而上升", "w4-2q1a": "應為 3.93%／年（3.53～4.32）：點估計＝控制年齡後，女性肺癌率平均每年上升約 3.9%；CI 不含 0，上升趨勢顯著。8.008 是 Interval 設 5 的結果。", "w4-2q1b": "未作答 → 兩者都在描述整體率每年變化幾 %，net drift 約等於年齡標準化率（取 log）的斜率。不完全一樣，因為：① 加權不同：ASR 用標準人口權重，net drift 依各格病例數加權，病例多的高齡組影響大；② 年齡範圍與組距不同（工作台可含全年齡、逐年；這裡是 30–79 歲、10 年組距）；③ ASR 曲線若不是直線（Joinpoint 分段），net drift 只給整段一個平均。", "w4-2q2a": "應與你表格填的一致：Cohort deviations 顯著（X²＝28.2，df 6，p＜0.001）；Period deviations 不顯著（X²＝0.11，df 2，p＝0.95）。", "w4-2q2b": "應為「特定世代帶著動」：扣掉線性趨勢後，年代沒有額外起伏，世代卻有，代表變化主要沿出生世代走（線性部分屬於年代或世代則無法分辨）。", "w4-2q3a": "應為 1979 世代（約 1970–1988 年出生）；1964 是 Interval 設 5 造成的錯誤標籤。", "w4-2q3c": "1979 世代在 2023 年約 35–53 歲（中點約 44 歲）；矩陣中只由 1 格支持（2009–18 年 30–39 歲），是邊界世代，所以 CI 最寬。", "w4-2q4a": "未作答 →（全國男性 CRIS 資料，Interval 10）男性 net drift 2.28%／年（2.12～2.45），低於女性 3.93%；男性世代曲線較平：1979 世代 RR 2.65（女 4.49）、1909 世代 0.35（女 0.22）。男性 period deviations 顯著（X²＝22.7，p＜0.001），女性不顯著；兩性 cohort deviations 都顯著。→ 女性跨世代上升更陡。", "w4-3-2": "明顯不穩定的是最年輕的 1969、1979 世代（1979：1.26～6.22）和最老的 1909 世代；1949 世代 CI（0.95～1.32）還算窄。", "w4-3-3": "花蓮的 cohort deviations 其實顯著（X²＝26.9，df 6，p＜0.001）。只看點估計：花蓮 net drift 2.55% 低於全國 2.79%、1979 世代 RR 2.8 低於全國 3.3 → 可能誤以為花蓮上升較慢、世代效應較弱。", "w4-3-4": "加上 CI：花蓮 net drift 1.83～3.28 包含全國的 2.79，年輕世代 CI 很寬（1979：1.26～6.22），所以沒有證據顯示花蓮和全國不同，差異可能只是小樣本的隨機變動。", "w4-4-4": "要修正：表 3-3 只到 2009–18 年、30 歲以上，最年輕的 1979 世代（約 1970–1988 年出生）大多在 1984 年疫苗前出生，1984–86 年出生者在 2018 年才 32–34 歲，只佔一小部分；local drifts 也都是正的，沒有轉負。所以 1969→1979 世代 RR 下降（1.52→1.33）方向雖與疫苗假說相容，但主要不是疫苗世代造成；要看疫苗效果需要 2019–23 年資料與 5 歲組。", "w4-5-2": "「世代效應不顯著」不對：All Cohort RR＝1 的 Wald 檢定顯著（X²＝21.78，df 8，p＝0.005），只有 cohort deviations 不顯著（p＝0.083）。限制可寫：① 零病例格 3 格、病例少，CI 很寬；② 表列是人口數不是人年，且沒有吸菸、居住史資料。", "w4-6a": "All Period／Cohort RR＝1 都含 net drift，兩個都顯著只代表有趨勢；分辨年代或世代要看 deviations：period deviations X²＝6.18（df 2，p＝0.046）顯著，cohort deviations X²＝12.57（df 7，p＝0.083）不顯著。線性部分無法分給年代或世代。", "w4-6b": "高風險世代是 1960、1970（RR 2.6、3.4），不是 2005。1985 年停採時，1960 世代約 25 歲、1970 世代約 15 歲 → 暴露時多為兒童、青少年，較符合居住（環境）暴露而非職業暴露；但 1970 世代 CI 1.0～11.3，證據弱。", "w4-6d": "要寫出來源：① 個人暴露史（居住、職業史）→ 問卷、戶籍或勞保投保資料；② 吸菸 → 個人問卷或國健署吸菸調查；③ 病例確認與登記完整性 → 癌症登記、病歷與病理報告。", "w5-2a": "嫌疑物應是清洗管路用的那桶清潔劑（標示不全、拿不出 SDS），不是異丙醇：住院三人都是清洗管路的直接操作者，且每次用清潔劑後就有人肝炎住院。", "w5-2b": "設計 ✓，補原因：要馬上掌握全廠現況，同時抽血測肝功能（疾病）並依部門分組（暴露），快速、便宜，可算盛行率與 OR；全廠只有 19 人，病例對照或世代研究不實際。", "w5-4a": "要寫完整三條件：干擾因子 C ① 與暴露 A 相關；② 是疾病 B 的危險因子；③ 不在 A→B 的因果路徑上。", "w5-5": "應為「不是」：① 帶原與暴露幾乎無關（印刷 5/13≈38%、非印刷 2/6≈33%）；② 無帶原者也幾乎全部異常（12 人中 11 人），B 肝解釋不了這次爆發；③ 分層 OR 一個 10、一個 0.875，格子極小又用 0.5 校正，很不穩定。不支持老闆的說法。", "w5-6a": "SDS 工廠拿不出來，所以要把清潔劑本身採樣送驗（如 GC-MS）確認成分；再做使用清潔劑時的作業場所與個人空氣採樣，必要時做生物偵測。", "w5-6b": "測肝功能是確認疾病，不是生物合理性。生物合理性要查文獻與毒理資料：清潔劑成分是否有肝毒性（動物實驗、機轉、其他職業個案）。1,1,1-三氯乙烷本身肝毒性低，應確認是否含其他氯化溶劑（如四氯化碳、1,1,2-三氯乙烷）。", "w5-6c": "補充：最直接的是比對使用清潔劑的日期與發病日期（先暴露、後發病，間隔合理）；過去每 1–2 個月清管後就有人發病；停止暴露後肝功能回復（第 10 天→第 20 天 ALT 下降）。"};
+  Object.keys(CORR).forEach(function(k){
+    var el = document.querySelector('[data-k="'+k+'"]'); if(!el) return;
+    if(el.tagName === "TEXTAREA"){
+      var d = document.createElement("div"); d.className = "fix"; d.textContent = CORR[k];
+      el.classList.add("has-fix"); el.insertAdjacentElement("afterend", d);
+    } else {
+      var sp = document.createElement("span"); sp.className = "fix-inline"; sp.textContent = "→ " + CORR[k];
+      el.insertAdjacentElement("afterend", sp);
+    }
+  });
+  var btn = document.getElementById("fixBtn");
+  function apply(off){ document.body.classList.toggle("nofix", off); if(btn) btn.textContent = off ? "批改：關" : "批改：開"; }
+  var off = false; try{ off = localStorage.getItem("epi-pbl:_nofix") === "1"; }catch(e){}
+  apply(off);
+  if(btn) btn.addEventListener("click", function(){ off = !off; apply(off); try{ localStorage.setItem("epi-pbl:_nofix", off ? "1" : "0"); }catch(e){} });
 })();
 </script>
 </body>
