@@ -100,7 +100,8 @@
   function tableHTML(t, terms, nested) {
     const total = t.widths.reduce((a, b) => a + b, 0) || 1;
     const cols = t.widths.map(w => '<col style="width:' + (w / total * 100).toFixed(2) + '%">').join('');
-    const minW = Math.round(total * (nested ? 1.1 : 1.3));
+    // only many-column tables need a minimum width (and sideways scrolling on phones)
+    const minW = t.widths.length > 4 ? Math.round(total * (nested ? 1.1 : 1.3)) : 0;
     const head = Math.min(t.head || 0, t.rows.length - 1);
     const rowsHTML = (rows, tag) => rows.map(r => '<tr>' + r.map(c => cellHTML(c, terms, tag, t)).join('') + '</tr>').join('');
     return '<div class="lx-twrap' + (nested ? ' lx-nested' : '') + '"><table class="lx-table" style="min-width:' + minW + 'px"><colgroup>' + cols + '</colgroup>' +
@@ -220,12 +221,33 @@
     by('lx-scroll').addEventListener('scroll', () => { clearTimeout(saveTimer); saveTimer = setTimeout(rememberPosition, 250); }, { passive: true });
     const dlg = by('lx-annex');
     dlg.addEventListener('click', e => {
-      if (e.target === dlg) { dlg.close(); return; }
-      if (e.target.closest('[data-close]')) dlg.close();
+      if (e.target === dlg) { closeAnnex(); return; }
+      if (e.target.closest('[data-close]')) closeAnnex();
       const step = e.target.closest('[data-step]');
       if (step) stepAnnex(Number(step.dataset.step));
     });
-    dlg.addEventListener('close', () => { state.annexOpen = null; });
+    dlg.addEventListener('close', () => { state.annexOpen = null; dlg.classList.remove('lx-closing'); dlg.style.transform = ''; });
+    dlg.addEventListener('cancel', e => { e.preventDefault(); closeAnnex(); });   // Esc: close with the animation
+    // drag the card down by its header to dismiss, like a preview
+    let drag = null;
+    const head = dlg.querySelector('.lx-dialog-head');
+    head.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'mouse' || e.target.closest('button')) return;
+      drag = { y: e.clientY, dy: 0 }; head.setPointerCapture(e.pointerId); dlg.style.transition = 'none';
+    });
+    head.addEventListener('pointermove', e => {
+      if (!drag) return;
+      drag.dy = Math.max(0, e.clientY - drag.y);
+      dlg.style.transform = 'translateY(' + drag.dy + 'px) scale(' + (1 - Math.min(drag.dy, 300) / 3000) + ')';
+    });
+    const endDrag = () => {
+      if (!drag) return;
+      const far = drag.dy > 90; drag = null;
+      dlg.style.transition = 'transform .25s cubic-bezier(.2, 1.2, .4, 1)';
+      if (far) closeAnnex(); else dlg.style.transform = '';
+    };
+    head.addEventListener('pointerup', endDrag);
+    head.addEventListener('pointercancel', endDrag);
     window.addEventListener('keydown', e => {
       if (document.body.dataset.game !== 'laws' || dlg.open) return;
       const t = e.target;
@@ -474,6 +496,13 @@
     body.scrollTop = 0;
     const m = body.querySelector('mark.lx-mark');
     if (m) m.scrollIntoView({ block: 'center' });
+  }
+  function closeAnnex() {
+    const dlg = by('lx-annex');
+    if (!dlg.open || dlg.classList.contains('lx-closing')) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { dlg.close(); return; }
+    dlg.classList.add('lx-closing');
+    setTimeout(() => { if (dlg.open) dlg.close(); }, 170);
   }
   function stepAnnex(d) {
     if (!state.annexOpen) return;
