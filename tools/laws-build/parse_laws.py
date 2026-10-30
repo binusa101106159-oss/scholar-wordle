@@ -17,7 +17,7 @@ LEVELS = [
     (3, re.compile(r'^\d+\.(?!\d)')),
     (4, re.compile(r'^[（(]\d+[）)]')),
 ]
-HEAD = re.compile(r'^(法規名稱|修正日期|發布日期|公發布日|生效狀態)：(.*)$')
+HEAD = re.compile(r'^(法規名稱|修正日期|發布日期|公布日期|公發布日|生效狀態)：(.*)$')
 
 
 def raw_text(path):

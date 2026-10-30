@@ -22,8 +22,12 @@ test('law reader script parses and the tab is wired into the page', () => {
   assert.match(fs.readFileSync(path.join(root, 'sw.js'), 'utf8'), /\.\/laws\/laws\.js/);
 });
 
-test('S tier is present in the study order', () => {
+const B_ORDER = ['游離輻射防護法', '勞動基準法施行細則', '高架作業勞工保護措施標準'];
+
+test('S and B tiers are present in the study order, and every law shows its date', () => {
   assert.deepEqual(index.laws.filter(l => l.tier === 'S').map(l => l.name), S_ORDER);
+  assert.deepEqual(index.laws.filter(l => l.tier === 'B').map(l => l.name), B_ORDER);
+  for (const l of index.laws) assert.match(l.date, /^民國 \d+ 年 \d\d 月 \d\d 日$/, l.name);
 });
 
 test('every law file loads with numbered articles and matches the catalogue', () => {
