@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Scholar Wordle">
-  <meta name="description" content="Wordle, crossword and sudoku in a liquid-glass interface. Unlimited word games, uniquely solvable sudoku and offline play.">
+  <meta name="description" content="Wordle, crossword, sudoku and a law reader in a liquid-glass interface. Unlimited word games, uniquely solvable sudoku and offline play.">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23002147'/%3E%3Crect x='4' y='4' width='56' height='56' rx='10' fill='none' stroke='%23c5a059' stroke-width='3'/%3E%3Ctext x='32' y='43' font-family='Georgia,serif' font-size='34' font-weight='bold' fill='%23e2c58a' text-anchor='middle'%3EO%3C/text%3E%3C/svg%3E">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23002147'/%3E%3Crect x='12' y='12' width='156' height='156' rx='30' fill='none' stroke='%23c5a059' stroke-width='6'/%3E%3Ctext x='90' y='122' font-family='Georgia,serif' font-size='96' font-weight='bold' fill='%23e2c58a' text-anchor='middle'%3EO%3C/text%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
@@ -421,6 +421,8 @@
     .dict-close { color: rgba(255,255,255,0.5); background: transparent !important; border: 0 !important; box-shadow: none !important; }
     .dict-close:hover { color: #fff; }
   </style>
+<link rel="stylesheet" href="laws/laws.css">
+  <script src="laws/laws.js" defer></script>
 <style id="scholar-games-style">
 /* Shared additions to the original OLED / liquid-glass interface. */
 [hidden] { display: none !important; }
@@ -573,6 +575,7 @@ body[data-game="crossword"] #wordle-toolbar, body[data-game="sudoku"] #wordle-to
         <button id="game-tab-wordle" class="sg-tab" type="button" role="tab" data-game-tab="wordle" aria-controls="game-main" aria-selected="true" tabindex="0"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5"/><path d="m8 8 2 8 2-5 2 5 2-8"/></svg>Wordle</button>
         <button id="game-tab-crossword" class="sg-tab" type="button" role="tab" data-game-tab="crossword" aria-controls="crossword-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16"/><path d="M9.5 9.5h5v5h-5z" fill="currentColor" stroke="none"/></svg>Crossword</button>
         <button id="game-tab-sudoku" class="sg-tab" type="button" role="tab" data-game-tab="sudoku" aria-controls="sudoku-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 4v16M4 12h16M8 7v3M15 15h3l-3 3h3"/></svg>Sudoku</button>
+        <button id="game-tab-laws" class="sg-tab" type="button" role="tab" data-game-tab="laws" aria-controls="laws-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9l3 3v13H6z"/><path d="M15 4v3h3M9 11h6M9 14.5h6M9 18h4"/></svg>法規</button>
       </nav>
     </div>
   </div>
@@ -684,6 +687,7 @@ body[data-game="crossword"] #wordle-toolbar, body[data-game="sudoku"] #wordle-to
     </div>
   </main>
   <div id="scholar-games-root" style="display:contents"></div>
+  <main id="laws-panel" class="sg-app lx-app" role="tabpanel" aria-labelledby="game-tab-laws" hidden></main>
 
   <!-- Modal 1: Oxford Dictionary Explorer -->
   <div id="modal-lexicon" class="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-40 hidden items-center justify-center p-3">
@@ -2995,9 +2999,11 @@ body[data-game="crossword"] #wordle-toolbar, body[data-game="sudoku"] #wordle-to
     confirmAction = create; by('scholar-new-dialog').showModal();
   }
   function switchGame(game, updateURL = true) {
-    if (!['wordle', 'crossword', 'sudoku'].includes(game)) game = 'wordle';
+    if (!['wordle', 'crossword', 'sudoku', 'laws'].includes(game)) game = 'wordle';
     activeGame = game; document.body.dataset.game = game;
     by('crossword-panel').hidden = game !== 'crossword'; by('sudoku-panel').hidden = game !== 'sudoku';
+    by('laws-panel').hidden = game !== 'laws';
+    if (game === 'laws' && window.ScholarLaws) window.ScholarLaws.show();
     by('game-main').setAttribute('aria-hidden', String(game !== 'wordle'));
     document.querySelectorAll('[data-game-tab]').forEach(tab => { const active = tab.dataset.gameTab === game; tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; });
     document.querySelectorAll('[id^="modal-"]').forEach(modal => { if (game !== 'wordle') { modal.classList.add('hidden'); modal.classList.remove('flex'); } });
@@ -3009,7 +3015,7 @@ body[data-game="crossword"] #wordle-toolbar, body[data-game="sudoku"] #wordle-to
       if (!crossword) newCrossword(9);
       else { buildCrossword(); renderCrossword(); announce('crossword', crossword.won ? 'Crossword completed. Choose New for another.' : 'Progress saved on this device.'); }
     }
-    document.title = game === 'wordle' ? 'Scholar Wordle' : 'Scholar ' + game[0].toUpperCase() + game.slice(1);
+    if (game !== 'laws') document.title = game === 'wordle' ? 'Scholar Wordle' : 'Scholar ' + game[0].toUpperCase() + game.slice(1);
     if (updateURL) {
       const url = new URL(location.href); url.hash = game === 'wordle' ? '' : game;
       try { history.replaceState(null, '', url); } catch (_) { /* file:// standalone mode */ }
@@ -3043,7 +3049,7 @@ body[data-game="crossword"] #wordle-toolbar, body[data-game="sudoku"] #wordle-to
     focusSelected(activeGame); save();
   }
   function keyboard(event) {
-    if (activeGame === 'wordle' || by('scholar-new-dialog').open || event.altKey) return;
+    if (activeGame === 'wordle' || activeGame === 'laws' || by('scholar-new-dialog').open || event.altKey) return;
     const target = event.target;
     if (target && target.closest && target.closest('input,select,textarea,[contenteditable="true"]')) return;
     if (event.key === 'Escape') { event.preventDefault(); by('game-tab-' + activeGame).focus(); return; }
@@ -3105,7 +3111,7 @@ body[data-game="crossword"] #wordle-toolbar, body[data-game="sudoku"] #wordle-to
       data.seconds++; by(activeGame + '-clock').textContent = time(data.seconds);
       if (data.seconds % 5 === 0) save();
     }, 1000);
-    switchGame(location.hash === '#sudoku' ? 'sudoku' : location.hash === '#crossword' ? 'crossword' : 'wordle', false);
+    switchGame(location.hash === '#sudoku' ? 'sudoku' : location.hash === '#crossword' ? 'crossword' : location.hash === '#laws' ? 'laws' : 'wordle', false);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
