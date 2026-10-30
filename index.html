@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Scholar Wordle">
-  <meta name="description" content="British English 5-letter word game — 6,561 words, British phonetics, Daily, Unlimited, Blitz &amp; Friend Challenge URLs.">
+  <meta name="description" content="Wordle, crossword and sudoku in a liquid-glass interface. Unlimited word games, uniquely solvable sudoku and offline play.">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23002147'/%3E%3Crect x='4' y='4' width='56' height='56' rx='10' fill='none' stroke='%23c5a059' stroke-width='3'/%3E%3Ctext x='32' y='43' font-family='Georgia,serif' font-size='34' font-weight='bold' fill='%23e2c58a' text-anchor='middle'%3EO%3C/text%3E%3C/svg%3E">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23002147'/%3E%3Crect x='12' y='12' width='156' height='156' rx='30' fill='none' stroke='%23c5a059' stroke-width='6'/%3E%3Ctext x='90' y='122' font-family='Georgia,serif' font-size='96' font-weight='bold' fill='%23e2c58a' text-anchor='middle'%3EO%3C/text%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
@@ -421,8 +421,142 @@
     .dict-close { color: rgba(255,255,255,0.5); background: transparent !important; border: 0 !important; box-shadow: none !important; }
     .dict-close:hover { color: #fff; }
   </style>
+<style id="scholar-games-style">
+/* Shared additions to the original OLED / liquid-glass interface. */
+[hidden] { display: none !important; }
+body[data-game="crossword"] #game-main, body[data-game="sudoku"] #game-main,
+body[data-game="crossword"] #wordle-toolbar, body[data-game="sudoku"] #wordle-toolbar { display: none !important; }
+.sg-nav-shell, .sg-app { --sg-edge: rgba(255,255,255,.16); --sg-muted: rgba(255,255,255,.5); --sg-blue: #a9c8ff; color: #f1f5f9; }
+.sg-nav-shell { position: relative; z-index: 22; border-bottom: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.025); backdrop-filter: blur(24px) saturate(180%); }
+.sg-nav-inner { max-width: 1200px; min-height: 62px; margin: auto; padding: 10px 24px; display: flex; align-items: center; justify-content: center; position: relative; }
+.sg-brand { position: absolute; left: 24px; display: flex; gap: 9px; align-items: center; color: rgba(255,255,255,.75); font-size: 13px; letter-spacing: .02em; }
+.sg-brand-mark { width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid var(--sg-edge); border-radius: 50%; background: linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.025)); box-shadow: inset 0 1px 0 rgba(255,255,255,.4); }
+.sg-tabs { display: flex; padding: 4px; gap: 4px; border: 1px solid var(--sg-edge); border-radius: 999px; background: linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.025)); box-shadow: inset 0 1px 0 rgba(255,255,255,.2),0 4px 16px rgba(0,0,0,.3); }
+.sg-tab, .sg-btn, .sg-key { appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.sg-tab { border: 1px solid transparent; border-radius: 999px; padding: 8px 18px; display: flex; gap: 7px; align-items: center; justify-content: center; font-size: 13px; color: rgba(255,255,255,.52); background: transparent; transition: background .2s,color .2s,box-shadow .2s; }
+.sg-tab[aria-selected="true"] { color: #fff; border-color: rgba(255,255,255,.17); background: linear-gradient(180deg,rgba(255,255,255,.25),rgba(255,255,255,.08)); box-shadow: inset 0 1px 0 rgba(255,255,255,.5),0 2px 8px rgba(0,0,0,.35); }
+.sg-tab:hover { color: #fff; }
+.sg-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.sg-app { position: relative; z-index: 10; flex: 1; display: flex; flex-direction: column; width: 100%; font-family: 'Roboto',system-ui,-apple-system,sans-serif; }
+.sg-toolbar { min-height: 51px; padding: 9px 16px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid rgba(255,255,255,.07); background: rgba(255,255,255,.025); }
+.sg-segment { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--sg-edge); border-radius: 999px; background: rgba(255,255,255,.04); box-shadow: inset 0 1px 0 rgba(255,255,255,.18); }
+.sg-btn { min-height: 32px; border-radius: 999px; border: 1px solid var(--sg-edge); padding: 6px 12px; display: inline-flex; gap: 6px; justify-content: center; align-items: center; font-size: 12px; line-height: 1.2; background: linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.035)); box-shadow: inset 0 1px 0 rgba(255,255,255,.3),0 3px 10px rgba(0,0,0,.25); transition: background .15s,opacity .15s; }
+.sg-btn:hover { background: rgba(255,255,255,.17); }
+.sg-btn:disabled { opacity: .3; cursor: default; }
+.sg-btn.sg-primary, .sg-btn[aria-pressed="true"] { background: linear-gradient(180deg,rgba(96,165,250,.35),rgba(29,78,216,.22)); border-color: rgba(147,197,253,.45); color: #dbeafe; box-shadow: inset 0 1px 0 rgba(191,219,254,.4),0 0 18px rgba(59,130,246,.1); }
+.sg-segment .sg-btn { min-height: 26px; padding: 4px 12px; border-color: transparent; background: transparent; box-shadow: none; color: var(--sg-muted); }
+.sg-segment .sg-btn[aria-pressed="true"] { background: linear-gradient(180deg,rgba(255,255,255,.25),rgba(255,255,255,.08)); box-shadow: inset 0 1px 0 rgba(255,255,255,.4); color: white; }
+.sg-clock { display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,.55); font-size: 12px; font-variant-numeric: tabular-nums; margin: 0 6px; }
+.sg-stage { width: min(100%,1100px); margin: auto; padding: 30px 28px; }
+.sg-workspace { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); gap: clamp(28px,5vw,72px); align-items: center; }
+.sg-board-wrap { min-width: 0; width: 100%; max-width: 460px; margin: 0 auto; }
+.sg-board { width: 100%; aspect-ratio: 1; display: grid; grid-template-columns: repeat(9,minmax(0,1fr)); position: relative; }
+.sg-glass { border: 1px solid var(--sg-edge); background: linear-gradient(150deg,rgba(255,255,255,.075),rgba(255,255,255,.025)); box-shadow: inset 0 1px 0 rgba(255,255,255,.25),0 12px 40px rgba(0,0,0,.35); backdrop-filter: blur(22px) saturate(180%); border-radius: 24px; }
+.sg-board-row { display: contents; }
+.sg-cell { position: relative; isolation: isolate; min-width: 0; min-height: 0; padding: 0; appearance: none; font: inherit; color: white; cursor: pointer; display: grid; place-items: center; aspect-ratio: 1; border: 1px solid rgba(255,255,255,.1); border-radius: 7px; background: linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.025)); box-shadow: inset 0 1px 0 rgba(255,255,255,.22),inset 0 -6px 12px rgba(255,255,255,.015); outline-offset: -3px; touch-action: manipulation; }
+.sg-cell::after { content: ''; position: absolute; inset: 3px 12% auto; height: 32%; border-radius: 45%; background: linear-gradient(180deg,rgba(255,255,255,.12),transparent); pointer-events: none; z-index: -1; }
+.sg-cell.sg-peer { background: linear-gradient(180deg,rgba(96,165,250,.13),rgba(59,130,246,.055)); }
+.sg-cell.sg-same { color: #e2c58a; background: rgba(197,160,89,.12); }
+.sg-cell.sg-selected { background: linear-gradient(180deg,rgba(96,165,250,.48),rgba(29,78,216,.28)); border-color: rgba(147,197,253,.8); box-shadow: inset 0 1px 0 rgba(191,219,254,.6),0 0 16px rgba(59,130,246,.2); z-index: 1; }
+.sg-cell.sg-error { color: #fda4af; background: rgba(244,63,94,.16); }
+.sg-cell.sg-given { color: rgba(255,255,255,.92); }
+.sg-cell.sg-entered { color: #a9c8ff; }
+.sg-cell.sg-selected { color: #fff; }
+.sg-cell-number { position: absolute; left: 5px; top: 3px; font-size: clamp(7px,1vw,10px); line-height: 1; color: rgba(255,255,255,.5); }
+.sg-cell-letter { font-size: clamp(14px,2.3vw,23px); line-height: 1; padding-top: 3px; }
+.sg-crossword-board { gap: 3px; padding: 12px; border-radius: 22px; }
+.sg-block { aspect-ratio: 1; border-radius: 6px; background: rgba(0,0,0,.25); box-shadow: inset 0 1px 3px rgba(0,0,0,.3); }
+.sg-sudoku-board { gap: 0; padding: 0; border: 1px solid rgba(255,255,255,.35); overflow: hidden; }
+.sg-sudoku-board .sg-cell { border-radius: 0; border-width: 0 1px 1px 0; border-color: rgba(255,255,255,.1); box-shadow: none; font-size: clamp(20px,3vw,29px); font-weight: 400; }
+.sg-sudoku-board .sg-cell:nth-child(9n) { border-right: 0; }
+.sg-sudoku-board .sg-box-right { border-right: 2px solid rgba(255,255,255,.35); }
+.sg-sudoku-board .sg-box-bottom { border-bottom: 2px solid rgba(255,255,255,.35); }
+.sg-notes { width: 86%; height: 86%; display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr); align-items: center; font-size: clamp(8px,1.05vw,11px); color: rgba(255,255,255,.6); line-height: 1; }
+.sg-notes span { text-align: center; }
+.sg-board-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 13px 3px 0; color: var(--sg-muted); font-size: 11px; line-height: 1.5; }
+.sg-help { color: rgba(255,255,255,.33); }
+.sg-info { min-width: 0; }
+.sg-eyebrow { color: rgba(255,255,255,.38); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; margin: 0 0 10px; }
+.sg-title { font-size: clamp(26px,3vw,36px); font-weight: 400; line-height: 1.15; letter-spacing: -.04em; margin: 0 0 9px; }
+.sg-description { color: var(--sg-muted); font-size: 13px; line-height: 1.6; margin: 0 0 23px; }
+.sg-active-clue { padding: 14px 18px; margin: 0 0 12px; border-color: rgba(147,197,253,.22); background: linear-gradient(140deg,rgba(59,130,246,.13),rgba(255,255,255,.035)); border-radius: 18px; min-height: 78px; }
+.sg-clue-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; color: #a9c8ff; margin-bottom: 8px; font-size: 10px; letter-spacing: .09em; text-transform: uppercase; }
+.sg-clue-meta button { appearance: none; padding: 0; color: rgba(255,255,255,.5); border: 0; background: transparent; cursor: pointer; font-size: 11px; }
+.sg-clue-text { margin: 0; font-size: 15px; line-height: 1.5; }
+.sg-clues { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 17px; }
+.sg-clue-heading { font-size: 10px; font-weight: 400; letter-spacing: .12em; color: rgba(255,255,255,.4); margin: 0 0 8px; }
+.sg-clue-list { list-style: none; padding: 0; margin: 0; max-height: 120px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
+.sg-clue-item { width: 100%; appearance: none; text-align: left; padding: 7px 8px; border: 1px solid transparent; border-radius: 9px; color: rgba(255,255,255,.6); background: transparent; font: inherit; font-size: 11px; line-height: 1.5; display: flex; gap: 7px; cursor: pointer; }
+.sg-clue-item span:first-child { color: rgba(255,255,255,.36); min-width: 12px; }
+.sg-clue-item[aria-pressed="true"] { background: rgba(59,130,246,.13); border-color: rgba(147,197,253,.16); color: #dbeafe; }
+.sg-clue-item.sg-filled:not([aria-pressed="true"]) { opacity: .48; }
+.sg-clue-length { color: rgba(255,255,255,.33); white-space: nowrap; }
+.sg-classic-grid .sg-cell-letter { font-size: clamp(10px,1.5vw,17px); }
+.sg-classic-grid .sg-cell-number { font-size: 7px; left: 3px; top: 2px; }
+.sg-keyboard { display: flex; flex-direction: column; gap: 5px; width: 100%; margin-top: 14px; }
+.sg-key-row { display: flex; justify-content: center; gap: 3px; }
+.sg-key { position: relative; isolation: isolate; width: calc((100% - 27px)/10); max-width: 39px; height: 39px; padding: 0; border: 1px solid var(--sg-edge); border-radius: 999px; font-size: 12px; background: linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.035)); box-shadow: inset 0 1.3px 0 rgba(255,255,255,.4),0 4px 12px rgba(0,0,0,.35); }
+.sg-key::after { content: ''; position: absolute; inset: 3px 14% auto; height: 38%; border-radius: 50%; background: linear-gradient(180deg,rgba(255,255,255,.2),transparent); z-index: -1; }
+.sg-key:hover { background: rgba(255,255,255,.17); }
+.sg-key-wide { width: 58px; max-width: none; }
+.sg-numberpad { display: grid; grid-template-columns: repeat(9,minmax(0,1fr)); gap: 5px; margin: 24px 0 18px; }
+.sg-numberpad .sg-key { width: 100%; max-width: none; height: auto; aspect-ratio: 1; font-size: 20px; }
+.sg-digit-count { position: absolute; bottom: 4px; right: 7px; font-size: 8px; color: rgba(255,255,255,.35); }
+.sg-numberpad .sg-used { opacity: .36; }
+.sg-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sg-status { min-height: 30px; margin: 12px 0 0; font-size: 12px; color: var(--sg-muted); line-height: 1.6; }
+.sg-status.sg-success { color: #86efac; }
+.sg-status.sg-warning { color: #fdba74; }
+.sg-complete { border-color: rgba(134,239,172,.5); box-shadow: inset 0 1px 0 rgba(255,255,255,.3),0 0 35px rgba(34,197,94,.09); }
+.sg-dialog { max-width: min(390px,calc(100vw - 32px)); padding: 26px; color: #f1f5f9; background: rgba(25,27,34,.94); border: 1px solid rgba(255,255,255,.2); border-radius: 24px; box-shadow: inset 0 1px 0 rgba(255,255,255,.3),0 24px 80px rgba(0,0,0,.6); backdrop-filter: blur(28px); }
+.sg-dialog::backdrop { background: rgba(0,0,0,.65); backdrop-filter: blur(6px); }
+.sg-dialog h2 { margin: 0 0 12px; font-size: 21px; font-weight: 400; }
+.sg-dialog p { margin: 0 0 22px; color: rgba(255,255,255,.55); font-size: 13px; line-height: 1.6; }
+.sg-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.sg-tab:focus-visible, .sg-btn:focus-visible, .sg-key:focus-visible, .sg-cell:focus-visible, .sg-clue-item:focus-visible { outline: 2px solid #93c5fd; outline-offset: 3px; }
+@media (max-width: 820px) {
+  .sg-brand { display: none; }
+  .sg-stage { padding: 24px 18px; }
+  .sg-workspace { gap: 28px; }
+  .sg-clues { gap: 10px; }
+  .sg-key { height: 32px; font-size: 11px; }
+  .sg-description { font-size: 12px; }
+}
+@media (max-width: 640px), (orientation: portrait) {
+  .sg-nav-inner { min-height: 56px; padding: 8px 12px; }
+  .sg-tab { padding: 7px 15px; font-size: 12px; }
+  .sg-tab .sg-icon { width: 14px; height: 14px; }
+  .sg-toolbar { min-height: 47px; padding: 7px 8px; gap: 5px; }
+  .sg-toolbar .sg-btn { padding: 6px 10px; font-size: 11px; }
+  .sg-segment .sg-btn { padding: 4px 10px; }
+  .sg-clock { font-size: 11px; margin: 0 3px; }
+  .sg-stage { max-width: 500px; padding: 20px 14px 24px; }
+  .sg-workspace { grid-template-columns: minmax(0,1fr); gap: 22px; }
+  .sg-info .sg-eyebrow, .sg-info .sg-title, .sg-info .sg-description { display: none; }
+  #crossword-panel .sg-info { display: flex; flex-direction: column; }
+  #crossword-panel .sg-keyboard { order: 1; margin-top: 0; }
+  #crossword-panel .sg-status { order: 2; }
+  #crossword-panel .sg-clues { order: 3; margin-top: 15px; }
+  .sg-board-wrap { max-width: 420px; }
+  .sg-cell-letter { font-size: clamp(14px,5vw,24px); }
+  .sg-cell-number { font-size: 8px; left: 4px; top: 3px; }
+  .sg-sudoku-board .sg-cell { font-size: clamp(22px,6vw,30px); }
+  .sg-notes { font-size: clamp(8px,2.5vw,11px); }
+  .sg-crossword-board { padding: 9px; gap: 3px; }
+  .sg-key { height: 37px; max-width: 38px; font-size: 12px; }
+  .sg-clues { margin-bottom: 0; }
+  .sg-clue-list { max-height: 130px; }
+  .sg-active-clue { min-height: 76px; padding: 12px 15px; }
+  .sg-clue-text { font-size: 14px; }
+  .sg-numberpad { margin: 0 0 18px; }
+  .sg-status { margin-top: 12px; min-height: 30px; }
+  .sg-help { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .sg-tab, .sg-btn { transition: none; } }
+
+</style>
 </head>
-<body class="bg-oxford-cream dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200 overflow-x-hidden">
+<body data-game="wordle" class="bg-oxford-cream dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200 overflow-x-hidden">
 
   <!-- Background & Celebration Canvas -->
   <div id="canvas-wrap" class="fixed inset-0 pointer-events-none z-30">
@@ -432,8 +566,19 @@
   <!-- Toast Notification -->
   <div id="toast-container" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none"></div>
 
+  <div class="sg-nav-shell">
+    <div class="sg-nav-inner">
+      <span class="sg-brand"><span class="sg-brand-mark" aria-hidden="true">S</span>Scholar Games</span>
+      <nav id="scholar-game-tabs" class="sg-tabs" role="tablist" aria-label="Games">
+        <button id="game-tab-wordle" class="sg-tab" type="button" role="tab" data-game-tab="wordle" aria-controls="game-main" aria-selected="true" tabindex="0"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5"/><path d="m8 8 2 8 2-5 2 5 2-8"/></svg>Wordle</button>
+        <button id="game-tab-crossword" class="sg-tab" type="button" role="tab" data-game-tab="crossword" aria-controls="crossword-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16"/><path d="M9.5 9.5h5v5h-5z" fill="currentColor" stroke="none"/></svg>Crossword</button>
+        <button id="game-tab-sudoku" class="sg-tab" type="button" role="tab" data-game-tab="sudoku" aria-controls="sudoku-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 4v16M4 12h16M8 7v3M15 15h3l-3 3h3"/></svg>Sudoku</button>
+      </nav>
+    </div>
+  </div>
+
   <!-- Top Header -->
-  <header class="w-full border-b border-amber-900/15 dark:border-slate-800 bg-oxford-navy text-white shadow-md z-20">
+  <header id="wordle-toolbar" class="w-full border-b border-amber-900/15 dark:border-slate-800 bg-oxford-navy text-white shadow-md z-20">
     <div class="max-w-4xl mx-auto px-3 py-2.5 flex flex-wrap items-center justify-center gap-2">
       <!-- Controls -->
       <div class="flex items-center justify-center gap-1.5 flex-wrap">
@@ -498,7 +643,7 @@
   </header>
 
   <!-- Main Content Area -->
-  <main id="game-main" class="flex-1 flex flex-col items-center justify-between max-w-2xl w-full mx-auto px-2 sm:px-4 py-3 gap-3 z-10">
+  <main id="game-main" role="tabpanel" aria-labelledby="game-tab-wordle" class="flex-1 flex flex-col items-center justify-between max-w-2xl w-full mx-auto px-2 sm:px-4 py-3 gap-3 z-10">
 
     <!-- Wordle 6x5 Board Grid -->
     <div id="board-wrap" class="flex-1 flex flex-col items-center justify-center w-full my-auto">
@@ -538,6 +683,7 @@
       <!-- Populated dynamically on init -->
     </div>
   </main>
+  <div id="scholar-games-root" style="display:contents"></div>
 
   <!-- Modal 1: Oxford Dictionary Explorer -->
   <div id="modal-lexicon" class="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-40 hidden items-center justify-center p-3">
@@ -1406,6 +1552,7 @@
       state.blitzScore = 0;
       updateBlitzHUD();
       state.blitzTimerId = setInterval(() => {
+        if (document.body.dataset.game && document.body.dataset.game !== 'wordle') return;
         if (state.mode !== 'blitz') {
           stopBlitzTimer();
           return;
@@ -2044,6 +2191,7 @@
 
       // Physical Keyboard Input
       window.addEventListener('keydown', (e) => {
+        if (document.body.dataset.game && document.body.dataset.game !== 'wordle') return;
         if (e.ctrlKey || e.metaKey || e.altKey) return;
         const activeTag = document.activeElement ? document.activeElement.tagName : '';
         if (activeTag === 'INPUT' || activeTag === 'SELECT' || activeTag === 'TEXTAREA') return;
@@ -2199,5 +2347,771 @@
 
     };
   </script>
+<script id="scholar-puzzle-core">
+(function (root) {
+  'use strict';
+
+  const WORDS = [
+    ['ORBIT', 'The path of a planet around a star'],
+    ['COMET', 'An icy visitor with a glowing tail'],
+    ['SOLAR', 'Relating to the Sun'],
+    ['LUNAR', 'Relating to the Moon'],
+    ['EARTH', 'Our home planet'],
+    ['SPACE', 'The final frontier, in Star Trek'],
+    ['VENUS', 'The second planet from the Sun'],
+    ['MARS', 'The red planet'],
+    ['NOVA', 'A star that suddenly becomes much brighter'],
+    ['ATOM', 'The smallest unit of a chemical element'],
+    ['ION', 'An atom with an electric charge'],
+    ['LASER', 'A concentrated beam of light'],
+    ['PRISM', 'Glass that splits light into a spectrum'],
+    ['LIGHT', 'What a lamp gives off'],
+    ['SOUND', 'What travels as a wave through air to your ears'],
+    ['FORCE', 'A push or a pull, in physics'],
+    ['ENERGY', 'The capacity to do work, in physics'],
+    ['GRAVITY', 'The attraction that keeps us on the ground'],
+    ['MAGNET', 'It attracts iron'],
+    ['NATURE', 'The world of plants, animals and landscapes'],
+    ['OCEAN', 'The Pacific, for one'],
+    ['RIVER', 'A flowing waterway'],
+    ['DELTA', 'A river-mouth landform, or a Greek letter'],
+    ['CORAL', 'A reef-building marine animal'],
+    ['REEF', 'A ridge of coral near the sea surface'],
+    ['TIDE', 'The regular rise and fall of the sea'],
+    ['WAVE', 'A moving swell on the sea'],
+    ['SHORE', 'Where land meets the sea'],
+    ['ISLAND', 'Land surrounded by water'],
+    ['STONE', 'A small piece of rock'],
+    ['CLOUD', 'A visible mass of tiny water droplets in the sky'],
+    ['STORM', 'Violent weather with wind and rain'],
+    ['RAIN', 'Water falling from clouds'],
+    ['SNOW', 'Frozen flakes falling from clouds'],
+    ['FROST', 'A thin layer of ice on a cold morning'],
+    ['FLAME', 'The visible, glowing part of a fire'],
+    ['EMBER', 'A small glowing piece left after a fire'],
+    ['SPARK', 'A tiny flash that may start a fire'],
+    ['FOREST', 'A large area covered in trees'],
+    ['MAPLE', 'The tree whose leaf appears on the Canadian flag'],
+    ['CEDAR', 'An evergreen tree with fragrant wood'],
+    ['FERN', 'A leafy plant that reproduces by spores'],
+    ['MOSS', 'A small green plant forming a soft carpet'],
+    ['PETAL', 'One colourful part of a flower'],
+    ['BLOOM', 'To flower'],
+    ['SEED', 'A plant may grow from one'],
+    ['ROOT', 'The usually underground part of a plant'],
+    ['STEM', 'A plant support that bears leaves'],
+    ['LEAF', 'A plant organ that usually performs photosynthesis'],
+    ['ROSE', 'A flower often given on Valentine\'s Day'],
+    ['OLIVE', 'A small fruit pressed to make a Mediterranean oil'],
+    ['LEMON', 'A yellow citrus fruit'],
+    ['MELON', 'A large fruit such as a cantaloupe'],
+    ['PEAR', 'A fruit with a narrow top and a rounded base'],
+    ['GRAPE', 'A fruit used to make wine'],
+    ['PEACH', 'A juicy fruit with fuzzy skin'],
+    ['BREAD', 'A loaf from a bakery'],
+    ['CREAM', 'The rich, fatty part of milk'],
+    ['HONEY', 'A sweet food made by bees'],
+    ['SUGAR', 'A sweetener in the bowl beside the tea'],
+    ['SPICE', 'An aromatic seasoning such as cinnamon'],
+    ['BASIL', 'A fragrant herb used in pesto'],
+    ['THYME', 'An herb whose name sounds like a clock reading'],
+    ['SALT', 'Sodium chloride, at the dinner table'],
+    ['RICE', 'The staple grain in sushi'],
+    ['OATS', 'The grain used in porridge'],
+    ['TEA', 'A drink brewed from leaves'],
+    ['CAFE', 'A small place to order coffee'],
+    ['PLATE', 'A flat dish for a meal'],
+    ['SPOON', 'Cutlery for soup'],
+    ['EAGLE', 'A large bird of prey'],
+    ['ROBIN', 'A small bird with a red breast in Britain'],
+    ['RAVEN', 'A large black bird in a poem by Poe'],
+    ['HERON', 'A long-legged wading bird'],
+    ['OTTER', 'A playful mammal that swims well'],
+    ['TIGER', 'A large striped cat'],
+    ['ZEBRA', 'A striped African equid'],
+    ['WHALE', 'A large marine mammal'],
+    ['PANDA', 'A black-and-white bear that eats bamboo'],
+    ['KOALA', 'An Australian marsupial that eats eucalyptus'],
+    ['MOOSE', 'A large deer with broad antlers'],
+    ['HORSE', 'An animal ridden with a saddle'],
+    ['SNAIL', 'A slow-moving animal with a coiled shell'],
+    ['MOTH', 'A winged insect often attracted to lamps'],
+    ['WREN', 'A very small brown songbird'],
+    ['OWL', 'A bird associated with wisdom'],
+    ['ANT', 'A small insect living in a colony'],
+    ['BEE', 'An insect that makes honey'],
+    ['BOOK', 'A volume with pages to read'],
+    ['NOVEL', 'A long work of fiction'],
+    ['POEM', 'A work of verse'],
+    ['PROSE', 'Writing that is not verse'],
+    ['VERSE', 'A line or passage of poetry'],
+    ['STORY', 'A tale with a beginning and an end'],
+    ['FABLE', 'A short tale with a moral'],
+    ['ATLAS', 'A book of maps'],
+    ['INDEX', 'An alphabetical guide at the back of a book'],
+    ['TITLE', 'The name of a book or film'],
+    ['QUILL', 'A writing pen made from a feather'],
+    ['PAPER', 'The material on which a book is printed'],
+    ['PENCIL', 'A writing tool with an erasable graphite core'],
+    ['ERASER', 'A tool that removes pencil marks'],
+    ['INK', 'The liquid inside a fountain pen'],
+    ['MUSIC', 'The art of arranging sounds in time'],
+    ['PIANO', 'An instrument with black and white keys'],
+    ['CELLO', 'A bowed string instrument played between the knees'],
+    ['VIOLA', 'A string instrument pitched between violin and cello'],
+    ['FLUTE', 'A woodwind instrument held sideways'],
+    ['OPERA', 'A stage drama told through singing'],
+    ['CHOIR', 'A group of singers'],
+    ['TEMPO', 'The speed of a piece of music'],
+    ['NOTE', 'A single musical tone, or a short written message'],
+    ['CHORD', 'Several musical notes sounded together'],
+    ['SCALE', 'A sequence of musical notes in ascending order'],
+    ['ECHO', 'A sound heard again after reflection'],
+    ['ART', 'Painting and sculpture, for example'],
+    ['EASEL', 'A stand for a painter\'s canvas'],
+    ['PAINT', 'Colour applied with a brush'],
+    ['CANVAS', 'A fabric surface on which an artist paints'],
+    ['BRUSH', 'A painter\'s tool with bristles'],
+    ['DANCE', 'To move rhythmically to music'],
+    ['STAGE', 'The platform on which actors perform'],
+    ['ACTOR', 'A performer in a play or film'],
+    ['SCENE', 'A subdivision of an act in a play'],
+    ['SMILE', 'A pleased expression with upturned lips'],
+    ['DREAM', 'An experience in the mind during sleep'],
+    ['SLEEP', 'A state of rest with closed eyes'],
+    ['PEACE', 'Freedom from war'],
+    ['HOPE', 'A feeling that something good may happen'],
+    ['IDEA', 'A thought or suggestion'],
+    ['LOGIC', 'The study of valid reasoning'],
+    ['PROOF', 'An argument that establishes a mathematical result'],
+    ['ANGLE', 'A figure formed by two rays meeting at a point'],
+    ['CIRCLE', 'A shape whose boundary is equally distant from its centre'],
+    ['CUBE', 'A solid with six square faces'],
+    ['RATIO', 'A comparison of two quantities by division'],
+    ['PRIME', 'A whole number greater than one with exactly two positive divisors'],
+    ['TOTAL', 'The complete sum'],
+    ['ZERO', 'The number representing no quantity'],
+    ['DIGIT', 'One numeral, such as 7'],
+    ['THREE', 'The number of sides of a triangle'],
+    ['SEVEN', 'The number of days in a week'],
+    ['NORTH', 'The compass direction opposite south'],
+    ['SOUTH', 'The compass direction opposite north'],
+    ['EAST', 'The direction of sunrise'],
+    ['WEST', 'The direction of sunset'],
+    ['TRAIN', 'A vehicle that travels on rails'],
+    ['TRACK', 'A railway line, or a running course'],
+    ['BRIDGE', 'A structure that spans a river'],
+    ['TOWER', 'A tall, narrow building or structure'],
+    ['ARCH', 'A curved structure spanning an opening'],
+    ['CLOCK', 'An instrument for showing the time'],
+    ['WATCH', 'A small timepiece worn on the wrist'],
+    ['LAMP', 'A device that produces light'],
+    ['CHAIR', 'A seat for one person, usually with a back'],
+    ['TABLE', 'Furniture with a flat top supported by legs'],
+    ['SHELF', 'A horizontal board for storing books'],
+    ['DOOR', 'A movable barrier at the entrance to a room'],
+    ['GLASS', 'A transparent material often used in windows'],
+    ['SILK', 'A fine fibre produced by a silkworm'],
+    ['LINEN', 'A fabric made from flax'],
+    ['WOOL', 'Fibre from a sheep\'s fleece'],
+    ['THREAD', 'A thin strand used in sewing'],
+    ['NEEDLE', 'A slender sewing tool with an eye'],
+    ['HEART', 'The organ that pumps blood'],
+    ['BRAIN', 'The organ inside the skull that controls thought'],
+    ['NERVE', 'A bundle of fibres that carries signals in the body'],
+    ['PULSE', 'A rhythmic beat felt at the wrist'],
+    ['BONE', 'A hard part of the skeleton'],
+    ['LUNG', 'One of the paired organs used for breathing'],
+    ['GENE', 'A unit of heredity'],
+    ['CELL', 'The basic structural unit of a living organism'],
+    ['LENS', 'A curved transparent part of a camera or eye']
+  ];
+
+  function seededRandom(seed) {
+    let value = seed >>> 0;
+    return function () {
+      value += 0x6D2B79F5;
+      let n = Math.imul(value ^ value >>> 15, value | 1);
+      n ^= n + Math.imul(n ^ n >>> 7, n | 61);
+      return ((n ^ n >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function shuffle(items, random) {
+    const result = items.slice();
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+  }
+
+  function countSolutions(input, limit = 2) {
+    if (!Array.isArray(input) || input.length !== 81) return 0;
+    const grid = input.slice();
+    const rows = Array(9).fill(0), cols = Array(9).fill(0), boxes = Array(9).fill(0);
+    for (let i = 0; i < 81; i++) {
+      const n = grid[i];
+      if (!Number.isInteger(n) || n < 0 || n > 9) return 0;
+      if (!n) continue;
+      const r = Math.floor(i / 9), c = i % 9, b = Math.floor(r / 3) * 3 + Math.floor(c / 3), bit = 1 << n;
+      if ((rows[r] | cols[c] | boxes[b]) & bit) return 0;
+      rows[r] |= bit; cols[c] |= bit; boxes[b] |= bit;
+    }
+    let count = 0;
+    function visit() {
+      if (count >= limit) return;
+      let index = -1, options = 0, minimum = 10;
+      for (let i = 0; i < 81; i++) {
+        if (grid[i]) continue;
+        const r = Math.floor(i / 9), c = i % 9, b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+        const bits = 0x3FE & ~(rows[r] | cols[c] | boxes[b]);
+        let n = bits, choices = 0;
+        while (n) { n &= n - 1; choices++; }
+        if (!choices) return;
+        if (choices < minimum) { index = i; options = bits; minimum = choices; }
+        if (choices === 1) break;
+      }
+      if (index === -1) { count++; return; }
+      const r = Math.floor(index / 9), c = index % 9, b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+      while (options && count < limit) {
+        const bit = options & -options;
+        options ^= bit;
+        grid[index] = Math.log2(bit);
+        rows[r] |= bit; cols[c] |= bit; boxes[b] |= bit;
+        visit();
+        rows[r] ^= bit; cols[c] ^= bit; boxes[b] ^= bit;
+        grid[index] = 0;
+      }
+    }
+    visit();
+    return count;
+  }
+
+  function generateSudoku(difficulty = 'easy', random = Math.random) {
+    const target = { easy: 42, medium: 34, hard: 28 }[difficulty] || 42;
+    let best;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const groups = [0, 1, 2];
+      const rowOrder = shuffle(groups, random).flatMap(b => shuffle(groups, random).map(r => b * 3 + r));
+      const colOrder = shuffle(groups, random).flatMap(b => shuffle(groups, random).map(c => b * 3 + c));
+      const numbers = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9], random);
+      const solution = rowOrder.flatMap(r => colOrder.map(c => numbers[(r * 3 + Math.floor(r / 3) + c) % 9]));
+      const givens = solution.slice();
+      let clues = 81;
+      for (const i of shuffle(Array.from({ length: 81 }, (_, n) => n), random)) {
+        const value = givens[i];
+        givens[i] = 0;
+        if (countSolutions(givens) !== 1) givens[i] = value;
+        else clues--;
+        if (clues === target) break;
+      }
+      if (!best || clues < best.clues) best = { givens, solution, difficulty, clues };
+      if (clues === target) break;
+    }
+    return best;
+  }
+
+  function generateCrossword(size = 9, random = Math.random) {
+    size = size === 13 ? 13 : 9;
+    let best;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const grid = Array(size * size).fill(''), directions = Array(size * size).fill(0), entries = [];
+      const pool = shuffle(WORDS.filter(w => w[0].length < size), random);
+      function at(r, c) { return r >= 0 && c >= 0 && r < size && c < size ? grid[r * size + c] : ''; }
+      function fit(answer, r, c, down) {
+        const dr = down ? 1 : 0, dc = down ? 0 : 1, bit = down ? 2 : 1;
+        if (r < 0 || c < 0 || r + dr * (answer.length - 1) >= size || c + dc * (answer.length - 1) >= size) return -1;
+        if (at(r - dr, c - dc) || at(r + dr * answer.length, c + dc * answer.length)) return -1;
+        let crosses = 0;
+        for (let k = 0; k < answer.length; k++) {
+          const rr = r + k * dr, cc = c + k * dc, i = rr * size + cc;
+          if (grid[i]) {
+            if (grid[i] !== answer[k] || directions[i] & bit) return -1;
+            crosses++;
+          } else if (at(rr + dc, cc + dr) || at(rr - dc, cc - dr)) return -1;
+        }
+        return crosses;
+      }
+      function place(word, r, c, down) {
+        const cells = [];
+        for (let k = 0; k < word[0].length; k++) {
+          const i = (r + (down ? k : 0)) * size + c + (down ? 0 : k);
+          grid[i] = word[0][k]; directions[i] |= down ? 2 : 1; cells.push(i);
+        }
+        entries.push({ answer: word[0], clue: word[1], cells, direction: down ? 'down' : 'across' });
+      }
+      const first = pool.find(w => w[0].length >= 5);
+      place(first, Math.floor(size / 2), Math.floor((size - first[0].length) / 2), false);
+      for (const word of pool) {
+        if (word === first) continue;
+        let candidate;
+        for (let i = 0; i < grid.length; i++) {
+          if (!grid[i]) continue;
+          for (let k = 0; k < word[0].length; k++) {
+            if (word[0][k] !== grid[i]) continue;
+            for (const down of [false, true]) {
+              const r = Math.floor(i / size) - (down ? k : 0), c = i % size - (down ? 0 : k);
+              const crosses = fit(word[0], r, c, down);
+              if (crosses < 1) continue;
+              const score = crosses * 12 + word[0].length * 0.6 - (Math.abs(r - size / 2) + Math.abs(c - size / 2)) * 0.2 + random() * 0.5;
+              if (!candidate || score > candidate.score) candidate = { r, c, down, score };
+            }
+          }
+        }
+        if (candidate) place(word, candidate.r, candidate.c, candidate.down);
+        if (entries.length >= (size === 9 ? 12 : 24)) break;
+      }
+      const crossings = directions.filter(v => v === 3).length;
+      const score = entries.length * 20 + crossings * 3 + grid.filter(Boolean).length;
+      if (!best || score > best.score) best = { size, solution: grid, entries, score };
+    }
+    const starts = [...new Set(best.entries.map(e => e.cells[0]))].sort((a, b) => a - b);
+    best.entries.forEach((entry, i) => { entry.number = starts.indexOf(entry.cells[0]) + 1; entry.id = i; });
+    delete best.score;
+    return best;
+  }
+
+  const api = { WORDS, seededRandom, countSolutions, generateSudoku, generateCrossword };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.ScholarPuzzles = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script id="scholar-games-ui">
+(function () {
+  'use strict';
+  const P = window.ScholarPuzzles;
+  const storageKey = 'scholar_puzzles_v1';
+  let sudoku = null, crossword = null, activeGame = 'wordle', confirmAction = null;
+  const paths = {
+    refresh: '<path d="M3 10a9 9 0 0 1 15-6l3 3M21 3v4h-4M21 14A9 9 0 0 1 6 20l-3-3M3 21v-4h4"/>',
+    check: '<path d="m5 12 4 4L19 6"/>',
+    hint: '<path d="M9 18h6M10 21h4M8 14a6 6 0 1 1 8 0l-1 2H9z"/>',
+    pencil: '<path d="m16 3 5 5L8 21H3v-5zM13 6l5 5"/>',
+    undo: '<path d="M3 9h10a7 7 0 0 1 0 14M3 9l5-5M3 9l5 5" transform="translate(0 -2)"/>',
+    erase: '<path d="m15 3 6 6-11 11H5l-3-3zM7 12l6 6M10 20h12"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    left: '<path d="m14 6-6 6 6 6"/>',
+    right: '<path d="m10 6 6 6-6 6"/>'
+  };
+  function icon(name) { return '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true">' + (paths[name] || '') + '</svg>'; }
+  function button(action, label, image, extra = '') {
+    return '<button type="button" class="sg-btn" data-action="' + action + '" ' + extra + '>' + (image ? icon(image) : '') + label + '</button>';
+  }
+  function escapeText(text) { return String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+  function by(id) { return document.getElementById(id); }
+  function time(seconds) { return String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0'); }
+  function announce(game, text, style = '') {
+    const el = by(game + '-status');
+    el.textContent = text;
+    el.className = 'sg-status' + (style ? ' sg-' + style : '');
+  }
+  function save() {
+    try { localStorage.setItem(storageKey, JSON.stringify({ sudoku, crossword })); }
+    catch (_) { /* All games remain playable if storage is unavailable. */ }
+  }
+  function restore() {
+    try {
+      const data = JSON.parse(localStorage.getItem(storageKey) || 'null');
+      if (data && data.sudoku) {
+        const s = data.sudoku;
+        if (s.puzzle && Array.isArray(s.puzzle.givens) && s.puzzle.givens.length === 81 &&
+            Array.isArray(s.puzzle.solution) && s.puzzle.solution.length === 81 && P.countSolutions(s.puzzle.solution, 1) === 1 &&
+            Array.isArray(s.values) && s.values.length === 81 && Array.isArray(s.notes) && s.notes.length === 81 &&
+            s.values.every((v, i) => Number.isInteger(v) && v >= 0 && v <= 9 && (!s.puzzle.givens[i] || v === s.puzzle.givens[i])) &&
+            Number.isInteger(s.selected) && s.selected >= 0 && s.selected < 81) {
+          sudoku = s; sudoku.errors = []; sudoku.history = Array.isArray(s.history) ? s.history.slice(-80) : [];
+        }
+      }
+      if (data && data.crossword) {
+        const x = data.crossword;
+        if (x.puzzle && [9, 13].includes(x.puzzle.size) && Array.isArray(x.puzzle.solution) && x.puzzle.solution.length === x.puzzle.size ** 2 &&
+            Array.isArray(x.puzzle.entries) && x.puzzle.entries.length > 1 && Array.isArray(x.values) && x.values.length === x.puzzle.solution.length &&
+            x.puzzle.entries.every(e => typeof e.clue === 'string' && Array.isArray(e.cells) && e.cells.length === e.answer.length && e.cells.every((i, k) => x.puzzle.solution[i] === e.answer[k])) &&
+            x.values.every(v => typeof v === 'string' && /^[A-Z]?$/.test(v)) && x.puzzle.solution[x.selected] && x.puzzle.entries[x.entryId]) {
+          crossword = x; crossword.errors = [];
+        }
+      }
+    } catch (_) { sudoku = null; crossword = null; }
+  }
+
+  function shell() {
+    by('scholar-games-root').innerHTML = `
+      <main id="crossword-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-crossword" hidden>
+        <div class="sg-toolbar">
+          <div class="sg-segment" aria-label="Crossword size">
+            ${button('mini', 'Mini', '', 'aria-pressed="true"')}${button('classic', 'Classic', '', 'aria-pressed="false"')}
+          </div>
+          <span class="sg-clock">${icon('clock')}<span id="crossword-clock">00:00</span></span>
+          ${button('check', 'Check', 'check')}${button('hint', 'Hint', 'hint')}${button('new', 'New', 'refresh', 'aria-label="New crossword"')}
+        </div>
+        <div class="sg-stage"><div class="sg-workspace">
+          <div class="sg-board-wrap">
+            <div id="crossword-board" class="sg-board sg-glass sg-crossword-board" role="grid" aria-label="Crossword grid"></div>
+            <div class="sg-board-footer"><span id="crossword-progress"></span><span class="sg-help">Arrows move · Tab changes clue</span></div>
+          </div>
+          <div class="sg-info">
+            <p class="sg-eyebrow">Wordplay</p><h1 class="sg-title">Crossword</h1>
+            <p class="sg-description">Follow the clues. Find the crossings.</p>
+            <div class="sg-active-clue sg-glass">
+              <div class="sg-clue-meta"><span id="crossword-clue-label"></span><button type="button" data-action="direction" aria-label="Switch across or down">Across ↔ Down</button></div>
+              <p id="crossword-clue-text" class="sg-clue-text"></p>
+            </div>
+            <div class="sg-clues">
+              <section><h2 class="sg-clue-heading">ACROSS</h2><ol id="crossword-across" class="sg-clue-list"></ol></section>
+              <section><h2 class="sg-clue-heading">DOWN</h2><ol id="crossword-down" class="sg-clue-list"></ol></section>
+            </div>
+            <div id="crossword-keyboard" class="sg-keyboard" aria-label="Crossword keyboard"></div>
+            <p id="crossword-status" class="sg-status" role="status" aria-live="polite"></p>
+          </div>
+        </div></div>
+      </main>
+      <main id="sudoku-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-sudoku" hidden>
+        <div class="sg-toolbar">
+          <div class="sg-segment" aria-label="Sudoku difficulty">
+            ${['easy', 'medium', 'hard'].map(d => button(d, d[0].toUpperCase() + d.slice(1), '', 'aria-pressed="' + (d === 'easy') + '"')).join('')}
+          </div>
+          <span class="sg-clock">${icon('clock')}<span id="sudoku-clock">00:00</span></span>
+          ${button('new', 'New', 'refresh', 'aria-label="New sudoku"')}
+        </div>
+        <div class="sg-stage"><div class="sg-workspace">
+          <div class="sg-board-wrap">
+            <div id="sudoku-board" class="sg-board sg-glass sg-sudoku-board" role="grid" aria-label="Sudoku grid" aria-rowcount="9" aria-colcount="9"></div>
+            <div class="sg-board-footer"><span id="sudoku-progress"></span><span class="sg-help">1–9 enter · N notes · ⌫ erase</span></div>
+          </div>
+          <div class="sg-info">
+            <p class="sg-eyebrow">A little logic</p><h1 class="sg-title">Sudoku</h1>
+            <p class="sg-description">Every row, column and 3 × 3 box contains 1–9.</p>
+            <div id="sudoku-numberpad" class="sg-numberpad" aria-label="Sudoku number pad"></div>
+            <div class="sg-actions">
+              ${button('notes', 'Notes', 'pencil', 'aria-pressed="false" title="Toggle pencil notes (N)"')}
+              ${button('undo', 'Undo', 'undo', 'title="Undo last entry (Ctrl/⌘ Z)"')}
+              ${button('erase', 'Erase', 'erase')}${button('check', 'Check', 'check')}${button('hint', 'Hint', 'hint')}
+            </div>
+            <p id="sudoku-status" class="sg-status" role="status" aria-live="polite"></p>
+          </div>
+        </div></div>
+      </main>
+      <dialog id="scholar-new-dialog" class="sg-dialog" aria-labelledby="scholar-dialog-title">
+        <h2 id="scholar-dialog-title">Start a new puzzle?</h2><p>Your current puzzle will be replaced. You can keep playing by choosing Cancel.</p>
+        <div class="sg-dialog-actions">${button('cancel-dialog', 'Cancel')}${button('confirm-dialog', 'New puzzle', 'refresh')}</div>
+      </dialog>`;
+    by('sudoku-numberpad').innerHTML = Array.from({ length: 9 }, (_, i) => '<button type="button" class="sg-key" data-digit="' + (i + 1) + '" aria-label="Enter ' + (i + 1) + '">' + (i + 1) + '<span class="sg-digit-count" aria-hidden="true"></span></button>').join('');
+    by('crossword-keyboard').innerHTML = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map((row, n) => '<div class="sg-key-row">' + (n === 2 ? '<button type="button" class="sg-key sg-key-wide" data-key="Enter" aria-label="Switch direction">↔</button>' : '') + [...row].map(c => '<button type="button" class="sg-key" data-key="' + c + '" aria-label="Letter ' + c + '">' + c + '</button>').join('') + (n === 2 ? '<button type="button" class="sg-key sg-key-wide" data-key="Backspace" aria-label="Delete letter">⌫</button>' : '') + '</div>').join('');
+  }
+
+  function peers(a, b) {
+    const ar = Math.floor(a / 9), ac = a % 9, br = Math.floor(b / 9), bc = b % 9;
+    return ar === br || ac === bc || (Math.floor(ar / 3) === Math.floor(br / 3) && Math.floor(ac / 3) === Math.floor(bc / 3));
+  }
+  function newSudoku(difficulty) {
+    const puzzle = P.generateSudoku(difficulty);
+    sudoku = { puzzle, values: puzzle.givens.slice(), notes: Array(81).fill(0), history: [], selected: puzzle.givens.indexOf(0), notesMode: false, seconds: 0, assists: 0, errors: [], won: false };
+    buildSudoku(); renderSudoku(); save();
+    announce('sudoku', 'Select an empty cell, then choose a number.');
+  }
+  function buildSudoku() {
+    by('sudoku-board').innerHTML = Array.from({ length: 9 }, (_, r) => '<div class="sg-board-row" role="row">' + Array.from({ length: 9 }, (_, c) => '<button type="button" role="gridcell" data-cell="' + (r * 9 + c) + '" aria-rowindex="' + (r + 1) + '" aria-colindex="' + (c + 1) + '"></button>').join('') + '</div>').join('');
+  }
+  function renderSudoku() {
+    const s = sudoku, selectedValue = s.values[s.selected];
+    const counts = Array(10).fill(0);
+    s.values.forEach(v => counts[v]++);
+    by('sudoku-board').classList.toggle('sg-complete', s.won);
+    by('sudoku-board').querySelectorAll('[data-cell]').forEach(cell => {
+      const i = Number(cell.dataset.cell), r = Math.floor(i / 9), c = i % 9, value = s.values[i], given = Boolean(s.puzzle.givens[i]);
+      const conflict = value && s.values.some((v, j) => j !== i && v === value && peers(i, j));
+      cell.className = ['sg-cell', given ? 'sg-given' : 'sg-entered', c === 2 || c === 5 ? 'sg-box-right' : '', r === 2 || r === 5 ? 'sg-box-bottom' : '', peers(i, s.selected) ? 'sg-peer' : '', selectedValue && value === selectedValue ? 'sg-same' : '', conflict || s.errors.includes(i) ? 'sg-error' : '', i === s.selected ? 'sg-selected' : ''].filter(Boolean).join(' ');
+      cell.tabIndex = i === s.selected ? 0 : -1;
+      cell.setAttribute('aria-selected', String(i === s.selected));
+      cell.setAttribute('aria-readonly', String(given));
+      const notes = Array.from({ length: 9 }, (_, n) => s.notes[i] & 1 << (n + 1) ? n + 1 : '').filter(Boolean);
+      cell.setAttribute('aria-label', 'Row ' + (r + 1) + ', column ' + (c + 1) + ', ' + (value ? value + (given ? ', given' : '') : 'empty' + (notes.length ? ', notes ' + notes.join(', ') : '')));
+      cell.innerHTML = value ? String(value) : '<span class="sg-notes" aria-hidden="true">' + Array.from({ length: 9 }, (_, n) => '<span>' + (s.notes[i] & 1 << (n + 1) ? n + 1 : '') + '</span>').join('') + '</span>';
+    });
+    const filled = s.values.filter(Boolean).length;
+    by('sudoku-progress').textContent = s.won ? 'Completed · ' + s.assists + ' hints' : filled + ' / 81 filled';
+    by('sudoku-clock').textContent = time(s.seconds);
+    by('sudoku-panel').querySelectorAll('[data-action="easy"], [data-action="medium"], [data-action="hard"]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.action === s.puzzle.difficulty)));
+    by('sudoku-panel').querySelector('[data-action="notes"]').setAttribute('aria-pressed', String(s.notesMode));
+    by('sudoku-panel').querySelector('[data-action="undo"]').disabled = !s.history.length;
+    by('sudoku-numberpad').querySelectorAll('[data-digit]').forEach(b => {
+      const n = Number(b.dataset.digit); b.classList.toggle('sg-used', counts[n] >= 9); b.disabled = s.won;
+      b.querySelector('.sg-digit-count').textContent = Math.max(0, 9 - counts[n]);
+    });
+  }
+  function rememberSudoku() {
+    sudoku.history.push({ values: sudoku.values.slice(), notes: sudoku.notes.slice() });
+    if (sudoku.history.length > 80) sudoku.history.shift();
+  }
+  function finishSudoku() {
+    const s = sudoku;
+    s.won = s.values.every((v, i) => v === s.puzzle.solution[i]);
+    renderSudoku(); save();
+    if (s.won) announce('sudoku', 'Beautifully solved in ' + time(s.seconds) + (s.assists ? ' · ' + s.assists + ' hints used.' : ' · No hints used.'), 'success');
+  }
+  function sudokuInput(value, hint = false) {
+    const s = sudoku, i = s.selected;
+    if (s.won || s.puzzle.givens[i]) return;
+    if (s.notesMode && !hint && value) {
+      if (s.values[i]) return;
+      rememberSudoku(); s.notes[i] ^= 1 << value;
+    } else {
+      if (s.values[i] === value && !s.notes[i]) return;
+      rememberSudoku(); s.values[i] = value; s.notes[i] = 0;
+      if (value) s.notes.forEach((n, j) => { if (peers(i, j)) s.notes[j] = n & ~(1 << value); });
+    }
+    s.errors = []; if (hint) s.assists++;
+    announce('sudoku', s.notesMode && !hint ? 'Pencil notes are on. Press N to switch back to numbers.' : '');
+    finishSudoku();
+  }
+  function sudokuAction(action) {
+    const s = sudoku;
+    if (['easy', 'medium', 'hard'].includes(action)) return requestNew('sudoku', action);
+    if (action === 'new') return requestNew('sudoku', s.puzzle.difficulty);
+    if (action === 'notes') { s.notesMode = !s.notesMode; renderSudoku(); save(); announce('sudoku', s.notesMode ? 'Pencil notes on. Choose a number to add or remove a note.' : 'Pencil notes off. Choose a number to fill a cell.'); }
+    if (action === 'erase') sudokuInput(0);
+    if (action === 'undo' && s.history.length) {
+      Object.assign(s, s.history.pop()); s.errors = []; s.won = false; renderSudoku(); save(); announce('sudoku', 'Last entry undone.');
+    }
+    if (action === 'check') {
+      s.errors = s.values.map((v, i) => v && v !== s.puzzle.solution[i] ? i : -1).filter(i => i >= 0);
+      renderSudoku(); announce('sudoku', s.errors.length ? s.errors.length + ' incorrect ' + (s.errors.length === 1 ? 'cell is' : 'cells are') + ' highlighted.' : s.won ? 'All correct. Puzzle completed!' : 'No errors in the filled cells. Keep going.', s.errors.length ? 'warning' : 'success');
+    }
+    if (action === 'hint' && !s.won) {
+      const i = !s.puzzle.givens[s.selected] && s.values[s.selected] !== s.puzzle.solution[s.selected] ? s.selected : s.values.findIndex((v, j) => v !== s.puzzle.solution[j]);
+      if (i >= 0) { s.selected = i; sudokuInput(s.puzzle.solution[i], true); if (!s.won) announce('sudoku', 'One cell revealed. Hints used: ' + s.assists + '.'); }
+    }
+  }
+
+  function newCrossword(size) {
+    const puzzle = P.generateCrossword(size);
+    const first = puzzle.entries.slice().sort((a, b) => a.number - b.number)[0];
+    crossword = { puzzle, values: puzzle.solution.map(() => ''), selected: first.cells[0], entryId: first.id, seconds: 0, assists: 0, errors: [], won: false };
+    buildCrossword(); renderCrossword(); save();
+    announce('crossword', 'Select a clue or a cell. Tap a crossing twice to change direction.');
+  }
+  function buildCrossword() {
+    const p = crossword.puzzle, starts = new Map(p.entries.map(e => [e.cells[0], e.number]));
+    const board = by('crossword-board');
+    board.style.gridTemplateColumns = 'repeat(' + p.size + ',minmax(0,1fr))';
+    board.setAttribute('aria-rowcount', p.size); board.setAttribute('aria-colcount', p.size);
+    board.innerHTML = Array.from({ length: p.size }, (_, r) => '<div role="row" class="sg-board-row">' + Array.from({ length: p.size }, (_, c) => {
+      const i = r * p.size + c;
+      return p.solution[i] ? '<button type="button" role="gridcell" data-cell="' + i + '" aria-rowindex="' + (r + 1) + '" aria-colindex="' + (c + 1) + '"><span class="sg-cell-number" aria-hidden="true">' + (starts.get(i) || '') + '</span><span class="sg-cell-letter" aria-hidden="true"></span></button>' : '<span class="sg-block" role="gridcell" aria-disabled="true" aria-label="Blocked cell"></span>';
+    }).join('') + '</div>').join('');
+    for (const direction of ['across', 'down']) {
+      by('crossword-' + direction).innerHTML = p.entries.filter(e => e.direction === direction).sort((a, b) => a.number - b.number).map(e => '<li><button type="button" class="sg-clue-item" data-entry="' + e.id + '" aria-pressed="false"><span>' + e.number + '</span><span>' + escapeText(e.clue) + ' <span class="sg-clue-length">(' + e.answer.length + ')</span></span></button></li>').join('');
+    }
+  }
+  function renderCrossword() {
+    const x = crossword, p = x.puzzle, entry = p.entries[x.entryId];
+    by('crossword-board').classList.toggle('sg-complete', x.won);
+    by('crossword-board').querySelectorAll('[data-cell]').forEach(cell => {
+      const i = Number(cell.dataset.cell);
+      cell.className = 'sg-cell' + (entry.cells.includes(i) ? ' sg-peer' : '') + (x.errors.includes(i) ? ' sg-error' : '') + (i === x.selected ? ' sg-selected' : '');
+      cell.tabIndex = i === x.selected ? 0 : -1;
+      cell.setAttribute('aria-selected', String(i === x.selected));
+      cell.setAttribute('aria-label', 'Row ' + (Math.floor(i / p.size) + 1) + ', column ' + (i % p.size + 1) + ', ' + (x.values[i] || 'empty'));
+      cell.querySelector('.sg-cell-letter').textContent = x.values[i];
+    });
+    by('crossword-clue-label').textContent = entry.number + ' ' + entry.direction + ' · ' + entry.answer.length + ' letters';
+    by('crossword-clue-text').textContent = entry.clue;
+    by('crossword-panel').querySelectorAll('[data-entry]').forEach(button => {
+      const e = p.entries[Number(button.dataset.entry)];
+      button.setAttribute('aria-pressed', String(e.id === x.entryId));
+      button.classList.toggle('sg-filled', e.cells.every(i => x.values[i]));
+    });
+    const filled = p.entries.filter(e => e.cells.every(i => x.values[i])).length;
+    by('crossword-progress').textContent = x.won ? 'Completed · ' + x.assists + ' hints' : filled + ' / ' + p.entries.length + ' words filled';
+    by('crossword-clock').textContent = time(x.seconds);
+    by('crossword-panel').querySelector('[data-action="mini"]').setAttribute('aria-pressed', String(p.size === 9));
+    by('crossword-panel').querySelector('[data-action="classic"]').setAttribute('aria-pressed', String(p.size === 13));
+    if (p.size === 13) by('crossword-board').classList.add('sg-classic-grid');
+  }
+  function selectCrosswordCell(i, toggle = false) {
+    const x = crossword, current = x.puzzle.entries[x.entryId];
+    const entries = x.puzzle.entries.filter(e => e.cells.includes(i));
+    if (!entries.length) return;
+    const next = toggle && x.selected === i && entries.length > 1 ? entries.find(e => e.id !== current.id) : entries.find(e => e.direction === current.direction) || entries[0];
+    x.selected = i; x.entryId = next.id; renderCrossword(); save();
+  }
+  function selectClue(id) {
+    const x = crossword, e = x.puzzle.entries[id];
+    x.entryId = id; x.selected = e.cells.find(i => !x.values[i]) ?? e.cells[0]; renderCrossword(); save();
+  }
+  function nextClue(step = 1) {
+    const ordered = crossword.puzzle.entries.slice().sort((a, b) => a.direction === b.direction ? a.number - b.number : a.direction === 'across' ? -1 : 1);
+    const position = ordered.findIndex(e => e.id === crossword.entryId);
+    selectClue(ordered[(position + step + ordered.length) % ordered.length].id);
+  }
+  function crosswordInput(key) {
+    const x = crossword, e = x.puzzle.entries[x.entryId], position = e.cells.indexOf(x.selected);
+    if (key === 'Enter' || key === ' ') {
+      const others = x.puzzle.entries.filter(item => item.cells.includes(x.selected));
+      if (others.length > 1) selectCrosswordCell(x.selected, true); else nextClue();
+      return;
+    }
+    if (x.won) return;
+    if (/^[a-z]$/i.test(key)) {
+      x.values[x.selected] = key.toUpperCase();
+      x.selected = e.cells[position + 1] ?? x.selected;
+    } else if (key === 'Backspace') {
+      if (!x.values[x.selected] && position > 0) x.selected = e.cells[position - 1];
+      x.values[x.selected] = '';
+    } else if (key === 'Delete') x.values[x.selected] = '';
+    else return;
+    x.errors = []; announce('crossword', ''); finishCrossword();
+  }
+  function finishCrossword() {
+    const x = crossword;
+    x.won = x.puzzle.solution.every((letter, i) => !letter || letter === x.values[i]);
+    renderCrossword(); save();
+    if (x.won) announce('crossword', 'Every word in place. Solved in ' + time(x.seconds) + (x.assists ? ' · ' + x.assists + ' hints used.' : ' · No hints used.'), 'success');
+  }
+  function crosswordAction(action) {
+    const x = crossword;
+    if (action === 'new' || action === 'mini' || action === 'classic') return requestNew('crossword', action === 'classic' ? 13 : action === 'mini' ? 9 : x.puzzle.size);
+    if (action === 'direction') return crosswordInput('Enter');
+    if (action === 'check') {
+      x.errors = x.values.map((v, i) => v && v !== x.puzzle.solution[i] ? i : -1).filter(i => i >= 0);
+      renderCrossword(); announce('crossword', x.errors.length ? x.errors.length + ' incorrect ' + (x.errors.length === 1 ? 'letter is' : 'letters are') + ' highlighted.' : x.won ? 'All correct. Crossword completed!' : 'No errors in the filled cells. Keep going.', x.errors.length ? 'warning' : 'success');
+    }
+    if (action === 'hint' && !x.won) {
+      const entry = x.puzzle.entries[x.entryId];
+      const i = x.values[x.selected] !== x.puzzle.solution[x.selected] ? x.selected : entry.cells.find(j => x.values[j] !== x.puzzle.solution[j]) ?? x.puzzle.solution.findIndex((v, j) => v && v !== x.values[j]);
+      if (i >= 0) {
+        x.values[i] = x.puzzle.solution[i]; x.assists++; x.errors = []; selectCrosswordCell(i); finishCrossword();
+        if (!x.won) announce('crossword', 'One letter revealed. Hints used: ' + x.assists + '.');
+      }
+    }
+  }
+
+  function requestNew(game, kind) {
+    const started = game === 'sudoku' ? sudoku && sudoku.values.some((v, i) => v !== sudoku.puzzle.givens[i]) && !sudoku.won : crossword && crossword.values.some(Boolean) && !crossword.won;
+    const create = () => game === 'sudoku' ? newSudoku(kind) : newCrossword(kind);
+    if (!started) return create();
+    confirmAction = create; by('scholar-new-dialog').showModal();
+  }
+  function switchGame(game, updateURL = true) {
+    if (!['wordle', 'crossword', 'sudoku'].includes(game)) game = 'wordle';
+    activeGame = game; document.body.dataset.game = game;
+    by('crossword-panel').hidden = game !== 'crossword'; by('sudoku-panel').hidden = game !== 'sudoku';
+    by('game-main').setAttribute('aria-hidden', String(game !== 'wordle'));
+    document.querySelectorAll('[data-game-tab]').forEach(tab => { const active = tab.dataset.gameTab === game; tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; });
+    document.querySelectorAll('[id^="modal-"]').forEach(modal => { if (game !== 'wordle') { modal.classList.add('hidden'); modal.classList.remove('flex'); } });
+    if (game === 'sudoku') {
+      if (!sudoku) newSudoku('easy');
+      else { buildSudoku(); renderSudoku(); announce('sudoku', sudoku.won ? 'Puzzle completed. Choose New for another.' : 'Progress saved on this device.'); }
+    }
+    if (game === 'crossword') {
+      if (!crossword) newCrossword(9);
+      else { buildCrossword(); renderCrossword(); announce('crossword', crossword.won ? 'Crossword completed. Choose New for another.' : 'Progress saved on this device.'); }
+    }
+    document.title = game === 'wordle' ? 'Scholar Wordle' : 'Scholar ' + game[0].toUpperCase() + game.slice(1);
+    if (updateURL) {
+      const url = new URL(location.href); url.hash = game === 'wordle' ? '' : game;
+      try { history.replaceState(null, '', url); } catch (_) { /* file:// standalone mode */ }
+    }
+    save();
+  }
+  function focusSelected(game) {
+    const data = game === 'sudoku' ? sudoku : crossword;
+    const cell = by(game + '-board').querySelector('[data-cell="' + data.selected + '"]');
+    if (cell) cell.focus({ preventScroll: true });
+  }
+  function moveCell(key) {
+    if (activeGame === 'sudoku') {
+      const r = Math.floor(sudoku.selected / 9), c = sudoku.selected % 9;
+      const rr = Math.max(0, Math.min(8, r + (key === 'ArrowDown' ? 1 : key === 'ArrowUp' ? -1 : 0)));
+      const cc = Math.max(0, Math.min(8, c + (key === 'ArrowRight' ? 1 : key === 'ArrowLeft' ? -1 : 0)));
+      sudoku.selected = rr * 9 + cc; renderSudoku();
+    } else {
+      const x = crossword, p = x.puzzle, down = key === 'ArrowUp' || key === 'ArrowDown';
+      const preferred = p.entries.find(e => e.cells.includes(x.selected) && e.direction === (down ? 'down' : 'across'));
+      if (preferred) x.entryId = preferred.id;
+      const delta = key === 'ArrowUp' ? -p.size : key === 'ArrowDown' ? p.size : key === 'ArrowLeft' ? -1 : 1;
+      let i = x.selected + delta;
+      while (i >= 0 && i < p.solution.length) {
+        if (!down && Math.floor(i / p.size) !== Math.floor(x.selected / p.size)) break;
+        if (p.solution[i]) { selectCrosswordCell(i); break; }
+        i += delta;
+      }
+      renderCrossword();
+    }
+    focusSelected(activeGame); save();
+  }
+  function keyboard(event) {
+    if (activeGame === 'wordle' || by('scholar-new-dialog').open || event.altKey) return;
+    const target = event.target;
+    if (target && target.closest && target.closest('input,select,textarea,[contenteditable="true"]')) return;
+    if (event.key === 'Escape') { event.preventDefault(); by('game-tab-' + activeGame).focus(); return; }
+    if (event.ctrlKey || event.metaKey) {
+      if (activeGame === 'sudoku' && event.key.toLowerCase() === 'z') { event.preventDefault(); sudokuAction('undo'); }
+      return;
+    }
+    if (target && target.closest && target.closest('[role="tablist"]') && /^Arrow|Home|End/.test(event.key)) return;
+    if (/^Arrow(Up|Down|Left|Right)$/.test(event.key)) { event.preventDefault(); moveCell(event.key); return; }
+    if (activeGame === 'sudoku') {
+      if (/^[1-9]$/.test(event.key)) { event.preventDefault(); sudokuInput(Number(event.key)); }
+      else if (['Backspace', 'Delete', '0'].includes(event.key)) { event.preventDefault(); sudokuInput(0); }
+      else if (event.key.toLowerCase() === 'n') { event.preventDefault(); sudokuAction('notes'); }
+    } else {
+      if (event.key === 'Tab' && target && target.closest && target.closest('#crossword-board')) { event.preventDefault(); nextClue(event.shiftKey ? -1 : 1); focusSelected('crossword'); }
+      else if (/^[a-z]$/i.test(event.key) || ['Backspace', 'Delete'].includes(event.key)) { event.preventDefault(); crosswordInput(event.key); }
+      else if (['Enter', ' '].includes(event.key) && target && target.closest && target.closest('#crossword-board')) { event.preventDefault(); crosswordInput(event.key); }
+    }
+  }
+  function init() {
+    shell(); restore();
+    document.querySelectorAll('[data-game-tab]').forEach(tab => {
+      tab.addEventListener('click', () => switchGame(tab.dataset.gameTab));
+      tab.addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault(); event.stopPropagation();
+        const tabs = [...document.querySelectorAll('[data-game-tab]')], index = tabs.indexOf(tab);
+        const next = event.key === 'Home' ? tabs[0] : event.key === 'End' ? tabs[tabs.length - 1] : tabs[(index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length];
+        switchGame(next.dataset.gameTab); next.focus();
+      });
+    });
+    by('sudoku-panel').addEventListener('click', event => {
+      const cell = event.target.closest('[data-cell]'), digit = event.target.closest('[data-digit]'), action = event.target.closest('[data-action]');
+      if (cell) { sudoku.selected = Number(cell.dataset.cell); renderSudoku(); save(); }
+      else if (digit) sudokuInput(Number(digit.dataset.digit));
+      else if (action) sudokuAction(action.dataset.action);
+    });
+    by('crossword-panel').addEventListener('click', event => {
+      const cell = event.target.closest('[data-cell]'), clue = event.target.closest('[data-entry]'), key = event.target.closest('[data-key]'), action = event.target.closest('[data-action]');
+      if (cell) selectCrosswordCell(Number(cell.dataset.cell), true);
+      else if (clue) selectClue(Number(clue.dataset.entry));
+      else if (key) crosswordInput(key.dataset.key);
+      else if (action) crosswordAction(action.dataset.action);
+    });
+    by('scholar-new-dialog').addEventListener('click', event => {
+      const action = event.target.closest('[data-action]');
+      if (!action) return;
+      const confirmed = action.dataset.action === 'confirm-dialog';
+      by('scholar-new-dialog').close();
+      if (confirmed && confirmAction) confirmAction(); confirmAction = null;
+    });
+    window.addEventListener('keydown', keyboard);
+    window.addEventListener('hashchange', () => switchGame(location.hash.slice(1), false));
+    window.addEventListener('pagehide', save);
+    document.addEventListener('visibilitychange', save);
+    setInterval(() => {
+      const data = activeGame === 'sudoku' ? sudoku : activeGame === 'crossword' ? crossword : null;
+      if (!data || data.won || document.hidden || by('scholar-new-dialog').open) return;
+      data.seconds++; by(activeGame + '-clock').textContent = time(data.seconds);
+      if (data.seconds % 5 === 0) save();
+    }, 1000);
+    switchGame(location.hash === '#sudoku' ? 'sudoku' : location.hash === '#crossword' ? 'crossword' : 'wordle', false);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  else init();
+})();
+
+</script>
 </body>
 </html>
+

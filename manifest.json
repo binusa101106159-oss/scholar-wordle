@@ -1,9 +1,9 @@
 {
-  "name": "Scholar Wordle",
-  "short_name": "Wordle",
+  "name": "Scholar Games",
+  "short_name": "Scholar",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "description": "British English 5-letter word game."
+  "description": "Wordle, crossword and sudoku in a liquid-glass interface."
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = "scholar-wordle-v38";
+const CACHE_NAME = "scholar-games-v39";
 const ASSETS = ["./", "./index.html", "./manifest.json"];
 
 self.addEventListener("install", (e) => {
@@ -29,3 +29,4 @@ self.addEventListener("fetch", (e) => {
       .catch(() => caches.match(e.request))
   );
 });
+
