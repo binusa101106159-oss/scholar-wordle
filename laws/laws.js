@@ -127,6 +127,8 @@
     return blocks.map(b => {
       if (b.t === 'p') return '<p class="' + (inCell ? 'lx-cell-p' : 'lx-ap' + (b.center ? ' lx-center' : '')) + '">' + rich(b.text, null, terms) + '</p>';
       if (b.t === 'table') return tableHTML(b, terms, inCell);
+      if (b.t === 'diagram') return '<svg viewBox="0 0 ' + b.w + ' ' + b.h + '" width="' + (b.w * 1.4) + '" height="' + (b.h * 1.4) + '" style="display:block;max-width:100%;margin:10px 0" xmlns="http://www.w3.org/2000/svg">' +
+        b.runs.map(r => '<text x="' + r.x + '" y="' + r.y + '" font-size="' + r.size + '" font-family="Times New Roman,serif" fill="currentColor">' + esc(r.text) + '</text>').join('') + '</svg>';
       if (b.t === 'img') return b.img.map(im => '<img class="lx-annex-img" src="' + BASE + 'annex/img/' + im.src + '" width="' + Math.round(im.w * 1.4) + '" alt="">').join('');
       return '';
     }).join('');
@@ -338,7 +340,7 @@
     return '';
   }
   function annexText(blocks) {
-    return blocks.map(b => b.t === 'p' ? b.text : b.t === 'table'
+    return blocks.map(b => b.t === 'p' ? b.text : b.t === 'diagram' ? b.runs.map(r => r.text).join('') : b.t === 'table'
       ? b.rows.map(r => r.map(c => c.text + (c.diag ? [c.diag.tr, c.diag.mid, c.diag.bl].join(' ') : '') + (c.blocks ? '\n' + annexText(c.blocks) : '')).join(' ')).join('\n') : '').join('\n');
   }
   function loadCorpus() {

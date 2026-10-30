@@ -65,7 +65,7 @@ def visible_edges(page):
     return [e for e in out if not underline(e) and (e['x1'] - e['x0'] if e['orientation'] == 'h' else e['bottom'] - e['top']) >= 2]
 
 
-def inked_edge(e, ink, i):
+def inked_edge(e, ink, i, threshold=235):
     """Does the line actually print? Lines hidden under a white cover (cut-out gazette frame) do not."""
     pix, k = ink.page(i)
     ox, oy = ink.off
@@ -77,20 +77,37 @@ def inked_edge(e, ink, i):
         for dy in (-1, 0, 1):
             for dx in (-1, 0, 1):
                 xi, yi = int(x) + dx, int(y) + dy
-                if 0 <= xi < pix.width and 0 <= yi < pix.height and pix.samples[yi * pix.stride + xi] < 235:
+                if 0 <= xi < pix.width and 0 <= yi < pix.height and pix.samples[yi * pix.stride + xi] < threshold:
                     return True
     return False
 
 
 def find_tables(page, ink=None):
-    edges = visible_edges(page)
+    raw_edges = edges = visible_edges(page)
     if ink is not None:
         edges = [e for e in edges if inked_edge(e, ink, page.page_number - 1)]
     V = [e for e in edges if e['orientation'] == 'v']
     H = [e for e in edges if e['orientation'] == 'h']
     if len(V) < 2 or len(H) < 2: return []
     settings = dict(SETTINGS, vertical_strategy='explicit', horizontal_strategy='explicit', explicit_vertical_lines=V, explicit_horizontal_lines=H)
-    return page.find_tables(settings)
+    tables = page.find_tables(settings)
+    # Legacy Word tables use a bevel made of adjacent light/dark filled strips.
+    # At 96 dpi the light strip is faint, and its two walls can be >1.6 pt apart.
+    bevels = [e for e in raw_edges if e.get('fill') and not e.get('stroke')
+              and isinstance(e.get('non_stroking_color'), (int,float,tuple,list))]
+    tones = {tuple(e['non_stroking_color']) if isinstance(e['non_stroking_color'],(tuple,list))
+             else (e['non_stroking_color'],) for e in bevels}
+    if len(bevels) >= 20 and len(tones) >= 2 and any(min(c) >= 0.75 for c in tones) and any(max(c) <= 0.65 for c in tones):
+        recovery = [e for e in raw_edges if ink is None or inked_edge(e, ink, page.page_number-1, threshold=252)]
+        V = [e for e in recovery if e['orientation']=='v']
+        H = [e for e in recovery if e['orientation']=='h']
+        if len(V)>=2 and len(H)>=2:
+            recovered = page.find_tables(dict(settings, explicit_vertical_lines=V, explicit_horizontal_lines=H, snap_tolerance=2.5))
+            area = lambda t:(t.bbox[2]-t.bbox[0])*(t.bbox[3]-t.bbox[1])
+            if recovered and (not tables or (len(tables)>1 and max(map(area,recovered))>1.5*max(map(area,tables)))):
+                for table in recovered: table._beveled = True
+                return recovered
+    return tables
 
 
 def clean(s):
@@ -242,10 +259,37 @@ def flow(lines, right, left=None, size=None, incell=False):
             p = paras[-1]
             gap = right - p['x1last']
             full = gap < max(14, (size or 10) * 1.6) or gap < l.get('w0', 0) + 4
-            if full and not LIST.match(l['text']) and (incell or l['top'] - p['bottom'] < 22):
+            eq = re.match(r'^([^=＝]{1,40})[=＝]',l['text'])
+            repeat_eq = incell and eq and re.match(re.escape(eq[1])+r'[=＝]',p['text'])
+            numbered = not incell and re.match(r'^[０-９](?:\s*[０-９])*\s*[一-鿿]',l['text']) and l['x0']<=p['x0']+5
+            if full and not LIST.match(l['text']) and not repeat_eq and not numbered and (incell or l['top'] - p['bottom'] < 22):
                 p['text'] = join(p['text'], l['text']); p['x1last'] = l['x1']; p['bottom'] = l['bottom']; continue
         paras.append(dict(text=l['text'], x1last=l['x1'], bottom=l['bottom'], x0=l['x0'], top=l['top'], x1=l['x1']))
     return paras
+
+
+def text_diagrams(lines, words):
+    """Retain the geometry of multi-line chemical structures made of text glyphs."""
+    diagrams=[]; keep=[]; i=0
+    def candidate(line):
+        s=re.sub(r'\s+','',line['text'])
+        return len(s)<=18 and re.fullmatch(r'[A-Za-z0-9()/\\|—─=／＼︱]+',s) and \
+            (re.search(r'[0-9/\\|—─／＼︱]',s) or re.fullmatch(r'[A-Z]{1,2}',s))
+    while i<len(lines):
+        j=i
+        while j<len(lines) and candidate(lines[j]) and (j==i or lines[j]['top']-lines[j-1]['bottom']<22):j+=1
+        group=lines[i:j]
+        if len(group)>=3 and sum(len(re.findall(r'[/\\|—─／＼︱]',l['text'])) for l in group)>=3:
+            x0=min(l['x0'] for l in group);x1=max(l['x1'] for l in group)
+            y0=group[0]['top'];y1=group[-1]['bottom']
+            chars=[c for w in words for c in w['chars'] if x0-1<=(c['x0']+c['x1'])/2<=x1+1 and y0-1<=(c['top']+c['bottom'])/2<=y1+1]
+            chars.sort(key=lambda c:(round(c['top']),c['x0']))
+            runs=[dict(text=c['text'],x=round(c['x0']-x0,2),y=round(c['bottom']-y0-(c['bottom']-c['top'])*0.18,2),size=round(c['bottom']-c['top'],2)) for c in chars]
+            diagrams.append(dict(t='diagram',w=round(x1-x0+2,2),h=round(y1-y0+2,2),runs=runs,top=y0))
+            i=j
+        else:
+            keep.append(lines[i]);i+=1
+    return keep,diagrams
 
 
 def cluster(vals, tol=2.5):
@@ -260,7 +304,7 @@ def idx(grid, v):
     return min(range(len(grid)), key=lambda i: abs(grid[i] - v))
 
 
-def table_struct(page, t, words, images, imgsave, children=()):
+def table_struct(page, t, words, images, imgsave, children=(), preserve_vertical=False):
     cells = [c for c in t.cells]
     xs = cluster([c[0] for c in cells] + [c[2] for c in cells])
     ys = cluster([c[1] for c in cells] + [c[3] for c in cells])
@@ -310,7 +354,8 @@ def table_struct(page, t, words, images, imgsave, children=()):
         # vertical text: every line is 1-2 chars -> join without breaks
         if len(ls) > 1 and all(len(l['text']) <= 2 for l in ls) and any(re.search(rf'[{CJK}]', l['text']) for l in ls) \
                 and max(b['top'] - a['bottom'] for a, b in zip(ls, ls[1:])) < (ls[0]['bottom'] - ls[0]['top']) * 0.9:
-            text = ''.join(l['text'] for l in ls)
+            text = ('\n'.join(l['text'] for l in ls) if preserve_vertical and len(ls)>=3 and all(len(l['text'])==2 for l in ls)
+                    else ''.join(l['text'] for l in ls))
         else:
             text = '\n'.join(p['text'] for p in flow(ls, x1 - 2, incell=True))
         here = [im for im in images if not im.get('_used') and x0 - 2 <= (im['x0'] + im['x1']) / 2 <= x1 + 2 and y0 - 2 <= (im['top'] + im['bottom']) / 2 <= y1 + 2]
@@ -391,6 +436,10 @@ def split_leading_nested(prev, it):
     lo = max(i for i in range(len(xs)) if known(xs[i]) and i <= min(minor) - 1)
     hi = min(i for i in range(len(xs)) if known(xs[i]) and i >= max(minor) + 1)
     region = [c for r in rows[:k] for c in r if c['c'] >= lo and c['c'] + c['cs'] <= hi]
+    # Outside fields can have their own header/body split within these rows.
+    # Collapsing them to one outer row would overlap the next full-width field.
+    # Keep the complete grid in that case; remapping its columns preserves both.
+    if any(0 < c['r'] < k for r in rows[:k] for c in r if c not in region): return
     # empty margins inside the outer cell (left/right of the nested table) are not part of it
     inner = [c for c in region if not (blank(c) and c['rs'] >= k)]
     if not inner: return
@@ -564,7 +613,7 @@ def convert(path, annex_id, imgdir, imgprefix):
             built = {}
             for t in sorted(tables, key=lambda t: (t.bbox[2] - t.bbox[0]) * (t.bbox[3] - t.bbox[1])):
                 kids = [built.pop(id(k)) for k in tables if id(k) in built and inside(k, t)]
-                built[id(t)] = table_struct(page, t, words, images, imgsave, kids)
+                built[id(t)] = table_struct(page, t, words, images, imgsave, kids, preserve_vertical=getattr(t,'_beveled',False))
             items = list(built.values())
             # vector figures outside tables (e.g. hazard-label diamonds): keep them as a picture of that drawing
             tb_boxes = [(it['x0'], it['top'], it['x1'], it['bottom']) for it in items if it['t'] == 'table']
@@ -586,6 +635,8 @@ def convert(path, annex_id, imgdir, imgprefix):
                 items.append(dict(t='img', img=[imgsave(fig)], top=g[1]))
             free = take(words, -1e6, -1e6, 1e6, 1e6)
             ls = lines_of(free)
+            ls, diagrams = text_diagrams(ls, free)
+            items.extend(diagrams)
             # footer: last line near page bottom that is just a page number
             ls2 = []
             for l in ls:
@@ -615,6 +666,7 @@ def visible_text(annex):
     out = []
     for b in annex['blocks']:
         if b['t'] == 'p': out.append(b['text'])
+        elif b['t'] == 'diagram': out.extend(run['text'] for run in b['runs'])
         elif b['t'] == 'table':
             for r in b['rows']:
                 for c in r:

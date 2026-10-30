@@ -59,10 +59,12 @@ def box_tables(path):
             words = text_page.extract_words(x_tolerance=1.5, y_tolerance=2, return_chars=True)
             set_spaces(page)
             for t in sorted(tables, key=lambda t: t.bbox[1]):
-                st = table_struct(page, t, words, [], None)
+                st = table_struct(page, t, words, [], None, preserve_vertical=True)
                 # does this table close on this page? (an └ glyph at its bottom edge)
-                closes = any(c['text'] in '└┘┴' and abs(c['bottom'] - t.bbox[3]) < 12 for c in chars)
-                opens = any(c['text'] in '┌┐┬' and abs(c['top'] - t.bbox[1]) < 12 for c in chars)
+                # Internal ┴/┬ junctions can sit at a page boundary in a form;
+                # only the outer corner glyphs actually close/open the table.
+                closes = any(c['text'] in '└┘' and abs(c['bottom'] - t.bbox[3]) < 12 for c in chars)
+                opens = any(c['text'] in '┌┐' and abs(c['top'] - t.bbox[1]) < 12 for c in chars)
                 cut_top = open_top and abs(t.bbox[1] - (top - pad)) < 3
                 if out and not opens and not out[-1].get('_closed') and same_frame(out[-1], st):
                     prev = out[-1]
