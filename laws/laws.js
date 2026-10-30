@@ -126,7 +126,9 @@
     const panel = by('laws-panel');
     panel.innerHTML = `
       <div class="lx-layout">
+        <div class="lx-scrim" id="lx-scrim" aria-hidden="true"></div>
         <aside class="lx-side sg-glass" aria-label="法規目錄與搜尋">
+          <div class="lx-side-head"><span>法規目錄</span><button type="button" class="sg-btn lx-icon-btn" id="lx-side-close" aria-label="關閉目錄">${icon.x}</button></div>
           <div class="lx-search">${icon.search}
             <input id="lx-q" type="search" placeholder="搜尋條文與附表" aria-label="關鍵字搜尋" autocomplete="off" spellcheck="false" enterkeyhint="search">
             <button type="button" class="lx-clear" id="lx-clear" aria-label="清除搜尋" hidden>${icon.x}</button>
@@ -180,12 +182,25 @@
       const annex = law.dataset.openAnnex;
       if (annex) { openAnnex(annex); return; }
       openLaw(law.dataset.law, { art: law.dataset.art, flash: Boolean(law.dataset.art) });
+      state.closeDrawer();
+    });
+    // the drawer gets its own history entry, so the phone's back gesture closes it instead of leaving the page
+    const drawerOpen = () => by('laws-panel').classList.contains('lx-drawer');
+    const openDrawer = () => {
+      if (drawerOpen()) return;
+      by('laws-panel').classList.add('lx-drawer');
+      try { history.pushState({ lxDrawer: true }, ''); } catch (_) { /* file:// */ }
+    };
+    const closeDrawer = () => {
+      if (!drawerOpen()) return;
       by('laws-panel').classList.remove('lx-drawer');
-    });
-    by('lx-menu').addEventListener('click', () => {
-      by('laws-panel').classList.toggle('lx-drawer');
-      if (by('laws-panel').classList.contains('lx-drawer')) by('lx-q').focus({ preventScroll: true });
-    });
+      if (history.state && history.state.lxDrawer) history.back();
+    };
+    state.openDrawer = openDrawer; state.closeDrawer = closeDrawer;
+    window.addEventListener('popstate', () => { if (drawerOpen()) by('laws-panel').classList.remove('lx-drawer'); });
+    by('lx-side-close').addEventListener('click', () => { closeDrawer(); by('lx-menu').focus({ preventScroll: true }); });
+    by('lx-scrim').addEventListener('click', closeDrawer);
+    by('lx-menu').addEventListener('click', () => drawerOpen() ? closeDrawer() : openDrawer());
     by('lx-doc').addEventListener('click', e => {
       const ref = e.target.closest('[data-annex]');
       if (ref) { e.preventDefault(); openAnnex(ref.dataset.annex); }
@@ -217,10 +232,10 @@
       const typing = t && t.closest && t.closest('input,select,textarea');
       if ((e.key === '/' && !typing) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) {
         e.preventDefault();
-        if (window.matchMedia('(max-width: 900px)').matches) by('laws-panel').classList.add('lx-drawer');
+        if (window.matchMedia('(max-width: 900px)').matches) state.openDrawer();
         q.focus(); q.select();
       } else if (e.key === 'Escape' && by('laws-panel').classList.contains('lx-drawer')) {
-        by('laws-panel').classList.remove('lx-drawer');
+        state.closeDrawer();
       }
     });
     window.addEventListener('resize', measure);
