@@ -140,7 +140,7 @@ if __name__ == '__main__':
     only = set(sys.argv[2:])
     os.makedirs(outdir, exist_ok=True)
     for law_id, tier, name, stem in LAWS:
-        if only and tier not in only: continue
+        if only and tier not in only and law_id not in only: continue
         law = parse(law_id, tier, name, stem)
         # QC: every non-space character of the PDF text must appear, in order, in our data
         src = re.sub(r'\s+', '', ''.join(raw_text(os.path.join(SRC, stem + '.pdf'))))

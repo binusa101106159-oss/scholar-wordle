@@ -82,7 +82,9 @@
   function cellHTML(c, terms, tag, t) {
     if (c.diag) {
       const d = c.diag;
-      return '<' + tag + ' class="lx-diag"><svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 100 100"><line x1="55" y1="0" x2="100" y2="100"/><line x1="0" y1="42" x2="100" y2="100"/></svg>' +
+      const span = (c.rs > 1 ? ' rowspan="' + c.rs + '"' : '') + (c.cs > 1 ? ' colspan="' + c.cs + '"' : '');
+      const lines = d.n === 1 ? '<line x1="0" y1="0" x2="100" y2="100"/>' : '<line x1="55" y1="0" x2="100" y2="100"/><line x1="0" y1="42" x2="100" y2="100"/>';
+      return '<' + tag + span + ' class="lx-diag' + (d.n === 1 ? ' lx-diag-1' : '') + '"><svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 100 100">' + lines + '</svg>' +
         '<span class="lx-d-tr">' + rich(d.tr, null, terms) + '</span><span class="lx-d-mid">' + rich(d.mid, null, terms) + '</span><span class="lx-d-bl">' + rich(d.bl, null, terms) + '</span></' + tag + '>';
     }
     let inner = rich(c.text || '', null, terms);
@@ -102,7 +104,9 @@
     const cols = t.widths.map(w => '<col style="width:' + (w / total * 100).toFixed(2) + '%">').join('');
     // only many-column tables need a minimum width (and sideways scrolling on phones)
     const minW = t.widths.length > 4 ? Math.round(total * (nested ? 1.1 : 1.3)) : 0;
-    const head = Math.min(t.head || 0, t.rows.length - 1);
+    // a header cell that spans down (e.g. a diagonal corner) pulls the rows it covers into the header
+    let head = Math.min(t.head || 0, t.rows.length - 1);
+    if (head > 0) head = Math.min(t.rows.length - 1, Math.max(head, ...t.rows[0].map(c => c.rs || 1)));
     const rowsHTML = (rows, tag) => rows.map(r => '<tr>' + r.map(c => cellHTML(c, terms, tag, t)).join('') + '</tr>').join('');
     return '<div class="lx-twrap' + (nested ? ' lx-nested' : '') + '"><table class="lx-table" style="min-width:' + minW + 'px"><colgroup>' + cols + '</colgroup>' +
       (head > 0 ? '<thead>' + rowsHTML(t.rows.slice(0, head), 'th') + '</thead>' : '') +
@@ -297,8 +301,9 @@
     if (!state.query) {
       list.innerHTML = idx.tiers.map(t => {
         const laws = idx.laws.filter(l => l.tier === t.id);
-        return '<div class="lx-tier"><span><b>' + t.id + '</b>' + esc(t.name) + '</span><span>' + laws.length + ' 部</span></div>' +
-          laws.map((l, i) => lawButton(l, i + 1)).join('');
+        const count = t.total && t.total > laws.length ? laws.length + ' / ' + t.total + ' 部' : laws.length + ' 部';
+        return '<div class="lx-tier"><span><b>' + t.id + '</b>' + esc(t.name) + '</span><span>' + count + '</span></div>' +
+          laws.map((l, i) => lawButton(l, l.no || i + 1)).join('');
       }).join('');
       return;
     }
@@ -425,7 +430,8 @@
     const terms = state.terms, meta = law.meta;
     const sc = by('lx-scroll'), top = sc.scrollTop;
     const tierLaws = state.index.laws.filter(l => l.tier === meta.tier);
-    let html = '<div class="lx-head sg-glass"><p class="sg-eyebrow">' + meta.tier + ' · ' + esc(TIER_NAMES[meta.tier] || '') + ' · ' + (tierLaws.indexOf(meta) + 1) + ' / ' + tierLaws.length + '</p>' +
+    const tierInfo = state.index.tiers.find(t => t.id === meta.tier) || {};
+    let html = '<div class="lx-head sg-glass"><p class="sg-eyebrow">' + meta.tier + ' · ' + esc(TIER_NAMES[meta.tier] || '') + ' · ' + (meta.no || tierLaws.indexOf(meta) + 1) + ' / ' + (tierInfo.total || tierLaws.length) + '</p>' +
       '<h1 class="lx-title">' + rich(meta.name, null, terms) + '</h1>' +
       '<p class="lx-meta">' + (law.date ? '<span>' + esc(law.dateLabel) + ' ' + esc(law.date) + '</span>' : '') + '<span>' + meta.articles + ' 條</span></p>' +
       (law.status ? '<p class="lx-status">' + esc(law.status) + '</p>' : '') +

@@ -7,8 +7,8 @@ CJK = r'⺀-鿿豈-﫿　-〿＀-￯'
 CJK_SP = re.compile(rf'(?<=[{CJK}])[ 　]+(?=[{CJK}])')
 FOOTER = re.compile(r'^(-\s*\d+\s*-|第\s*\d+\s*頁(\s*[/，,]?\s*共\s*\d+\s*頁)?|\d+)$')
 LIST = re.compile(r'^(?:[一二三四五六七八九十百]+、|（[一二三四五六七八九十百]+）|\(?\d+[\.\)）、](?!\d)|[（(]\d+[）)]|備註|註[一二三四五六七八九十\d]*[：:、]|說明[：:]|[A-Za-z]\.|[□■●○◎※＊*•‧])')
-SETTINGS = dict(vertical_strategy='lines', horizontal_strategy='lines', snap_tolerance=3, join_tolerance=3,
-                intersection_tolerance=3, edge_min_length=4)
+SETTINGS = dict(vertical_strategy='lines', horizontal_strategy='lines', snap_tolerance=1.6, join_tolerance=1.6,
+                intersection_tolerance=2, edge_min_length=4)
 
 
 def is_white(col):
@@ -49,11 +49,12 @@ def visible_edges(page):
 def inked_edge(e, ink, i):
     """Does the line actually print? Lines hidden under a white cover (cut-out gazette frame) do not."""
     pix, k = ink.page(i)
+    ox, oy = ink.off
     pts = 7
     for n in range(pts):
         t = (n + 0.5) / pts
-        x = (e['x0'] + (e['x1'] - e['x0']) * t) * k
-        y = (e['top'] + (e['bottom'] - e['top']) * t) * k
+        x = (e['x0'] - ox + (e['x1'] - e['x0']) * t) * k
+        y = (e['top'] - oy + (e['bottom'] - e['top']) * t) * k
         for dy in (-1, 0, 1):
             for dx in (-1, 0, 1):
                 xi, yi = int(x) + dx, int(y) + dy
@@ -96,15 +97,19 @@ class Ink:
 
     def page(self, i):
         if i not in self.cache:
-            pix = self.doc[i].get_pixmap(dpi=96, colorspace=pymupdf.csGRAY)
+            pg = self.doc[i]
+            pix = pg.get_pixmap(dpi=96, colorspace=pymupdf.csGRAY)
+            # the render shows only the crop box; pdfplumber measures from the full media box
+            self.off = (pg.cropbox.x0, pg.cropbox.y0)
             self.cache = {i: (pix, 96 / 72)}
         return self.cache[i]
 
     def visible(self, i, c):
         if not c['text'].strip(): return True
         pix, k = self.page(i)
-        x0, x1 = int(c['x0'] * k), int(c['x1'] * k) + 1
-        y0, y1 = int(c['top'] * k), int(c['bottom'] * k) + 1
+        ox, oy = self.off
+        x0, x1 = int((c['x0'] - ox) * k), int((c['x1'] - ox) * k) + 1
+        y0, y1 = int((c['top'] - oy) * k), int((c['bottom'] - oy) * k) + 1
         x0, y0 = max(0, x0), max(0, y0)
         x1, y1 = min(pix.width, x1), min(pix.height, y1)
         if x1 <= x0 or y1 <= y0: return False
@@ -259,6 +264,18 @@ def table_struct(page, t, words, images, imgsave, children=()):
             cell = dict(r=r0, c=c0, rs=r1 - r0, cs=c1 - c0, text='', blocks=sub)
             grid[(r0, c0)] = cell
             continue
+        # a cell split by a diagonal line (corner header): text above the line goes top-right, below goes bottom-left
+        diag = next((d for d in page.lines + page.curves if abs(d['x1'] - d['x0']) > 8 and abs(d['bottom'] - d['top']) > 8
+                     and x0 - 2 <= d['x0'] and d['x1'] <= x1 + 2 and y0 - 2 <= d['top'] and d['bottom'] <= y1 + 2), None)
+        if diag and ls:
+            (ax, ay), (bx, by) = sorted(diag['pts'][:1] + diag['pts'][-1:])
+            def above(l):
+                cx = (l['x0'] + l['x1']) / 2; cy = (l['top'] + l['bottom']) / 2
+                yline = ay + (by - ay) * (cx - ax) / max(1e-6, bx - ax)
+                return cy < yline if by > ay else cy > yline
+            tr = '\n'.join(l['text'] for l in ls if above(l)); bl = '\n'.join(l['text'] for l in ls if not above(l))
+            grid[(r0, c0)] = dict(r=r0, c=c0, rs=r1 - r0, cs=c1 - c0, text='', diag=dict(tr=tr, mid='', bl=bl, n=1))
+            continue
         # vertical text: every line is 1-2 chars -> join without breaks
         if len(ls) > 1 and all(len(l['text']) <= 2 for l in ls) and any(re.search(rf'[{CJK}]', l['text']) for l in ls) \
                 and max(b['top'] - a['bottom'] for a, b in zip(ls, ls[1:])) < (ls[0]['bottom'] - ls[0]['top']) * 0.9:
@@ -327,8 +344,76 @@ def remap(tb, U):
     tb['xs'] = U
 
 
+def split_leading_nested(prev, it):
+    """A nested table cut by the page break shares the next page's top border, so it fuses with the outer grid.
+    Columns the outer table never had, used only by the leading rows, belong to that nested table: lift those
+    rows out into a nested table inside one outer cell, continuing the nested table on the previous page."""
+    known = lambda x: any(abs(x - p) <= 7 for p in prev['xs'])   # a sliver merge may keep either of two close lines
+    xs = it['xs']
+    minor = [i for i in range(1, len(xs) - 1) if not known(xs[i])]
+    if not minor: return
+    rows = it['rows']
+    users = sorted({c['r'] for r in rows for c in r if c['c'] in minor or (c['c'] + c['cs']) in minor})
+    if not users or users != list(range(users[0], users[0] + len(users))) or users[0] != 0: return
+    k = len(users)
+    # the outer column span that holds them
+    lo = max(i for i in range(len(xs)) if known(xs[i]) and i <= min(minor) - 1)
+    hi = min(i for i in range(len(xs)) if known(xs[i]) and i >= max(minor) + 1)
+    region = [c for r in rows[:k] for c in r if c['c'] >= lo and c['c'] + c['cs'] <= hi]
+    # empty margins inside the outer cell (left/right of the nested table) are not part of it
+    inner = [c for c in region if not (blank(c) and c['rs'] >= k)]
+    if not inner: return
+    a0 = min(c['c'] for c in inner); a1 = max(c['c'] + c['cs'] for c in inner)
+    sub = dict(t='table', xs=xs[a0:a1 + 1], widths=[], head=0, nrows=k)
+    for c in inner:
+        sub_c = dict(c); sub_c['c'] = c['c'] - a0
+        sub.setdefault('_cells', []).append(sub_c)
+    regroup(sub, sub.pop('_cells'))
+    keep = [c for r in rows for c in r if c not in region]
+    holder = dict(r=0, c=lo, rs=1, cs=hi - lo, text='', blocks=[sub])
+    for c in keep:      # the k lifted rows become one outer row
+        if c['r'] >= k: c['r'] -= k - 1
+        else: c['rs'] = max(1, c['rs'] - (k - 1))
+    # drop the nested table's column lines from the outer grid
+    old_xs = xs
+    new_xs = [x for i, x in enumerate(xs) if i not in minor]
+    cells = keep + [holder]
+    for c in cells:
+        a, b = old_xs[c['c']], old_xs[c['c'] + c['cs']]
+        c['c'] = idx(new_xs, a); c['cs'] = max(1, idx(new_xs, b) - c['c'])
+    it['xs'] = new_xs
+    regroup(it, cells)
+
+
+def join_nested(cell):
+    """Two nested tables back to back in one cell (split by a page break) become one table."""
+    bl = cell.get('blocks') or []
+    i = 0
+    while i + 1 < len(bl):
+        a, b = bl[i], bl[i + 1]
+        if a.get('t') == 'table' and b.get('t') == 'table' and 'xs' in a and 'xs' in b and abs(a['xs'][0] - b['xs'][0]) < 4 and abs(a['xs'][-1] - b['xs'][-1]) < 6:
+            U = cluster(a['xs'] + b['xs'], 3)
+            remap(a, U); remap(b, U)
+            n = a['nrows']
+            for r in b['rows']:
+                for c in r: c['r'] += n
+            ca = [c for r in a['rows'] for c in r]; cb = [c for r in b['rows'] for c in r]
+            # a diagonal corner cell cut in half by the page break: top half here, bottom half there
+            top = next((c for c in ca if c.get('diag') and not c['diag']['bl'] and c['c'] == 0), None)
+            bot = next((c for c in cb if c.get('diag') and not c['diag']['tr'] and c['c'] == 0 and c['r'] == n), None)
+            if top and bot:
+                top['diag']['bl'] = bot['diag']['bl']; top['rs'] += bot['rs']; cb.remove(bot)
+            regroup(a, ca + cb)
+            del bl[i + 1]
+            continue
+        i += 1
+
+
 def merge_continued(prev, it, dropped):
     """Append a table continued on the next page; stitch a row/cell that the page break split."""
+    split_leading_nested(prev, it)
+    # the same column line can sit a few points apart on two pages
+    it['xs'] = [next((p for p in prev['xs'] if abs(p - x) <= 7), x) for x in it['xs']]
     if len(prev['xs']) != len(it['xs']) or any(abs(a - b) > 3 for a, b in zip(prev['xs'], it['xs'])):
         U = cluster(prev['xs'] + it['xs'], 3)
         remap(prev, U); remap(it, U)
@@ -357,7 +442,11 @@ def merge_continued(prev, it, dropped):
         if x['text']:
             p['text'] = (p['text'] + '\n' + x['text']) if LIST.match(x['text']) else join(p['text'], x['text'])
         if x.get('img'): p.setdefault('img', []).extend(x['img'])
-        if x.get('blocks'): p.setdefault('blocks', []).extend(x['blocks'])
+        if x.get('blocks'):
+            if not p.get('blocks') and p['text']:
+                p['blocks'] = [dict(t='p', text=p['text'])]; p['text'] = ''
+            p.setdefault('blocks', []).extend(x['blocks'])
+            join_nested(p)
         cells.remove(x)
 
     if cont:
@@ -477,5 +566,6 @@ def visible_text(annex):
             for r in b['rows']:
                 for c in r:
                     out.append(c['text'])
+                    if 'diag' in c: out.append(c['diag']['tr'] + c['diag']['mid'] + c['diag']['bl'])
                     if 'blocks' in c: out.append(visible_text(dict(blocks=c['blocks'])))
     return ''.join(out)

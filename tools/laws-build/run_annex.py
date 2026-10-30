@@ -35,7 +35,7 @@ if __name__ == '__main__':
     os.makedirs(os.path.join(outdir, 'img'), exist_ok=True)
     index = {}
     for law_id, tier, name, stem in LAWS:
-        if tiers and tier not in tiers: continue
+        if tiers and tier not in tiers and law_id not in tiers: continue
         annexes = []
         for f in annex_files(stem):
             label, title = label_of(f[:-4], stem)
@@ -53,4 +53,8 @@ if __name__ == '__main__':
             annexes.append(dict(id=aid, label=label, title=title))
         annexes.sort(key=lambda a: int(a['id'].split('-')[1]))
         index[law_id] = annexes
-    json.dump(index, open(os.path.join(outdir, 'index.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
+    # merge with laws converted earlier (a run may cover only some laws)
+    path = os.path.join(outdir, 'index.json')
+    old = json.load(open(path, encoding='utf-8')) if os.path.exists(path) else {}
+    old.update(index)
+    json.dump(old, open(path, 'w', encoding='utf-8'), ensure_ascii=False, indent=0)

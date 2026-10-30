@@ -18,7 +18,7 @@ def main(repo, tiers):
     catalog = []
     stats = {}
     for lid, tier, name, _ in LAWS:
-        if tier not in tiers: continue
+        if tier not in tiers and lid not in tiers: continue
         law = json.load(open(os.path.join(OUT_LAWS, lid + '.json'), encoding='utf-8'))
         alias = aliases(law)
         nlinks = 0
@@ -44,13 +44,16 @@ def main(repo, tiers):
         law['annexes'] = annexes
         json.dump(law, open(os.path.join(dest, 'text', lid + '.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
         arts = sum(1 for it in law['items'] if it['t'] == 'art')
-        catalog.append(dict(id=lid, tier=tier, name=name, dateLabel=law['dateLabel'], date=law['date'],
+        no = [l[0] for l in LAWS if l[1] == tier].index(lid) + 1      # number in the full study list
+        catalog.append(dict(id=lid, tier=tier, no=no, name=name, dateLabel=law['dateLabel'], date=law['date'],
                             status=law['status'], articles=arts, annexes=annexes))
         stats[lid] = nlinks
-    index = dict(tiers=[dict(id=t, name=n) for t, n in TIERS if t in tiers], laws=catalog)
+    present = {l['tier'] for l in catalog}
+    index = dict(tiers=[dict(id=t, name=n, total=sum(1 for l in LAWS if l[1] == t)) for t, n in TIERS if t in present], laws=catalog)
     json.dump(index, open(os.path.join(dest, 'index.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     for lid, n in stats.items(): print(lid, 'links:', n)
 
 
 if __name__ == '__main__':
+    # arguments: tiers (S A B C) and/or single law ids (a13 a14 ...)
     main(sys.argv[1], set(sys.argv[2:]))

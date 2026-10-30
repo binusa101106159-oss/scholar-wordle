@@ -24,11 +24,21 @@ test('law reader script parses and the tab is wired into the page', () => {
 
 const B_ORDER = ['游離輻射防護法', '勞動基準法施行細則', '高架作業勞工保護措施標準'];
 const C_ORDER = ['勞工職業災害保險醫療給付項目及支付標準', '職業災害勞工保護法'];
+const A_ORDER = ['職業安全衛生法施行細則', '職業安全衛生管理辦法', '辦理勞工體格與健康檢查醫療機構認可及管理辦法',
+  '職業傷病診治醫療機構認可管理補助及職業傷病通報辦法', '勞工保險條例', '勞工職業災害保險及保護法施行細則', '勞動事件法',
+  '特定化學物質危害預防標準', '有機溶劑中毒預防規則', '粉塵危害預防標準', '危害性化學品評估及分級管理辦法', '職場霸凌防治措施準則',
+  '妊娠與分娩後女性及未滿十八歲勞工禁止從事危險性或有害性工作認定標準', '性別平等工作法', '鉛中毒預防規則', '缺氧症預防規則',
+  '高溫作業勞工作息時間標準', '游離輻射防護安全標準', '職業醫學科專科醫師及地區醫院以上之醫院專科醫師開具職業病門診單辦法', '勞工請假規則'];
 
 test('S, B and C tiers are present in the study order, and every law shows its date', () => {
   assert.deepEqual(index.laws.filter(l => l.tier === 'S').map(l => l.name), S_ORDER);
   assert.deepEqual(index.laws.filter(l => l.tier === 'B').map(l => l.name), B_ORDER);
   assert.deepEqual(index.laws.filter(l => l.tier === 'C').map(l => l.name), C_ORDER);
+  // tier A is one section in study order, numbered by its place in the full list (even while partly added)
+  const a = index.laws.filter(l => l.tier === 'A');
+  assert.deepEqual(a.map(l => l.name), A_ORDER.filter(n => a.some(l => l.name === n)));
+  a.forEach(l => assert.equal(l.no, A_ORDER.indexOf(l.name) + 1, l.name));
+  assert.deepEqual(index.tiers.map(t => t.id), ['S', 'A', 'B', 'C']);
   for (const l of index.laws) assert.match(l.date, /^民國 \d+ 年 \d\d 月 \d\d 日$/, l.name);
 });
 
