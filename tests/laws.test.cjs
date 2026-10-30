@@ -23,10 +23,12 @@ test('law reader script parses and the tab is wired into the page', () => {
 });
 
 const B_ORDER = ['游離輻射防護法', '勞動基準法施行細則', '高架作業勞工保護措施標準'];
+const C_ORDER = ['勞工職業災害保險醫療給付項目及支付標準', '職業災害勞工保護法'];
 
-test('S and B tiers are present in the study order, and every law shows its date', () => {
+test('S, B and C tiers are present in the study order, and every law shows its date', () => {
   assert.deepEqual(index.laws.filter(l => l.tier === 'S').map(l => l.name), S_ORDER);
   assert.deepEqual(index.laws.filter(l => l.tier === 'B').map(l => l.name), B_ORDER);
+  assert.deepEqual(index.laws.filter(l => l.tier === 'C').map(l => l.name), C_ORDER);
   for (const l of index.laws) assert.match(l.date, /^民國 \d+ 年 \d\d 月 \d\d 日$/, l.name);
 });
 
