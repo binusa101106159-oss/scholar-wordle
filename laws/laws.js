@@ -83,9 +83,15 @@
     if (c.diag) {
       const d = c.diag;
       const span = (c.rs > 1 ? ' rowspan="' + c.rs + '"' : '') + (c.cs > 1 ? ' colspan="' + c.cs + '"' : '');
-      const lines = d.n === 1 ? '<line x1="0" y1="0" x2="100" y2="100"/>' : '<line x1="55" y1="0" x2="100" y2="100"/><line x1="0" y1="42" x2="100" y2="100"/>';
+      const lines = d.lines ? d.lines.map(([x1, y1, x2, y2]) => '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '"/>').join('')
+        : d.n === 1 ? '<line x1="0" y1="0" x2="100" y2="100"/>' : '<line x1="55" y1="0" x2="100" y2="100"/><line x1="0" y1="42" x2="100" y2="100"/>';
+      const label = name => {
+        const pos = d.positions && d.positions[name];
+        const style = pos ? ' style="left:' + pos[0] + '%;top:' + pos[1] + '%;right:auto;bottom:auto;transform:translate(-50%,-50%)"' : '';
+        return '<span class="lx-d-' + name + '"' + style + '>' + rich(d[name], null, terms) + '</span>';
+      };
       return '<' + tag + span + ' class="lx-diag' + (d.n === 1 ? ' lx-diag-1' : '') + '"><svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 100 100">' + lines + '</svg>' +
-        '<span class="lx-d-tr">' + rich(d.tr, null, terms) + '</span><span class="lx-d-mid">' + rich(d.mid, null, terms) + '</span><span class="lx-d-bl">' + rich(d.bl, null, terms) + '</span></' + tag + '>';
+        label('tr') + label('mid') + label('bl') + '</' + tag + '>';
     }
     let inner = rich(c.text || '', null, terms);
     (c.img || []).forEach(im => { inner += '<img src="' + BASE + 'annex/img/' + im.src + '" width="' + Math.round(im.w * 1.25) + '" height="' + Math.round(im.h * 1.25) + '" alt="" loading="lazy">'; });

@@ -3,6 +3,7 @@ import re, os, io, hashlib, json, glob
 from PIL import Image
 import pdfplumber
 import pymupdf
+from manual import raster_text
 
 CJK = r'⺀-鿿豈-﫿　-〿＀-￯'
 CJK_SP = re.compile(rf'(?<=[{CJK}])[ 　]+(?=[{CJK}])')
@@ -283,9 +284,21 @@ def table_struct(page, t, words, images, imgsave, children=()):
             grid[(r0, c0)] = cell
             continue
         # a cell split by a diagonal line (corner header): text above the line goes top-right, below goes bottom-left
-        diag = next((d for d in page.lines + page.curves if abs(d['x1'] - d['x0']) > 8 and abs(d['bottom'] - d['top']) > 8
-                     and x0 - 2 <= d['x0'] and d['x1'] <= x1 + 2 and y0 - 2 <= d['top'] and d['bottom'] <= y1 + 2), None)
+        diagonals = [d for d in page.lines + page.curves if abs(d['x1'] - d['x0']) > 8 and abs(d['bottom'] - d['top']) > 8
+                     and x0 - 2 <= d['x0'] and d['x1'] <= x1 + 2 and y0 - 2 <= d['top'] and d['bottom'] <= y1 + 2]
+        diag = next(iter(diagonals), None)
         if diag and ls:
+            if len(diagonals) == 2 and len(ls) == 3:
+                # A three-way corner: retain both drawn lines and each label's
+                # printed position instead of combining the two left-hand labels.
+                xy = lambda x,y: [round((x-x0)/(x1-x0)*100, 2), round((y-y0)/(y1-y0)*100, 2)]
+                labels = sorted(ls, key=lambda l:l['top'])
+                names = ('tr','mid','bl')
+                d = dict(n=2, **{name:l['text'] for name,l in zip(names,labels)})
+                d['lines'] = [xy(*line['pts'][0]) + xy(*line['pts'][-1]) for line in diagonals]
+                d['positions'] = {name:xy((l['x0']+l['x1'])/2,(l['top']+l['bottom'])/2) for name,l in zip(names,labels)}
+                grid[(r0,c0)] = dict(r=r0,c=c0,rs=r1-r0,cs=c1-c0,text='',diag=d)
+                continue
             (ax, ay), (bx, by) = sorted(diag['pts'][:1] + diag['pts'][-1:])
             def above(l):
                 cx = (l['x0'] + l['x1']) / 2; cy = (l['top'] + l['bottom']) / 2
@@ -342,7 +355,7 @@ def finalize(bl):
                 if 'blocks' in c: finalize(c['blocks'])
 
 
-NEWITEM = re.compile(r'^\d+(?:[-.]\d+)+')
+NEWITEM = re.compile(r'^(?:\d+(?:[-.]\d+)+|\d+$)')
 
 
 def blank(c):
@@ -497,6 +510,8 @@ def page_chars_text(path):
     with pdfplumber.open(path) as pdf:
         for page in pdf.pages:
             out.append(''.join(c['text'] for c in printed(page.dedupe_chars(tolerance=1), ink).chars))
+            # Image-only text is checked against the visually verified transcription.
+            out.extend(t for im in page.images if (t := raster_text(path, page.page_number, im)))
     return ''.join(out)
 
 
@@ -511,7 +526,29 @@ def convert(path, annex_id, imgdir, imgprefix):
             mark_blanks(page)
             words = page.extract_words(x_tolerance=1.5, y_tolerance=2, keep_blank_chars=False, use_text_flow=False, return_chars=True)
             set_spaces(page)
-            images = [dict(im) for im in page.images if (im['x1'] - im['x0']) > 4 and (im['bottom'] - im['top']) > 4]
+            images = []
+            for im in page.images:
+                if im['x1'] - im['x0'] <= 4 or im['bottom'] - im['top'] <= 4: continue
+                mask = im['stream'].attrs.get('SMask')
+                if mask is not None:
+                    stream = mask.resolve()
+                    if stream.attrs.get('Decode', [0, 1]) == [0, 1] and not any(stream.get_data()):
+                        continue  # completely transparent image, not printed content
+                text = raster_text(path, page.page_number, im)
+                if text:
+                    x0, y0, x1, y1 = im['x0'], im['top'], im['x1'], im['bottom']
+                    if mask is not None:
+                        pix = pymupdf.Pixmap(ink.doc, mask.objid)
+                        box = Image.frombytes('L', (pix.width, pix.height), pix.samples).getbbox()
+                        if box:
+                            bx0, by0, bx1, by1 = box
+                            x0, x1 = x0 + bx0 / pix.width * (x1-x0), x0 + bx1 / pix.width * (x1-x0)
+                            y0, y1 = y0 + by0 / pix.height * (y1-y0), y0 + by1 / pix.height * (y1-y0)
+                    chars = [dict(text=ch, x0=x0+i*(x1-x0)/len(text), x1=x0+(i+1)*(x1-x0)/len(text), top=y0, bottom=y1)
+                             for i,ch in enumerate(text)]
+                    words.append(dict(text=text, chars=chars, x0=x0, x1=x1, top=y0, bottom=y1))
+                else:
+                    images.append(dict(im))
 
             def imgsave(im, page=page):
                 bbox = (max(im['x0'], 0), max(im['top'], 0), min(im['x1'], page.width), min(im['bottom'], page.height))

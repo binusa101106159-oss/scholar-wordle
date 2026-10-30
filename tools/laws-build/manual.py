@@ -2,6 +2,19 @@
 import json, os
 from catalog import SRC
 
+# These three short raster text fragments were read from their full-resolution
+# soft masks (PDF pages 2 and 4, printed pages 28 and 30), including the unusual
+# printed spelling 酐蔥. Image 24 on page 4 is entirely transparent, not a glyph.
+RASTER_TEXT = {
+    ('勞工保險條例 附表一勞工保險職業病種類表.PDF', 2, 16): '三氯',
+    ('勞工保險條例 附表一勞工保險職業病種類表.PDF', 2, 18): '使用、處理、製造三氯',
+    ('勞工保險條例 附表一勞工保險職業病種類表.PDF', 4, 26): '酐蔥',
+}
+
+
+def raster_text(path, page, image):
+    return RASTER_TEXT.get((os.path.basename(path), page, image['stream'].objid))
+
 FREQ = ['1.0', '1.25', '1.6', '2.0', '2.5', '3.15', '4.0', '5.0', '6.3', '8.0', '10.0', '12.5', '16.0', '20.0', '25.0', '31.5', '40.0', '50.0', '62.0', '80.0']
 TIMES = ['8 小時', '4 小時', '2.5 小時', '1 小時', '25 分', '16 分', '1 分']
 

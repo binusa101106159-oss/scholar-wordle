@@ -1,6 +1,7 @@
 """Rebuild tables drawn with box-drawing glyphs (┌─┬─┐ …) inside law texts as real tables."""
 import pdfplumber
-from annex import table_struct, finalize, set_spaces, LIST as LISTSTART
+from pdfplumber.table import Table
+from annex import table_struct, finalize, set_spaces, cluster, remap, same_frame, LIST as LISTSTART
 
 BOX = set('─│┌┐└┘├┤┬┴┼')
 # directions each glyph extends: (left, right, up, down)
@@ -48,7 +49,12 @@ def box_tables(path):
             settings = dict(vertical_strategy='explicit', horizontal_strategy='explicit', explicit_vertical_lines=V,
                             explicit_horizontal_lines=H, snap_tolerance=2, join_tolerance=2, intersection_tolerance=2.5,
                             edge_min_length=1)
-            tables = page.find_tables(settings)
+            finder = page.debug_tablefinder(settings)
+            tables = list(finder.tables)
+            # pdfplumber omits isolated one-cell grids. A page may contain only
+            # the continuation of a full-width note/form cell and its bottom border.
+            used = {cell for table in tables for cell in table.cells}
+            tables.extend(Table(page, [cell]) for cell in finder.cells if cell not in used)
             text_page = page.filter(lambda o: o.get('object_type') != 'char' or o.get('text') not in BOX)
             words = text_page.extract_words(x_tolerance=1.5, y_tolerance=2, return_chars=True)
             set_spaces(page)
@@ -58,10 +64,16 @@ def box_tables(path):
                 closes = any(c['text'] in '└┘┴' and abs(c['bottom'] - t.bbox[3]) < 12 for c in chars)
                 opens = any(c['text'] in '┌┐┬' and abs(c['top'] - t.bbox[1]) < 12 for c in chars)
                 cut_top = open_top and abs(t.bbox[1] - (top - pad)) < 3
-                if out and not opens and not out[-1].get('_closed') and len(out[-1]['widths']) == len(st['widths']):
+                if out and not opens and not out[-1].get('_closed') and same_frame(out[-1], st):
                     prev = out[-1]
+                    if len(prev['xs']) != len(st['xs']):
+                        # A spanning continuation cell has no internal column lines
+                        # on this page. Keep the established outer table's columns.
+                        grid = cluster(prev['xs'] + st['xs'], 3)
+                        remap(prev, grid); remap(st, grid)
                     rows = st['rows']
-                    if cut_top and prev.get('_cut') and rows and len(rows[0]) == len(prev['rows'][-1]):
+                    if cut_top and prev.get('_cut') and rows and \
+                            [(c['c'], c['cs']) for c in rows[0]] == [(c['c'], c['cs']) for c in prev['rows'][-1]]:
                         # stitch the row that the page break split in two
                         for a, b in zip(prev['rows'][-1], rows[0]):
                             if b['text']:
