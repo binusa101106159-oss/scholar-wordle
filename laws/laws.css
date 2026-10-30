@@ -90,7 +90,7 @@ mark.lx-mark, .lx-dialog mark.lx-mark { background: rgba(226,197,138,.32); color
 .lx-lv2 { padding-left: 5em; text-indent: -3em; }
 .lx-lv3 { padding-left: 6.6em; text-indent: -1.6em; }
 .lx-lv4 { padding-left: 8.6em; text-indent: -2em; }
-.lx-ref { all: unset; color: #a9c8ff; cursor: pointer; text-decoration: underline; text-decoration-style: dotted; text-decoration-color: rgba(169,200,255,.6); text-underline-offset: 4px; border-radius: 4px; }
+.lx-ref { all: unset; text-indent: 0; color: #a9c8ff; cursor: pointer; text-decoration: underline; text-decoration-style: dotted; text-decoration-color: rgba(169,200,255,.6); text-underline-offset: 4px; border-radius: 4px; }
 .lx-ref:hover { color: #dbeafe; background: rgba(96,165,250,.14); text-decoration-style: solid; }
 .lx-ref:focus-visible { outline: 2px solid #93c5fd; outline-offset: 1px; }
 

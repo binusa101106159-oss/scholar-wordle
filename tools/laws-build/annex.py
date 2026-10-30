@@ -1,5 +1,6 @@
 """Convert a 附表 PDF into structured blocks (paragraphs + tables with real row/col spans), word for word."""
-import re, os, io, hashlib, json
+import re, os, io, hashlib, json, glob
+from PIL import Image
 import pdfplumber
 import pymupdf
 
@@ -9,6 +10,23 @@ FOOTER = re.compile(r'^(-\s*\d+\s*-|第\s*\d+\s*頁(\s*[/，,]?\s*共\s*\d+\s*�
 LIST = re.compile(r'^(?:[一二三四五六七八九十百]+、|（[一二三四五六七八九十百]+）|\(?\d+[\.\)）、](?!\d)|[（(]\d+[）)]|備註|註[一二三四五六七八九十\d]*[：:、]|說明[：:]|[A-Za-z]\.|[□■●○◎※＊*•‧])')
 SETTINGS = dict(vertical_strategy='lines', horizontal_strategy='lines', snap_tolerance=1.6, join_tolerance=1.6,
                 intersection_tolerance=2, edge_min_length=4)
+
+
+def save_image(image, imgdir, prefix):
+    """Reuse a pixel-identical asset, keeping PNG compression changes out of site diffs."""
+    rgba = image.convert('RGBA')
+    pixels = rgba.tobytes()
+    for path in sorted(glob.glob(os.path.join(imgdir, prefix + '*.png'))):
+        with Image.open(path) as old:
+            if old.size == image.size and old.convert('RGBA').tobytes() == pixels:
+                return os.path.basename(path)
+    buf = io.BytesIO()
+    image.save(buf, format='PNG')
+    data = buf.getvalue()
+    name = prefix + hashlib.sha1(data).hexdigest()[:12] + '.png'
+    with open(os.path.join(imgdir, name), 'wb') as f:
+        f.write(data)
+    return name
 
 
 def is_white(col):
@@ -498,9 +516,7 @@ def convert(path, annex_id, imgdir, imgprefix):
             def imgsave(im, page=page):
                 bbox = (max(im['x0'], 0), max(im['top'], 0), min(im['x1'], page.width), min(im['bottom'], page.height))
                 pi = page.crop(bbox).to_image(resolution=200)
-                buf = io.BytesIO(); pi.original.save(buf, format='PNG'); data = buf.getvalue()
-                name = imgprefix + hashlib.sha1(data).hexdigest()[:12] + '.png'
-                with open(os.path.join(imgdir, name), 'wb') as f: f.write(data)
+                name = save_image(pi.original, imgdir, imgprefix)
                 return dict(src=name, w=round(im['x1'] - im['x0']), h=round(im['bottom'] - im['top']))
 
             tables = find_tables(page, ink)

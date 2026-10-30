@@ -20,4 +20,6 @@ node --test ../../tests/*.cjs               # site tests
 - `annex.py`: ruled tables (merged cells, page-split rows, nested forms, hidden gazette headers, underlined blanks).
 - `links.py`: which 附表 a mention points to (own law, or another law named or abbreviated just before it).
 - `catalog.py`: study order and tiers.
-- `review.py`: side-by-side images of each 附表 (PDF | app) for the visual check.
+- `review.py`: side-by-side images of every PDF page and all native app content, plus real clicks on every article/notes 附表 link. Images are `review/<annex-id>-pNNN[-sNN].png`; long app content is split without cropping it away.
+
+Use Poppler 22.12.0 to reproduce the existing article whitespace. Seed `out/annex/img/` with the published `laws/annex/img/` assets when starting from a fresh checkout: pixel-identical pictures reuse their original PNG bytes, so PNG compression-library changes do not rename approved assets.
