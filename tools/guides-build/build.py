@@ -27,7 +27,7 @@ APPX = re.compile(r'^(附錄|附件)\s*([一二三四五六七八九十ㄧ]*|[IV
 H2 = re.compile(r'^[（(][一二三四五六七八九十]+[)）]')
 MENTION = re.compile(r'(?<![發代外報])((?:附)?[表圖])\s*([一二三四五六七八九十]+|\d+)(?![一二三四五六七八九十\d])')
 # Wingdings bullets have no Unicode meaning; the PDF draws them as a black dot
-GLYPHS = {'\uf06c': '●', '\uf06e': '■', '\uf0fc': '✓', '\uf0b3': '≥', '\uf06d': 'μ', '\uf07e': '∼'}   # Wingdings ● ■ ✓; Symbol ≥ μ ∼
+GLYPHS = {'\uf06c': '●', '\uf06e': '■', '\uf0fc': '✓', '\uf0b3': '≥', '\uf06d': 'μ', '\uf07e': '∼', '\uf02d': '−', '\uf061': 'α', '\uf0a0': '▪', '\uf0d8': '➢'}   # Wingdings ● ■ ✓; Symbol ≥ μ ∼
 
 
 def glyphs(s):
@@ -200,6 +200,10 @@ def read_pages(path, imgdir, prefix):
                 return dict(src=save_image(pi.original, imgdir, prefix), w=round(im['x1'] - im['x0']), h=round(im['bottom'] - im['top']))
 
             found = [t for t in find_tables(page, ink) if len(t.cells) >= 2]
+            # a ruled area with no words in it is a shape (a flowchart arrow), not a table
+            def has_words(t):
+                return any(t.bbox[0] <= (w['x0'] + w['x1']) / 2 <= t.bbox[2] and t.bbox[1] <= (w['top'] + w['bottom']) / 2 <= t.bbox[3] for w in words)
+            found = [t for t in found if has_words(t) or page.crop(t.bbox).images]
             tables = [t for t in found if not highlight(t, words)]
             shaded = [t.bbox for t in found if highlight(t, words)]     # their edges are not table rules either
             def inside(a, b):
@@ -219,6 +223,9 @@ def read_pages(path, imgdir, prefix):
             if strokes:
                 strokes += [l for l in page.lines if not is_white(l.get('stroking_color'))]
                 strokes += [r for r in page.rects if r.get('stroke') and not is_white(r.get('stroking_color'))]
+                # arrow shafts: short thin bars filled dark
+                strokes += [r for r in page.rects if r.get('fill') and not r.get('stroke') and r.get('non_stroking_color') is not None
+                            and not is_white(r.get('non_stroking_color')) and min(r['width'], r['height']) <= 6 and max(r['width'], r['height']) <= 80]
             curves = [c for c in strokes if not any(
                 b[0] - 2 <= c['x0'] and c['x1'] <= b[2] + 2 and b[1] - 2 <= c['top'] and c['bottom'] <= b[3] + 2 for b in boxes)]
             groups = [[c['x0'], c['top'], c['x1'], c['bottom']] for c in curves]
@@ -233,18 +240,22 @@ def read_pages(path, imgdir, prefix):
                             g[:] = [min(g[0], box[0]), min(g[1], box[1]), max(g[2], box[2]), max(g[3], box[3])]; merged = True; break
                     else: out.append(list(box))
                 groups = out
+            small = [g for g in groups if (g[2] - g[0]) * (g[3] - g[1]) < 300]
             for g in groups:
                 if (g[2] - g[0]) * (g[3] - g[1]) < 300: continue
-                # labels that the drawing's edge cuts through belong to the drawing: grow it until no word straddles the edge
+                # labels that the drawing's edge cuts through belong to the drawing: grow it until no word straddles the edge;
+                # a small stroke piece (an arrow) the grown drawing now reaches joins it too
                 grown = True
                 while grown:
                     grown = False
                     for w in words:
                         if all(c.get('_u') for c in w['chars']): continue
-                        inside = g[0] <= (w['x0'] + w['x1']) / 2 <= g[2] and g[1] <= (w['top'] + w['bottom']) / 2 <= g[3]
                         cuts = w['x0'] < g[2] + 3 and w['x1'] > g[0] - 3 and w['top'] < g[3] + 3 and w['bottom'] > g[1] - 3
                         if cuts and not (g[0] <= w['x0'] and w['x1'] <= g[2] and g[1] <= w['top'] and w['bottom'] <= g[3]):
                             g[:] = [min(g[0], w['x0']), min(g[1], w['top']), max(g[2], w['x1']), max(g[3], w['bottom'])]; grown = True
+                    for sg in [sg for sg in small if sg[0] <= g[2] + 8 and g[0] <= sg[2] + 8 and sg[1] <= g[3] + 8 and g[1] <= sg[3] + 8]:
+                        small.remove(sg)
+                        g[:] = [min(g[0], sg[0]), min(g[1], sg[1]), max(g[2], sg[2]), max(g[3], sg[3])]; grown = True
                 dropped.extend(w['text'] for w in take(words, g[0], g[1], g[2], g[3], pad=0))
                 fig = dict(x0=g[0] - 2, top=g[1] - 2, x1=g[2] + 2, bottom=g[3] + 2)
                 items.append(dict(k='img', img=imgsave(fig), top=g[1], bottom=g[3], x0=g[0], x1=g[2], drawing=True))
@@ -478,7 +489,7 @@ def attachments(blocks, gid):
         else:
             # picture(s) just above the caption, with any short labels printed between them and the caption
             j = i - 1
-            while j >= 0 and 'att' not in blocks[j] and (blocks[j]['t'] == 'img' or (blocks[j]['t'] in ('p', 'cols') and len(visible([blocks[j]])) <= 60
+            while j >= 0 and 'att' not in blocks[j] and (blocks[j]['t'] == 'img' or (blocks[j]['t'] in ('p', 'cols') and len(visible([blocks[j]])) <= (120 if re.match(r'[*＊※]|註', visible([blocks[j]])) else 60)
                                                            and not (blocks[j]['t'] == 'p' and CAPTION.match(blocks[j]['text']))
                                                            and any(blocks[k]['t'] == 'img' for k in range(max(0, j - 3), j)))):
                 members.insert(0, j); j -= 1
@@ -563,7 +574,7 @@ def document(path, gid, official, imgdir, with_cover=True):
     # QC: the PDF's printed characters vs ours (+ running headers/footers and repeated table headers we left out)
     raw = page_chars_text(path)
     src = collections.Counter(re.sub(r'\s', '', glyphs(raw)))
-    ours = collections.Counter(re.sub(r'\s', '', ''.join(cover) + visible(blocks) + ''.join(running) + ''.join(dropped)))
+    ours = collections.Counter(re.sub(r'\s', '', glyphs(''.join(cover) + visible(blocks) + ''.join(running) + ''.join(dropped))))
     missing, extra = src - ours, ours - src
     for b in blocks:
         for k in ('page', 'page_last', 'drawing'): b.pop(k, None)
