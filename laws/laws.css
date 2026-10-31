@@ -162,6 +162,8 @@ mark.lx-mark, .lx-dialog mark.lx-mark { background: rgba(226,197,138,.32); color
 .lx-ap.lx-center { text-align: center; color: #fff; font-size: 15px; }
 .lx-dialog .lx-twrap { margin: 12px 0 16px; overflow: visible; }
 .lx-dialog .lx-table thead th { position: sticky; top: -18px; z-index: 1; background: #2a2d35; }
+.lx-dialog .lx-table thead.lx-multi-head { position: sticky; top: -18px; z-index: 1; }
+.lx-dialog .lx-table thead.lx-multi-head th { position: static; }
 .lx-annex-img { display: block; max-width: 100%; height: auto; margin: 10px auto; background: #fff; border-radius: 8px; }
 .lx-loading { color: var(--sg-muted); font-size: 13px; padding: 30px 6px; }
 
@@ -188,6 +190,7 @@ mark.lx-mark, .lx-dialog mark.lx-mark { background: rgba(226,197,138,.32); color
   .lx-dialog-body { padding: 14px 12px 40px; }
   .lx-dialog .lx-twrap { overflow-x: auto; }
   .lx-dialog .lx-table thead th { position: static; }
+  .lx-dialog .lx-table thead.lx-multi-head { position: static; }
 }
 
 /* four tabs instead of three: keep the tab bar on one line on phones */

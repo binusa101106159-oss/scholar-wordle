@@ -71,7 +71,7 @@
       for (let k = i; k < j;) {
         const m = mk[k]; let l = k;
         while (l < j && mk[l] === m) l++;
-        const t = esc(text.slice(k, l));
+        const t = esc(text.slice(k, l)).replace(/[\uF000-\uF0FF]/g, c => '<span style="font-family:Symbol,serif!important">' + c + '</span>');
         inner += m ? '<mark class="lx-mark">' + t + '</mark>' : t;
         k = l;
       }
@@ -82,6 +82,16 @@
   }
 
   /* ── tables & formulas ── */
+  function scientific(text, sup, terms, sub) {
+    const spans = (sup || []).map(([s, e]) => [s, e, 'sup']).concat((sub || []).map(([s, e]) => [s, e, 'sub'])).sort((a, b) => a[0] - b[0]);
+    if (!spans.length) return rich(text, null, terms);
+    let out = '', at = 0;
+    for (const [s, e, tag] of spans) {
+      out += rich(text.slice(at, s), null, terms) + '<' + tag + '>' + rich(text.slice(s, e), null, terms) + '</' + tag + '>';
+      at = e;
+    }
+    return out + rich(text.slice(at), null, terms);
+  }
   function cellHTML(c, terms, tag, t) {
     if (c.diag) {
       const d = c.diag;
@@ -96,7 +106,7 @@
       return '<' + tag + span + ' class="lx-diag' + (d.n === 1 ? ' lx-diag-1' : '') + '"><svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 100 100">' + lines + '</svg>' +
         label('tr') + label('mid') + label('bl') + '</' + tag + '>';
     }
-    let inner = rich(c.text || '', null, terms);
+    let inner = scientific(c.text || '', c.sup, terms, c.sub);
     (c.img || []).forEach(im => { inner += '<img src="' + BASE + 'annex/img/' + im.src + '" width="' + Math.round(im.w * 1.25) + '" height="' + Math.round(im.h * 1.25) + '" alt="" loading="lazy">'; });
     if (c.blocks) inner += blocksHTML(c.blocks, terms, true);
     const span = (c.rs > 1 ? ' rowspan="' + c.rs + '"' : '') + (c.cs > 1 ? ' colspan="' + c.cs + '"' : '');
@@ -118,7 +128,7 @@
     if (head > 0) head = Math.min(t.rows.length - 1, Math.max(head, ...t.rows[0].map(c => c.rs || 1)));
     const rowsHTML = (rows, tag) => rows.map(r => '<tr>' + r.map(c => cellHTML(c, terms, tag, t)).join('') + '</tr>').join('');
     return '<div class="lx-twrap' + (nested ? ' lx-nested' : '') + '"><table class="lx-table" style="min-width:' + minW + 'px"><colgroup>' + cols + '</colgroup>' +
-      (head > 0 ? '<thead>' + rowsHTML(t.rows.slice(0, head), 'th') + '</thead>' : '') +
+      (head > 0 ? '<thead' + (head > 1 ? ' class="lx-multi-head"' : '') + '>' + rowsHTML(t.rows.slice(0, head), 'th') + '</thead>' : '') +
       '<tbody>' + rowsHTML(t.rows.slice(head), 'td') + '</tbody></table></div>';
   }
   function formulaHTML(rows, terms) {
@@ -128,10 +138,11 @@
   }
   function blocksHTML(blocks, terms, inCell) {
     return blocks.map(b => {
-      if (b.t === 'p') return '<p class="' + (inCell ? 'lx-cell-p' : 'lx-ap' + (b.center ? ' lx-center' : '')) + '">' + rich(b.text, null, terms) + '</p>';
+      if (b.t === 'p') return '<p class="' + (inCell ? 'lx-cell-p' : 'lx-ap' + (b.center ? ' lx-center' : '')) + '">' + scientific(b.text, b.sup, terms, b.sub) + '</p>';
       if (b.t === 'table') return tableHTML(b, terms, inCell);
       if (b.t === 'diagram') return '<svg viewBox="0 0 ' + b.w + ' ' + b.h + '" width="' + (b.w * 1.4) + '" height="' + (b.h * 1.4) + '" style="display:block;max-width:100%;margin:10px 0" xmlns="http://www.w3.org/2000/svg">' +
-        b.runs.map(r => '<text x="' + r.x + '" y="' + r.y + '" font-size="' + r.size + '" font-family="Times New Roman,serif" fill="currentColor">' + esc(r.text) + '</text>').join('') + '</svg>';
+        (b.paths || []).map(p => '<path d="' + p.d + '" stroke="' + (p.stroke === false ? 'none' : 'currentColor') + '" stroke-width="' + p.width + '" fill="' + (p.fill ? 'currentColor' : 'none') + '"' + (p.dash ? ' stroke-dasharray="' + p.dash + '"' : '') + '/>').join('') +
+        b.runs.map(r => '<text x="' + r.x + '" y="' + r.y + '" font-size="' + r.size + '" style="font-family:' + (r.font || 'Times New Roman,serif') + '!important' + (r.italic ? ';font-style:italic' : '') + '" fill="currentColor">' + esc(r.text) + '</text>').join('') + '</svg>';
       if (b.t === 'img') return b.img.map(im => '<img class="lx-annex-img" src="' + BASE + 'annex/img/' + im.src + '" width="' + Math.round(im.w * 1.4) + '" alt="">').join('');
       return '';
     }).join('');

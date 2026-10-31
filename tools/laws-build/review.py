@@ -52,6 +52,16 @@ async def review_annex(pg, law, a):
     await ready(pg)
     await check_body(pg, aid)
     doc = pymupdf.open(pdf_path(law['id'], a['label']))
+    native=json.load(open(os.path.join(HERE,'../../laws/annex',aid+'.json'),encoding='utf-8'))
+    def codes(blocks):
+        out=set()
+        for block in blocks:
+            for row in block.get('rows',[]):
+                for cell in row:
+                    out.update(s for s in cell['text'].split() if re.fullmatch(r'[A-Z][a-z]?-\d+(?:m\d?)?',s) and int(re.search(r'\d+',s)[0])>1)
+                    out.update(codes(cell.get('blocks',[])))
+        return out
+    nuclides=codes(native['blocks'])
     for path in glob.glob(os.path.join(OUT, aid + '*.png')):
         if re.fullmatch(re.escape(aid) + r'(?:_app|-p\d+(?:-s\d+)?)?\.png', os.path.basename(path)):
             os.remove(path)
@@ -65,8 +75,12 @@ async def review_annex(pg, law, a):
     # locates the actual line even when a cell spans several PDF pages.
     candidates = []
     for page in doc:
-        text = norm(page.get_text())
-        candidates.append([text[i:i+18] for i in range(0, len(text)-17, 9)])
+        raw=page.get_text();text=norm(raw)
+        # Keep cell separators while finding isotope masses: removing a
+        # newline first would turn "Y-86\n14.7" into the false code Y-8614.
+        structural=[norm(s) for s in re.findall(r'[A-Z][a-z]?-\d+(?:m\d?)?|[（(]\s*[A-Z][a-z]{3,}\s*[）)]',raw)
+                    if norm(s) in nuclides or s.startswith(('(','（'))]
+        candidates.append(dict(keys=[text[i:i+18] for i in range(0, len(text)-17, 9)],structural=structural))
     bounds = await pg.evaluate("""pages => {
         const root=document.getElementById('lx-annex-body'), walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
         let node, text='', points=[];
@@ -74,15 +88,31 @@ async def review_annex(pg, law, a):
             const ch=node.textContent[i]; if(/\s/.test(ch)) continue;
             text+=ch; points.push([node,i]);
         }
-        const spans=pages.map(keys=>{
+        let cursor=0;
+        const spans=pages.map(page=>{
             let lo=Infinity, hi=-Infinity, matches=0;
-            for(const key of keys) {
-                const at=text.indexOf(key); if(at<0 || text.indexOf(key,at+1)>=0) continue;
+            let local=cursor, last=cursor, hits=[];
+            // A PDF may draw an isotope's whole column before the next one;
+            // HTML reads the same data row by row. Isotope/element labels
+            // provide ordered anchors even when long text windows cross
+            // those different reading orders or repeat in another subtable.
+            for(const key of page.structural) {
+                const at=text.indexOf(key,local);if(at<0)continue;
+                hits.push([at,key.length]);local=at+key.length;last=local;
+            }
+            const hasStructural=hits.length>0;
+            for(const key of page.keys) {
+                const at=text.indexOf(key,cursor);
+                if(at<0 || (hasStructural ? at>last+500 : text.indexOf(key,at+1)>=0))continue;
+                hits.push([at,key.length]);
+            }
+            for(const [at,len] of hits) {
                 const range=document.createRange();
-                range.setStart(...points[at]); range.setEnd(points[at+key.length-1][0],points[at+key.length-1][1]+1);
+                range.setStart(...points[at]); range.setEnd(points[at+len-1][0],points[at+len-1][1]+1);
                 for(const rect of range.getClientRects()) { lo=Math.min(lo,rect.top+scrollY); hi=Math.max(hi,rect.bottom+scrollY); }
                 matches++;
             }
+            if(last>cursor)cursor=last;
             return {lo:Number.isFinite(lo)?lo:null,hi:Number.isFinite(hi)?hi:null,matches};
         });
         const d=document.getElementById('lx-annex').getBoundingClientRect();
@@ -140,6 +170,9 @@ async def main():
         images=links=0
         for law in idx['laws']:
             if want and law['id'] not in want and not any(a['id'] in want for a in law['annexes']):continue
+            tier=pg.locator(f'.lx-tier[data-tier="{law["tier"]}"]')
+            if await tier.count() and await tier.get_attribute('aria-expanded')=='false':
+                await tier.click()
             await pg.click(f'.lx-law[data-law="{law["id"]}"]')
             await pg.wait_for_function('(title)=>document.querySelector(".lx-title")?.textContent===title',arg=law['name'])
             for a in law['annexes']:

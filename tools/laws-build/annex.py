@@ -1,5 +1,5 @@
 """Convert a 附表 PDF into structured blocks (paragraphs + tables with real row/col spans), word for word."""
-import re, os, io, hashlib, json, glob
+import re, os, io, hashlib, json, glob, shutil, collections
 from PIL import Image
 import pdfplumber
 import pymupdf
@@ -7,7 +7,7 @@ from manual import raster_text
 
 CJK = r'⺀-鿿豈-﫿　-〿＀-￯'
 CJK_SP = re.compile(rf'(?<=[{CJK}])[ 　]+(?=[{CJK}])')
-FOOTER = re.compile(r'^(-\s*\d+\s*-|第\s*\d+\s*頁(\s*[/，,]?\s*共\s*\d+\s*頁)?|\d+)$')
+FOOTER = re.compile(r'^(-\s*\d+\s*-|第\s*\d+\s*頁(\s*[/，,]?\s*共\s*\d+\s*頁)?|附表[一二三四五六七八九十]+\s*[～~]\s*\d+|\d+)$')
 LIST = re.compile(r'^(?:[一二三四五六七八九十百]+、|（[一二三四五六七八九十百]+）|\(?\d+[\.\)）、](?!\d)|[（(]\d+[）)]|備註|註[一二三四五六七八九十\d]*[：:、]|說明[：:]|[A-Za-z]\.|[□■●○◎※＊*•‧])')
 SETTINGS = dict(vertical_strategy='lines', horizontal_strategy='lines', snap_tolerance=1.6, join_tolerance=1.6,
                 intersection_tolerance=2, edge_min_length=4)
@@ -17,9 +17,13 @@ def save_image(image, imgdir, prefix):
     """Reuse a pixel-identical asset, keeping PNG compression changes out of site diffs."""
     rgba = image.convert('RGBA')
     pixels = rgba.tobytes()
-    for path in sorted(glob.glob(os.path.join(imgdir, prefix + '*.png'))):
+    published = os.environ.get('LAWS_IMAGE_CACHE', os.path.abspath(os.path.join(os.path.dirname(__file__),'../../laws/annex/img')))
+    candidates = sorted(glob.glob(os.path.join(published,prefix+'*.png'))) + sorted(glob.glob(os.path.join(imgdir,prefix+'*.png')))
+    for path in candidates:
         with Image.open(path) as old:
             if old.size == image.size and old.convert('RGBA').tobytes() == pixels:
+                target = os.path.join(imgdir,os.path.basename(path))
+                if os.path.abspath(target)!=os.path.abspath(path): shutil.copyfile(path,target)
                 return os.path.basename(path)
     buf = io.BytesIO()
     image.save(buf, format='PNG')
@@ -68,6 +72,7 @@ def visible_edges(page):
 def inked_edge(e, ink, i, threshold=235):
     """Does the line actually print? Lines hidden under a white cover (cut-out gazette frame) do not."""
     pix, k = ink.page(i)
+    samples = ink.pixels
     ox, oy = ink.off
     pts = 7
     for n in range(pts):
@@ -77,7 +82,7 @@ def inked_edge(e, ink, i, threshold=235):
         for dy in (-1, 0, 1):
             for dx in (-1, 0, 1):
                 xi, yi = int(x) + dx, int(y) + dy
-                if 0 <= xi < pix.width and 0 <= yi < pix.height and pix.samples[yi * pix.stride + xi] < threshold:
+                if 0 <= xi < pix.width and 0 <= yi < pix.height and samples[yi * pix.stride + xi] < threshold:
                     return True
     return False
 
@@ -91,6 +96,93 @@ def find_tables(page, ink=None):
     if len(V) < 2 or len(H) < 2: return []
     settings = dict(SETTINGS, vertical_strategy='explicit', horizontal_strategy='explicit', explicit_vertical_lines=V, explicit_horizontal_lines=H)
     tables = page.find_tables(settings)
+    closing=[]
+    for table in tables:
+        x0,y0,x1,y1=table.bbox
+        buckets={}
+        for cell in table.cells:
+            for row in range(int((cell[1]-1)//20),int((cell[3]+1)//20)+1):buckets.setdefault(row,[]).append(cell)
+        orphan=[c for c in page.chars if c['text'].strip() and x0<(c['x0']+c['x1'])/2<x1 and y0<(c['top']+c['bottom'])/2<y1
+                and not any(a-1<=(c['x0']+c['x1'])/2<=b+1 and u-1<=(c['top']+c['bottom'])/2<=v+1
+                            for a,u,b,v in buckets.get(int(((c['top']+c['bottom'])/2)//20),[]))]
+        if orphan:
+            # The last column may continue past the physical page with no
+            # bottom rule. Close the temporary frame so its text stays in the
+            # spanning cell; page stitching removes this artificial boundary.
+            closing.append(dict(x0=x0,x1=x1,top=y1,bottom=y1,orientation='h',object_type='line',width=x1-x0,height=0))
+    if closing:
+        H=H+closing
+        tables=page.find_tables(dict(settings,explicit_horizontal_lines=H))
+    # A borderless body row can still have vertical walls: Word emits separate
+    # wall segments for every isotope, leaving a gap for the spanning element
+    # name. Without the implied row boundaries pdfplumber swallows all columns
+    # into one full-width cell. Only subdivide cells containing several such
+    # internal walls; retain real spans outside those cells.
+    implied=[]
+    scientific_grid=bool(re.search(r'[×\uf0b4]\s*10',''.join(c['text'] for c in page.chars)))
+    if scientific_grid:
+        for table in tables:
+            x0,y0,x1,y1=table.bbox
+            walls=[e for e in V if x0-2<=e['x0']<=x1+2 and y0-2<=e['top']<e['bottom']<=y1+2]
+            ends=[(e['top'],e['x0']) for e in walls]+[(e['bottom'],e['x0']) for e in walls]
+            for y in cluster([a for a,_ in ends],1.2):
+                columns=cluster([x for a,x in ends if abs(a-y)<1.3],1.2)
+                crossing=[c for c in table.cells if c[1]+2<y<c[3]-2]
+                if len(columns)>=3 and crossing and min(c[3]-c[1] for c in crossing)>80:
+                    protected=[]
+                    for a,u,b,v in crossing:
+                        text=''.join(c['text'] for c in page.chars if c['text'].strip() and a<(c['x0']+c['x1'])/2<b and u<(c['top']+c['bottom'])/2<v)
+                        if 0<len(text)<=4 and b-a<(x1-x0)*.18:protected.append((a,b))
+                    segments=[(x0,x1)]
+                    for a,b in protected:
+                        segments=[part for l,r in segments for part in ((l,min(r,a)),(max(l,b),r)) if part[1]-part[0]>2]
+                    for l,r in segments:
+                        implied.append(dict(x0=l,x1=r,top=y,bottom=y,orientation='h',object_type='line',width=r-l,height=0))
+    for table in tables:
+        unresolved=[]
+        for x0,y0,x1,y1 in table.cells:
+            walls=[e for e in V if x0+3<e['x0']<x1-3 and y0+2<e['top'] and e['bottom']<y1+2 and e['bottom']-e['top']>5]
+            if len(cluster([e['x0'] for e in walls],1.2))>=3:unresolved.append(((x0,y0,x1,y1),walls))
+        if not unresolved or (len(unresolved)<3 and not scientific_grid):continue
+        for (x0,y0,x1,y1),walls in unresolved:
+            ends=[(e['top'],e['x0']) for e in walls]+[(e['bottom'],e['x0']) for e in walls]
+            for y in cluster([a for a,_ in ends],1.2):
+                columns=cluster([x for a,x in ends if abs(a-y)<1.3],1.2)
+                if len(columns)>=3 and y0+2<y<y1-2:
+                    implied.append(dict(x0=x0,x1=x1,top=y,bottom=y,orientation='h',object_type='line',width=x1-x0,height=0))
+    if implied:
+        H=H+implied
+        tables=page.find_tables(dict(settings,explicit_horizontal_lines=H))
+        for table in tables:table._open_grid=True
+    # Borderless columns retain their exact Word cell widths in the separate
+    # horizontal border strips, even though the vertical borders are omitted.
+    # The outer wall's segment endpoints likewise retain the original rows.
+    borderless=False
+    for k,table in enumerate(tables):
+        if len(cluster([c[0] for c in table.cells]+[c[2] for c in table.cells]))!=2:continue
+        x0,y0,x1,y1=table.bbox
+        strips=[r for r in page.rects if r.get('fill') and not is_white(r.get('non_stroking_color')) and r['bottom']-r['top']<1.3
+                and r['x1']-r['x0']>10 and abs(r['top']-y0)<1.5]
+        xs=cluster([r['x0'] for r in strips]+[r['x1'] for r in strips],1.2)
+        if len(xs)<4 or abs(xs[0]-x0)>2 or abs(xs[-1]-x1)>2:continue
+        # Verify these same column seams occur at the header's lower rule.
+        confirm=[r for r in page.rects if r.get('fill') and not is_white(r.get('non_stroking_color')) and r['bottom']-r['top']<1.3
+                 and 5<r['top']-y0<60 and r['x1']-r['x0']>10]
+        if sum(any(abs(r['x1']-x)<1.5 or abs(r['x0']-x)<1.5 for r in confirm) for x in xs)<len(xs):continue
+        ys=cluster([y0,y1]+[v for r in page.rects if r['x1']-r['x0']<1.3 and r['bottom']-r['top']>4
+                   and (abs(r['x0']-x0)<2 or abs(r['x1']-x1)<2) and y0-2<=r['top']<=r['bottom']<=y1+2 for v in (r['top'],r['bottom'])],1.2)
+        cells=[]
+        for a,b in zip(ys,ys[1:]):
+            chars=[c for c in page.chars if c['text'].strip() and a<(c['top']+c['bottom'])/2<b and x0<c['x0']<x1]
+            cuts=[xs[0]]
+            for x in xs[1:-1]:
+                crosses=any(c['x0']+.4<x<c['x1']-.4 for c in chars)
+                if not crosses:cuts.append(x)
+            cuts.append(xs[-1]);cells.extend((l,a,r,b) for l,r in zip(cuts,cuts[1:]))
+        replacement=pdfplumber.table.Table(page,cells)
+        replacement._open_grid=True
+        tables[k]=replacement;borderless=True
+    if implied or borderless or closing:return tables
     # Legacy Word tables use a bevel made of adjacent light/dark filled strips.
     # At 96 dpi the light strip is faint, and its two walls can be >1.6 pt apart.
     bevels = [e for e in raw_edges if e.get('fill') and not e.get('stroke')
@@ -138,6 +230,7 @@ class Ink:
             # the render shows only the crop box; pdfplumber measures from the full media box
             self.off = (pg.cropbox.x0, pg.cropbox.y0)
             self.cache = {i: (pix, 96 / 72)}
+            self.pixels = pix.samples
         return self.cache[i]
 
     def visible(self, i, c):
@@ -149,7 +242,7 @@ class Ink:
         x0, y0 = max(0, x0), max(0, y0)
         x1, y1 = min(pix.width, x1), min(pix.height, y1)
         if x1 <= x0 or y1 <= y0: return False
-        s = pix.samples
+        s = self.pixels
         for y in range(y0, y1):
             row = s[y * pix.stride + x0: y * pix.stride + x1]
             if min(row) < 235: return True
@@ -246,7 +339,8 @@ def lines_of(words, ytol=3):
         else:
             m = re.match(rf'[^{CJK}]+', t0)
             w0 = (w['x1'] - w['x0']) * len(m.group()) / max(1, len(t0))
-        out.append(dict(x0=r[0]['x0'], x1=r[-1]['x1'], top=min(w['top'] for w in r), bottom=max(w['bottom'] for w in r), text=clean(txt), w0=w0))
+        out.append(dict(x0=r[0]['x0'], x1=r[-1]['x1'], top=min(w['top'] for w in r), bottom=max(w['bottom'] for w in r), text=clean(txt), w0=w0,
+                        _chars=[c for w in r for c in w.get('chars',[])]))
     return [l for l in out if l['text']]
 
 
@@ -292,6 +386,144 @@ def text_diagrams(lines, words):
     return keep,diagrams
 
 
+def science_spans(text, words):
+    """Mark printed raised exponents without normalizing their printed base."""
+    if not re.search(r'[×\uf0b4]\s*\d+',text): return []
+    chars=[c for w in words for c in w['chars'] if c['text'].strip()]
+    if not chars: return []
+    height=max(c['bottom']-c['top'] for c in chars)
+    if not any(c['bottom']-c['top'] < height*0.85 for c in chars): return []
+    spans=[]
+    for m in re.finditer(r'[×\uf0b4]\s*(?:10|[1-9]\d*(?=\s*[+−-]))\s*([+−-]?\s*\d+)',text):
+        # Browser string offsets use UTF-16; the rare raster glyph is outside BMP.
+        spans.append([len(text[:m.start(1)].encode('utf-16-le'))//2,len(text[:m.end(1)].encode('utf-16-le'))//2])
+    return spans
+
+
+def source_scripts(text,words):
+    """Map printed smaller raised/lowered glyphs to unchanged reflowed text."""
+    source=[]
+    for line in lines_of(words):
+        chars=[c for c in line['_chars'] if c['text'].strip()]
+        if not chars:continue
+        size=lambda c:c.get('size',c['bottom']-c['top'])
+        counts=collections.Counter(round(size(c),1) for c in chars)
+        normal=counts.most_common(1)[0][0]
+        base=lambda c:-c['matrix'][5] if 'matrix' in c else c['bottom']
+        bases=sorted(base(c) for c in chars if abs(size(c)-normal)<.6)
+        baseline=bases[len(bases)//2]
+        for c in chars:
+            tag=None
+            if size(c)<normal*.88:
+                dy=base(c)-baseline
+                if dy<-1.2:tag='sup'
+                elif dy>1.2:tag='sub'
+            source.extend((ch,tag) for ch in c['text'] if not ch.isspace())
+    compact=''.join(ch for ch in text if not ch.isspace())
+    if compact!=''.join(ch for ch,_ in source):return {}
+    marked=[];pos=0;offset=0
+    for ch in text:
+        n=len(ch.encode('utf-16-le'))//2
+        tag=None
+        if not ch.isspace():tag=source[pos][1];pos+=1
+        marked.append((offset,offset+n,tag));offset+=n
+    out={}
+    for a,b,tag in marked:
+        if not tag:continue
+        spans=out.setdefault(tag,[])
+        if spans and spans[-1][1]==a:spans[-1][1]=b
+        else:spans.append([a,b])
+    return out
+
+
+def positioned(page, words, bbox, ink, drawings=False):
+    """Native SVG text and source vector paths for a mathematical expression/plot.
+    Character codes, sizes, baselines and rules all come from the PDF, never OCR.
+    """
+    x0,y0,x1,y1=bbox
+    chars=[c for w in take(words,x0,y0,x1,y1,pad=0) for c in w['chars'] if c['text'].strip()]
+    if not chars: return None
+    x0=min(x0,min(c['x0'] for c in chars)); y0=min(y0,min(c['top'] for c in chars))
+    x1=max(x1,max(c['x1'] for c in chars)); y1=max(y1,max(c['bottom'] for c in chars))
+    runs=[]
+    for c in sorted(chars,key=lambda c:(round(c['top'],1),c['x0'])):
+        font=str(c.get('fontname',''))
+        baseline=page.height-c['matrix'][5] if 'matrix' in c else c['bottom']-(c['bottom']-c['top'])*.18
+        run=dict(text=c['text'],x=round(c['x0']-x0+2,2),y=round(baseline-y0+2,2),size=round(c.get('size',c['bottom']-c['top']),2))
+        if 'Symbol' in font: run['font']='Symbol'
+        if 'Italic' in font or 'Oblique' in font: run['italic']=True
+        runs.append(run)
+    paths=[]
+    if drawings:
+        def point(p): return f'{p.x-x0+2:.3f},{p.y-y0+2:.3f}'
+        for d in ink.doc[page.page_number-1].get_drawings():
+            r=d['rect']
+            if not (x0-2<=r.x0 and r.x1<=x1+2 and y0-2<=r.y0 and r.y1<=y1+2):continue
+            if d.get('color') is not None and is_white(d['color']):continue
+            stroke=d.get('color') is not None and not is_white(d['color'])
+            fill=d.get('fill') is not None and not is_white(d['fill'])
+            if not stroke and not fill:continue
+            cmds=[]
+            for item in d['items']:
+                if item[0]=='l':cmds.append('M'+point(item[1])+' L'+point(item[2]))
+                elif item[0]=='c':cmds.append('M'+point(item[1])+' C'+' '.join(point(p) for p in item[2:]))
+                elif item[0]=='re':
+                    a=item[1];cmds.append('M'+point(a.tl)+' L'+point(a.tr)+' L'+point(a.br)+' L'+point(a.bl)+' Z')
+                elif item[0]=='qu':
+                    a=item[1];cmds.append('M'+point(a.ul)+' L'+point(a.ur)+' L'+point(a.lr)+' L'+point(a.ll)+' Z')
+            if cmds:
+                path=dict(d=' '.join(cmds),width=round(d.get('width') or .5,3))
+                if fill:path['fill']=True
+                if not stroke:path['stroke']=False
+                dash=re.match(r'\[([^]]*)\]',d.get('dashes') or '')
+                if dash and dash[1].strip():path['dash']=dash[1].strip()
+                paths.append(path)
+    block=dict(t='diagram',w=round(x1-x0+4,2),h=round(y1-y0+4,2),runs=runs,top=y0)
+    if paths:block['paths']=paths
+    return block
+
+
+def math_blocks(page, words, ink):
+    """Keep isolated multi-level maths together, including its fraction rules."""
+    free=[dict(w,chars=[c for c in w['chars'] if not c.get('_u')]) for w in words]
+    free=[dict(w,text=''.join(c['text'] for c in w['chars'])) for w in free if w['chars']]
+    ls=lines_of(free);bands=[];i=0
+    def candidate(l):
+        s=l['text'];n=len(re.findall(r'[一-鿿]',s))
+        return (n==0 or (n<=8 and re.search(r'[=＝\uf03d∫∑Σ\uf0f2\uf0e5]',s))) and l['top']<page.height-65
+    while i<len(ls):
+        j=i
+        while j<len(ls) and candidate(ls[j]) and (j==i or ls[j]['top']-ls[j-1]['bottom']<20):j+=1
+        group=ls[i:j]
+        if group and re.search(r'[=＝\uf03d∫∑Σ\uf0f2\uf0e5]',''.join(l['text'] for l in group)):
+            bands.append([min(l['top'] for l in group)-1,max(l['bottom'] for l in group)+1])
+        i=max(i+1,j)
+    for i,l in enumerate(ls):
+        if i and len(re.sub(r'\s+','',l['text']))<=5 and l['bottom']-l['top']<10 and l['top']<ls[i-1]['bottom']+2:
+            bands.append([ls[i-1]['top']-1,l['bottom']+1])
+    # An inline stacked fraction may have Chinese explanatory text on its
+    # baseline. Keep that complete short paragraph with the fraction.
+    for e in page.lines:
+        if abs(e['bottom']-e['top'])<1 and 5<e['x1']-e['x0']<130 and not is_white(e.get('stroking_color')):
+            y=e['top']
+            if any(abs(y-a)<22 or a<=y<=b for a,b in bands):continue
+            near=[l for l in ls if l['top']<y+17 and l['bottom']>y-17]
+            if near and any(l['top']<y<l['bottom'] or len(l['text'])<18 for l in near):
+                bands.append([min(l['top'] for l in near)-1,max(l['bottom'] for l in near)+1])
+    merged=[]
+    for a,b in sorted(bands):
+        if merged and a<=merged[-1][1]:merged[-1][1]=max(b,merged[-1][1])
+        else:merged.append([a,b])
+    out=[]
+    for a,b in merged:
+        selected=[c for w in words for c in w['chars'] if not c.get('_u') and a<=(c['top']+c['bottom'])/2<=b]
+        if not selected:continue
+        x0=min(c['x0'] for c in selected);x1=max(c['x1'] for c in selected)
+        block=positioned(page,words,(x0-1,a,x1+1,b),ink,drawings=True)
+        if block:out.append(block)
+    return out
+
+
 def cluster(vals, tol=2.5):
     vals = sorted(vals); out = []
     for v in vals:
@@ -308,18 +540,39 @@ def table_struct(page, t, words, images, imgsave, children=(), preserve_vertical
     cells = [c for c in t.cells]
     xs = cluster([c[0] for c in cells] + [c[2] for c in cells])
     ys = cluster([c[1] for c in cells] + [c[3] for c in cells])
+    scientific_layout=bool(re.search(r'[×\uf0b4]\s*10',''.join(c['text'] for c in page.chars)))
+    pitch=12
+    if scientific_layout:
+        content=[c for w in words for c in w['chars'] if c['text'].strip() and t.bbox[0]<(c['x0']+c['x1'])/2<t.bbox[2]
+                 and t.bbox[1]<(c['top']+c['bottom'])/2<t.bbox[3]]
+        sizes=collections.Counter(round(c.get('size',c['bottom']-c['top']),1) for c in content)
+        normal=sizes.most_common(1)[0][0] if sizes else 10
+        baseline=lambda c:page.height-c['matrix'][5] if 'matrix' in c else c['bottom']
+        levels=cluster([baseline(c) for c in content if normal*.9<=c.get('size',c['bottom']-c['top'])<=normal*1.15],1.2)
+        gaps=[round((b-a)*2)/2 for a,b in zip(levels,levels[1:]) if normal*.95<=b-a<=normal*2.5]
+        if gaps:pitch=collections.Counter(gaps).most_common(1)[0][0]
+    def aligned_text(lines):
+        result='';previous=None
+        for line in lines:
+            normal_chars=[c for c in line['_chars'] if c['text'].strip() and c.get('size',c['bottom']-c['top'])>=pitch*.65]
+            heights=sorted(page.height-c['matrix'][5] if 'matrix' in c else c['bottom'] for c in normal_chars)
+            y=heights[len(heights)//2] if heights else line['bottom']
+            if previous is not None:result+='\n'*max(1,round((y-previous)/pitch))
+            result+=line['text'];previous=y
+        return result
     # slivers (shading a few points narrower than the border) are not real columns
     while len(xs) > 2:
         gaps = [(xs[i + 1] - xs[i], i) for i in range(len(xs) - 1)]
         g, i = min(gaps)
         if g >= 6: break
         xs.pop(i + 1 if i == 0 else i)
-    grid = {}
+    grid = {}; line_cache = {}
     for (x0, y0, x1, y1) in cells:
         r0, r1, c0, c1 = idx(ys, y0), idx(ys, y1), idx(xs, x0), idx(xs, x1)
         if r1 <= r0 or c1 <= c0: continue
         inside = take(words, x0, y0, x1, y1)
         ls = lines_of(inside)
+        line_cache[(r0,c0)] = (ls,inside)
         kids = [ch for ch in children if x0 - 2 <= ch['x0'] and ch['x1'] <= x1 + 2 and y0 - 2 <= ch['top'] <= y1 + 2]
         if kids:
             sub = [dict(t='p', text=p['text'], top=p['top']) for p in flow(ls, x1 - 2, incell=True)] + kids
@@ -351,8 +604,10 @@ def table_struct(page, t, words, images, imgsave, children=(), preserve_vertical
             tr = '\n'.join(l['text'] for l in ls if above(l)); bl = '\n'.join(l['text'] for l in ls if not above(l))
             grid[(r0, c0)] = dict(r=r0, c=c0, rs=r1 - r0, cs=c1 - c0, text='', diag=dict(tr=tr, mid='', bl=bl, n=1))
             continue
+        if getattr(t,'_open_grid',False) or scientific_layout:
+            text=aligned_text(ls)
         # vertical text: every line is 1-2 chars -> join without breaks
-        if len(ls) > 1 and all(len(l['text']) <= 2 for l in ls) and any(re.search(rf'[{CJK}]', l['text']) for l in ls) \
+        elif len(ls) > 1 and all(len(l['text']) <= 2 for l in ls) and any(re.search(rf'[{CJK}]', l['text']) for l in ls) \
                 and max(b['top'] - a['bottom'] for a, b in zip(ls, ls[1:])) < (ls[0]['bottom'] - ls[0]['top']) * 0.9:
             text = ('\n'.join(l['text'] for l in ls) if preserve_vertical and len(ls)>=3 and all(len(l['text'])==2 for l in ls)
                     else ''.join(l['text'] for l in ls))
@@ -368,12 +623,45 @@ def table_struct(page, t, words, images, imgsave, children=(), preserve_vertical
             grid[(r0, c0)] = dict(r=r0, c=c0, rs=r1 - r0, cs=c1 - c0, text='', blocks=sub)
             continue
         cell = dict(r=r0, c=c0, rs=r1 - r0, cs=c1 - c0, text=text)
+        sup = science_spans(text,inside)
+        if sup: cell['sup'] = sup
+        if getattr(page,'_native_maths',False):cell.update(source_scripts(text,inside))
         if here: cell['img'] = [imgsave(im) for im in here]
         grid[(r0, c0)] = cell
+    # Unruled parallel lists still have printed row alignment. A column of
+    # four or more numbers anchors the matching text lines in the other cell.
+    for key,cell in list(grid.items()):
+        ls,_=line_cache.get(key,([],[]))
+        if len(ls)<4 or not all(re.fullmatch(r'[0-9.]+',l['text'].strip()) for l in ls):continue
+        peers=[(k,c) for k,c in grid.items() if k[0]==key[0] and c['rs']==cell['rs']]
+        for k,c in peers:
+            other,source=line_cache.get(k,([],[]))
+            if len(other)==len(ls) and not c.get('blocks') and not c.get('diag'):
+                c['text']='\n'.join(l['text'] for l in other)
+                sup=science_spans(c['text'],source)
+                if sup:c['sup']=sup
+                if getattr(page,'_native_maths',False):c.update(source_scripts(c['text'],source))
     nrows, ncols = len(ys) - 1, len(xs) - 1
     widths = [round(xs[i + 1] - xs[i], 1) for i in range(ncols)]
     tb = dict(t='table', nrows=nrows, widths=widths, xs=xs, x0=t.bbox[0], x1=t.bbox[2], top=t.bbox[1], bottom=t.bbox[3])
+    if re.search(r'[×\uf0b4]\s*10',''.join(c['text'] for c in page.chars)):tb['_scientific']=True
     regroup(tb, list(grid.values()))
+    if getattr(t,'_open_grid',False):
+        # Empty continuation fields share the preceding printed value when
+        # no source rule separates them (e.g. an isotope's F/M/S classes).
+        # Keep section-heading rows and actual ruled boundaries intact.
+        source_h=[e for e in visible_edges(page) if e['orientation']=='h']
+        owner={};remove=[]
+        for row in tb['rows']:
+            entries=[c for c in row if not blank(c)]
+            section=len(entries)==1 and entries[0]['c']==0 and (len(row)==1 or len(entries[0]['text'])>5)
+            for c in row:
+                p=owner.get(c['c'])
+                ruled=any(abs(e['top']-ys[c['r']])<1.5 and e['x0']<=xs[c['c']]+2 and e['x1']>=xs[c['c']+c['cs']]-2 for e in source_h)
+                if p and blank(c) and not blank(p) and not section and p['cs']==c['cs'] and p['r']+p['rs']==c['r'] and not ruled:
+                    p['rs']+=c['rs'];remove.append(c)
+                else:owner[c['c']]=c
+        if remove:regroup(tb,[c for r in tb['rows'] for c in r if c not in remove])
     # header rows: the span of the tallest cell in row 0
     first = tb['rows'][0] if tb['rows'] else []
     if not first or (len(first) == 1 and first[0]['cs'] == ncols) or ncols == 1:
@@ -393,14 +681,14 @@ def regroup(tb, cells):
 def finalize(bl):
     for b in bl:
         if 'xs' in b: b['widths'] = [round(b['xs'][i + 1] - b['xs'][i], 1) for i in range(len(b['xs']) - 1)]
-        for k in ('top', 'x0', 'x1', 'bottom', 'nrows', 'xs'): b.pop(k, None)
+        for k in ('top', 'x0', 'x1', 'bottom', 'nrows', 'xs', '_scientific'): b.pop(k, None)
         for r in b.get('rows', []):
             for c in r:
                 c.pop('r', None)
                 if 'blocks' in c: finalize(c['blocks'])
 
 
-NEWITEM = re.compile(r'^(?:\d+(?:[-.]\d+)+|\d+$)')
+NEWITEM = re.compile(r'^(?:\d+(?:[-.]\d+)+|\d+$|[A-Z][a-z]?\s*[-−]\s*\d+m?(?:\s|$)|[A-Z]$)')
 
 
 def blank(c):
@@ -492,6 +780,7 @@ def join_nested(cell):
 def merge_continued(prev, it, dropped):
     """Append a table continued on the next page; stitch a row/cell that the page break split."""
     split_leading_nested(prev, it)
+    if it.get('_scientific'):prev['_scientific']=True
     # the same column line can sit a few points apart on two pages
     it['xs'] = [next((p for p in prev['xs'] if abs(p - x) <= 7), x) for x in it['xs']]
     if len(prev['xs']) != len(it['xs']) or any(abs(a - b) > 3 for a, b in zip(prev['xs'], it['xs'])):
@@ -499,6 +788,9 @@ def merge_continued(prev, it, dropped):
         remap(prev, U); remap(it, U)
     h = prev['head']
     rows = it['rows']
+    while h and h<min(3,len(rows),len(prev['rows'])) and row_texts(it,h+1)==row_texts(prev,h+1) \
+            and not any(NEWITEM.match(c['text']) for c in rows[h] if c['text']):
+        h+=1
     if h and row_texts(it, h) == row_texts(prev, h):
         dropped.extend(c['text'] for r in rows[:h] for c in r)
         rows = rows[h:]
@@ -521,6 +813,10 @@ def merge_continued(prev, it, dropped):
     def absorb(p, x):
         if x['text']:
             p['text'] = (p['text'] + '\n' + x['text']) if LIST.match(x['text']) else join(p['text'], x['text'])
+            for tag in ('sup','sub'):
+                if x.get(tag):
+                    offset=(len(p['text'].encode('utf-16-le'))-len(x['text'].encode('utf-16-le')))//2
+                    p.setdefault(tag,[]).extend([[a+offset,b+offset] for a,b in x[tag]])
         if x.get('img'): p.setdefault('img', []).extend(x['img'])
         if x.get('blocks'):
             if not p.get('blocks') and p['text']:
@@ -536,12 +832,24 @@ def merge_continued(prev, it, dropped):
             absorb(p, x)
     else:
         # a new row starts, but tall cells that reach the page bottom may carry on across the break
+        if prev.get('_scientific'):
+            # A continued blank field can have no closed rectangle on the
+            # next physical page. Extend its existing printed owner until
+            # the next explicit cell in those columns. Without this, the
+            # browser shifts later F/M/S cells into the empty left columns.
+            start = base + offset
+            end = max(x['r'] + x['rs'] for x in cells)
+            for p in {id(c): c for c in occ.values()}.values():
+                if p['r'] + p['rs'] != L + 1 or blank(p): continue
+                peers = [x for x in cells if x['c'] < p['c'] + p['cs'] and p['c'] < x['c'] + x['cs']]
+                stop = min((x['r'] for x in peers), default=end)
+                if stop > start: p['rs'] = stop - p['r']
         lead = min(first, key=lambda x: x['c']) if first else None
         new_group = lead is not None and not blank(lead)
         for x in first:
             p = occ.get((L, x['c']))
             if p is None or p['c'] != x['c'] or p['cs'] != x['cs'] or p['r'] == L: continue
-            midsentence = x['text'] and not LIST.match(x['text']) and not re.match(r'^[\d一二三四五六七八九十（(「]', x['text']) \
+            midsentence = x['text'] and not LIST.match(x['text']) and not NEWITEM.match(x['text']) and not re.match(r'^[\d一二三四五六七八九十（(「]', x['text']) \
                 and not blank(p) and not re.search(r'[。」]$', p['text'])
             if blank(x) or (not new_group and midsentence):
                 p['rs'] = (x['r'] + x['rs']) - p['r']
@@ -568,10 +876,13 @@ def convert(path, annex_id, imgdir, imgprefix):
     blocks = []
     footers = []
     dropped = []
+    page_titles = set()
     ink = Ink(path)
     with pdfplumber.open(path) as pdf:
+        native_maths = any(c['text'] in ('∫','∑','Σ','\uf0f2','\uf0e5') for p in pdf.pages[:5] for c in p.chars)
         for pno, page in enumerate(pdf.pages):
             page = printed(page.dedupe_chars(tolerance=1), ink)
+            page._native_maths=native_maths
             mark_blanks(page)
             words = page.extract_words(x_tolerance=1.5, y_tolerance=2, keep_blank_chars=False, use_text_flow=False, return_chars=True)
             set_spaces(page)
@@ -629,10 +940,20 @@ def convert(path, annex_id, imgdir, imgprefix):
                     groups.append(box)
             for g in groups:
                 if (g[2] - g[0]) * (g[3] - g[1]) < 300: continue
+                ticks=[l for l in page.lines if g[0]-12<=l['x0']<=g[2]+12 and g[1]-12<=l['top']<=g[3]+12
+                       and max(l['x1']-l['x0'],l['bottom']-l['top'])<12]
+                if native_maths and len(ticks)>=8:
+                    # Plot labels lie beyond the curve's own bounding box.
+                    # Rebuild the graph from vectors and selectable source text.
+                    box=(g[0]-55,g[1]-15,g[2]+15,g[3]+50)
+                    figure=positioned(page,words,box,ink,drawings=True)
+                    if figure:items.append(figure)
+                    continue
                 inside = take(words, g[0], g[1], g[2], g[3], pad=0)
                 dropped.extend(w['text'] for w in inside)
                 fig = dict(x0=g[0] - 2, top=g[1] - 2, x1=g[2] + 2, bottom=g[3] + 2)
                 items.append(dict(t='img', img=[imgsave(fig)], top=g[1]))
+            if native_maths:items.extend(math_blocks(page,words,ink))
             free = take(words, -1e6, -1e6, 1e6, 1e6)
             ls = lines_of(free)
             ls, diagrams = text_diagrams(ls, free)
@@ -647,12 +968,38 @@ def convert(path, annex_id, imgdir, imgprefix):
             # paragraphs, split around tables
             for p in flow(ls2, right):
                 centered = abs(((p['x0'] + p['x1last']) / 2) - page.width / 2) < 25 and p['x0'] > 90
-                items.append(dict(t='p', text=p['text'], top=p['top'], center=centered))
+                block = dict(t='p', text=p['text'], top=p['top'], center=centered)
+                sup = science_spans(p['text'],[w for w in free if p['top']-2<=w['top']<=p['bottom']+2])
+                if sup: block['sup'] = sup
+                if native_maths:block.update(source_scripts(p['text'],[w for w in free if p['top']-2<=w['top']<=p['bottom']+2]))
+                items.append(block)
             for im in images:
                 if not im.get('_used'):
                     items.append(dict(t='img', img=[imgsave(im)], top=im['top']))
             items.sort(key=lambda it: it['top'])
+            # Running captions are page furniture; retain the first occurrence,
+            # and let the actual table continue across the removed page break.
+            retained=[]
             for it in items:
+                if it['t']=='p' and it['top']<150 and re.match(r'^附表[一二三四五六七八九十]+',it['text']):
+                    key=re.sub(r'\s+','',it['text'])
+                    if key in page_titles:
+                        dropped.append(it['text']);continue
+                    page_titles.add(key)
+                retained.append(it)
+            items=retained
+            for it in items:
+                # A footnote printed below the first physical page belongs
+                # below the complete logical table. It must not break a
+                # continued scientific grid with identical column headers.
+                if it['t']=='table' and it is items[0]:
+                    j=len(blocks)-1
+                    while j>=0 and blocks[j]['t']=='p' and not re.match(r'^附表',blocks[j]['text']):j-=1
+                    if 0<=j<len(blocks)-1 and blocks[j]['t']=='table' and 'xs' in blocks[j] and same_frame(blocks[j],it) \
+                            and (it.get('_scientific') or blocks[j].get('_scientific')):
+                        headers=lambda t:[tuple(re.sub(r'\s+','',c['text']) for c in r) for r in t['rows'][:max(1,t.get('head',0))]]
+                        if headers(blocks[j])==headers(it):
+                            merge_continued(blocks[j],it,dropped);continue
                 if it['t'] == 'table' and blocks and blocks[-1]['t'] == 'table' and 'xs' in blocks[-1] and same_frame(blocks[-1], it) \
                         and it is items[0]:
                     merge_continued(blocks[-1], it, dropped)

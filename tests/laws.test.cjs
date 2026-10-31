@@ -94,3 +94,24 @@ test('tables are rectangular: row and column spans add up', () => {
     walk(read('annex/' + a.id + '.json').blocks);
   }
 });
+
+test('radiation tables preserve every column across page joins', () => {
+  for (const id of ['a18-1', 'a18-3', 'a18-4']) {
+    for (const [i, table] of read('annex/' + id + '.json').blocks.entries()) {
+      if (table.t !== 'table') continue;
+      const occupied = new Set();
+      table.rows.forEach((row, r) => row.forEach(cell => {
+        // Annex four prints a separate cell for each isotope, unlike annex three's lists.
+        assert.ok(id !== 'a18-4' || (cell.text.match(/[A-Z][a-z]?[-−]\d+m?\b/g) || []).length <= 1,
+          'combined isotope labels in ' + id + ' table ' + i + ' row ' + r);
+        for (let y = r; y < r + cell.rs; y++) for (let x = cell.c; x < cell.c + cell.cs; x++) {
+          assert.ok(y < table.rows.length, 'row overflow in ' + id);
+          occupied.add(y + ':' + x);
+        }
+      }));
+      for (let r = 0; r < table.rows.length; r++) for (let c = 0; c < table.widths.length; c++) {
+        assert.ok(occupied.has(r + ':' + c), 'missing cell in ' + id + ' table ' + i + ' at ' + r + ':' + c);
+      }
+    }
+  }
+});

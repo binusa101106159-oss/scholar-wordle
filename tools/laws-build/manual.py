@@ -11,6 +11,13 @@ RASTER_TEXT = {
     ('勞工保險條例 附表一勞工保險職業病種類表.PDF', 4, 26): '酐蔥',
 }
 
+# The radiation appendices embed this single printed character as tiny bitmaps.
+# Read at 300 dpi and matched to the original glyph: U+23C5D, 气 containing 土.
+for _page,_xref in ((1,19),(1,20),(2,20),(2,25),(100,20),(100,25)):
+    RASTER_TEXT[('游離輻射防護安全標準 附表三個人劑量符合劑量限度之判斷及評估方法.PDF',_page,_xref)] = '\U00023c5d'
+for _xref in (85,86):
+    RASTER_TEXT[('游離輻射防護安全標準 附表二本標準使用之數學公式.PDF',6,_xref)] = '\U00023c5d'
+
 
 def raster_text(path, page, image):
     return RASTER_TEXT.get((os.path.basename(path), page, image['stream'].objid))
