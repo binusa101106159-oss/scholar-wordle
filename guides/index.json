@@ -29,6 +29,24 @@
 "name": "社會、心理性危害",
 "src": "https://www.osha.gov.tw/48110/48363/133456/48395/48405/lpsimplelist",
 "total": 3
+},
+{
+"id": "farm",
+"name": "農保",
+"src": "",
+"total": 0
+},
+{
+"id": "public",
+"name": "公保",
+"src": "",
+"total": 0
+},
+{
+"id": "plans",
+"name": "四大計畫",
+"src": "",
+"total": 0
 }
 ],
 "guides": [

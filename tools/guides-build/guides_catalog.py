@@ -9,6 +9,10 @@ CATS = [
     ('p', '物理性危害', '物理性危害', 'https://www.osha.gov.tw/48110/48363/133456/48395/48403/lpsimplelist', 11),
     ('b', '生物性危害', '生物性危害', 'https://www.osha.gov.tw/48110/48363/133456/48395/48401/lpsimplelist', 18),
     ('s', '社會、心理性危害', '社會、心理性危害', 'https://www.osha.gov.tw/48110/48363/133456/48395/48405/lpsimplelist', 3),
+    # Additional study categories; documents and source lists have not been added yet.
+    ('farm', '農保', '農保', '', 0),
+    ('public', '公保', '公保', '', 0),
+    ('plans', '四大計畫', '四大計畫', '', 0),
 ]
 
 GUIDES = [

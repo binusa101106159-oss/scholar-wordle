@@ -41,8 +41,8 @@ test('guides follow the official order and numbering, one section per category',
     assert.deepEqual(gs.map(g => g.name), order.filter(n => gs.some(g => g.name === n)));
     gs.forEach(g => assert.equal(g.no, order.indexOf(g.name) + 1, g.name));
   }
-  // all five categories are listed in the official order, even before their guides are added
-  assert.deepEqual(index.cats.map(c => c.name), ['人因性危害', '化學性危害', '物理性危害', '生物性危害', '社會、心理性危害']);
+  // The five official categories keep their order, followed by the additional study categories.
+  assert.deepEqual(index.cats.map(c => c.name), ['人因性危害', '化學性危害', '物理性危害', '生物性危害', '社會、心理性危害', '農保', '公保', '四大計畫']);
   for (const g of index.guides) assert.ok(index.cats.some(c => c.id === g.cat), g.id);
   for (const c of index.cats) assert.ok(c.total >= index.guides.filter(g => g.cat === c.id).length, c.name);
   assert.equal(new Set(index.cats.map(c => c.name)).size, index.cats.length);
