@@ -34,8 +34,8 @@ test('guides follow the official order and numbering, one section per category',
   const e = index.guides.filter(g => g.cat === 'e');
   assert.deepEqual(e.map(g => g.name), ERGO_ORDER.filter(n => e.some(g => g.name === n)));
   e.forEach(g => assert.equal(g.no, ERGO_ORDER.indexOf(g.name) + 1, g.name));
-  // 化學性危害: ids follow the official list (c001 = first entry), so the number shown is the id's number
-  index.guides.filter(g => g.cat === 'c').forEach(g => assert.equal(g.no, Number(g.id.slice(1)), g.id));
+  // 化學性、生物性危害: ids follow the official list (c001, b01 = first entry), so the number shown is the id's number
+  index.guides.filter(g => g.cat === 'c' || g.cat === 'b').forEach(g => assert.equal(g.no, Number(g.id.slice(1)), g.id));
   for (const [cat, order] of [['p', PHYS_ORDER], ['s', PSY_ORDER]]) {
     const gs = index.guides.filter(g => g.cat === cat);
     assert.deepEqual(gs.map(g => g.name), order.filter(n => gs.some(g => g.name === n)));

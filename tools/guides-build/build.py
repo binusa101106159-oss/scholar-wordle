@@ -19,7 +19,7 @@ from guides_catalog import CATS, GUIDES, SRC, CREDIT, EXTRAS
 NUMS = '一二三四五六七八九十'
 # a line that starts one of these begins a new paragraph even when the line before it reached the right edge
 NEW = re.compile(r'^(?:[一二三四五六七八九十百]+、|[（(][一二三四五六七八九十百]+[)）]|\(?\d+[\.\)）、](?!\d)|[（(]\d+[）)]|\d+\)'
-                 r'|\[\d+\]|[A-Za-z][\.\)、](?![A-Za-z])|(?:附)?[表圖]\s*(?:[一二三四五六七八九十]+|\d+)[、：:．.\s]|註[一二三四五六七八九十\d]*[：:、]'
+                 r'|\[\d+\](?![。，、；：.,;:)）])|[A-Za-z][\.\)、](?![A-Za-z])|(?:附)?[表圖]\s*(?:[一二三四五六七八九十]+|\d+)[、：:．.\s]|註[一二三四五六七八九十\d]*[：:、]'
                  r'|備註|說明[：:]|[□■●○◎※＊*•‧\uf06c\uf06e\uf0fc])')
 CAPTION = re.compile(r'^((?:附)?[表圖])\s*([一二三四五六七八九十]+|\d+)\s*[、：:．.]?\s*(.*)$', re.S)
 H1 = re.compile(r'^(?:[一二三四五六七八九十]+、|參考文獻|參考資料|附錄|附件|附表)')
@@ -27,6 +27,41 @@ APPX = re.compile(r'^(附錄|附件)\s*([一二三四五六七八九十ㄧ]*|[IV
 H2 = re.compile(r'^[（(][一二三四五六七八九十]+[)）]')
 MENTION = re.compile(r'(?<![發代外報])((?:附)?[表圖])\s*([一二三四五六七八九十]+|\d+)(?![一二三四五六七八九十\d])')
 # Wingdings bullets have no Unicode meaning; the PDF draws them as a black dot
+# Section numbers that a PDF prints as small pictures instead of text, read by eye (picture file -> its text).
+IMAGE_LABELS = {
+    # 職業因素感染新型A型流感認定參考指引
+    'b04-e77347c7985c.png': '一、',
+    'b04-1ad02b9f0540.png': '二、',
+    'b04-d43d152e946a.png': '(一)',
+    'b04-dcac9e9739d3.png': '(二)',
+    'b04-123acfc59ae0.png': '(三)',
+    'b04-8e698786d00e.png': '(四)',
+    'b04-352b5c4dedf0.png': '(五)',
+    'b04-7b88e8d0a862.png': '(六)',
+    'b04-7b072d58eb74.png': '(七)',
+    'b04-e8e7a3925172.png': '三、',
+    'b04-818463aae73c.png': '1.',
+    'b04-676ba9f1069b.png': '2.',
+    'b04-9ef9ac3109c1.png': '(二)',
+    'b04-8f9e73f28603.png': '2.',
+    'b04-6f26937d17d3.png': '3.',
+    'b04-13ef39461f82.png': '(三)',
+    'b04-beb12ffe50f0.png': '3.',
+    'b04-5f902d6aae43.png': '4.',
+    'b04-fc928f3af6c4.png': '(四)',
+    'b04-3ab9e9503182.png': '1.',
+    'b04-deb23df74d53.png': '(六)',
+    'b04-fb79da833003.png': '3.',
+    'b04-b9aacc40b8f0.png': '4.',
+    'b04-0a1af78b4544.png': '5.',
+    'b04-c4a7762a2c08.png': '四、',
+    'b04-b82b216cd42d.png': '五、',
+    'b04-229847b4908d.png': '(一)',
+    'b04-badccde94eea.png': '(二)',
+    'b04-7f64fc58635d.png': '六、',
+    'b04-a29679e84210.png': '(一)',
+}
+
 GLYPHS = {'\uf06c': '●', '\uf06e': '■', '\uf0fc': '✓', '\uf0b3': '≥', '\uf06d': 'μ', '\uf07e': '∼', '\uf02d': '−', '\uf061': 'α', '\uf0a0': '▪', '\uf0d8': '➢', '\uf0b0': '°'}   # Wingdings ● ■ ✓; Symbol ≥ μ ∼
 
 
@@ -130,6 +165,7 @@ def rule_tables(page, words, taken, keep=()):
             # every column but the first holds at most one entry: the whole band is one record
             def entries(k): return sum(1 for li in range(len(blines)) if any(o == li and col_of((w['x0'] + w['x1']) / 2) == k for w, o in zip(band, owner)))
             single = len(blines) > 1 and anchors and all(entries(k) <= 1 for k in range(1, len(marks) - 1))
+            recs = None
             if single or (groups and groups[0][0] > 0 and len(blines) > len(groups) and len(blines) <= 8 * len(groups)):
                 recs = {}
                 for li in range(len(blines)):
@@ -138,6 +174,21 @@ def rule_tables(page, words, taken, keep=()):
                         dist = lambda gr: max(0, mid(blines[gr[0]]) - mid(blines[li]), mid(blines[li]) - mid(blines[gr[-1]]))
                         near = min(range(len(groups)), key=lambda k: (dist(groups[k]), k))
                     recs.setdefault(near, []).append(li)
+            elif bi == len(g) - 2 and len(blines) > 1:
+                # body rows whose first cell wraps onto a line of its own, with the other cells centred on the pair:
+                # the first-column-only line joins the nearest line that has the other cells (within one line height)
+                cols = [{col_of((w['x0'] + w['x1']) / 2) for w, o in zip(band, owner) if o == li} for li in range(len(blines))]
+                join = {}
+                for li, cs in enumerate(cols):
+                    if cs != {0}: continue
+                    h = blines[li]['bottom'] - blines[li]['top']
+                    cand = [lj for lj in range(len(blines)) if cols[lj] - {0} and abs(mid(blines[lj]) - mid(blines[li])) <= h]
+                    if cand: join[li] = min(cand, key=lambda lj: abs(mid(blines[lj]) - mid(blines[li])))
+                if join:
+                    recs = {}
+                    for li in range(len(blines)): recs.setdefault(join.get(li, li), []).append(li)
+                    recs = {min(v): sorted(v) for v in recs.values()}
+            if recs is not None:
                 for a in sorted(recs):
                     row = {}
                     for li in recs[a]:
@@ -232,21 +283,41 @@ def read_pages(path, imgdir, prefix):
     with pdfplumber.open(path) as pdf:
         for pno, page in enumerate(pdf.pages):
             page = printed(page.dedupe_chars(tolerance=1), ink)
-            words = page.extract_words(x_tolerance=1.5, y_tolerance=2, keep_blank_chars=False, use_text_flow=False, return_chars=True)
+            # letter-spaced text (Latin letters set ~1.5pt apart): split words only at gaps clearly wider than the tracking
+            ch = sorted((c for c in page.chars if c['text'].isascii() and c['text'].isalpha()), key=lambda c: (round(c['top']), c['x0']))
+            gaps = [b['x0'] - a['x1'] for a, b in zip(ch, ch[1:]) if abs(a['top'] - b['top']) < 1 and -0.5 < b['x0'] - a['x1'] < 4]
+            track = statistics.median(gaps) if len(gaps) >= 20 else 0
+            xt = min(3.0, track + 0.45) if track >= 1.3 else 1.5
+            words = page.extract_words(x_tolerance=xt, y_tolerance=2, keep_blank_chars=False, use_text_flow=False, return_chars=True)
             set_spaces(page)
-            images = []
+            def imgsave(im, page=page):
+                bbox = (max(im['x0'], 0), max(im['top'], 0), min(im['x1'], page.width), min(im['bottom'], page.height))
+                pi = page.crop(bbox).to_image(resolution=200)
+                return dict(src=save_image(pi.original, imgdir, prefix), w=round(im['x1'] - im['x0']), h=round(im['bottom'] - im['top']))
+
+            images, labels = [], []
+            known = any(k.startswith(prefix) for k in IMAGE_LABELS)
             for im in page.images:
+                # section numbers printed as little pictures (一、 (一) 1.): put the number back in front of its line, as text
+                if known and im['x1'] - im['x0'] <= 40 and im['bottom'] - im['top'] <= 20:
+                    src = imgsave(im)['src']
+                    if src in IMAGE_LABELS:
+                        text = IMAGE_LABELS[src]
+                        cy = (im['top'] + im['bottom']) / 2
+                        nxt = [w for w in words if w['x0'] >= im['x1'] - 2 and w['top'] - 4 <= cy <= w['bottom'] + 4]
+                        top, bottom = (min(nxt, key=lambda w: w['x0'])['top'], min(nxt, key=lambda w: w['x0'])['bottom']) if nxt else (im['top'], im['bottom'])
+                        step = (im['x1'] - im['x0']) / len(text)
+                        chars = [dict(text=ch, x0=im['x0'] + k * step, x1=im['x0'] + (k + 1) * step, top=top, bottom=bottom) for k, ch in enumerate(text)]
+                        words.append(dict(text=text, x0=im['x0'], x1=im['x1'], top=top, bottom=bottom, chars=chars))
+                        labels.append(text)
+                        continue
+                    print('  unlabelled small picture', src, round(im['x0']), round(im['top']), file=sys.stderr)
                 if im['x1'] - im['x0'] <= 4 or im['bottom'] - im['top'] <= 4: continue
                 mask = im['stream'].attrs.get('SMask')
                 if mask is not None:
                     stream = mask.resolve()
                     if stream.attrs.get('Decode', [0, 1]) == [0, 1] and not any(stream.get_data()): continue
                 images.append(dict(im))
-
-            def imgsave(im, page=page):
-                bbox = (max(im['x0'], 0), max(im['top'], 0), min(im['x1'], page.width), min(im['bottom'], page.height))
-                pi = page.crop(bbox).to_image(resolution=200)
-                return dict(src=save_image(pi.original, imgdir, prefix), w=round(im['x1'] - im['x0']), h=round(im['bottom'] - im['top']))
 
             found = [t for t in find_tables(page, ink) if len(t.cells) >= 2]
             # a ruled area with no words in it is a shape (a flowchart arrow), not a table
@@ -361,7 +432,7 @@ def read_pages(path, imgdir, prefix):
                 items.append(dict(k='line', text=l['text'], x0=l['x0'], x1=l['x1'], top=l['top'], bottom=l['bottom'], segs=segs))
             items.sort(key=lambda it: it['top'])
             for it in items: it['page'] = pno
-            pages.append(dict(items=items, height=page.height, width=page.width, dropped=dropped))
+            pages.append(dict(items=items, height=page.height, width=page.width, dropped=dropped, labels=labels))
     return pages
 
 
@@ -648,7 +719,8 @@ def document(path, gid, official, imgdir, with_cover=True):
             if it['k'] != 'line': continue
             t = glyphs(it['text'])
             if cover and ((cover[-1].startswith('【') and '】' not in cover[-1])
-                          or (len(cover) == 1 and official_stem(official).startswith(cover[0] + t))):
+                          or (len(cover) == 1 and (official_stem(official).startswith(cover[0] + t)
+                                                   or ((cover[0] + t).startswith(official_stem(official)) and not cover[0].startswith(official_stem(official)))))):
                 cover[-1] += t
             else: cover.append(t)
         pages[0]['items'] = [it for it in pages[0]['items'] if it['k'] != 'line']
@@ -659,7 +731,8 @@ def document(path, gid, official, imgdir, with_cover=True):
     link_mentions(blocks, atts)
     # QC: the PDF's printed characters vs ours (+ running headers/footers and repeated table headers we left out)
     raw = page_chars_text(path)
-    src = collections.Counter(re.sub(r'\s', '', glyphs(raw)))
+    read = ''.join(t for p in pages for t in p.get('labels', []))     # section numbers read from pictures
+    src = collections.Counter(re.sub(r'\s', '', glyphs(raw) + read))
     ours = collections.Counter(re.sub(r'\s', '', glyphs(''.join(cover) + visible(blocks) + ''.join(running) + ''.join(dropped))))
     missing, extra = src - ours, ours - src
     for b in blocks:
