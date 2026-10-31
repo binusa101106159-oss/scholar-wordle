@@ -20,14 +20,14 @@ NUMS = '一二三四五六七八九十'
 # a line that starts one of these begins a new paragraph even when the line before it reached the right edge
 NEW = re.compile(r'^(?:[一二三四五六七八九十百]+、|[（(][一二三四五六七八九十百]+[)）]|\(?\d+[\.\)）、](?!\d)|[（(]\d+[）)]|\d+\)'
                  r'|\[\d+\]|[A-Za-z][\.\)、](?![A-Za-z])|(?:附)?[表圖]\s*(?:[一二三四五六七八九十]+|\d+)[、：:．.\s]|註[一二三四五六七八九十\d]*[：:、]'
-                 r'|備註|說明[：:]|[□■●○◎※＊*•‧])')
+                 r'|備註|說明[：:]|[□■●○◎※＊*•‧\uf06c\uf06e\uf0fc])')
 CAPTION = re.compile(r'^((?:附)?[表圖])\s*([一二三四五六七八九十]+|\d+)\s*[、：:．.]?\s*(.*)$', re.S)
 H1 = re.compile(r'^(?:[一二三四五六七八九十]+、|參考文獻|參考資料|附錄|附件|附表)')
 APPX = re.compile(r'^(附錄|附件)\s*([一二三四五六七八九十ㄧ]*|[IVX]+|\d*)\s*[、：:．.]?')
 H2 = re.compile(r'^[（(][一二三四五六七八九十]+[)）]')
 MENTION = re.compile(r'(?<![發代外報])((?:附)?[表圖])\s*([一二三四五六七八九十]+|\d+)(?![一二三四五六七八九十\d])')
 # Wingdings bullets have no Unicode meaning; the PDF draws them as a black dot
-GLYPHS = {'': '●', '': '≥'}   # Wingdings bullet; Symbol-font ≥
+GLYPHS = {'\uf06c': '●', '\uf06e': '■', '\uf0fc': '✓', '\uf0b3': '≥', '\uf06d': 'μ', '\uf07e': '∼'}   # Wingdings ● ■ ✓; Symbol ≥ μ ∼
 
 
 def glyphs(s):
@@ -86,6 +86,11 @@ def rule_tables(page, words, taken):
         i = j
         if len(g) < 3 or not any(len(r['segs']) >= 2 for r in g): continue
         x0 = min(r['x0'] for r in g); x1 = max(r['x1'] for r in g)
+        # boxes with drawn sides (a flowchart, a framed note) are not a rules-only table
+        sides = [e for e in visible_edges(page) if e['orientation'] == 'v' and e['bottom'] - e['top'] > 8
+                 and x0 - 3 <= e['x0'] <= x1 + 3 and g[0]['y'] - 3 <= e['top'] and e['bottom'] <= g[-1]['y'] + 3
+                 and not any(b[0] - 3 <= e['x0'] <= b[2] + 3 and b[1] - 3 <= e['top'] <= b[3] + 3 for b in taken)]
+        if len(sides) >= 4: continue
         marks = cluster([v for r in g for s in r['segs'] for v in s] + [x0, x1], 2.5)
         def ends(r):          # column marks this rule draws
             return {k for k, m in enumerate(marks) if any(abs(m - v) <= 2.5 for s in r['segs'] for v in s)}
@@ -95,11 +100,17 @@ def rule_tables(page, words, taken):
         def seg_of(r, x): return next((s for s in r['segs'] if s[0] - 2.5 <= x <= s[1] + 2.5), None)
         cells, nrow, head = [], 0, 0
         prev_row = {}
+        mine = []                              # words this attempt took, to give back if it is not a grid
         for bi in range(len(g) - 1):
             top, bot = g[bi], g[bi + 1]
             band = take(words, x0, top['y'], x1, bot['y'], pad=0)
-            for li, ln in enumerate(lines_of(band)):
-                ws = sorted([w for w in band if ln['top'] - 1 <= (w['top'] + w['bottom']) / 2 <= ln['bottom'] + 1], key=lambda w: w['x0'])
+            mine.extend(band)
+            blines = lines_of(band)
+            # every word belongs to exactly one printed line: the one nearest its middle
+            owner = [min(range(len(blines)), key=lambda k: abs((w['top'] + w['bottom']) / 2 - (blines[k]['top'] + blines[k]['bottom']) / 2))
+                     if blines else 0 for w in band]
+            for li, ln in enumerate(blines):
+                ws = sorted([w for w, o in zip(band, owner) if o == li], key=lambda w: w['x0'])
                 pieces = []                      # words closer than 6pt belong together
                 for w in ws:
                     if pieces and w['x0'] - pieces[-1][-1]['x1'] <= 6: pieces[-1].append(w)
@@ -125,9 +136,12 @@ def rule_tables(page, words, taken):
                 for k in range(len(marks) - 1):
                     if k in row: continue
                     above = prev_row.get(k)
-                    if li == 0 and 0 < bi < len(g) - 2 and above is not None and seg_of(top, (marks[k] + marks[k + 1]) / 2) is None:
+                    span = range(above['c'], above['c'] + above['cs']) if above is not None else ()
+                    if li == 0 and 0 < bi < len(g) - 2 and above is not None and seg_of(top, (marks[k] + marks[k + 1]) / 2) is None \
+                            and all(row.get(kk) in (None, above) for kk in span):   # a wide cell only grows down where the row is free
                         if above['r'] + above['rs'] == nrow: above['rs'] += 1
-                        row[k] = above; continue
+                        for kk in span: row[kk] = above
+                        continue
                     c = dict(r=nrow, c=k, rs=1, cs=1, text=''); cells.append(c); row[k] = c
                 prev_row = row; nrow += 1
             if bi < len(g) - 2: head = nrow
@@ -152,9 +166,8 @@ def rule_tables(page, words, taken):
                 continue                       # an empty spacer cell under a spanning one
             occ |= slots; cells.append(c)
         if clash:                              # the rules do not describe a grid: leave the text as text
-            for w in words:
-                for ch in w['chars']:
-                    if x0 - 1 <= (ch['x0'] + ch['x1']) / 2 <= x1 + 1 and g[0]['y'] <= (ch['top'] + ch['bottom']) / 2 <= g[-1]['y']: ch['_u'] = False
+            for w in mine:
+                for ch in w['chars']: ch['_u'] = False
             continue
         rows = [sorted([c for c in cells if c['r'] == r], key=lambda c: c['c']) for r in range(nrow)]
         rows = [r for r in rows]
@@ -365,7 +378,7 @@ def build_blocks(pages):
         for r in t['rows']:
             for c in r:
                 # a Wingdings bullet always starts an item, even where the cell's lines were joined
-                c['text'] = glyphs(re.sub(r'(?<=\S)\s*\uf06c', '\n\uf06c', c['text']))
+                c['text'] = glyphs(re.sub(r'(?<=\S)\s*([\uf06c\uf06e\uf0fc])', r'\n\1', c['text']))
                 for sb in c.get('blocks', []):
                     if 'text' in sb: sb['text'] = glyphs(sb['text'])
                     if sb.get('t') == 'table': cells(sb)
@@ -373,6 +386,26 @@ def build_blocks(pages):
         if b['t'] == 'cols': b['rows'] = [[glyphs(c) for c in r] for r in b['rows']]
         if b['t'] == 'table': cells(b)
     return blocks, dict(em=em, right=right, margin=margin)
+
+
+def tidy(tb):
+    """An empty cell left on a slot that a cell with text also claims (after stitching a page break) is dropped."""
+    occ = {}
+    for r, row in enumerate(tb['rows']):
+        for c in sorted(row, key=lambda c: not (c.get('text') or c.get('blocks') or c.get('img'))):
+            slots = [(r + i, c['c'] + j) for i in range(c['rs']) for j in range(c['cs'])]
+            if any(s in occ for s in slots):
+                if c.get('text') and not (c.get('blocks') or c.get('img')):
+                    # two text pieces read into one slot (a cell the grid split in two): one cell, text in printed order
+                    host = occ[next(s for s in slots if s in occ)]
+                    first = host in row and row.index(c) < row.index(host)
+                    host['text'] = c['text'] + host['text'] if first else host['text'] + c['text']
+                    if host['c'] == c['c']:
+                        host['cs'] = max(host['cs'], c['cs']); host['rs'] = max(host['rs'], c['rs'])
+                    row.remove(c); continue
+                if not (c.get('text') or c.get('blocks') or c.get('img')):
+                    row.remove(c); continue
+            for s_ in slots: occ[s_] = c
 
 
 def merge_tables(blocks, dropped):
@@ -385,6 +418,8 @@ def merge_tables(blocks, dropped):
             prev['page_last'] = b['page']; continue
         if b['t'] == 'table': b['page_last'] = b['page']
         out.append(b)
+    for b in out:
+        if b['t'] == 'table': tidy(b)
     return out
 
 
