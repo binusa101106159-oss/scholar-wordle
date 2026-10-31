@@ -425,6 +425,8 @@
   <script src="laws/laws.js" defer></script>
 <link rel="stylesheet" href="guides/guides.css">
   <script src="guides/guides.js" defer></script>
+<link rel="stylesheet" href="ama/ama.css">
+  <script src="ama/ama.js" defer></script>
 <style id="scholar-games-style">
 /* Shared additions to the original OLED / liquid-glass interface. */
 [hidden] { display: none !important; }
@@ -460,11 +462,6 @@ body[data-game="ama"] #game-main, body[data-game="ama"] #wordle-toolbar { displa
 .sg-board-wrap { min-width: 0; width: 100%; max-width: 460px; margin: 0 auto; }
 .sg-board { width: 100%; aspect-ratio: 1; display: grid; grid-template-columns: repeat(9,minmax(0,1fr)); position: relative; }
 .sg-glass { border: 1px solid var(--sg-edge); background: linear-gradient(150deg,rgba(255,255,255,.075),rgba(255,255,255,.025)); box-shadow: inset 0 1px 0 rgba(255,255,255,.25),0 12px 40px rgba(0,0,0,.35); backdrop-filter: blur(22px) saturate(180%); border-radius: 24px; }
-#ama-panel { padding: 32px 20px; }
-.ama-empty { width: min(100%,680px); margin: auto; padding: clamp(28px,5vw,48px); text-align: center; }
-.ama-kicker { margin: 0 0 12px; color: #e2c58a; font-size: 12px; letter-spacing: .04em; }
-.ama-empty h1 { margin: 0 0 16px; font-size: 32px; font-weight: 500; }
-.ama-empty p:last-child { margin: 0; color: rgba(241,245,249,.6); font-size: 14px; line-height: 1.8; }
 .sg-board-row { display: contents; }
 .sg-cell { position: relative; isolation: isolate; min-width: 0; min-height: 0; padding: 0; appearance: none; font: inherit; color: white; cursor: pointer; display: grid; place-items: center; aspect-ratio: 1; border: 1px solid rgba(255,255,255,.1); border-radius: 7px; background: linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.025)); box-shadow: inset 0 1px 0 rgba(255,255,255,.22),inset 0 -6px 12px rgba(255,255,255,.015); outline-offset: -3px; touch-action: manipulation; }
 .sg-cell::after { content: ''; position: absolute; inset: 3px 12% auto; height: 32%; border-radius: 45%; background: linear-gradient(180deg,rgba(255,255,255,.12),transparent); pointer-events: none; z-index: -1; }
@@ -703,11 +700,7 @@ body[data-game="ama"] #game-main, body[data-game="ama"] #wordle-toolbar { displa
   <main id="laws-panel" class="sg-app lx-app" role="tabpanel" aria-labelledby="game-tab-laws" hidden></main>
   <main id="guides-panel" class="sg-app gx-app" role="tabpanel" aria-labelledby="game-tab-guides" hidden></main>
   <main id="ama-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-ama" hidden>
-    <section class="ama-empty sg-glass">
-      <p class="ama-kicker">AMA Guides · Sixth Edition</p>
-      <h1>AMA</h1>
-      <p>章節內容準備中。</p>
-    </section>
+    <p>正在載入 AMA 章節目錄…</p>
   </main>
 
   <!-- Modal 1: Oxford Dictionary Explorer -->
@@ -3028,6 +3021,7 @@ body[data-game="ama"] #game-main, body[data-game="ama"] #wordle-toolbar { displa
     by('guides-panel').hidden = game !== 'guides';
     if (game === 'guides' && window.ScholarGuides) window.ScholarGuides.show();
     by('ama-panel').hidden = game !== 'ama';
+    if (game === 'ama' && window.ScholarAMA) window.ScholarAMA.show();
     by('game-main').setAttribute('aria-hidden', String(game !== 'wordle'));
     document.querySelectorAll('[data-game-tab]').forEach(tab => { const active = tab.dataset.gameTab === game; tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; });
     by('game-tab-' + game).scrollIntoView({ block: 'nearest', inline: 'nearest' });
