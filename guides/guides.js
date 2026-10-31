@@ -12,7 +12,10 @@
     x: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
     list: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
     left: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>',
-    right: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>'
+    right: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>',
+    pen: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h5l10.5-10.5a2.1 2.1 0 0 0-3-3L6 17v3"/><path d="M14.5 7.5l3 3"/></svg>',
+    aa: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18 8 6l5 12M4.8 14h6.4"/><path d="M15 12.5c.6-1 1.6-1.5 2.8-1.5 1.8 0 3.2 1 3.2 3v4M21 15.5c-1-.4-2-.5-3-.4-1.6.2-2.8.9-2.8 2.1 0 1 .8 1.8 2 1.8 1.6 0 3-1.1 3.8-2.4"/></svg>',
+    trash: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg>'
   };
 
   function prefs() { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (_) { return {}; } }
@@ -185,7 +188,10 @@
             <button type="button" class="sg-btn gx-menu-btn" id="gx-menu">${icon.list}指引目錄</button>
             <select class="gx-select" id="gx-chapters" aria-label="跳到章節" hidden></select>
             <span class="gx-spacer"></span>
+            <button type="button" class="sg-btn gx-tool-btn" id="gx-marks-btn" aria-haspopup="dialog" aria-controls="gx-panel" title="我的畫線">${icon.pen}<span>畫線</span></button>
+            <button type="button" class="sg-btn gx-tool-btn" id="gx-style-btn" aria-haspopup="dialog" aria-controls="gx-panel" title="閱讀設定">${icon.aa}<span>閱讀設定</span></button>
           </div>
+          <div class="gx-panel" id="gx-panel" role="dialog" aria-label="閱讀設定與畫線" hidden></div>
           <div class="gx-scroll" id="gx-scroll"><article class="gx-doc" id="gx-doc"></article></div>
         </section>
       </div>
@@ -217,6 +223,12 @@
     by('gx-list').addEventListener('click', e => {
       const g = e.target.closest('[data-guide]');
       const more = e.target.closest('[data-more]');
+      const cat = e.target.closest('[data-cat]');
+      if (cat) {
+        const open = Object.assign({}, prefs().open);
+        open[cat.dataset.cat] = !catOpen(cat.dataset.cat);
+        setPrefs({ open }); renderSide(); return;
+      }
       if (more) { state.expanded = state.expanded || new Set(); state.expanded.add(more.dataset.more); renderSide(); return; }
       if (!g) return;
       if (g.dataset.openAtt) { state.closeDrawer(); openGuide(g.dataset.guide).then(() => openAtt(g.dataset.openAtt)); return; }
@@ -297,6 +309,7 @@
     window.addEventListener('load', measure);
     if (window.ResizeObserver) new ResizeObserver(measure).observe(document.querySelector('.sg-nav-shell') || document.body);
     window.addEventListener('pagehide', rememberPosition);
+    wireReading();
   }
 
   function measure() {
@@ -320,6 +333,12 @@
       '<span class="gx-guide-no">' + g.no + '</span><span>' + esc(g.name) + '</span>' +
       '<span class="gx-guide-meta">' + g.pages + ' 頁' + (g.scan ? ' · 掃描影像' : '') + (n ? ' · ' + n + ' 個附件與表圖' : '') + '</span></button>';
   }
+  /* a category is open when the reader opened it, or (until they choose) when it holds the guide being read */
+  function catOpen(id) {
+    const saved = (prefs().open || {})[id];
+    if (saved != null) return saved;
+    return Boolean(state.current && state.current.meta.cat === id);
+  }
   function renderSide() {
     const list = by('gx-list');
     const idx = state.index;
@@ -331,8 +350,11 @@
       list.innerHTML = idx.cats.map(c => {
         const gs = idx.guides.filter(g => g.cat === c.id);
         const count = c.total > gs.length ? gs.length + ' / ' + c.total + ' 份' : gs.length + ' 份';
-        return '<div class="gx-cat"><span>' + esc(c.name) + '</span><span>' + count + '</span></div>' +
-          (gs.length ? gs.map(guideButton).join('') : '<p class="gx-cat-empty">尚未收錄</p>');
+        const open = catOpen(c.id);
+        return '<button type="button" class="gx-cat" data-cat="' + c.id + '" aria-expanded="' + open + '" aria-controls="gx-cat-' + c.id + '">' +
+          '<span class="gx-cat-name">' + icon.right + esc(c.name) + '</span><span>' + count + '</span></button>' +
+          '<div class="gx-cat-list" id="gx-cat-' + c.id + '"' + (open ? '' : ' hidden') + '>' +
+          (gs.length ? gs.map(guideButton).join('') : '<p class="gx-cat-empty">尚未收錄</p>') + '</div>';
       }).join('');
       return;
     }
@@ -431,6 +453,7 @@
       catch (_) { by('gx-doc').innerHTML = '<p class="gx-loading">無法載入這份指引。請確認網路連線後再試一次。</p>'; return; }
       state.current = Object.assign({}, data, { meta });
       setPrefs({ guide: id });
+      if (!opts.boot && !catOpen(meta.cat)) setPrefs({ open: Object.assign({}, prefs().open, { [meta.cat]: true }) });
       renderDoc(state.current, false);
       renderSide();
       const saved = (prefs().pos || {})[id];
@@ -471,8 +494,10 @@
     const sel = by('gx-chapters');
     sel.hidden = !chapters.length;
     sel.innerHTML = '<option value="">章節</option>' + chapters.map(c => '<option value="' + c.id + '">' + '　'.repeat(c.lv - 1) + esc(c.text.replace(/\s+/g, ' ')) + '</option>').join('');
+    paintMarks();
     if (keepScroll) { sc.style.scrollBehavior = 'auto'; sc.scrollTop = top; sc.style.scrollBehavior = ''; }
     document.title = meta.name + ' · Scholar';
+    if (!by('gx-panel').hidden && panelTab === 'marks') renderPanel();
   }
 
   /* ── 表/圖 window ── */
@@ -522,6 +547,295 @@
     if (next) openAtt(next.id);
   }
 
+  /* ── reading settings: size, spacing, font, weight, colour (this device only) ── */
+  const FONTS = {
+    sans: { label: '黑體', css: "'Noto Sans TC','PingFang TC','Heiti TC','Microsoft JhengHei',system-ui,sans-serif" },
+    serif: { label: '明體', css: "'Noto Serif TC','Songti TC','PMingLiU','MingLiU','Source Han Serif TC',serif" },
+    kai: { label: '楷體', css: "'Kaiti TC','BiauKai','DFKai-SB','STKaiti','KaiTi',serif" },
+    round: { label: '圓體', css: "'Yuanti TC','jf open 粉圓','Hiragino Maru Gothic ProN','PingFang TC',system-ui,sans-serif" }
+  };
+  const INKS = [['#f1f5f9', '白'], ['#e8e2d4', '米白'], ['#f3e3b5', '暖黃'], ['#cbd5e1', '淺灰'], ['#bfe3d0', '淡綠'], ['#c7d7f5', '淡藍']];
+  const WEIGHTS = [[300, '細'], [400, '標準'], [500, '中粗'], [700, '粗']];
+  const DEFAULT_STYLE = { size: 15.5, lead: 1.95, font: 'sans', weight: 400, ink: '#f1f5f9', width: 860 };
+  function style() { return Object.assign({}, DEFAULT_STYLE, prefs().style); }
+  function applyStyle() {
+    const st = style();
+    const targets = [by('guides-panel'), by('gx-att')].filter(Boolean);
+    targets.forEach(el => {
+      el.style.setProperty('--gx-fs', st.size + 'px');
+      el.style.setProperty('--gx-lead', st.lead);
+      el.style.setProperty('--gx-font', (FONTS[st.font] || FONTS.sans).css);
+      el.style.setProperty('--gx-weight', st.weight);
+      el.style.setProperty('--gx-ink', st.ink);
+      el.style.setProperty('--gx-width', st.width + 'px');
+    });
+  }
+
+  /* ── highlights: chosen colour on any run of text, kept per guide (this device only) ── */
+  const HL_STORE = 'scholar-guides-hl-v1';
+  const HL_COLORS = [['yellow', '黃'], ['green', '綠'], ['blue', '藍'], ['pink', '粉紅'], ['orange', '橘']];
+  let panelTab = 'style';
+  function loadMarks() { try { return JSON.parse(localStorage.getItem(HL_STORE)) || {}; } catch (_) { return {}; } }
+  function saveMarks(all) { try { localStorage.setItem(HL_STORE, JSON.stringify(all)); return true; } catch (_) { return false; } }
+  function marksOf(gid) { return loadMarks()[gid] || []; }
+  function setMarks(gid, list) { const all = loadMarks(); if (list.length) all[gid] = list; else delete all[gid]; saveMarks(all); }
+  const hlColor = () => prefs().hlColor || 'yellow';
+
+  // characters before (node, offset) inside el, counting only text
+  function textOffset(el, node, offset) {
+    const r = document.createRange();
+    r.setStart(el, 0); r.setEnd(node, offset);
+    return r.toString().length;
+  }
+  function blockOf(node) {
+    const el = node && (node.nodeType === 3 ? node.parentElement : node);
+    const b = el && el.closest('[id^="gx-b-"]');
+    return b && by('gx-doc').contains(b) ? b : null;
+  }
+  // the current selection as pieces of text per block: [{b, s, e, t}]
+  function selectionPieces() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount || !state.current) return [];
+    const range = sel.getRangeAt(0);
+    const doc = by('gx-doc');
+    if (!doc.contains(range.commonAncestorContainer)) return [];
+    const prefix = 'gx-b-' + state.current.id + '-';
+    const blocks = [...doc.querySelectorAll('[id^="' + prefix + '"]')].filter(el => range.intersectsNode(el) && el.textContent.trim());
+    const out = [];
+    for (const el of blocks) {
+      const len = el.textContent.length;
+      const s = el.contains(range.startContainer) ? textOffset(el, range.startContainer, range.startOffset) : 0;
+      const e = el.contains(range.endContainer) ? textOffset(el, range.endContainer, range.endOffset) : len;
+      if (e > s) out.push({ b: Number(el.id.slice(prefix.length)), s, e, t: el.textContent.slice(s, e) });
+    }
+    return out;
+  }
+  function addMark(color) {
+    const pieces = selectionPieces();
+    if (!pieces.length) return;
+    const gid = state.current.id;
+    let list = marksOf(gid);
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    pieces.forEach((p, i) => {
+      // a new mark replaces the overlapping parts of older marks in the same block
+      list = list.flatMap(m => {
+        if (m.b !== p.b || m.e <= p.s || m.s >= p.e) return [m];
+        const keep = [];
+        const el = by('gx-b-' + gid + '-' + m.b), text = el ? el.textContent : '';
+        if (m.s < p.s) keep.push(Object.assign({}, m, { e: p.s, t: text.slice(m.s, p.s), id: m.id + 'a' }));
+        if (m.e > p.e) keep.push(Object.assign({}, m, { s: p.e, t: text.slice(p.e, m.e), id: m.id + 'b' }));
+        return keep;
+      });
+      list.push({ id: id + (pieces.length > 1 ? '-' + i : ''), g: id, b: p.b, s: p.s, e: p.e, t: p.t, c: color, at: Date.now() });
+    });
+    list.sort((a, b) => a.b - b.b || a.s - b.s);
+    setMarks(gid, list);
+    setPrefs({ hlColor: color });
+    window.getSelection().removeAllRanges();
+    hideHlBar();
+    paintMarks();
+    if (!by('gx-panel').hidden && panelTab === 'marks') renderPanel();
+  }
+  function recolorMark(group, color) {
+    const gid = state.current.id;
+    setMarks(gid, marksOf(gid).map(m => (m.g || m.id) === group ? Object.assign({}, m, { c: color }) : m));
+    setPrefs({ hlColor: color });
+    hideHlBar(); paintMarks();
+    if (!by('gx-panel').hidden && panelTab === 'marks') renderPanel();
+  }
+  function removeMark(group) {
+    const gid = state.current.id;
+    setMarks(gid, marksOf(gid).filter(m => (m.g || m.id) !== group));
+    hideHlBar(); paintMarks();
+    if (!by('gx-panel').hidden && panelTab === 'marks') renderPanel();
+  }
+  // wrap the stored ranges in <mark>; a mark whose text moved is looked up by its words, or left unpainted
+  function paintMarks() {
+    if (!state.current) return;
+    const doc = by('gx-doc');
+    doc.querySelectorAll('mark.gx-hl').forEach(m => { const p = m.parentNode; while (m.firstChild) p.insertBefore(m.firstChild, m); p.removeChild(m); p.normalize(); });
+    for (const m of marksOf(state.current.id)) {
+      const el = by('gx-b-' + state.current.id + '-' + m.b);
+      if (!el) { m.lost = true; continue; }
+      let s = m.s, e = m.e;
+      const text = el.textContent;
+      if (text.slice(s, e) !== m.t) { const k = text.indexOf(m.t); if (k < 0) { m.lost = true; continue; } s = k; e = k + m.t.length; }
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      const nodes = []; let pos = 0, n;
+      while ((n = walker.nextNode())) { nodes.push([n, pos]); pos += n.nodeValue.length; }
+      for (const [node, start] of nodes) {
+        const a = Math.max(s, start), b = Math.min(e, start + node.nodeValue.length);
+        if (a >= b) continue;
+        const r = document.createRange();
+        r.setStart(node, a - start); r.setEnd(node, b - start);
+        const mark = document.createElement('mark');
+        mark.className = 'gx-hl gx-hl-' + m.c; mark.dataset.hl = m.g || m.id;
+        r.surroundContents(mark);
+      }
+    }
+  }
+
+  // the little colour bar that follows a selection or a tapped highlight
+  function hlBar() {
+    let bar = by('gx-hlbar');
+    if (bar) return bar;
+    bar = document.createElement('div');
+    bar.id = 'gx-hlbar'; bar.className = 'gx-hlbar'; bar.hidden = true;
+    bar.setAttribute('role', 'toolbar'); bar.setAttribute('aria-label', '畫線顏色');
+    document.body.appendChild(bar);
+    bar.addEventListener('pointerdown', e => e.preventDefault());     // keep the selection while choosing
+    bar.addEventListener('click', e => {
+      const c = e.target.closest('[data-color]'), del = e.target.closest('[data-del]');
+      if (c) { bar.dataset.group ? recolorMark(bar.dataset.group, c.dataset.color) : addMark(c.dataset.color); }
+      else if (del) removeMark(bar.dataset.group);
+    });
+    return bar;
+  }
+  function showHlBar(rect, group) {
+    const bar = hlBar();
+    const current = group ? (marksOf(state.current.id).find(m => (m.g || m.id) === group) || {}).c : hlColor();
+    bar.innerHTML = HL_COLORS.map(([c, name]) => '<button type="button" class="gx-swatch gx-hl-' + c + (c === current ? ' gx-on' : '') + '" data-color="' + c + '" aria-label="' + (group ? '改成' : '畫線：') + name + '色"></button>').join('') +
+      (group ? '<button type="button" class="gx-hl-del" data-del aria-label="移除這段畫線">' + icon.trash + '</button>' : '');
+    if (group) bar.dataset.group = group; else delete bar.dataset.group;
+    bar.dataset.at = String(by('gx-scroll').scrollTop);
+    bar.hidden = false;
+    const w = bar.offsetWidth, h = bar.offsetHeight;
+    const phone = window.matchMedia('(pointer: coarse)').matches;
+    let top = phone ? rect.bottom + 12 : rect.top - h - 10;      // on phones the system menu sits above the selection
+    if (top < 8) top = rect.bottom + 12;
+    if (top + h > window.innerHeight - 8) top = Math.max(8, rect.top - h - 10);
+    const left = Math.min(window.innerWidth - w - 8, Math.max(8, rect.left + rect.width / 2 - w / 2));
+    bar.style.top = top + 'px'; bar.style.left = left + 'px';
+  }
+  function hideHlBar() { const bar = by('gx-hlbar'); if (bar) bar.hidden = true; }
+
+  /* ── the panel: 閱讀設定 / 我的畫線 ── */
+  function renderPanel() {
+    const panel = by('gx-panel');
+    const st = style();
+    const tabs = '<div class="sg-segment gx-panel-tabs" role="tablist">' +
+      '<button type="button" class="sg-btn" role="tab" data-tab="style" aria-selected="' + (panelTab === 'style') + '" aria-pressed="' + (panelTab === 'style') + '">閱讀設定</button>' +
+      '<button type="button" class="sg-btn" role="tab" data-tab="marks" aria-selected="' + (panelTab === 'marks') + '" aria-pressed="' + (panelTab === 'marks') + '">我的畫線</button></div>' +
+      '<button type="button" class="sg-btn gx-icon-btn gx-panel-x" data-panel-close aria-label="關閉">' + icon.x + '</button>';
+    let body = '';
+    if (panelTab === 'style') {
+      const chips = (key, items, cur) => '<div class="gx-chiprow">' + items.map(([v, label]) => '<button type="button" class="gx-opt' + (String(v) === String(cur) ? ' gx-on' : '') + '" data-set="' + key + '" data-val="' + v + '">' + label + '</button>').join('') + '</div>';
+      body =
+        '<div class="gx-field"><div class="gx-field-head"><span>字級</span><b>' + st.size + ' px</b></div><input type="range" min="13" max="24" step="0.5" value="' + st.size + '" data-range="size" aria-label="字級"></div>' +
+        '<div class="gx-field"><div class="gx-field-head"><span>行距</span><b>' + st.lead + '</b></div><input type="range" min="1.5" max="2.6" step="0.05" value="' + st.lead + '" data-range="lead" aria-label="行距"></div>' +
+        '<div class="gx-field gx-wide-only"><div class="gx-field-head"><span>版面寬度</span><b>' + st.width + ' px</b></div><input type="range" min="560" max="1100" step="20" value="' + st.width + '" data-range="width" aria-label="版面寬度"></div>' +
+        '<div class="gx-field"><div class="gx-field-head"><span>字型</span></div>' + chips('font', Object.entries(FONTS).map(([k, f]) => [k, '<span style="font-family:' + f.css.replace(/"/g, '&quot;') + '">' + f.label + '</span>']), st.font) + '</div>' +
+        '<div class="gx-field"><div class="gx-field-head"><span>粗細</span></div>' + chips('weight', WEIGHTS.map(([w, l]) => [w, '<span class="gx-w" style="--w:' + w + '">' + l + '</span>']), st.weight) + '</div>' +
+        '<div class="gx-field"><div class="gx-field-head"><span>文字顏色</span></div><div class="gx-chiprow">' +
+          INKS.map(([c, l]) => '<button type="button" class="gx-ink' + (c === st.ink ? ' gx-on' : '') + '" data-set="ink" data-val="' + c + '" style="--c:' + c + '" aria-label="' + l + '"></button>').join('') +
+          '<label class="gx-ink gx-ink-pick" aria-label="自訂顏色"><input type="color" value="' + st.ink + '" data-color-pick></label></div></div>' +
+        '<div class="gx-field"><div class="gx-field-head"><span>畫線預設顏色</span></div><div class="gx-chiprow">' +
+          HL_COLORS.map(([c, l]) => '<button type="button" class="gx-swatch gx-hl-' + c + (c === hlColor() ? ' gx-on' : '') + '" data-hl-default="' + c + '" aria-label="' + l + '"></button>').join('') + '</div></div>' +
+        '<p class="gx-preview">預覽：職業性腕隧道症候群(Carpal Tunnel Syndrome)是手腕部累積性傷害病變的一種。</p>' +
+        '<button type="button" class="sg-btn gx-reset" data-reset>恢復預設</button>';
+    } else {
+      const list = state.current ? marksOf(state.current.id) : [];
+      const groups = [];
+      list.forEach(m => { const g = groups.find(x => x.g === (m.g || m.id)); if (g) g.t += '…' + m.t; else groups.push({ g: m.g || m.id, b: m.b, c: m.c, t: m.t }); });
+      body = '<p class="gx-panel-note">選取內文文字，就會出現顏色列可以畫線；點已畫線的地方可以換色或刪除。畫線存在這台裝置的瀏覽器裡。</p>';
+      body += groups.length ? '<div class="gx-marklist">' + groups.map(g => '<div class="gx-markrow"><button type="button" class="gx-markgo" data-go="' + g.b + '"><i class="gx-dot gx-hl-' + g.c + '"></i><span>' + esc(g.t.length > 90 ? g.t.slice(0, 90) + '…' : g.t) + '</span></button><button type="button" class="gx-icon-btn gx-markdel" data-del-mark="' + g.g + '" aria-label="刪除">' + icon.trash + '</button></div>').join('') + '</div>'
+        : '<p class="gx-empty">這份指引還沒有畫線。</p>';
+      const total = Object.values(loadMarks()).reduce((n, l) => n + new Set(l.map(m => m.g || m.id)).size, 0);
+      body += '<div class="gx-panel-foot"><span>全部指引共 ' + total + ' 段</span><button type="button" class="sg-btn" data-export>匯出</button><label class="sg-btn gx-import">匯入<input type="file" accept="application/json,.json" data-import hidden></label></div>';
+    }
+    panel.innerHTML = '<div class="gx-panel-top">' + tabs + '</div><div class="gx-panel-body">' + body + '</div>';
+  }
+  function openPanel(tab) {
+    panelTab = tab;
+    const panel = by('gx-panel');
+    renderPanel();
+    panel.hidden = false;
+    by('gx-style-btn').setAttribute('aria-expanded', String(tab === 'style'));
+    by('gx-marks-btn').setAttribute('aria-expanded', String(tab === 'marks'));
+  }
+  function closePanel() {
+    by('gx-panel').hidden = true;
+    by('gx-style-btn').setAttribute('aria-expanded', 'false');
+    by('gx-marks-btn').setAttribute('aria-expanded', 'false');
+  }
+  function setStyle(patch) { setPrefs({ style: Object.assign({}, prefs().style, patch) }); applyStyle(); }
+
+  function wireReading() {
+    applyStyle();
+    const panel = by('gx-panel');
+    by('gx-style-btn').addEventListener('click', () => (!panel.hidden && panelTab === 'style') ? closePanel() : openPanel('style'));
+    by('gx-marks-btn').addEventListener('click', () => (!panel.hidden && panelTab === 'marks') ? closePanel() : openPanel('marks'));
+    panel.addEventListener('click', e => {
+      const t = e.target;
+      const tab = t.closest('[data-tab]'); if (tab) { openPanel(tab.dataset.tab); return; }
+      if (t.closest('[data-panel-close]')) { closePanel(); return; }
+      const set = t.closest('[data-set]');
+      if (set) { const k = set.dataset.set; setStyle({ [k]: k === 'weight' ? Number(set.dataset.val) : set.dataset.val }); renderPanel(); return; }
+      const def = t.closest('[data-hl-default]'); if (def) { setPrefs({ hlColor: def.dataset.hlDefault }); renderPanel(); return; }
+      if (t.closest('[data-reset]')) { setPrefs({ style: {} }); applyStyle(); renderPanel(); return; }
+      const go = t.closest('[data-go]');
+      if (go) { scrollToBlock(Number(go.dataset.go), true); if (window.matchMedia('(max-width: 900px)').matches) closePanel(); return; }
+      const del = t.closest('[data-del-mark]'); if (del) { removeMark(del.dataset.delMark); renderPanel(); return; }
+      if (t.closest('[data-export]')) {
+        const blob = new Blob([JSON.stringify({ app: 'scholar-guides', version: 1, marks: loadMarks() }, null, 1)], { type: 'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '指引畫線.json'; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      }
+    });
+    panel.addEventListener('input', e => {
+      const r = e.target.closest('[data-range]');
+      if (r) { setStyle({ [r.dataset.range]: Number(r.value) }); const b = r.parentElement.querySelector('b'); if (b) b.textContent = r.value + (r.dataset.range === 'lead' ? '' : ' px'); return; }
+      if (e.target.matches('[data-color-pick]')) setStyle({ ink: e.target.value });
+    });
+    panel.addEventListener('change', async e => {
+      if (e.target.matches('[data-color-pick]')) { renderPanel(); return; }
+      if (!e.target.matches('[data-import]') || !e.target.files[0]) return;
+      try {
+        const data = JSON.parse(await e.target.files[0].text());
+        const incoming = data && data.marks;
+        if (!incoming || typeof incoming !== 'object') throw new Error('format');
+        const all = loadMarks();
+        for (const [gid, list] of Object.entries(incoming)) {
+          if (!Array.isArray(list)) continue;
+          const have = new Set((all[gid] || []).map(m => m.id));
+          all[gid] = (all[gid] || []).concat(list.filter(m => m && !have.has(m.id) && typeof m.t === 'string'));
+        }
+        saveMarks(all); paintMarks(); renderPanel();
+      } catch (_) { alertInPanel('這個檔案不是指引畫線的匯出檔。'); }
+    });
+    function alertInPanel(msg) { const p = document.createElement('p'); p.className = 'gx-panel-note gx-warn'; p.textContent = msg; panel.querySelector('.gx-panel-body').prepend(p); }
+    document.addEventListener('pointerdown', e => {
+      if (!panel.hidden && !panel.contains(e.target) && !e.target.closest('#gx-style-btn,#gx-marks-btn')) closePanel();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !panel.hidden) { closePanel(); } });
+    // selection -> colour bar; tap on a highlight -> recolour / delete
+    let t = 0;
+    document.addEventListener('selectionchange', () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        if (document.body.dataset.game !== 'guides') { hideHlBar(); return; }
+        const sel = window.getSelection();
+        if (!sel || sel.isCollapsed || !sel.rangeCount) { const bar = by('gx-hlbar'); if (bar && !bar.dataset.group) hideHlBar(); return; }
+        if (!selectionPieces().length) { hideHlBar(); return; }
+        showHlBar(sel.getRangeAt(0).getBoundingClientRect(), null);
+      }, 200);
+    });
+    by('gx-doc').addEventListener('click', e => {
+      const m = e.target.closest('mark.gx-hl');
+      const sel = window.getSelection();
+      if (m && (!sel || sel.isCollapsed) && !e.target.closest('[data-att],[data-goto]')) showHlBar(m.getBoundingClientRect(), m.dataset.hl);
+    });
+    document.addEventListener('pointerdown', e => {
+      const bar = by('gx-hlbar');
+      if (bar && !bar.hidden && !bar.contains(e.target) && !e.target.closest('mark.gx-hl')) { if (bar.dataset.group) hideHlBar(); }
+    });
+    // a tapped highlight's bar goes away once the text has scrolled on (not for the small nudge a tap can cause)
+    by('gx-scroll').addEventListener('scroll', () => {
+      const bar = by('gx-hlbar');
+      if (bar && !bar.hidden && bar.dataset.group && Math.abs(by('gx-scroll').scrollTop - Number(bar.dataset.at || 0)) > 60) hideHlBar();
+    }, { passive: true });
+  }
+
   /* ── entry point used by the tab switcher ── */
   let booted = null;
   function show() {
@@ -536,7 +850,7 @@
         state.index.guides.forEach(g => state.byId.set(g.id, g));
         renderSide();
         const last = prefs().guide;
-        await openGuide(state.byId.has(last) ? last : state.index.guides[0].id);
+        await openGuide(state.byId.has(last) ? last : state.index.guides[0].id, { boot: true });
         const idle = window.requestIdleCallback || (fn => setTimeout(fn, 1500));
         idle(() => loadCorpus().catch(() => {}));
       })();
