@@ -5,7 +5,7 @@
   const STORE = 'scholar-laws-v1';
   const TIER_NAMES = { S: '熟練應用', A: '常見個案與專題', B: '特定場景查用', C: '支付、歷史與過渡' };
   const state = { index: null, byId: new Map(), texts: new Map(), annexes: new Map(), current: null, query: '', terms: [],
-    scope: 'all', corpus: null, corpusPromise: null, ready: false, annexOpen: null };
+    scope: 'all', field: null, corpus: null, corpusPromise: null, ready: false, annexOpen: null };
   const by = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const icon = {
@@ -157,12 +157,18 @@
         <aside class="lx-side sg-glass" aria-label="法規目錄與搜尋">
           <div class="lx-side-head"><span>法規目錄</span><button type="button" class="sg-btn lx-icon-btn" id="lx-side-close" aria-label="關閉目錄">${icon.x}</button></div>
           <div class="lx-search">${icon.search}
-            <input id="lx-q" type="search" placeholder="搜尋條文與附表" aria-label="關鍵字搜尋" autocomplete="off" spellcheck="false" enterkeyhint="search">
+            <input id="lx-q" type="search" placeholder="搜尋法規名稱、條文與附表" aria-label="關鍵字搜尋" autocomplete="off" spellcheck="false" enterkeyhint="search">
             <button type="button" class="lx-clear" id="lx-clear" aria-label="清除搜尋" hidden>${icon.x}</button>
           </div>
-          <div class="sg-segment lx-scope" id="lx-scope" role="group" aria-label="搜尋範圍" hidden>
-            <button type="button" class="sg-btn" data-scope="all" aria-pressed="true">全部法規</button>
-            <button type="button" class="sg-btn" data-scope="law" aria-pressed="false">目前這部</button>
+          <div class="lx-opts" id="lx-opts" hidden>
+            <div class="sg-segment lx-field" id="lx-field" role="group" aria-label="搜尋對象">
+              <button type="button" class="sg-btn" data-field="title" aria-pressed="false">標題<span class="lx-field-n" id="lx-n-title"></span></button>
+              <button type="button" class="sg-btn" data-field="body" aria-pressed="true">內文<span class="lx-field-n" id="lx-n-body"></span></button>
+            </div>
+            <div class="sg-segment lx-scope" id="lx-scope" role="group" aria-label="搜尋範圍">
+              <button type="button" class="sg-btn" data-scope="all" aria-pressed="true">全部法規</button>
+              <button type="button" class="sg-btn" data-scope="law" aria-pressed="false">目前這部</button>
+            </div>
           </div>
           <div class="lx-list" id="lx-list"><p class="lx-empty">載入中…</p></div>
         </aside>
@@ -203,6 +209,10 @@
     by('lx-scope').addEventListener('click', e => {
       const b = e.target.closest('[data-scope]'); if (!b) return;
       state.scope = b.dataset.scope; renderSide();
+    });
+    by('lx-field').addEventListener('click', e => {
+      const b = e.target.closest('[data-field]'); if (!b) return;
+      state.field = b.dataset.field; renderSide();
     });
     by('lx-list').addEventListener('click', e => {
       const law = e.target.closest('[data-law]');
@@ -317,11 +327,16 @@
   }
 
   /* ── sidebar ── */
-  function lawButton(l, n) {
+  function lawButton(l, n, terms) {
     const annexN = l.annexes.length;
+    const tier = terms ? state.index.tiers.find(t => t.id === l.tier) : null;
     return '<button type="button" class="lx-law" data-law="' + l.id + '"' + (state.current && state.current.id === l.id ? ' aria-current="true"' : '') + '>' +
-      '<span class="lx-law-no">' + n + '</span><span>' + esc(l.name) + '</span>' +
-      '<span class="lx-law-meta">' + l.articles + ' 條' + (annexN ? ' · ' + annexN + ' 個附表' : '') + '</span></button>';
+      '<span class="lx-law-no">' + n + '</span><span>' + (terms ? rich(l.name, null, terms) : esc(l.name)) + '</span>' +
+      '<span class="lx-law-meta">' + (tier ? esc([tier.id, tier.name].filter(Boolean).join(' ')) + ' · ' : '') + l.articles + ' 條' + (annexN ? ' · ' + annexN + ' 個附表' : '') + '</span></button>';
+  }
+  /* title search: every term in the law's name */
+  function titleHits(terms) {
+    return state.index.laws.filter(l => { const t = normMap(l.name).s; return terms.every(x => t.includes(x)); });
   }
   /* a tier is open when the reader opened it, or (until they choose) when it holds the law being read */
   function tierOpen(id) {
@@ -334,7 +349,7 @@
     const idx = state.index;
     if (!idx) return;
     by('lx-clear').hidden = !state.query;
-    by('lx-scope').hidden = !state.query;
+    by('lx-opts').hidden = !state.query;
     by('lx-scope').querySelectorAll('[data-scope]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.scope === state.scope)));
     if (!state.query) {
       list.innerHTML = idx.tiers.map(t => {
@@ -347,8 +362,23 @@
       }).join('');
       return;
     }
-    if (!state.corpus) { list.innerHTML = '<p class="lx-empty">正在載入全部條文以供搜尋…</p>'; return; }
-    const hits = search(state.terms, state.scope === 'law' && state.current ? state.current.id : null);
+    // 標題: law names (no download needed); 內文: articles and 附表. Until the reader picks one, titles show when any match.
+    const titles = titleHits(state.terms);
+    const hits = state.corpus ? search(state.terms, state.scope === 'law' && state.current ? state.current.id : null) : null;
+    const field = state.field || (titles.length ? 'title' : 'body');
+    by('lx-field').querySelectorAll('[data-field]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.field === field)));
+    by('lx-n-title').textContent = titles.length;
+    by('lx-n-body').textContent = hits ? hits.total : '…';
+    by('lx-scope').hidden = field !== 'body';
+    if (field === 'title') {
+      if (!titles.length) {
+        list.innerHTML = '<p class="lx-empty">沒有法規名稱含「' + esc(state.query) + '」。' + (hits && hits.total ? '<br>內文有 ' + hits.total + ' 處符合，可切換到「內文」查看。' : '') + '</p>';
+        return;
+      }
+      list.innerHTML = '<p class="lx-summary">' + titles.length + ' 部法規的名稱符合</p>' + titles.map(l => lawButton(l, l.no || state.index.laws.filter(x => x.tier === l.tier).indexOf(l) + 1, state.terms)).join('');
+      return;
+    }
+    if (!hits) { list.innerHTML = '<p class="lx-empty">正在載入全部條文以供搜尋…</p>'; return; }
     if (!hits.total) { list.innerHTML = '<p class="lx-empty">找不到「' + esc(state.query) + '」。<br>可試試較短的關鍵字，或用空格分開多個詞。</p>'; return; }
     let html = '<p class="lx-summary">' + hits.total + ' 處符合 · ' + hits.groups.length + ' 部法規</p>';
     state.expanded = state.expanded || new Set();

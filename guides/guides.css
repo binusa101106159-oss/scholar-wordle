@@ -21,7 +21,9 @@ body[data-game="guides"] #game-main, body[data-game="guides"] #wordle-toolbar { 
 .gx-search input::-webkit-search-cancel-button { display: none; }
 .gx-clear { position: absolute; right: 8px; width: 28px; height: 28px; border-radius: 50%; border: 0; display: grid; place-items: center; color: rgba(255,255,255,.6); background: rgba(255,255,255,.08); cursor: pointer; }
 .gx-clear:hover { background: rgba(255,255,255,.16); color: #fff; }
-.gx-scope { align-self: flex-start; margin: 0 0 8px 2px; }
+.gx-opts { display: flex; flex-wrap: wrap; gap: 6px; align-self: flex-start; margin: 0 0 8px 2px; }
+.gx-opts[hidden], .gx-scope[hidden] { display: none; }
+.gx-field-n { margin-left: 5px; font-size: .85em; opacity: .7; font-variant-numeric: tabular-nums; }
 .gx-list { flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
 .gx-cat { margin: 14px 0 6px; padding: 0 10px; display: flex; align-items: baseline; justify-content: space-between; color: rgba(255,255,255,.42); font-size: 11px; letter-spacing: .08em; }
 .gx-cat:first-child { margin-top: 2px; }

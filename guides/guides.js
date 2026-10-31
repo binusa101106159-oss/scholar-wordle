@@ -4,7 +4,7 @@
   const BASE = 'guides/';
   const STORE = 'scholar-guides-v1';
   const state = { index: null, byId: new Map(), texts: new Map(), atts: new Map(), current: null, query: '', terms: [],
-    scope: 'all', corpus: null, corpusPromise: null, attOpen: null };
+    scope: 'all', field: null, corpus: null, corpusPromise: null, attOpen: null };
   const by = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const icon = {
@@ -178,12 +178,18 @@
         <aside class="gx-side sg-glass" aria-label="指引目錄與搜尋">
           <div class="gx-side-head"><span>指引目錄</span><button type="button" class="sg-btn gx-icon-btn" id="gx-side-close" aria-label="關閉目錄">${icon.x}</button></div>
           <div class="gx-search">${icon.search}
-            <input id="gx-q" type="search" placeholder="搜尋指引全文" aria-label="關鍵字搜尋" autocomplete="off" spellcheck="false" enterkeyhint="search">
+            <input id="gx-q" type="search" placeholder="搜尋指引名稱或全文" aria-label="關鍵字搜尋" autocomplete="off" spellcheck="false" enterkeyhint="search">
             <button type="button" class="gx-clear" id="gx-clear" aria-label="清除搜尋" hidden>${icon.x}</button>
           </div>
-          <div class="sg-segment gx-scope" id="gx-scope" role="group" aria-label="搜尋範圍" hidden>
-            <button type="button" class="sg-btn" data-scope="all" aria-pressed="true">全部指引</button>
-            <button type="button" class="sg-btn" data-scope="guide" aria-pressed="false">目前這份</button>
+          <div class="gx-opts" id="gx-opts" hidden>
+            <div class="sg-segment gx-field" id="gx-field" role="group" aria-label="搜尋對象">
+              <button type="button" class="sg-btn" data-field="title" aria-pressed="false">標題<span class="gx-field-n" id="gx-n-title"></span></button>
+              <button type="button" class="sg-btn" data-field="body" aria-pressed="true">內文<span class="gx-field-n" id="gx-n-body"></span></button>
+            </div>
+            <div class="sg-segment gx-scope" id="gx-scope" role="group" aria-label="搜尋範圍">
+              <button type="button" class="sg-btn" data-scope="all" aria-pressed="true">全部指引</button>
+              <button type="button" class="sg-btn" data-scope="guide" aria-pressed="false">目前這份</button>
+            </div>
           </div>
           <div class="gx-list" id="gx-list"><p class="gx-empty">載入中…</p></div>
         </aside>
@@ -223,6 +229,10 @@
     by('gx-scope').addEventListener('click', e => {
       const b = e.target.closest('[data-scope]'); if (!b) return;
       state.scope = b.dataset.scope; renderSide();
+    });
+    by('gx-field').addEventListener('click', e => {
+      const b = e.target.closest('[data-field]'); if (!b) return;
+      state.field = b.dataset.field; renderSide();
     });
     by('gx-list').addEventListener('click', e => {
       const g = e.target.closest('[data-guide]');
@@ -332,11 +342,24 @@
   }
 
   /* ── sidebar ── */
-  function guideButton(g) {
+  function guideButton(g, terms) {
     const n = g.attach.length;
     return '<button type="button" class="gx-guide" data-guide="' + g.id + '"' + (state.current && state.current.id === g.id ? ' aria-current="true"' : '') + '>' +
-      '<span class="gx-guide-no">' + g.no + '</span><span>' + esc(g.name) + '</span>' +
-      '<span class="gx-guide-meta">' + g.pages + ' 頁' + (g.scan ? ' · 掃描影像' : '') + (n ? ' · ' + n + ' 個附件與表圖' : '') + '</span></button>';
+      '<span class="gx-guide-no">' + g.no + '</span><span>' + (terms ? rich(g.name, null, terms) : esc(g.name)) + '</span>' +
+      '<span class="gx-guide-meta">' + (terms ? esc(catPath(g.cat)) + ' · ' : '') + g.pages + ' 頁' + (g.scan ? ' · 掃描影像' : '') + (n ? ' · ' + n + ' 個附件與表圖' : '') + '</span></button>';
+  }
+  /* 農保／人因性: a category with its parents, for title hits listed outside the tree */
+  function catPath(id) {
+    const cat = state.index.cats.find(c => c.id === id);
+    if (!cat) return '';
+    return (cat.parent ? catPath(cat.parent) + '／' : '') + cat.name;
+  }
+  /* title search: every term in the guide's name (or its official name with the version) */
+  function titleHits(terms) {
+    return state.index.guides.filter(g => {
+      const t = normMap(g.name + ' ' + (g.official || '')).s;
+      return terms.every(x => t.includes(x));
+    });
   }
   /* a category is open when the reader opened it, or (until they choose) when it holds the guide being read */
   function catOpen(id) {
@@ -354,7 +377,7 @@
     const idx = state.index;
     if (!idx) return;
     by('gx-clear').hidden = !state.query;
-    by('gx-scope').hidden = !state.query;
+    by('gx-opts').hidden = !state.query;
     by('gx-scope').querySelectorAll('[data-scope]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.scope === state.scope)));
     if (!state.query) {
       const categoryHTML = c => {
@@ -371,8 +394,23 @@
       list.innerHTML = idx.cats.filter(c => !c.parent).map(categoryHTML).join('');
       return;
     }
-    if (!state.corpus) { list.innerHTML = '<p class="gx-empty">正在載入全部指引以供搜尋…</p>'; return; }
-    const hits = search(state.terms, state.scope === 'guide' && state.current ? state.current.id : null);
+    // 標題: guide names (no download needed); 內文: the full text. Until the reader picks one, titles show when any match.
+    const titles = titleHits(state.terms);
+    const hits = state.corpus ? search(state.terms, state.scope === 'guide' && state.current ? state.current.id : null) : null;
+    const field = state.field || (titles.length ? 'title' : 'body');
+    by('gx-field').querySelectorAll('[data-field]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.field === field)));
+    by('gx-n-title').textContent = titles.length;
+    by('gx-n-body').textContent = hits ? hits.total : '…';
+    by('gx-scope').hidden = field !== 'body';
+    if (field === 'title') {
+      if (!titles.length) {
+        list.innerHTML = '<p class="gx-empty">沒有指引名稱含「' + esc(state.query) + '」。' + (hits && hits.total ? '<br>內文有 ' + hits.total + ' 處符合，可切換到「內文」查看。' : '') + '</p>';
+        return;
+      }
+      list.innerHTML = '<p class="gx-summary">' + titles.length + ' 份指引的名稱符合</p>' + titles.map(g => guideButton(g, state.terms)).join('');
+      return;
+    }
+    if (!hits) { list.innerHTML = '<p class="gx-empty">正在載入全部指引以供搜尋…</p>'; return; }
     if (!hits.total) { list.innerHTML = '<p class="gx-empty">找不到「' + esc(state.query) + '」。<br>可試試較短的關鍵字，或用空格分開多個詞。</p>'; return; }
     let html = '<p class="gx-summary">' + hits.total + ' 處符合 · ' + hits.groups.length + ' 份指引</p>';
     state.expanded = state.expanded || new Set();
