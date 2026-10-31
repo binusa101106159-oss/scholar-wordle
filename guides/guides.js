@@ -557,7 +557,11 @@
   const INKS = [['#f1f5f9', '白'], ['#e8e2d4', '米白'], ['#f3e3b5', '暖黃'], ['#cbd5e1', '淺灰'], ['#bfe3d0', '淡綠'], ['#c7d7f5', '淡藍']];
   const WEIGHTS = [[300, '細'], [400, '標準'], [500, '中粗'], [700, '粗']];
   const DEFAULT_STYLE = { size: 15.5, lead: 1.95, font: 'sans', weight: 400, ink: '#f1f5f9', width: 860 };
-  function style() { return Object.assign({}, DEFAULT_STYLE, prefs().style); }
+  // shared by the 法規 and 指引 readers
+  const READ_STORE = 'scholar-reading-v1';
+  function readPrefs() { try { return JSON.parse(localStorage.getItem(READ_STORE)) || {}; } catch (_) { return {}; } }
+  function setReadPrefs(patch) { try { localStorage.setItem(READ_STORE, JSON.stringify(Object.assign(readPrefs(), patch))); } catch (_) { /* private mode */ } }
+  function style() { return Object.assign({}, DEFAULT_STYLE, prefs().style, readPrefs().style); }
   function applyStyle() {
     const st = style();
     const targets = [by('guides-panel'), by('gx-att')].filter(Boolean);
@@ -579,7 +583,7 @@
   function saveMarks(all) { try { localStorage.setItem(HL_STORE, JSON.stringify(all)); return true; } catch (_) { return false; } }
   function marksOf(gid) { return loadMarks()[gid] || []; }
   function setMarks(gid, list) { const all = loadMarks(); if (list.length) all[gid] = list; else delete all[gid]; saveMarks(all); }
-  const hlColor = () => prefs().hlColor || 'yellow';
+  const hlColor = () => readPrefs().hlColor || prefs().hlColor || 'yellow';
 
   // characters before (node, offset) inside el, counting only text
   function textOffset(el, node, offset) {
@@ -587,6 +591,10 @@
     r.setStart(el, 0); r.setEnd(node, offset);
     return r.toString().length;
   }
+  // the text blocks a highlight can sit in, and the key a highlight stores for its block
+  const anchors = () => [...by('gx-doc').querySelectorAll('[id^="gx-b-' + state.current.id + '-"]')];
+  const keyOf = el => Number(el.id.slice(('gx-b-' + state.current.id + '-').length));
+  const elOf = key => by('gx-b-' + state.current.id + '-' + key);
   function blockOf(node) {
     const el = node && (node.nodeType === 3 ? node.parentElement : node);
     const b = el && el.closest('[id^="gx-b-"]');
@@ -599,14 +607,13 @@
     const range = sel.getRangeAt(0);
     const doc = by('gx-doc');
     if (!doc.contains(range.commonAncestorContainer)) return [];
-    const prefix = 'gx-b-' + state.current.id + '-';
-    const blocks = [...doc.querySelectorAll('[id^="' + prefix + '"]')].filter(el => range.intersectsNode(el) && el.textContent.trim());
+    const blocks = anchors().filter(el => range.intersectsNode(el) && el.textContent.trim());
     const out = [];
     for (const el of blocks) {
       const len = el.textContent.length;
       const s = el.contains(range.startContainer) ? textOffset(el, range.startContainer, range.startOffset) : 0;
       const e = el.contains(range.endContainer) ? textOffset(el, range.endContainer, range.endOffset) : len;
-      if (e > s) out.push({ b: Number(el.id.slice(prefix.length)), s, e, t: el.textContent.slice(s, e) });
+      if (e > s) out.push({ b: keyOf(el), s, e, t: el.textContent.slice(s, e) });
     }
     return out;
   }
@@ -621,16 +628,17 @@
       list = list.flatMap(m => {
         if (m.b !== p.b || m.e <= p.s || m.s >= p.e) return [m];
         const keep = [];
-        const el = by('gx-b-' + gid + '-' + m.b), text = el ? el.textContent : '';
+        const el = elOf(m.b), text = el ? el.textContent : '';
         if (m.s < p.s) keep.push(Object.assign({}, m, { e: p.s, t: text.slice(m.s, p.s), id: m.id + 'a' }));
         if (m.e > p.e) keep.push(Object.assign({}, m, { s: p.e, t: text.slice(p.e, m.e), id: m.id + 'b' }));
         return keep;
       });
       list.push({ id: id + (pieces.length > 1 ? '-' + i : ''), g: id, b: p.b, s: p.s, e: p.e, t: p.t, c: color, at: Date.now() });
     });
-    list.sort((a, b) => a.b - b.b || a.s - b.s);
+    const order = new Map(anchors().map((el, i) => [keyOf(el), i]));
+    list.sort((a, b) => (order.get(a.b) ?? 1e9) - (order.get(b.b) ?? 1e9) || a.s - b.s);
     setMarks(gid, list);
-    setPrefs({ hlColor: color });
+    setReadPrefs({ hlColor: color });
     window.getSelection().removeAllRanges();
     hideHlBar();
     paintMarks();
@@ -639,7 +647,7 @@
   function recolorMark(group, color) {
     const gid = state.current.id;
     setMarks(gid, marksOf(gid).map(m => (m.g || m.id) === group ? Object.assign({}, m, { c: color }) : m));
-    setPrefs({ hlColor: color });
+    setReadPrefs({ hlColor: color });
     hideHlBar(); paintMarks();
     if (!by('gx-panel').hidden && panelTab === 'marks') renderPanel();
   }
@@ -655,7 +663,7 @@
     const doc = by('gx-doc');
     doc.querySelectorAll('mark.gx-hl').forEach(m => { const p = m.parentNode; while (m.firstChild) p.insertBefore(m.firstChild, m); p.removeChild(m); p.normalize(); });
     for (const m of marksOf(state.current.id)) {
-      const el = by('gx-b-' + state.current.id + '-' + m.b);
+      const el = elOf(m.b);
       if (!el) { m.lost = true; continue; }
       let s = m.s, e = m.e;
       const text = el.textContent;
@@ -704,6 +712,7 @@
     let top = phone ? rect.bottom + 12 : rect.top - h - 10;      // on phones the system menu sits above the selection
     if (top < 8) top = rect.bottom + 12;
     if (top + h > window.innerHeight - 8) top = Math.max(8, rect.top - h - 10);
+    top = Math.min(Math.max(8, top), window.innerHeight - h - 8);     // a selection running off screen keeps the bar in view
     const left = Math.min(window.innerWidth - w - 8, Math.max(8, rect.left + rect.width / 2 - w / 2));
     bar.style.top = top + 'px'; bar.style.left = left + 'px';
   }
@@ -758,7 +767,7 @@
     by('gx-style-btn').setAttribute('aria-expanded', 'false');
     by('gx-marks-btn').setAttribute('aria-expanded', 'false');
   }
-  function setStyle(patch) { setPrefs({ style: Object.assign({}, prefs().style, patch) }); applyStyle(); }
+  function setStyle(patch) { setReadPrefs({ style: Object.assign({}, style(), patch) }); applyStyle(); }
 
   function wireReading() {
     applyStyle();
@@ -771,10 +780,10 @@
       if (t.closest('[data-panel-close]')) { closePanel(); return; }
       const set = t.closest('[data-set]');
       if (set) { const k = set.dataset.set; setStyle({ [k]: k === 'weight' ? Number(set.dataset.val) : set.dataset.val }); renderPanel(); return; }
-      const def = t.closest('[data-hl-default]'); if (def) { setPrefs({ hlColor: def.dataset.hlDefault }); renderPanel(); return; }
-      if (t.closest('[data-reset]')) { setPrefs({ style: {} }); applyStyle(); renderPanel(); return; }
+      const def = t.closest('[data-hl-default]'); if (def) { setReadPrefs({ hlColor: def.dataset.hlDefault }); renderPanel(); return; }
+      if (t.closest('[data-reset]')) { setPrefs({ style: {} }); setReadPrefs({ style: {} }); applyStyle(); renderPanel(); return; }
       const go = t.closest('[data-go]');
-      if (go) { scrollToBlock(Number(go.dataset.go), true); if (window.matchMedia('(max-width: 900px)').matches) closePanel(); return; }
+      if (go) { scrollToBlock(go.dataset.go, true); if (window.matchMedia('(max-width: 900px)').matches) closePanel(); return; }
       const del = t.closest('[data-del-mark]'); if (del) { removeMark(del.dataset.delMark); renderPanel(); return; }
       if (t.closest('[data-export]')) {
         const blob = new Blob([JSON.stringify({ app: 'scholar-guides', version: 1, marks: loadMarks() }, null, 1)], { type: 'application/json' });
@@ -842,6 +851,7 @@
     const panel = by('guides-panel');
     if (!panel) return;
     measure();
+    if (booted) applyStyle();
     if (!booted) {
       booted = (async () => {
         shell(); measure();

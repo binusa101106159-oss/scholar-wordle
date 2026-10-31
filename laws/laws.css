@@ -200,3 +200,108 @@ mark.lx-mark, .lx-dialog mark.lx-mark { background: rgba(226,197,138,.32); color
   .sg-tabs .sg-tab { padding: 7px 9px; }
   .sg-tabs .sg-tab .sg-icon { display: none; }
 }
+
+/* ── reading settings (法規 and 指引 share them; set as variables on the panel and the 附表 window) ── */
+#laws-panel .lx-doc { max-width: var(--lx-width, 860px); }
+#laws-panel .lx-art-body, #laws-panel .lx-ch, #lx-annex .lx-dialog-body { color: var(--lx-ink, var(--lx-text)); }
+#laws-panel .lx-art-body { font-size: var(--lx-fs, 15.5px); line-height: var(--lx-lead, 1.95); }
+#laws-panel .lx-art-no { line-height: var(--lx-lead, 1.95); }
+#laws-panel .lx-art-body .lx-table, #lx-annex .lx-table { font-size: calc(var(--lx-fs, 15.5px) * .87); color: var(--lx-ink, var(--lx-text)); }
+#lx-annex .lx-ap { font-size: calc(var(--lx-fs, 15.5px) * .9); line-height: var(--lx-lead, 1.85); }
+#laws-panel .lx-art-body, #laws-panel .lx-art-body *:not(svg):not(path), #laws-panel .lx-ch, #lx-annex .lx-dialog-body, #lx-annex .lx-dialog-body *:not(svg):not(path) {
+  font-family: var(--lx-font, 'Roboto', 'Noto Sans TC', 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', system-ui, sans-serif) !important;
+}
+/* the site sets every element to weight 400 with !important; the chosen weight has to answer in kind */
+#laws-panel .lx-art-body *:not(svg):not(path), #laws-panel .lx-art-body, #laws-panel .lx-ch, #lx-annex .lx-dialog-body *:not(svg):not(path), #lx-panel .lx-preview { font-weight: var(--lx-weight, 400) !important; }
+#lx-panel .lx-w { font-weight: var(--w) !important; }
+#laws-panel .lx-ch.lx-flash { background: rgba(96,165,250,.13); border-radius: 6px; }
+@media (max-width: 900px) { #laws-panel .lx-art-body { font-size: calc(var(--lx-fs, 15.5px) - .5px); } }
+
+/* tiers fold open and shut */
+.lx-tier { width: 100%; margin: 4px 0 2px; padding: 9px 10px; border: 0; border-radius: 12px; background: transparent; font: inherit; font-size: 11px; text-align: left; cursor: pointer; }
+.lx-tier:first-child { margin-top: 0; }
+.lx-tier:hover { background: rgba(255,255,255,.05); }
+.lx-tier:focus-visible { outline: 2px solid #93c5fd; outline-offset: 1px; }
+.lx-tier > span:last-child { font-variant-numeric: tabular-nums; }
+.lx-tier-name { display: inline-flex; align-items: center; gap: 6px; }
+.lx-tier-name b { margin-right: 0; }
+.lx-tier-name .sg-icon { width: 13px; height: 13px; color: rgba(255,255,255,.5); transition: transform .18s; }
+.lx-tier[aria-expanded="true"] .lx-tier-name .sg-icon { transform: rotate(90deg); }
+.lx-tier-list[hidden] { display: none; }
+.lx-tier-list { padding-bottom: 6px; }
+@media (prefers-reduced-motion: reduce) { .lx-tier-name .sg-icon { transition: none; } }
+
+/* toolbar buttons */
+.lx-tool-btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; font-size: 12px; }
+.lx-tool-btn[aria-expanded="true"] { color: #fff; border-color: rgba(147,197,253,.4); background: rgba(96,165,250,.18); }
+.lx-reader { position: relative; }
+
+/* panel: a floating card under the toolbar; a bottom sheet on phones */
+.lx-panel { position: absolute; z-index: 30; backdrop-filter: blur(24px) saturate(140%); -webkit-backdrop-filter: blur(24px) saturate(140%); top: 44px; right: 6px; width: min(360px, calc(100% - 12px)); max-height: calc(100% - 60px); display: flex; flex-direction: column; padding: 0; border-radius: 22px; background: rgba(20,22,28,.97); border: 1px solid rgba(255,255,255,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 24px 70px rgba(0,0,0,.6); }
+.lx-panel[hidden] { display: none; }
+.lx-panel-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 12px 10px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.lx-panel-tabs .sg-btn { padding: 5px 12px; font-size: 12px; }
+.lx-panel-x { width: 30px; height: 30px; }
+.lx-panel-body { overflow-y: auto; padding: 12px 16px 16px; scrollbar-width: thin; }
+.lx-field { margin: 0 0 14px; }
+.lx-field-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; color: rgba(255,255,255,.6); font-size: 12px; }
+.lx-field-head b { color: #fff; font-weight: 400; font-variant-numeric: tabular-nums; }
+.lx-field input[type=range] { width: 100%; accent-color: #93c5fd; }
+.lx-chiprow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.lx-opt { padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04); color: rgba(255,255,255,.8); font-size: 14px; cursor: pointer; }
+.lx-opt.lx-on { color: #fff; border-color: rgba(147,197,253,.55); background: rgba(96,165,250,.22); }
+.lx-ink { position: relative; width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(255,255,255,.18); background: var(--c); cursor: pointer; padding: 0; }
+.lx-ink.lx-on { border-color: #93c5fd; box-shadow: 0 0 0 2px rgba(147,197,253,.35); }
+.lx-ink-pick { display: grid; place-items: center; background: conic-gradient(#f87171, #fbbf24, #4ade80, #60a5fa, #c084fc, #f87171); overflow: hidden; }
+.lx-ink-pick input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.lx-preview { margin: 4px 0 12px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.04); color: var(--lx-ink, var(--lx-text)); font-family: var(--lx-font) !important; font-size: var(--lx-fs, 15.5px); line-height: var(--lx-lead, 1.95); }
+.lx-reset { font-size: 12px; padding: 6px 12px; }
+.lx-panel-note { margin: 0 0 10px; color: rgba(255,255,255,.5); font-size: 12px; line-height: 1.7; }
+.lx-warn { color: #fdba74; }
+.lx-marklist { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+.lx-markrow { display: flex; align-items: flex-start; gap: 4px; }
+.lx-markgo { flex: 1; display: flex; gap: 8px; align-items: baseline; text-align: left; padding: 7px 8px; border: 0; border-radius: 10px; background: transparent; color: rgba(255,255,255,.78); font-size: 13px; line-height: 1.6; cursor: pointer; }
+.lx-markgo:hover { background: rgba(255,255,255,.06); }
+.lx-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; transform: translateY(1px); }
+.lx-markdel { width: 30px; height: 30px; border: 0; background: transparent; color: rgba(255,255,255,.45); border-radius: 10px; cursor: pointer; display: grid; place-items: center; }
+.lx-markdel:hover { color: #fca5a5; background: rgba(255,255,255,.06); }
+.lx-panel-foot { display: flex; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.45); font-size: 12px; }
+.lx-panel-foot span { flex: 1; }
+.lx-panel-foot .sg-btn { font-size: 12px; padding: 5px 12px; cursor: pointer; }
+
+/* highlights: translucent so the text keeps its colour; the same hues name the swatches */
+mark.lx-hl { color: inherit; border-radius: 3px; padding: 0 1px; box-decoration-break: clone; -webkit-box-decoration-break: clone; cursor: pointer; }
+.lx-hl-yellow { background: rgba(250,204,21,.38); }
+.lx-hl-green { background: rgba(74,222,128,.32); }
+.lx-hl-blue { background: rgba(96,165,250,.38); }
+.lx-hl-pink { background: rgba(244,114,182,.36); }
+.lx-hl-orange { background: rgba(251,146,60,.4); }
+mark.lx-hl mark.lx-mark { background: transparent; box-shadow: 0 0 0 1px rgba(226,197,138,.8); }
+.lx-hlbar { position: fixed; z-index: 60; display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 999px; background: rgba(24,26,33,.97); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 10px 30px rgba(0,0,0,.55); }
+.lx-hlbar[hidden] { display: none; }
+.lx-swatch { width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(255,255,255,.2); padding: 0; cursor: pointer; }
+.lx-hlbar .lx-swatch.lx-hl-yellow, .lx-panel .lx-swatch.lx-hl-yellow, .lx-dot.lx-hl-yellow { background: #facc15; }
+.lx-hlbar .lx-swatch.lx-hl-green, .lx-panel .lx-swatch.lx-hl-green, .lx-dot.lx-hl-green { background: #4ade80; }
+.lx-hlbar .lx-swatch.lx-hl-blue, .lx-panel .lx-swatch.lx-hl-blue, .lx-dot.lx-hl-blue { background: #60a5fa; }
+.lx-hlbar .lx-swatch.lx-hl-pink, .lx-panel .lx-swatch.lx-hl-pink, .lx-dot.lx-hl-pink { background: #f472b6; }
+.lx-hlbar .lx-swatch.lx-hl-orange, .lx-panel .lx-swatch.lx-hl-orange, .lx-dot.lx-hl-orange { background: #fb923c; }
+.lx-swatch.lx-on { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,.25); }
+.lx-hl-del { width: 30px; height: 30px; margin-left: 2px; border: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.08); color: #fca5a5; cursor: pointer; }
+@media (max-width: 900px) {
+  .lx-bar { flex-wrap: nowrap; }
+  .lx-bar .lx-select { flex: 1 1 auto; min-width: 0; max-width: none; }
+  .lx-bar .lx-menu-btn, .lx-bar .lx-jump, .lx-bar .lx-tool-btn { flex: none; white-space: nowrap; }
+  .lx-bar { gap: 6px; }
+  .lx-jump input { width: 40px; }
+  .lx-bar .lx-spacer { display: none; }
+  .lx-tool-btn span { display: none; }
+  .lx-wide-only { display: none; }
+  .lx-tool-btn { padding: 0 9px; }
+  .lx-panel { position: fixed; top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; max-height: 72dvh; border-radius: 24px; }
+  .lx-swatch { width: 32px; height: 32px; }
+}
+/* narrow phones: the 目錄 button keeps its icon only, so the chapter menu has room */
+@media (max-width: 420px) {
+  .lx-menu-btn { font-size: 0 !important; gap: 0 !important; padding: 0 10px !important; }
+  .lx-menu-btn .sg-icon { font-size: 14px; }
+}

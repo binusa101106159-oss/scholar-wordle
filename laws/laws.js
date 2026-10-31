@@ -13,7 +13,10 @@
     x: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
     list: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
     left: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>',
-    right: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>'
+    right: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>',
+    pen: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h5l10.5-10.5a2.1 2.1 0 0 0-3-3L6 17v3"/><path d="M14.5 7.5l3 3"/></svg>',
+    aa: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18 8 6l5 12M4.8 14h6.4"/><path d="M15 12.5c.6-1 1.6-1.5 2.8-1.5 1.8 0 3.2 1 3.2 3v4M21 15.5c-1-.4-2-.5-3-.4-1.6.2-2.8.9-2.8 2.1 0 1 .8 1.8 2 1.8 1.6 0 3-1.1 3.8-2.4"/></svg>',
+    trash: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg>'
   };
 
   function prefs() { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (_) { return {}; } }
@@ -158,7 +161,10 @@
             <label class="lx-jump">第<input id="lx-jump" inputmode="numeric" aria-label="跳到第幾條" placeholder="" autocomplete="off">條</label>
             <select class="lx-select" id="lx-chapters" aria-label="跳到章節" hidden></select>
             <span class="lx-spacer"></span>
+            <button type="button" class="sg-btn lx-tool-btn" id="lx-marks-btn" aria-haspopup="dialog" aria-controls="lx-panel" title="我的畫線">${icon.pen}<span>畫線</span></button>
+            <button type="button" class="sg-btn lx-tool-btn" id="lx-style-btn" aria-haspopup="dialog" aria-controls="lx-panel" title="閱讀設定">${icon.aa}<span>閱讀設定</span></button>
           </div>
+          <div class="lx-panel" id="lx-panel" role="dialog" aria-label="閱讀設定與畫線" hidden></div>
           <div class="lx-scroll" id="lx-scroll"><article class="lx-doc" id="lx-doc"></article></div>
         </section>
       </div>
@@ -190,6 +196,12 @@
     by('lx-list').addEventListener('click', e => {
       const law = e.target.closest('[data-law]');
       const more = e.target.closest('[data-more]');
+      const tier = e.target.closest('[data-tier]');
+      if (tier) {
+        const open = Object.assign({}, prefs().open);
+        open[tier.dataset.tier] = !tierOpen(tier.dataset.tier);
+        setPrefs({ open }); renderSide(); return;
+      }
       if (more) { state.expanded = state.expanded || new Set(); state.expanded.add(more.dataset.more); renderSide(); return; }
       if (!law) return;
       const annex = law.dataset.openAnnex;
@@ -276,6 +288,7 @@
     window.addEventListener('load', measure);
     if (window.ResizeObserver) new ResizeObserver(measure).observe(document.querySelector('.sg-nav-shell') || document.body);
     window.addEventListener('pagehide', rememberPosition);
+    wireReading();
   }
 
   function measure() {
@@ -299,6 +312,12 @@
       '<span class="lx-law-no">' + n + '</span><span>' + esc(l.name) + '</span>' +
       '<span class="lx-law-meta">' + l.articles + ' 條' + (annexN ? ' · ' + annexN + ' 個附表' : '') + '</span></button>';
   }
+  /* a tier is open when the reader opened it, or (until they choose) when it holds the law being read */
+  function tierOpen(id) {
+    const saved = (prefs().open || {})[id];
+    if (saved != null) return saved;
+    return Boolean(state.current && state.current.meta.tier === id);
+  }
   function renderSide() {
     const list = by('lx-list');
     const idx = state.index;
@@ -310,8 +329,10 @@
       list.innerHTML = idx.tiers.map(t => {
         const laws = idx.laws.filter(l => l.tier === t.id);
         const count = t.total && t.total > laws.length ? laws.length + ' / ' + t.total + ' 部' : laws.length + ' 部';
-        return '<div class="lx-tier"><span><b>' + t.id + '</b>' + esc(t.name) + '</span><span>' + count + '</span></div>' +
-          laws.map((l, i) => lawButton(l, l.no || i + 1)).join('');
+        const open = tierOpen(t.id);
+        return '<button type="button" class="lx-tier" data-tier="' + t.id + '" aria-expanded="' + open + '" aria-controls="lx-tier-' + t.id + '">' +
+          '<span class="lx-tier-name">' + icon.right + '<b>' + t.id + '</b>' + esc(t.name) + '</span><span>' + count + '</span></button>' +
+          '<div class="lx-tier-list" id="lx-tier-' + t.id + '"' + (open ? '' : ' hidden') + '>' + laws.map((l, i) => lawButton(l, l.no || i + 1)).join('') + '</div>';
       }).join('');
       return;
     }
@@ -413,6 +434,7 @@
       catch (_) { by('lx-doc').innerHTML = '<p class="lx-loading">無法載入這部法規。請確認網路連線後再試一次。</p>'; return; }
       state.current = Object.assign({}, data, { meta });
       setPrefs({ law: id });
+      if (!opts.boot && !tierOpen(meta.tier)) setPrefs({ open: Object.assign({}, prefs().open, { [meta.tier]: true }) });
       renderDoc(state.current, false);
       renderSide();
       const saved = (prefs().pos || {})[id];
@@ -475,8 +497,10 @@
     sel.hidden = !chapters.length;
     sel.innerHTML = '<option value="">章節</option>' + chapters.map(c => '<option value="' + c.id + '">' + '　'.repeat(c.level - 1) + esc(c.text.replace(/\s+/g, ' ')) + '</option>').join('');
     by('lx-jump').value = '';
+    paintMarks();
     if (keepScroll) { sc.style.scrollBehavior = 'auto'; sc.scrollTop = top; sc.style.scrollBehavior = ''; }
     document.title = meta.name + ' · Scholar';
+    if (!by('lx-panel').hidden && panelTab === 'marks') renderPanel();
   }
 
   /* ── 附表 window ── */
@@ -525,12 +549,317 @@
     if (next) openAnnex(next.id);
   }
 
+  /* ── reading settings: size, spacing, font, weight, colour (this device only) ── */
+  const FONTS = {
+    sans: { label: '黑體', css: "'Noto Sans TC','PingFang TC','Heiti TC','Microsoft JhengHei',system-ui,sans-serif" },
+    serif: { label: '明體', css: "'Noto Serif TC','Songti TC','PMingLiU','MingLiU','Source Han Serif TC',serif" },
+    kai: { label: '楷體', css: "'Kaiti TC','BiauKai','DFKai-SB','STKaiti','KaiTi',serif" },
+    round: { label: '圓體', css: "'Yuanti TC','jf open 粉圓','Hiragino Maru Gothic ProN','PingFang TC',system-ui,sans-serif" }
+  };
+  const INKS = [['#f1f5f9', '白'], ['#e8e2d4', '米白'], ['#f3e3b5', '暖黃'], ['#cbd5e1', '淺灰'], ['#bfe3d0', '淡綠'], ['#c7d7f5', '淡藍']];
+  const WEIGHTS = [[300, '細'], [400, '標準'], [500, '中粗'], [700, '粗']];
+  const DEFAULT_STYLE = { size: 15.5, lead: 1.95, font: 'sans', weight: 400, ink: '#f1f5f9', width: 860 };
+  // shared by the 法規 and 指引 readers
+  const READ_STORE = 'scholar-reading-v1';
+  function readPrefs() { try { return JSON.parse(localStorage.getItem(READ_STORE)) || {}; } catch (_) { return {}; } }
+  function setReadPrefs(patch) { try { localStorage.setItem(READ_STORE, JSON.stringify(Object.assign(readPrefs(), patch))); } catch (_) { /* private mode */ } }
+  function style() { return Object.assign({}, DEFAULT_STYLE, prefs().style, readPrefs().style); }
+  function applyStyle() {
+    const st = style();
+    const targets = [by('laws-panel'), by('lx-annex')].filter(Boolean);
+    targets.forEach(el => {
+      el.style.setProperty('--lx-fs', st.size + 'px');
+      el.style.setProperty('--lx-lead', st.lead);
+      el.style.setProperty('--lx-font', (FONTS[st.font] || FONTS.sans).css);
+      el.style.setProperty('--lx-weight', st.weight);
+      el.style.setProperty('--lx-ink', st.ink);
+      el.style.setProperty('--lx-width', st.width + 'px');
+    });
+  }
+
+  /* ── highlights: chosen colour on any run of text, kept per guide (this device only) ── */
+  const HL_STORE = 'scholar-laws-hl-v1';
+  const HL_COLORS = [['yellow', '黃'], ['green', '綠'], ['blue', '藍'], ['pink', '粉紅'], ['orange', '橘']];
+  let panelTab = 'style';
+  function loadMarks() { try { return JSON.parse(localStorage.getItem(HL_STORE)) || {}; } catch (_) { return {}; } }
+  function saveMarks(all) { try { localStorage.setItem(HL_STORE, JSON.stringify(all)); return true; } catch (_) { return false; } }
+  function marksOf(gid) { return loadMarks()[gid] || []; }
+  function setMarks(gid, list) { const all = loadMarks(); if (list.length) all[gid] = list; else delete all[gid]; saveMarks(all); }
+  const hlColor = () => readPrefs().hlColor || prefs().hlColor || 'yellow';
+
+  // characters before (node, offset) inside el, counting only text
+  function textOffset(el, node, offset) {
+    const r = document.createRange();
+    r.setStart(el, 0); r.setEnd(node, offset);
+    return r.toString().length;
+  }
+  // the text blocks a highlight can sit in, and the key a highlight stores for its block
+  const anchors = () => [...by('lx-doc').querySelectorAll('[id^="lx-a-' + state.current.id + '-"], [id^="lx-ch-' + state.current.id + '-"]')];
+  const keyOf = el => el.id;
+  const elOf = key => by(key);
+  function scrollToKey(key) {
+    const el = by(key); if (!el) return;
+    const sc = by('lx-scroll');
+    sc.scrollTo({ top: el.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 6, behavior: 'smooth' });
+    el.classList.add('lx-flash'); setTimeout(() => el.classList.remove('lx-flash'), 1400);
+  }
+  function blockOf(node) {
+    const el = node && (node.nodeType === 3 ? node.parentElement : node);
+    const b = el && el.closest('[id^="lx-a-"], [id^="lx-ch-"]');
+    return b && by('lx-doc').contains(b) ? b : null;
+  }
+  // the current selection as pieces of text per block: [{b, s, e, t}]
+  function selectionPieces() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount || !state.current) return [];
+    const range = sel.getRangeAt(0);
+    const doc = by('lx-doc');
+    if (!doc.contains(range.commonAncestorContainer)) return [];
+    const blocks = anchors().filter(el => range.intersectsNode(el) && el.textContent.trim());
+    const out = [];
+    for (const el of blocks) {
+      const len = el.textContent.length;
+      const s = el.contains(range.startContainer) ? textOffset(el, range.startContainer, range.startOffset) : 0;
+      const e = el.contains(range.endContainer) ? textOffset(el, range.endContainer, range.endOffset) : len;
+      if (e > s) out.push({ b: keyOf(el), s, e, t: el.textContent.slice(s, e) });
+    }
+    return out;
+  }
+  function addMark(color) {
+    const pieces = selectionPieces();
+    if (!pieces.length) return;
+    const gid = state.current.id;
+    let list = marksOf(gid);
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    pieces.forEach((p, i) => {
+      // a new mark replaces the overlapping parts of older marks in the same block
+      list = list.flatMap(m => {
+        if (m.b !== p.b || m.e <= p.s || m.s >= p.e) return [m];
+        const keep = [];
+        const el = elOf(m.b), text = el ? el.textContent : '';
+        if (m.s < p.s) keep.push(Object.assign({}, m, { e: p.s, t: text.slice(m.s, p.s), id: m.id + 'a' }));
+        if (m.e > p.e) keep.push(Object.assign({}, m, { s: p.e, t: text.slice(p.e, m.e), id: m.id + 'b' }));
+        return keep;
+      });
+      list.push({ id: id + (pieces.length > 1 ? '-' + i : ''), g: id, b: p.b, s: p.s, e: p.e, t: p.t, c: color, at: Date.now() });
+    });
+    const order = new Map(anchors().map((el, i) => [keyOf(el), i]));
+    list.sort((a, b) => (order.get(a.b) ?? 1e9) - (order.get(b.b) ?? 1e9) || a.s - b.s);
+    setMarks(gid, list);
+    setReadPrefs({ hlColor: color });
+    window.getSelection().removeAllRanges();
+    hideHlBar();
+    paintMarks();
+    if (!by('lx-panel').hidden && panelTab === 'marks') renderPanel();
+  }
+  function recolorMark(group, color) {
+    const gid = state.current.id;
+    setMarks(gid, marksOf(gid).map(m => (m.g || m.id) === group ? Object.assign({}, m, { c: color }) : m));
+    setReadPrefs({ hlColor: color });
+    hideHlBar(); paintMarks();
+    if (!by('lx-panel').hidden && panelTab === 'marks') renderPanel();
+  }
+  function removeMark(group) {
+    const gid = state.current.id;
+    setMarks(gid, marksOf(gid).filter(m => (m.g || m.id) !== group));
+    hideHlBar(); paintMarks();
+    if (!by('lx-panel').hidden && panelTab === 'marks') renderPanel();
+  }
+  // wrap the stored ranges in <mark>; a mark whose text moved is looked up by its words, or left unpainted
+  function paintMarks() {
+    if (!state.current) return;
+    const doc = by('lx-doc');
+    doc.querySelectorAll('mark.lx-hl').forEach(m => { const p = m.parentNode; while (m.firstChild) p.insertBefore(m.firstChild, m); p.removeChild(m); p.normalize(); });
+    for (const m of marksOf(state.current.id)) {
+      const el = elOf(m.b);
+      if (!el) { m.lost = true; continue; }
+      let s = m.s, e = m.e;
+      const text = el.textContent;
+      if (text.slice(s, e) !== m.t) { const k = text.indexOf(m.t); if (k < 0) { m.lost = true; continue; } s = k; e = k + m.t.length; }
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      const nodes = []; let pos = 0, n;
+      while ((n = walker.nextNode())) { nodes.push([n, pos]); pos += n.nodeValue.length; }
+      for (const [node, start] of nodes) {
+        const a = Math.max(s, start), b = Math.min(e, start + node.nodeValue.length);
+        if (a >= b) continue;
+        const r = document.createRange();
+        r.setStart(node, a - start); r.setEnd(node, b - start);
+        const mark = document.createElement('mark');
+        mark.className = 'lx-hl lx-hl-' + m.c; mark.dataset.hl = m.g || m.id;
+        r.surroundContents(mark);
+      }
+    }
+  }
+
+  // the little colour bar that follows a selection or a tapped highlight
+  function hlBar() {
+    let bar = by('lx-hlbar');
+    if (bar) return bar;
+    bar = document.createElement('div');
+    bar.id = 'lx-hlbar'; bar.className = 'lx-hlbar'; bar.hidden = true;
+    bar.setAttribute('role', 'toolbar'); bar.setAttribute('aria-label', '畫線顏色');
+    document.body.appendChild(bar);
+    bar.addEventListener('pointerdown', e => e.preventDefault());     // keep the selection while choosing
+    bar.addEventListener('click', e => {
+      const c = e.target.closest('[data-color]'), del = e.target.closest('[data-del]');
+      if (c) { bar.dataset.group ? recolorMark(bar.dataset.group, c.dataset.color) : addMark(c.dataset.color); }
+      else if (del) removeMark(bar.dataset.group);
+    });
+    return bar;
+  }
+  function showHlBar(rect, group) {
+    const bar = hlBar();
+    const current = group ? (marksOf(state.current.id).find(m => (m.g || m.id) === group) || {}).c : hlColor();
+    bar.innerHTML = HL_COLORS.map(([c, name]) => '<button type="button" class="lx-swatch lx-hl-' + c + (c === current ? ' lx-on' : '') + '" data-color="' + c + '" aria-label="' + (group ? '改成' : '畫線：') + name + '色"></button>').join('') +
+      (group ? '<button type="button" class="lx-hl-del" data-del aria-label="移除這段畫線">' + icon.trash + '</button>' : '');
+    if (group) bar.dataset.group = group; else delete bar.dataset.group;
+    bar.dataset.at = String(by('lx-scroll').scrollTop);
+    bar.hidden = false;
+    const w = bar.offsetWidth, h = bar.offsetHeight;
+    const phone = window.matchMedia('(pointer: coarse)').matches;
+    let top = phone ? rect.bottom + 12 : rect.top - h - 10;      // on phones the system menu sits above the selection
+    if (top < 8) top = rect.bottom + 12;
+    if (top + h > window.innerHeight - 8) top = Math.max(8, rect.top - h - 10);
+    top = Math.min(Math.max(8, top), window.innerHeight - h - 8);     // a selection running off screen keeps the bar in view
+    const left = Math.min(window.innerWidth - w - 8, Math.max(8, rect.left + rect.width / 2 - w / 2));
+    bar.style.top = top + 'px'; bar.style.left = left + 'px';
+  }
+  function hideHlBar() { const bar = by('lx-hlbar'); if (bar) bar.hidden = true; }
+
+  /* ── the panel: 閱讀設定 / 我的畫線 ── */
+  function renderPanel() {
+    const panel = by('lx-panel');
+    const st = style();
+    const tabs = '<div class="sg-segment lx-panel-tabs" role="tablist">' +
+      '<button type="button" class="sg-btn" role="tab" data-tab="style" aria-selected="' + (panelTab === 'style') + '" aria-pressed="' + (panelTab === 'style') + '">閱讀設定</button>' +
+      '<button type="button" class="sg-btn" role="tab" data-tab="marks" aria-selected="' + (panelTab === 'marks') + '" aria-pressed="' + (panelTab === 'marks') + '">我的畫線</button></div>' +
+      '<button type="button" class="sg-btn lx-icon-btn lx-panel-x" data-panel-close aria-label="關閉">' + icon.x + '</button>';
+    let body = '';
+    if (panelTab === 'style') {
+      const chips = (key, items, cur) => '<div class="lx-chiprow">' + items.map(([v, label]) => '<button type="button" class="lx-opt' + (String(v) === String(cur) ? ' lx-on' : '') + '" data-set="' + key + '" data-val="' + v + '">' + label + '</button>').join('') + '</div>';
+      body =
+        '<div class="lx-field"><div class="lx-field-head"><span>字級</span><b>' + st.size + ' px</b></div><input type="range" min="13" max="24" step="0.5" value="' + st.size + '" data-range="size" aria-label="字級"></div>' +
+        '<div class="lx-field"><div class="lx-field-head"><span>行距</span><b>' + st.lead + '</b></div><input type="range" min="1.5" max="2.6" step="0.05" value="' + st.lead + '" data-range="lead" aria-label="行距"></div>' +
+        '<div class="lx-field lx-wide-only"><div class="lx-field-head"><span>版面寬度</span><b>' + st.width + ' px</b></div><input type="range" min="560" max="1100" step="20" value="' + st.width + '" data-range="width" aria-label="版面寬度"></div>' +
+        '<div class="lx-field"><div class="lx-field-head"><span>字型</span></div>' + chips('font', Object.entries(FONTS).map(([k, f]) => [k, '<span style="font-family:' + f.css.replace(/"/g, '&quot;') + '">' + f.label + '</span>']), st.font) + '</div>' +
+        '<div class="lx-field"><div class="lx-field-head"><span>粗細</span></div>' + chips('weight', WEIGHTS.map(([w, l]) => [w, '<span class="lx-w" style="--w:' + w + '">' + l + '</span>']), st.weight) + '</div>' +
+        '<div class="lx-field"><div class="lx-field-head"><span>文字顏色</span></div><div class="lx-chiprow">' +
+          INKS.map(([c, l]) => '<button type="button" class="lx-ink' + (c === st.ink ? ' lx-on' : '') + '" data-set="ink" data-val="' + c + '" style="--c:' + c + '" aria-label="' + l + '"></button>').join('') +
+          '<label class="lx-ink lx-ink-pick" aria-label="自訂顏色"><input type="color" value="' + st.ink + '" data-color-pick></label></div></div>' +
+        '<div class="lx-field"><div class="lx-field-head"><span>畫線預設顏色</span></div><div class="lx-chiprow">' +
+          HL_COLORS.map(([c, l]) => '<button type="button" class="lx-swatch lx-hl-' + c + (c === hlColor() ? ' lx-on' : '') + '" data-hl-default="' + c + '" aria-label="' + l + '"></button>').join('') + '</div></div>' +
+        '<p class="lx-preview">預覽：字級、行距與字型的樣子 Aa 123。</p>' +
+        '<button type="button" class="sg-btn lx-reset" data-reset>恢復預設</button>';
+    } else {
+      const list = state.current ? marksOf(state.current.id) : [];
+      const groups = [];
+      list.forEach(m => { const g = groups.find(x => x.g === (m.g || m.id)); if (g) g.t += '…' + m.t; else groups.push({ g: m.g || m.id, b: m.b, c: m.c, t: m.t }); });
+      body = '<p class="lx-panel-note">選取內文文字，就會出現顏色列可以畫線；點已畫線的地方可以換色或刪除。畫線存在這台裝置的瀏覽器裡。</p>';
+      body += groups.length ? '<div class="lx-marklist">' + groups.map(g => '<div class="lx-markrow"><button type="button" class="lx-markgo" data-go="' + g.b + '"><i class="lx-dot lx-hl-' + g.c + '"></i><span>' + esc(g.t.length > 90 ? g.t.slice(0, 90) + '…' : g.t) + '</span></button><button type="button" class="lx-icon-btn lx-markdel" data-del-mark="' + g.g + '" aria-label="刪除">' + icon.trash + '</button></div>').join('') + '</div>'
+        : '<p class="lx-empty">這部法規還沒有畫線。</p>';
+      const total = Object.values(loadMarks()).reduce((n, l) => n + new Set(l.map(m => m.g || m.id)).size, 0);
+      body += '<div class="lx-panel-foot"><span>全部法規共 ' + total + ' 段</span><button type="button" class="sg-btn" data-export>匯出</button><label class="sg-btn lx-import">匯入<input type="file" accept="application/json,.json" data-import hidden></label></div>';
+    }
+    panel.innerHTML = '<div class="lx-panel-top">' + tabs + '</div><div class="lx-panel-body">' + body + '</div>';
+  }
+  function openPanel(tab) {
+    panelTab = tab;
+    const panel = by('lx-panel');
+    renderPanel();
+    panel.hidden = false;
+    by('lx-style-btn').setAttribute('aria-expanded', String(tab === 'style'));
+    by('lx-marks-btn').setAttribute('aria-expanded', String(tab === 'marks'));
+  }
+  function closePanel() {
+    by('lx-panel').hidden = true;
+    by('lx-style-btn').setAttribute('aria-expanded', 'false');
+    by('lx-marks-btn').setAttribute('aria-expanded', 'false');
+  }
+  function setStyle(patch) { setReadPrefs({ style: Object.assign({}, style(), patch) }); applyStyle(); }
+
+  function wireReading() {
+    applyStyle();
+    const panel = by('lx-panel');
+    by('lx-style-btn').addEventListener('click', () => (!panel.hidden && panelTab === 'style') ? closePanel() : openPanel('style'));
+    by('lx-marks-btn').addEventListener('click', () => (!panel.hidden && panelTab === 'marks') ? closePanel() : openPanel('marks'));
+    panel.addEventListener('click', e => {
+      const t = e.target;
+      const tab = t.closest('[data-tab]'); if (tab) { openPanel(tab.dataset.tab); return; }
+      if (t.closest('[data-panel-close]')) { closePanel(); return; }
+      const set = t.closest('[data-set]');
+      if (set) { const k = set.dataset.set; setStyle({ [k]: k === 'weight' ? Number(set.dataset.val) : set.dataset.val }); renderPanel(); return; }
+      const def = t.closest('[data-hl-default]'); if (def) { setReadPrefs({ hlColor: def.dataset.hlDefault }); renderPanel(); return; }
+      if (t.closest('[data-reset]')) { setPrefs({ style: {} }); setReadPrefs({ style: {} }); applyStyle(); renderPanel(); return; }
+      const go = t.closest('[data-go]');
+      if (go) { scrollToKey(go.dataset.go); if (window.matchMedia('(max-width: 900px)').matches) closePanel(); return; }
+      const del = t.closest('[data-del-mark]'); if (del) { removeMark(del.dataset.delMark); renderPanel(); return; }
+      if (t.closest('[data-export]')) {
+        const blob = new Blob([JSON.stringify({ app: 'scholar-laws', version: 1, marks: loadMarks() }, null, 1)], { type: 'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '法規畫線.json'; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      }
+    });
+    panel.addEventListener('input', e => {
+      const r = e.target.closest('[data-range]');
+      if (r) { setStyle({ [r.dataset.range]: Number(r.value) }); const b = r.parentElement.querySelector('b'); if (b) b.textContent = r.value + (r.dataset.range === 'lead' ? '' : ' px'); return; }
+      if (e.target.matches('[data-color-pick]')) setStyle({ ink: e.target.value });
+    });
+    panel.addEventListener('change', async e => {
+      if (e.target.matches('[data-color-pick]')) { renderPanel(); return; }
+      if (!e.target.matches('[data-import]') || !e.target.files[0]) return;
+      try {
+        const data = JSON.parse(await e.target.files[0].text());
+        const incoming = data && data.marks;
+        if (!incoming || typeof incoming !== 'object') throw new Error('format');
+        const all = loadMarks();
+        for (const [gid, list] of Object.entries(incoming)) {
+          if (!Array.isArray(list)) continue;
+          const have = new Set((all[gid] || []).map(m => m.id));
+          all[gid] = (all[gid] || []).concat(list.filter(m => m && !have.has(m.id) && typeof m.t === 'string'));
+        }
+        saveMarks(all); paintMarks(); renderPanel();
+      } catch (_) { alertInPanel('這個檔案不是法規畫線的匯出檔。'); }
+    });
+    function alertInPanel(msg) { const p = document.createElement('p'); p.className = 'lx-panel-note lx-warn'; p.textContent = msg; panel.querySelector('.lx-panel-body').prepend(p); }
+    document.addEventListener('pointerdown', e => {
+      if (!panel.hidden && !panel.contains(e.target) && !e.target.closest('#lx-style-btn,#lx-marks-btn')) closePanel();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !panel.hidden) { closePanel(); } });
+    // selection -> colour bar; tap on a highlight -> recolour / delete
+    let t = 0;
+    document.addEventListener('selectionchange', () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        if (document.body.dataset.game !== 'laws') { hideHlBar(); return; }
+        const sel = window.getSelection();
+        if (!sel || sel.isCollapsed || !sel.rangeCount) { const bar = by('lx-hlbar'); if (bar && !bar.dataset.group) hideHlBar(); return; }
+        if (!selectionPieces().length) { hideHlBar(); return; }
+        showHlBar(sel.getRangeAt(0).getBoundingClientRect(), null);
+      }, 200);
+    });
+    by('lx-doc').addEventListener('click', e => {
+      const m = e.target.closest('mark.lx-hl');
+      const sel = window.getSelection();
+      if (m && (!sel || sel.isCollapsed) && !e.target.closest('[data-att],[data-goto]')) showHlBar(m.getBoundingClientRect(), m.dataset.hl);
+    });
+    document.addEventListener('pointerdown', e => {
+      const bar = by('lx-hlbar');
+      if (bar && !bar.hidden && !bar.contains(e.target) && !e.target.closest('mark.lx-hl')) { if (bar.dataset.group) hideHlBar(); }
+    });
+    // a tapped highlight's bar goes away once the text has scrolled on (not for the small nudge a tap can cause)
+    by('lx-scroll').addEventListener('scroll', () => {
+      const bar = by('lx-hlbar');
+      if (bar && !bar.hidden && bar.dataset.group && Math.abs(by('lx-scroll').scrollTop - Number(bar.dataset.at || 0)) > 60) hideHlBar();
+    }, { passive: true });
+  }
+
   /* ── entry point used by the tab switcher ── */
   let booted = null;
   function show() {
     const panel = by('laws-panel');
     if (!panel) return;
     measure();
+    if (booted) applyStyle();
     if (!booted) {
       booted = (async () => {
         shell(); measure();
@@ -539,7 +868,7 @@
         state.index.laws.forEach(l => state.byId.set(l.id, l));
         renderSide();
         const last = prefs().law;
-        await openLaw(state.byId.has(last) ? last : state.index.laws[0].id);
+        await openLaw(state.byId.has(last) ? last : state.index.laws[0].id, { boot: true });
         // warm the cache for offline use and instant search
         const idle = window.requestIdleCallback || (fn => setTimeout(fn, 1500));
         idle(() => loadCorpus().catch(() => {}));
