@@ -71,7 +71,10 @@
         inner += m ? '<mark class="gx-mark">' + t + '</mark>' : t;
         k = l;
       }
-      out += id ? '<button type="button" class="gx-ref" data-att="' + id + '" title="開啟' + esc(text.slice(i, j)) + '">' + inner + '</button>' : inner;
+      // '#12' jumps to block 12 of this guide (附錄/附件 sections); anything else opens a 表/圖 window
+      out += !id ? inner : id[0] === '#'
+        ? '<button type="button" class="gx-ref" data-goto="' + id.slice(1) + '" title="跳到' + esc(text.slice(i, j)) + '">' + inner + '</button>'
+        : '<button type="button" class="gx-ref" data-att="' + id + '" title="開啟' + esc(text.slice(i, j)) + '">' + inner + '</button>';
       i = j;
     }
     return out;
@@ -232,6 +235,8 @@
     by('gx-scrim').addEventListener('click', closeDrawer);
     by('gx-menu').addEventListener('click', () => drawerOpen() ? closeDrawer() : openDrawer());
     by('gx-doc').addEventListener('click', e => {
+      const go = e.target.closest('[data-goto]');
+      if (go) { e.preventDefault(); scrollToBlock(go.dataset.goto, true); return; }
       const ref = e.target.closest('[data-att]');
       if (ref) { e.preventDefault(); openAtt(ref.dataset.att); }
     });

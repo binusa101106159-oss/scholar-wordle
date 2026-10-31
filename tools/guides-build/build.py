@@ -11,7 +11,7 @@ import collections, json, os, re, sys, statistics
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', 'laws-build'))
 import pdfplumber
-from annex import (Ink, printed, find_tables, table_struct, take, lines_of, set_spaces, save_image, is_white,
+from annex import (Ink, visible_edges, cluster, printed, find_tables, table_struct, take, lines_of, set_spaces, save_image, is_white,
                    same_frame, merge_continued, finalize, page_chars_text, CJK)
 from guides_catalog import CATS, GUIDES, SRC, CREDIT
 
@@ -22,8 +22,9 @@ NEW = re.compile(r'^(?:[一二三四五六七八九十百]+、|[（(][一二三�
                  r'|備註|說明[：:]|[□■●○◎※＊*•‧])')
 CAPTION = re.compile(r'^((?:附)?[表圖])\s*([一二三四五六七八九十]+|\d+)\s*[、：:．.]?\s*(.*)$', re.S)
 H1 = re.compile(r'^(?:[一二三四五六七八九十]+、|參考文獻|參考資料|附錄|附件|附表)')
+APPX = re.compile(r'^(附錄|附件)\s*([一二三四五六七八九十ㄧ]*|[IVX]+|\d*)\s*[、：:．.]?')
 H2 = re.compile(r'^[（(][一二三四五六七八九十]+[)）]')
-MENTION = re.compile(r'((?:附)?[表圖])\s*([一二三四五六七八九十]+|\d+)(?![一二三四五六七八九十\d])')
+MENTION = re.compile(r'(?<![發代外報])((?:附)?[表圖])\s*([一二三四五六七八九十]+|\d+)(?![一二三四五六七八九十\d])')
 # Wingdings bullets have no Unicode meaning; the PDF draws them as a black dot
 GLYPHS = {'': '●'}
 
@@ -40,6 +41,120 @@ def label_key(kind, num):
 
 
 # ── page reading ──
+def highlight(t, words):
+    """Highlighted words (a coloured box behind a word or two inside a sentence) are not a one-column table:
+    the sentence carries on to the left or right of the box on the same line."""
+    xs = cluster([c[0] for c in t.cells] + [c[2] for c in t.cells])
+    if len(xs) > 2: return False
+    x0, top, x1, bottom = t.bbox
+    for c in t.cells:
+        mid = (c[1] + c[3]) / 2
+        if any(w['top'] <= mid <= w['bottom'] and (w['x1'] < x0 - 0.5 or w['x0'] > x1 + 0.5) for w in words): return True
+    return False
+
+
+def rule_tables(page, words, taken):
+    """Tables drawn with horizontal rules only (Word tables with hidden side borders, booktabs style).
+    Each rule's segment ends mark the columns; each printed line between two rules is a row; a cell that the
+    rule above does not close off continues the cell above it (row span)."""
+    segs = [e for e in visible_edges(page) if e['orientation'] == 'h' and e['x1'] - e['x0'] > 8
+            and 50 < e['top'] < page.height - 80
+            and not any(b[0] - 3 <= e['x0'] and e['x1'] <= b[2] + 3 and b[1] - 3 <= e['top'] <= b[3] + 3 for b in taken)]
+    if not segs: return []
+    rules = []
+    for e in sorted(segs, key=lambda e: e['top']):
+        if rules and e['top'] - rules[-1]['y'] <= 1.5: rules[-1]['segs'].append((e['x0'], e['x1'])); continue
+        rules.append(dict(y=e['top'], segs=[(e['x0'], e['x1'])]))
+    for r in rules:
+        r['segs'] = sorted(set((round(a, 1), round(b, 1)) for a, b in r['segs']))
+        r['x0'] = min(a for a, b in r['segs']); r['x1'] = max(b for a, b in r['segs'])
+    rules = [r for r in rules if r['x1'] - r['x0'] >= 40]
+    # group rules into tables: neighbouring rules whose text in between stays inside the rules' width
+    out = []
+    i = 0
+    while i < len(rules):
+        g = [rules[i]]; j = i + 1
+        while j < len(rules):
+            gx0 = min(r['x0'] for r in g + [rules[j]]); gx1 = max(r['x1'] for r in g + [rules[j]])
+            between = [w for w in words if g[-1]['y'] < (w['top'] + w['bottom']) / 2 < rules[j]['y']]
+            if rules[j]['y'] - g[-1]['y'] > 420 or any(w['x0'] < gx0 - 4 or w['x1'] > gx1 + 4 for w in between): break
+            g.append(rules[j]); j += 1
+        i = j
+        if len(g) < 3 or not any(len(r['segs']) >= 2 for r in g): continue
+        x0 = min(r['x0'] for r in g); x1 = max(r['x1'] for r in g)
+        marks = cluster([v for r in g for s in r['segs'] for v in s] + [x0, x1], 2.5)
+        def ends(r):          # column marks this rule draws
+            return {k for k, m in enumerate(marks) if any(abs(m - v) <= 2.5 for s in r['segs'] for v in s)}
+        def covered(r, a, b):  # does rule r run along the whole interval a..b?
+            return any(s[0] - 2.5 <= a and b <= s[1] + 2.5 for s in r['segs'])
+        def col_of(x): return max(0, min(len(marks) - 2, next((k for k in range(len(marks) - 1) if x < marks[k + 1]), len(marks) - 2)))
+        def seg_of(r, x): return next((s for s in r['segs'] if s[0] - 2.5 <= x <= s[1] + 2.5), None)
+        cells, nrow, head = [], 0, 0
+        prev_row = {}
+        for bi in range(len(g) - 1):
+            top, bot = g[bi], g[bi + 1]
+            band = take(words, x0, top['y'], x1, bot['y'], pad=0)
+            for li, ln in enumerate(lines_of(band)):
+                ws = sorted([w for w in band if ln['top'] - 1 <= (w['top'] + w['bottom']) / 2 <= ln['bottom'] + 1], key=lambda w: w['x0'])
+                pieces = []                      # words closer than 6pt belong together
+                for w in ws:
+                    if pieces and w['x0'] - pieces[-1][-1]['x1'] <= 6: pieces[-1].append(w)
+                    else: pieces.append([w])
+                row = {}
+                for pc in pieces:
+                    cx = (pc[0]['x0'] + pc[-1]['x1']) / 2
+                    text = lines_of(pc)[0]['text']
+                    s = seg_of(top, cx) if li == 0 else None
+                    if s is not None:        # the first line of a band is centred over the rule above it: span that rule
+                        a, b = col_of(s[0] + 2.5), col_of(s[1] - 2.5) + 1
+                    else:
+                        a = col_of(cx); b = a + 1
+                    if a in row: row[a]['text'] += ' ' + text; continue
+                    above = prev_row.get(a)
+                    if li == 0 and 0 < bi < len(g) - 2 and above is not None and seg_of(top, (marks[a] + marks[a + 1]) / 2) is None:
+                        above['text'] = (above['text'] + '\n' + text) if above['text'] else text
+                        if above['r'] + above['rs'] == nrow: above['rs'] += 1
+                        row[a] = above; continue
+                    c = dict(r=nrow, c=a, rs=1, cs=b - a, text=text)
+                    cells.append(c)
+                    for k in range(a, b): row[k] = c
+                for k in range(len(marks) - 1):
+                    if k in row: continue
+                    above = prev_row.get(k)
+                    if li == 0 and 0 < bi < len(g) - 2 and above is not None and seg_of(top, (marks[k] + marks[k + 1]) / 2) is None:
+                        if above['r'] + above['rs'] == nrow: above['rs'] += 1
+                        row[k] = above; continue
+                    c = dict(r=nrow, c=k, rs=1, cs=1, text=''); cells.append(c); row[k] = c
+                prev_row = row; nrow += 1
+            if bi < len(g) - 2: head = nrow
+        if not any(c['text'] for c in cells): continue
+        # columns that never hold text are spacing: fold them into their left neighbour
+        used = sorted({k for c in cells for k in range(c['c'], c['c'] + c['cs']) if c['text']})
+        keep = [k for k in range(len(marks) - 1) if any(c['c'] <= k < c['c'] + c['cs'] and c['text'] for c in cells)]
+        newx = [marks[k] for k in keep] + [marks[-1]]
+        def remap(k): return max(i for i, kk in enumerate(keep) if kk <= k) if any(kk <= k for kk in keep) else 0
+        for c in cells:
+            a = remap(c['c']); b = remap(c['c'] + c['cs'] - 1) + 1
+            c['c'], c['cs'] = a, max(1, b - a)
+        # cells that collapsed onto the same slot: keep the one with text
+        seen = {}
+        for c in sorted(cells, key=lambda c: (c['r'], c['c'], not c['text'])):
+            seen.setdefault((c['r'], c['c']), c)
+        cells, occ = [], set()
+        for c in sorted(seen.values(), key=lambda c: (not c['text'], c['r'], c['c'])):
+            slots = {(r, k) for r in range(c['r'], c['r'] + c['rs']) for k in range(c['c'], c['c'] + c['cs'])}
+            if slots & occ:
+                if c['text']: raise ValueError('rule table: overlapping text cells')
+                continue                       # an empty spacer cell under a spanning one
+            occ |= slots; cells.append(c)
+        rows = [sorted([c for c in cells if c['r'] == r], key=lambda c: c['c']) for r in range(nrow)]
+        rows = [r for r in rows]
+        tb = dict(t='table', nrows=nrow, xs=newx, widths=[round(newx[k + 1] - newx[k], 1) for k in range(len(newx) - 1)],
+                  x0=x0, x1=x1, top=g[0]['y'], bottom=g[-1]['y'], rows=rows, head=min(head, 3) if head < nrow else 0)
+        out.append(tb)
+    return out
+
+
 def read_pages(path, imgdir, prefix):
     ink = Ink(path)
     pages = []
@@ -62,7 +177,7 @@ def read_pages(path, imgdir, prefix):
                 pi = page.crop(bbox).to_image(resolution=200)
                 return dict(src=save_image(pi.original, imgdir, prefix), w=round(im['x1'] - im['x0']), h=round(im['bottom'] - im['top']))
 
-            tables = [t for t in find_tables(page, ink) if len(t.cells) >= 2]
+            tables = [t for t in find_tables(page, ink) if len(t.cells) >= 2 and not highlight(t, words)]
             def inside(a, b):
                 return a is not b and b.bbox[0] - 2 <= a.bbox[0] and a.bbox[2] <= b.bbox[2] + 2 and b.bbox[1] - 2 <= a.bbox[1] and a.bbox[3] <= b.bbox[3] + 2
             built = {}
@@ -70,6 +185,8 @@ def read_pages(path, imgdir, prefix):
                 kids = [built.pop(id(k)) for k in tables if id(k) in built and inside(k, t)]
                 built[id(t)] = table_struct(page, t, words, images, imgsave, kids)
             items = [dict(k='table', tb=tb, top=tb['top'], bottom=tb['bottom']) for tb in built.values()]
+            for tb in rule_tables(page, words, [(t['x0'], t['top'], t['x1'], t['bottom']) for t in built.values()]):
+                items.append(dict(k='table', tb=tb, top=tb['top'], bottom=tb['bottom']))
             dropped = []
             # vector drawings outside tables become a picture of the drawing (same rule as the laws converter)
             boxes = [(it['tb']['x0'], it['top'], it['tb']['x1'], it['bottom']) for it in items]
@@ -128,6 +245,27 @@ def strip_running(pages):
 
 
 # ── paragraphs ──
+def figure_table(tb):
+    """A grid used only to lay out pictures with their 圖 captions is not a table: give back pictures and captions
+    in reading order (None when it is a real table)."""
+    out, ok = [], [True]
+    def walk(rows):
+        for r in rows:
+            for c in r:
+                for im in c.get('img', []): out.append(dict(t='img', img=[im]))
+                if c.get('text'):
+                    if not CAPTION.match(c['text']) or not c['text'].startswith('圖'): ok[0] = False
+                    out.append(dict(t='p', text=c['text'].replace('\n', ''), ind=0, hang=0))
+                for b in c.get('blocks', []):
+                    if b['t'] == 'img': out.append(dict(t='img', img=b['img']))
+                    elif b['t'] == 'p':
+                        if not CAPTION.match(b['text']) or not b['text'].startswith('圖'): ok[0] = False
+                        out.append(dict(t='p', text=b['text'], ind=0, hang=0))
+                    elif b['t'] == 'table': walk(b['rows'])
+    walk(tb['rows'])
+    return out if ok[0] and any(b['t'] == 'img' for b in out) and any(b['t'] == 'p' for b in out) else None
+
+
 def build_blocks(pages):
     lines = [it for p in pages for it in p['items'] if it['k'] == 'line']
     em = statistics.median(round(l['bottom'] - l['top']) for l in lines) or 14
@@ -139,6 +277,9 @@ def build_blocks(pages):
     last_kind = None
     for p in pages:
         for it in p['items']:
+            if it['k'] == 'table' and figure_table(it['tb']):
+                blocks.extend(dict(b, page=it['page']) for b in figure_table(it['tb']))
+                cur = None; last_kind = 'img'; continue
             if it['k'] == 'table':
                 blocks.append(dict(t='table', **{k: v for k, v in it['tb'].items() if k != 't'}, page=it['page']))
                 cur = None; last_kind = 'table'; continue
@@ -168,7 +309,7 @@ def build_blocks(pages):
                 same_page = it['page'] == cur['page_last']
                 close = (it['top'] - cur['bottom'] < em * 1.2) if same_page else True
                 # justified English wraps early: a lower-case start continues an unfinished sentence
-                latin = re.match(r'[a-z]', text) and not re.search(r'[。：:；;]$', cur['text'])
+                latin = re.match(r'[（(]?[a-z]', text) and not re.search(r'[。：:；;]$', cur['text'])
                 if (full or latin) and close and not NEW.match(text):
                     sep = ' ' if re.match(r'[A-Za-z0-9,.;:)\]]', cur['text'][-1]) and re.match(r'[A-Za-z0-9(\[]', text[0]) and not cur['text'].endswith('-') else ''
                     cur['text'] += sep + text
@@ -179,7 +320,7 @@ def build_blocks(pages):
             blocks.append(cur); last_kind = 'line'
     # indentation in em, measured from the body margin: wrapped lines give the block indent, the first line its hang
     for b in blocks:
-        if b['t'] != 'p': continue
+        if b['t'] != 'p' or 'rest' not in b: continue
         base = min(b['rest']) if b['rest'] else b['x0']
         lo = min(margin, b['x0'], base)      # a line printed left of the body margin pulls the block left, never off-screen
         ind = round((base - lo) / em * 2) / 2
@@ -187,6 +328,8 @@ def build_blocks(pages):
         b['ind'], b['hang'] = ind, hang
         b['text'] = glyphs(b['text'])
         for k in ('x0', 'rest', 'x1last', 'bottom', 'page_last', 'top'): b.pop(k)
+    for b in blocks:
+        if b['t'] == 'p': b['text'] = glyphs(b['text'])
     def cells(t):
         for r in t['rows']:
             for c in r:
@@ -233,7 +376,7 @@ def classify(blocks):
     for i, b in enumerate(blocks):
         if b['t'] != 'p': continue
         s = b['text']
-        if len(s) <= 40 and H1.match(s) and not re.search(r'[。：:]$', s):
+        if (len(s) <= 40 or (APPX.match(s) and len(s) <= 90)) and H1.match(s) and (not re.search(r'[。：:]$', s) or APPX.match(s)):
             b['t'] = 'h'; b['lv'] = 1
         elif len(s) <= 30 and H2.match(s) and not re.search(r'[。；，：:]$', s):
             n = h2num(b)
@@ -280,13 +423,23 @@ def attachments(blocks, gid):
 
 def link_mentions(blocks, atts):
     by_label = {a['label']: a['id'] for a in atts}
-    for b in blocks:
+    # 附錄一 / 附件ㄧ sections of the guide itself: a mention jumps to the heading ('#' + block number)
+    appx = {}
+    for k, b in enumerate(blocks):
+        m = APPX.match(b['text']) if b['t'] == 'h' else None
+        if m: appx[m.group(1) + m.group(2).replace('ㄧ', '一')] = '#' + str(k)
+    for k, b in enumerate(blocks):
         if b['t'] not in ('p', 'h') or b.get('cap'): continue
         links = []
         for m in MENTION.finditer(b['text']):
             aid = by_label.get(m.group(1) + m.group(2))
             if aid: links.append([m.start(), m.end(), aid])
-        if links: b['links'] = links
+        if appx and b['t'] == 'p':
+            for m in re.finditer(r'(附錄|附件)\s*([一二三四五六七八九十ㄧ]+|[IVX]+|\d+)?', b['text']):
+                key = m.group(1) + (m.group(2) or '').replace('ㄧ', '一')
+                target = appx.get(key) or (appx.get(m.group(1)) if not m.group(2) else None)
+                if target: links.append([m.start(), m.end(), target])
+        if links: b['links'] = sorted(links)
 
 
 def visible(blocks):

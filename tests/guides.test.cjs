@@ -52,7 +52,11 @@ test('every 表/圖 link and caption points at an attachment that exists, and ev
     const ids = new Set(meta.attach.map(a => a.id));
     const g = read('text/' + meta.id + '.json');
     for (const b of g.blocks) {
-      for (const [s, e, id] of b.links || []) { links++; assert.ok(ids.has(id), id); assert.match(b.text.slice(s, e), /^(附)?[表圖]/); }
+      for (const [s, e, id] of b.links || []) {
+        links++;
+        if (id[0] === '#') { const h = g.blocks[Number(id.slice(1))]; assert.ok(h && h.t === 'h', id); assert.match(b.text.slice(s, e), /^附[錄件]/); continue; }
+        assert.ok(ids.has(id), id); assert.match(b.text.slice(s, e), /^(附)?[表圖]/);
+      }
       if (b.cap) assert.ok(ids.has(b.cap), b.cap);
       if (b.att) assert.ok(ids.has(b.att), b.att);
     }
