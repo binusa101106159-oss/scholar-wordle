@@ -148,6 +148,7 @@ mark.gx-mark, .gx-dialog mark.gx-mark { background: rgba(226,197,138,.32); color
 
 /* ── guide text ── */
 .gx-cat { color: var(--gx-gold); letter-spacing: .06em; }
+.gx-cat-empty { margin: 0 0 4px; padding: 4px 10px 6px 40px; color: rgba(255,255,255,.3); font-size: 12px; }
 .gx-cover { margin: 0; color: rgba(255,255,255,.62); font-size: 13px; line-height: 1.75; }
 .gx-credit { margin: 10px 0 0; color: rgba(255,255,255,.4); font-size: 12px; line-height: 1.7; }
 .gx-body { padding: 4px 18px 0 6px; font-size: 15.5px; line-height: 1.95; }

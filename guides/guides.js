@@ -325,7 +325,8 @@
       list.innerHTML = idx.cats.map(c => {
         const gs = idx.guides.filter(g => g.cat === c.id);
         const count = c.total > gs.length ? gs.length + ' / ' + c.total + ' 份' : gs.length + ' 份';
-        return '<div class="gx-cat"><span>' + esc(c.name) + '</span><span>' + count + '</span></div>' + gs.map(guideButton).join('');
+        return '<div class="gx-cat"><span>' + esc(c.name) + '</span><span>' + count + '</span></div>' +
+          (gs.length ? gs.map(guideButton).join('') : '<p class="gx-cat-empty">尚未收錄</p>');
       }).join('');
       return;
     }

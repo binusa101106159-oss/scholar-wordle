@@ -5,6 +5,30 @@
 "name": "人因性危害",
 "src": "https://www.osha.gov.tw/48110/48363/133456/48395/48397/lpsimplelist",
 "total": 10
+},
+{
+"id": "c",
+"name": "化學性危害",
+"src": "https://www.osha.gov.tw/48110/48363/133456/48395/48399/lpsimplelist",
+"total": 131
+},
+{
+"id": "p",
+"name": "物理性危害",
+"src": "https://www.osha.gov.tw/48110/48363/133456/48395/48403/lpsimplelist",
+"total": 11
+},
+{
+"id": "b",
+"name": "生物性危害",
+"src": "https://www.osha.gov.tw/48110/48363/133456/48395/48401/lpsimplelist",
+"total": 18
+},
+{
+"id": "s",
+"name": "社會、心理性危害",
+"src": "https://www.osha.gov.tw/48110/48363/133456/48395/48405/lpsimplelist",
+"total": 3
 }
 ],
 "guides": [

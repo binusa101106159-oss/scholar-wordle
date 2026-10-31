@@ -6,6 +6,7 @@ the cover block, multi-column lists, captions for 表/圖, and links from the te
 
     python3 build.py ../..            # all guides in catalog.GUIDES
     python3 build.py ../.. e01 e05    # only these (index.json keeps the others)
+    python3 build.py ../.. -          # rewrite index.json only
 """
 import collections, json, os, re, sys, statistics
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -532,8 +533,8 @@ if __name__ == '__main__':
     order = [g[0] for g in GUIDES]
     guides = sorted(have.values(), key=lambda g: order.index(g['id']))
     for g in guides: g['no'] = [x[0] for x in GUIDES if x[1] == g['cat']].index(g['id']) + 1
-    cats = [dict(id=c[0], name=c[1], src=c[3], total=c[4] or sum(1 for x in GUIDES if x[1] == c[0]))
-            for c in CATS if any(g['cat'] == c[0] for g in guides)]
+    # every category is listed, also before any of its guides are converted
+    cats = [dict(id=c[0], name=c[1], src=c[3], total=c[4] or sum(1 for x in GUIDES if x[1] == c[0])) for c in CATS]
     json.dump(dict(cats=cats, guides=guides), open(ipath, 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
     json.dump({k: dict(ok=v['ok'], running=v['running'], dropped=v['dropped'], glyphs=v['glyphs']) for k, v in report.items()},
               open(os.path.join(HERE, 'report.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)

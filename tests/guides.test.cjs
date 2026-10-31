@@ -29,7 +29,10 @@ test('guides follow the official order and numbering, one section per category',
   const e = index.guides.filter(g => g.cat === 'e');
   assert.deepEqual(e.map(g => g.name), ERGO_ORDER.filter(n => e.some(g => g.name === n)));
   e.forEach(g => assert.equal(g.no, ERGO_ORDER.indexOf(g.name) + 1, g.name));
-  assert.deepEqual(index.cats.map(c => c.id), [...new Set(index.guides.map(g => g.cat))]);
+  // all five categories are listed in the official order, even before their guides are added
+  assert.deepEqual(index.cats.map(c => c.name), ['人因性危害', '化學性危害', '物理性危害', '生物性危害', '社會、心理性危害']);
+  for (const g of index.guides) assert.ok(index.cats.some(c => c.id === g.cat), g.id);
+  for (const c of index.cats) assert.ok(c.total >= index.guides.filter(g => g.cat === c.id).length, c.name);
   assert.equal(new Set(index.cats.map(c => c.name)).size, index.cats.length);
   for (const c of index.cats) assert.doesNotMatch(c.name, /part|第\s*\d+\s*批/i);
 });
