@@ -1,5 +1,5 @@
-const CACHE_NAME = "scholar-games-v43";
-const ASSETS = ["./", "./index.html", "./manifest.json", "./laws/laws.css", "./laws/laws.js", "./laws/index.json"];
+const CACHE_NAME = "scholar-games-v44";
+const ASSETS = ["./", "./index.html", "./manifest.json", "./laws/laws.css", "./laws/laws.js", "./laws/index.json", "./guides/guides.css", "./guides/guides.js", "./guides/index.json"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(ASSETS)));
