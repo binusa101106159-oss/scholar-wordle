@@ -12,8 +12,8 @@ import collections, json, os, re, sys, statistics
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', 'laws-build'))
 import pdfplumber
-from annex import (Ink, visible_edges, cluster, printed, find_tables, table_struct, take, lines_of, set_spaces, save_image, is_white,
-                   same_frame, merge_continued, finalize, page_chars_text, CJK)
+from annex import (flow, Ink, visible_edges, cluster, printed, find_tables, table_struct, take, lines_of, set_spaces, save_image, is_white,
+                   same_frame, merge_continued, finalize, page_chars_text, CJK, regroup)
 from guides_catalog import CATS, GUIDES, SRC, CREDIT, EXTRAS, CAT_PARENTS, source_path, source_credit
 from manual_tables import MANUAL_TABLES, table_text
 
@@ -78,6 +78,17 @@ CATEGORY_BANDS = {
 # (like a flowchart), its label text counted as printed in the picture; (guide id, PDF page) -> boxes in PDF points
 FIGURE_REGIONS = {
     ('plans01', 32): [(125, 236, 466, 484)],    # 附錄一：身體活動容忍尺度與關節活動範圍的圖示
+}
+# A cell spanning two columns whose lower part is divided by a short inner rule (a 【解說】 over both columns, then a
+# 弱 example and a boxed 中 example side by side): the row is split at the top of that rule into the shared part and the
+# two side-by-side parts. Registered per guide: guide id -> PDF page numbers
+INNER_SPLITS = {
+    's01': {24},    # 附表一 具體事件 項目 29、30（弱／中）
+}
+# An annex printed as several tables with notes between them, all under one 附表 caption: the attachment takes every
+# block from its caption up to the next caption named here. Registered per guide: (guide id, label) -> next label
+ANNEX_THROUGH = {
+    ('s01', '附表一'): '附表二',    # 特別事件 table, 綜合評估的共通事項, 具體事件 table (PDF p.16–26)
 }
 
 GLYPHS = {'\uf06c': '●', '\uf06e': '■', '\uf0fc': '✓', '\uf0b3': '≥', '\uf06d': 'μ', '\uf07e': '∼', '\uf02d': '−', '\uf061': 'α', '\uf0a0': '▪', '\uf0d8': '➢', '\uf0b0': '°'}   # Wingdings ● ■ ✓; Symbol ≥ μ ∼
@@ -427,6 +438,7 @@ def read_pages(path, imgdir, prefix):
             for t in sorted(tables, key=lambda t: (t.bbox[2] - t.bbox[0]) * (t.bbox[3] - t.bbox[1])):
                 kids = [built.pop(id(k)) for k in tables if id(k) in built and inside(k, t)]
                 built[id(t)] = table_struct(page, t, words, images, imgsave, kids)
+                if pno + 1 in INNER_SPLITS.get(prefix.rstrip('-'), ()): inner_splits(page, built[id(t)], words)
             items = [dict(k='table', tb=tb, top=tb['top'], bottom=tb['bottom']) for tb in list(built.values()) + opened]
             # A two-column list can have only an outer frame, open at the
             # physical page break. Rebuild its aligned labels/descriptions
@@ -781,6 +793,8 @@ def build_blocks(pages, spaced=False):
             for c in r:
                 # a Wingdings bullet always starts an item, even where the cell's lines were joined
                 c['text'] = glyphs(re.sub(r'(?<=\S)\s*([\uf06c\uf06e\uf0fc⚫])', r'\n\1', c['text']))
+                # so does a full-width-stop bullet after a finished sentence or a 【…】 label (s01 附表一: ．…。．…)
+                c['text'] = re.sub(r'(?<=[。】：])[ \t]*(．)', r'\n\1', c['text'])
                 for sb in c.get('blocks', []):
                     if 'text' in sb: sb['text'] = glyphs(sb['text'])
                     if sb.get('t') == 'table': cells(sb)
@@ -788,6 +802,54 @@ def build_blocks(pages, spaced=False):
         if b['t'] == 'cols': b['rows'] = [[glyphs(c) for c in r] for r in b['rows']]
         if b['t'] == 'table': cells(b)
     return blocks, dict(em=em, right=right, margin=margin)
+
+
+def inner_splits(page, tb, words):
+    """INNER_SPLITS: a spanning cell whose lower part a short inner rule divides becomes a shared row on top and one
+    cell per side below; the other cells of that row span both. Text is re-read from the page by position."""
+    xs = tb['xs']
+    edges = visible_edges(page)
+    vert = sorted((e for e in edges if e['orientation'] == 'v'), key=lambda e: e['top'])
+    hor = [e for e in edges if e['orientation'] == 'h']
+    def text_in(x0, y0, x1, y1):
+        frags = []
+        for w in words:
+            sub = [c for c in w['chars'] if x0 <= (c['x0'] + c['x1']) / 2 <= x1 and y0 <= (c['top'] + c['bottom']) / 2 <= y1]
+            if sub: frags.append(dict(text=''.join(c['text'] for c in sub), x0=min(c['x0'] for c in sub), x1=max(c['x1'] for c in sub),
+                                      top=min(c['top'] for c in sub), bottom=max(c['bottom'] for c in sub), chars=sub))
+        return '\n'.join(p['text'] for p in flow(lines_of(frags), x1 - 2, incell=True))
+    cells = [c for r in tb['rows'] for c in r]
+    for cell in [c for c in cells if c['cs'] == 2]:
+        xa, xm, xb = xs[cell['c']], xs[cell['c'] + 1], xs[cell['c'] + 2]
+        # the inner rule: one run of vertical edges on the middle column line, starting below a rule across both columns
+        runs = []
+        for e in vert:
+            if abs(e['x0'] - xm) > 2: continue
+            if runs and e['top'] - runs[-1][1] <= 1.5: runs[-1][1] = max(runs[-1][1], e['bottom'])
+            else: runs.append([e['top'], e['bottom']])
+        for y0, y1 in runs:
+            if y1 - y0 < 20: continue
+            def across(y):                              # rules at height y cover the whole span (drawn as one or in pieces)
+                reach = xa + 2
+                for h in sorted((h for h in hor if abs(h['top'] - y) <= 1.5), key=lambda h: h['x0']):
+                    if h['x0'] <= reach + 1.5: reach = max(reach, h['x1'])
+                return reach >= xb - 2
+            if across(y0): continue                       # an ordinary row border, not an inner rule
+            tops = [y for y in {round(h['top'], 1) for h in hor} if y < y0 - 2 and across(y)]
+            if not tops: continue
+            top = max(tops)
+            shared = text_in(xa, top, xb, y0)
+            if not shared or re.sub(r'\s', '', shared) not in re.sub(r'\s', '', cell['text']): continue
+            left, right = text_in(xa, y0, xm, y1), text_in(xm, y0, xb, y1)
+            r = cell['r']
+            for c in cells:
+                if c is cell: continue
+                if c['r'] > r: c['r'] += 1
+                elif c['r'] + c['rs'] > r: c['rs'] += 1
+            cell.update(text=shared, cs=2, rs=1)
+            cells += [dict(r=r + 1, c=cell['c'], rs=1, cs=1, text=left), dict(r=r + 1, c=cell['c'] + 1, rs=1, cs=1, text=right)]
+            break
+    regroup(tb, cells)
 
 
 def tidy(tb):
@@ -897,6 +959,12 @@ def attachments(blocks, gid):
             j = max(members) + 1
             while j < len(blocks) and blocks[j]['t'] == 'p' and re.match(r'^(?:註|※|備註|□|執行日期)', blocks[j]['text']):
                 members.append(j); j += 1
+            stop = ANNEX_THROUGH.get((gid, kind + num))
+            if stop:
+                j = max(members) + 1
+                while j < len(blocks) and not (blocks[j]['t'] in ('p', 'h') and blocks[j]['text'].startswith(stop)):
+                    members.append(j); j += 1
+                assert j < len(blocks), (gid, kind + num, 'next caption not found')
         used.add(key)
         aid = f'{gid}-{key}'
         b['cap'] = aid

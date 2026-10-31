@@ -44,6 +44,11 @@ python3 review.py farm-e farm-c farm-p farm-b plans           # serve the site o
   `OPEN_BODY` (farm-c02 p.4 表二: ruled header, one open box underneath), `CATEGORY_BANDS` (plans01 p.30 表4:
   rules-only table whose first column names a category for several tools), `FIGURE_REGIONS` (plans01 p.32: a chart of
   small pictures with labels under them, kept as one picture).
+- s01 工作相關心理壓力事件引起精神疾病認定參考指引 rebuilt with the current converter (2026-11-01; the published copy
+  predated it and printed 附表一 具體事件 one text line per row). Registered for s01 only: `INNER_SPLITS` (p.24 項目
+  29、30: a 【解說】 over 弱＋中, then the 弱 example and a boxed 中 example; the row is split at the top of the inner rule)
+  and `ANNEX_THROUGH` (附表一's attachment takes the 特別事件 table, the 綜合評估的共通事項 notes and the 具體事件
+  table, up to 附表二). In table cells a `．` bullet after 。/】/： starts a new line (only s01 has that pattern).
 - `manual_tables.py`: tables the PDF prints only as a picture, transcribed by eye from the embedded image and counted by
   the QC as read: farm-p03 表二 熱指數表 (208 values + shading; identical cell for cell to 職業安全衛生設施規則 表三,
   `laws/annex/s07-3`), farm-p03 表三 熱危害風險等級, farm-b01 p.6 hazard-ratio table. Printed values are kept as printed
