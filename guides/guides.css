@@ -183,3 +183,8 @@ mark.gx-mark, .gx-dialog mark.gx-mark { background: rgba(226,197,138,.32); color
 @media (max-width: 400px) {
   .sg-tabs .sg-tab { padding: 7px 8px; }
 }
+
+/* a scanned guide: one page picture per row */
+.gx-scan-note { margin: 10px 0 0; color: #fdba74; font-size: 12.5px; line-height: 1.7; }
+.gx-scan { margin: 0 0 14px; text-align: center; }
+.gx-scan img { max-width: 100%; height: auto; background: #fff; border-radius: 6px; }

@@ -129,6 +129,11 @@
     const flush = () => { if (figure) { out.push('<div class="gx-fig">' + figure.join('') + '</div>'); figure = null; } };
     blocks.forEach((b, k) => {
       const aid = opts.anchor ? ' id="gx-b-' + opts.anchor + '-' + k + '"' : '';
+      if (b.t === 'img' && b.scan) {
+        flush();
+        out.push('<div class="gx-scan"' + aid + '>' + b.img.map(im => '<img src="' + BASE + 'attach/img/' + im.src + '" width="' + Math.round(im.w * 1.4) + '" height="' + Math.round(im.h * 1.4) + '" alt="原頁影像" loading="lazy">').join('') + '</div>');
+        return;
+      }
       if (b.t === 'img') {
         (figure = figure || []).push(b.img.map(im => '<img src="' + BASE + 'attach/img/' + im.src + '" width="' + Math.round(im.w * 1.4) + '" height="' + Math.round(im.h * 1.4) + '" alt="" loading="lazy"' + aid + '>').join(''));
         return;
@@ -214,6 +219,7 @@
       const more = e.target.closest('[data-more]');
       if (more) { state.expanded = state.expanded || new Set(); state.expanded.add(more.dataset.more); renderSide(); return; }
       if (!g) return;
+      if (g.dataset.openAtt) { state.closeDrawer(); openGuide(g.dataset.guide).then(() => openAtt(g.dataset.openAtt)); return; }
       openGuide(g.dataset.guide, { block: g.dataset.block, flash: Boolean(g.dataset.block) });
       state.closeDrawer();
     });
@@ -312,7 +318,7 @@
     const n = g.attach.length;
     return '<button type="button" class="gx-guide" data-guide="' + g.id + '"' + (state.current && state.current.id === g.id ? ' aria-current="true"' : '') + '>' +
       '<span class="gx-guide-no">' + g.no + '</span><span>' + esc(g.name) + '</span>' +
-      '<span class="gx-guide-meta">' + g.pages + ' 頁' + (n ? ' · ' + n + ' 個表圖' : '') + '</span></button>';
+      '<span class="gx-guide-meta">' + g.pages + ' 頁' + (g.scan ? ' · 掃描影像' : '') + (n ? ' · ' + n + ' 個附件與表圖' : '') + '</span></button>';
   }
   function renderSide() {
     const list = by('gx-list');
@@ -339,7 +345,7 @@
       const limit = state.expanded.has(g.guide.id) ? Infinity : 6;
       html += '<div class="gx-hits-head"><span class="gx-hits-guide">' + esc(g.guide.name) + '</span><span class="gx-hits-count">' + g.items.length + '</span></div>';
       g.items.slice(0, limit).forEach(h => {
-        html += '<button type="button" class="gx-hit" data-guide="' + g.guide.id + '" data-block="' + h.block + '">' +
+        html += '<button type="button" class="gx-hit" data-guide="' + g.guide.id + '"' + (h.att ? ' data-open-att="' + h.att + '"' : ' data-block="' + h.block + '"') + '>' +
           (h.where ? '<span class="gx-hit-where">' + esc(h.where) + '</span>' : '') + h.snippet + '</button>';
       });
       if (g.items.length > limit) html += '<button type="button" class="gx-more" data-more="' + g.guide.id + '">再顯示 ' + (g.items.length - limit) + ' 筆</button>';
@@ -368,6 +374,12 @@
           if (text) docs.push({ guide: g.id, block: k, where: b.t === 'h' ? '' : where, text, norm: normMap(text).s });
         });
       });
+      // whole documents published with a guide (Q&A, 修正對照表) are searched as part of it
+      const extra = await Promise.all(state.index.guides.flatMap(g => g.attach.filter(a => a.doc).map(a => getAtt(a.id).then(d => [g, a, d]))));
+      extra.forEach(([g, a, data]) => data.blocks.forEach((b, k) => {
+        const text = blockText(b);
+        if (text) docs.push({ guide: g.id, block: 100000 + k, att: a.id, where: a.label, text, norm: normMap(text).s });
+      }));
       state.corpus = docs;
       if (state.query) renderSide();
       return docs;
@@ -393,7 +405,7 @@
     const order = state.index.guides.map(g => g.id);
     const out = [...groups.entries()].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])).map(([id, docs]) => {
       docs.sort((a, b) => a.block - b.block);
-      return { guide: state.byId.get(id), items: docs.map(d => ({ block: d.block, where: d.where, snippet: snippet(d.text, terms) })) };
+      return { guide: state.byId.get(id), items: docs.map(d => ({ block: d.block, att: d.att, where: d.where, snippet: snippet(d.text, terms) })) };
     });
     return { total, groups: out };
   }
@@ -448,7 +460,8 @@
     let html = '<div class="gx-head sg-glass"><p class="sg-eyebrow">' + esc(cat.name || '') + ' · ' + meta.no + ' / ' + (cat.total || '') + '</p>' +
       '<h1 class="gx-title">' + rich(guide.name, null, terms) + '</h1>' +
       guide.cover.map(c => '<p class="gx-cover">' + rich(c, null, terms) + '</p>').join('') +
-      '<p class="gx-credit">' + esc(guide.credit) + '</p>';
+      '<p class="gx-credit">' + esc(guide.credit) + '</p>' +
+      (guide.scan ? '<p class="gx-scan-note">原始 PDF 為掃描影像、沒有文字層，以下為原頁影像，不提供全文搜尋。</p>' : '');
     if (meta.attach.length) {
       html += '<div class="gx-chips">' + meta.attach.map(a => '<button type="button" class="gx-chip" data-att="' + a.id + '">' + esc(a.label) + (a.title ? '<span>' + esc(a.title) + '</span>' : '') + '</button>').join('') + '</div>';
     }
@@ -489,7 +502,8 @@
     if (state.attOpen !== id) return;
     const body = by('gx-att-body');
     // the caption is the window title; show everything else
-    body.innerHTML = blocksHTML(data.blocks.filter(b => !b.cap), state.terms, { card: true });
+    body.innerHTML = (data.cover || []).map(c => '<p class="gx-cover">' + rich(c, null, state.terms) + '</p>').join('') +
+      blocksHTML(data.blocks.filter(b => !b.cap), state.terms, { card: true });
     body.scrollTop = 0;
     const m = body.querySelector('mark.gx-mark');
     if (m) m.scrollIntoView({ block: 'center' });

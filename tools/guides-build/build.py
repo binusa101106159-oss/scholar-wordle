@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(HERE, '..', 'laws-build'))
 import pdfplumber
 from annex import (Ink, visible_edges, cluster, printed, find_tables, table_struct, take, lines_of, set_spaces, save_image, is_white,
                    same_frame, merge_continued, finalize, page_chars_text, CJK)
-from guides_catalog import CATS, GUIDES, SRC, CREDIT
+from guides_catalog import CATS, GUIDES, SRC, CREDIT, EXTRAS
 
 NUMS = '一二三四五六七八九十'
 # a line that starts one of these begins a new paragraph even when the line before it reached the right edge
@@ -27,7 +27,7 @@ APPX = re.compile(r'^(附錄|附件)\s*([一二三四五六七八九十ㄧ]*|[IV
 H2 = re.compile(r'^[（(][一二三四五六七八九十]+[)）]')
 MENTION = re.compile(r'(?<![發代外報])((?:附)?[表圖])\s*([一二三四五六七八九十]+|\d+)(?![一二三四五六七八九十\d])')
 # Wingdings bullets have no Unicode meaning; the PDF draws them as a black dot
-GLYPHS = {'': '●'}
+GLYPHS = {'': '●', '': '≥'}   # Wingdings bullet; Symbol-font ≥
 
 
 def glyphs(s):
@@ -45,6 +45,9 @@ def label_key(kind, num):
 def highlight(t, words):
     """Highlighted words (a coloured box behind a word or two inside a sentence) are not a one-column table:
     the sentence carries on to the left or right of the box on the same line."""
+    # boxes shaded behind each printed line: one left edge, a different right edge per line (where the text ends)
+    lefts = cluster([c[0] for c in t.cells]); rights = cluster([c[2] for c in t.cells])
+    if len(lefts) == 1 and len(rights) == len(t.cells) >= 2: return True
     xs = cluster([c[0] for c in t.cells] + [c[2] for c in t.cells])
     if len(xs) > 2: return False
     x0, top, x1, bottom = t.bbox
@@ -141,13 +144,18 @@ def rule_tables(page, words, taken):
         seen = {}
         for c in sorted(cells, key=lambda c: (c['r'], c['c'], not c['text'])):
             seen.setdefault((c['r'], c['c']), c)
-        cells, occ = [], set()
+        cells, occ, clash = [], set(), False
         for c in sorted(seen.values(), key=lambda c: (not c['text'], c['r'], c['c'])):
             slots = {(r, k) for r in range(c['r'], c['r'] + c['rs']) for k in range(c['c'], c['c'] + c['cs'])}
             if slots & occ:
-                if c['text']: raise ValueError('rule table: overlapping text cells')
+                if c['text']: clash = True
                 continue                       # an empty spacer cell under a spanning one
             occ |= slots; cells.append(c)
+        if clash:                              # the rules do not describe a grid: leave the text as text
+            for w in words:
+                for ch in w['chars']:
+                    if x0 - 1 <= (ch['x0'] + ch['x1']) / 2 <= x1 + 1 and g[0]['y'] <= (ch['top'] + ch['bottom']) / 2 <= g[-1]['y']: ch['_u'] = False
+            continue
         rows = [sorted([c for c in cells if c['r'] == r], key=lambda c: c['c']) for r in range(nrow)]
         rows = [r for r in rows]
         tb = dict(t='table', nrows=nrow, xs=newx, widths=[round(newx[k + 1] - newx[k], 1) for k in range(len(newx) - 1)],
@@ -178,7 +186,9 @@ def read_pages(path, imgdir, prefix):
                 pi = page.crop(bbox).to_image(resolution=200)
                 return dict(src=save_image(pi.original, imgdir, prefix), w=round(im['x1'] - im['x0']), h=round(im['bottom'] - im['top']))
 
-            tables = [t for t in find_tables(page, ink) if len(t.cells) >= 2 and not highlight(t, words)]
+            found = [t for t in find_tables(page, ink) if len(t.cells) >= 2]
+            tables = [t for t in found if not highlight(t, words)]
+            shaded = [t.bbox for t in found if highlight(t, words)]     # their edges are not table rules either
             def inside(a, b):
                 return a is not b and b.bbox[0] - 2 <= a.bbox[0] and a.bbox[2] <= b.bbox[2] + 2 and b.bbox[1] - 2 <= a.bbox[1] and a.bbox[3] <= b.bbox[3] + 2
             built = {}
@@ -186,22 +196,42 @@ def read_pages(path, imgdir, prefix):
                 kids = [built.pop(id(k)) for k in tables if id(k) in built and inside(k, t)]
                 built[id(t)] = table_struct(page, t, words, images, imgsave, kids)
             items = [dict(k='table', tb=tb, top=tb['top'], bottom=tb['bottom']) for tb in built.values()]
-            for tb in rule_tables(page, words, [(t['x0'], t['top'], t['x1'], t['bottom']) for t in built.values()]):
+            for tb in rule_tables(page, words, [(t['x0'], t['top'], t['x1'], t['bottom']) for t in built.values()] + shaded):
                 items.append(dict(k='table', tb=tb, top=tb['top'], bottom=tb['bottom']))
             dropped = []
             # vector drawings outside tables become a picture of the drawing (same rule as the laws converter)
             boxes = [(it['tb']['x0'], it['top'], it['tb']['x1'], it['bottom']) for it in items]
-            curves = [c for c in page.curves if not is_white(c.get('stroking_color')) and not any(
+            # a drawing is its curves plus the stroked lines and boxes joined to them (flowcharts: boxes, diamonds, arrows)
+            strokes = [c for c in page.curves if not is_white(c.get('stroking_color'))]
+            if strokes:
+                strokes += [l for l in page.lines if not is_white(l.get('stroking_color'))]
+                strokes += [r for r in page.rects if r.get('stroke') and not is_white(r.get('stroking_color'))]
+            curves = [c for c in strokes if not any(
                 b[0] - 2 <= c['x0'] and c['x1'] <= b[2] + 2 and b[1] - 2 <= c['top'] and c['bottom'] <= b[3] + 2 for b in boxes)]
-            groups = []
-            for c in sorted(curves, key=lambda c: (c['top'], c['x0'])):
-                box = [c['x0'], c['top'], c['x1'], c['bottom']]
-                for g in groups:
-                    if box[0] <= g[2] + 12 and g[0] <= box[2] + 12 and box[1] <= g[3] + 12 and g[1] <= box[3] + 12:
-                        g[:] = [min(g[0], box[0]), min(g[1], box[1]), max(g[2], box[2]), max(g[3], box[3])]; break
-                else: groups.append(box)
+            groups = [[c['x0'], c['top'], c['x1'], c['bottom']] for c in curves]
+            merged = True
+            tol = 40 if len(groups) >= 3 else 12
+            while merged:                      # join touching pieces until nothing changes
+                merged = False
+                out = []
+                for box in sorted(groups, key=lambda g: (g[1], g[0])):
+                    for g in out:
+                        if box[0] <= g[2] + tol and g[0] <= box[2] + tol and box[1] <= g[3] + tol and g[1] <= box[3] + tol:
+                            g[:] = [min(g[0], box[0]), min(g[1], box[1]), max(g[2], box[2]), max(g[3], box[3])]; merged = True; break
+                    else: out.append(list(box))
+                groups = out
             for g in groups:
                 if (g[2] - g[0]) * (g[3] - g[1]) < 300: continue
+                # labels that the drawing's edge cuts through belong to the drawing: grow it until no word straddles the edge
+                grown = True
+                while grown:
+                    grown = False
+                    for w in words:
+                        if all(c.get('_u') for c in w['chars']): continue
+                        inside = g[0] <= (w['x0'] + w['x1']) / 2 <= g[2] and g[1] <= (w['top'] + w['bottom']) / 2 <= g[3]
+                        cuts = w['x0'] < g[2] + 3 and w['x1'] > g[0] - 3 and w['top'] < g[3] + 3 and w['bottom'] > g[1] - 3
+                        if cuts and not (g[0] <= w['x0'] and w['x1'] <= g[2] and g[1] <= w['top'] and w['bottom'] <= g[3]):
+                            g[:] = [min(g[0], w['x0']), min(g[1], w['top']), max(g[2], w['x1']), max(g[3], w['bottom'])]; grown = True
                 dropped.extend(w['text'] for w in take(words, g[0], g[1], g[2], g[3], pad=0))
                 fig = dict(x0=g[0] - 2, top=g[1] - 2, x1=g[2] + 2, bottom=g[3] + 2)
                 items.append(dict(k='img', img=imgsave(fig), top=g[1], bottom=g[3], x0=g[0], x1=g[2], drawing=True))
@@ -269,10 +299,10 @@ def figure_table(tb):
 
 def build_blocks(pages):
     lines = [it for p in pages for it in p['items'] if it['k'] == 'line']
-    em = statistics.median(round(l['bottom'] - l['top']) for l in lines) or 14
+    em = (statistics.median(round(l['bottom'] - l['top']) for l in lines) if lines else 14) or 14
     longs = [round(l['x1']) for l in lines if len(l['text']) > 15]
     right = max(set(longs), key=lambda x: sum(1 for v in longs if abs(v - x) <= 2)) if longs else 500
-    margin = statistics.mode(round(l['x0']) for l in lines)
+    margin = statistics.mode(round(l['x0']) for l in lines) if lines else 0
     blocks = []
     cur = None          # open paragraph
     last_kind = None
@@ -377,7 +407,8 @@ def classify(blocks):
     for i, b in enumerate(blocks):
         if b['t'] != 'p': continue
         s = b['text']
-        if (len(s) <= 40 or (APPX.match(s) and len(s) <= 90)) and H1.match(s) and (not re.search(r'[。：:]$', s) or APPX.match(s)):
+        if (len(s) <= 40 or (APPX.match(s) and len(s) <= 90)) and H1.match(s) and (not re.search(r'[。：:]$', s) or APPX.match(s)
+                                                                                 or (len(s) <= 30 and re.search(r'[：:]$', s))):
             b['t'] = 'h'; b['lv'] = 1
         elif len(s) <= 30 and H2.match(s) and not re.search(r'[。；，：:]$', s):
             n = h2num(b)
@@ -402,13 +433,21 @@ def attachments(blocks, gid):
         members = []
         if kind.endswith('表'):
             j = i + 1
-            while j < len(blocks) and blocks[j]['t'] == 'table': members.append(j); j += 1
+            # the table(s) under the caption, with short sub-titles printed between parts of it
+            while j < len(blocks) and (blocks[j]['t'] == 'table' or (blocks[j]['t'] == 'p' and len(blocks[j]['text']) <= 40
+                                                                    and not CAPTION.match(blocks[j]['text'])
+                                                                    and j + 1 < len(blocks) and blocks[j + 1]['t'] == 'table')):
+                members.append(j); j += 1
+            if not members:                    # a table printed as a picture
+                while j < len(blocks) and blocks[j]['t'] == 'img': members.append(j); j += 1
         else:
             # picture(s) just above the caption, with any short labels printed between them and the caption
             j = i - 1
-            while j >= 0 and (blocks[j]['t'] == 'img' or (blocks[j]['t'] in ('p', 'cols') and len(visible([blocks[j]])) <= 60
+            while j >= 0 and 'att' not in blocks[j] and (blocks[j]['t'] == 'img' or (blocks[j]['t'] in ('p', 'cols') and len(visible([blocks[j]])) <= 60
+                                                           and not (blocks[j]['t'] == 'p' and CAPTION.match(blocks[j]['text']))
                                                            and any(blocks[k]['t'] == 'img' for k in range(max(0, j - 3), j)))):
                 members.insert(0, j); j -= 1
+            # pictures already taken by the caption above them, or none before: the caption sits above its picture
             if not any(blocks[k]['t'] == 'img' for k in members):
                 members, j = [], i + 1
                 while j < len(blocks) and blocks[j]['t'] == 'img': members.append(j); j += 1
@@ -465,16 +504,14 @@ def official_stem(t):
     return re.sub(r'（.*?）', '', t)
 
 
-def convert(gid, cat, fname, outdir, official):
-    path = os.path.join(SRC, dict((c[0], c[2]) for c in CATS)[cat], fname)
-    imgdir = os.path.join(outdir, 'attach', 'img')
+def document(path, gid, official, imgdir, with_cover=True):
+    """One PDF -> cover lines, blocks, attachments and the character check."""
     pages = read_pages(path, imgdir, gid + '-')
     running = strip_running(pages)
     dropped = [d for p in pages for d in p['dropped']]
     # the cover: page 1 when it holds no section heading
     cover = []
-    if not any(it['k'] == 'line' and H1.match(it['text']) for it in pages[0]['items']):
-        cover = []
+    if with_cover and not any(it['k'] == 'line' and H1.match(it['text']) for it in pages[0]['items']):
         for it in pages[0]['items']:
             if it['k'] != 'line': continue
             t = glyphs(it['text'])
@@ -489,10 +526,10 @@ def convert(gid, cat, fname, outdir, official):
     atts = attachments(blocks, gid)
     link_mentions(blocks, atts)
     # QC: the PDF's printed characters vs ours (+ running headers/footers and repeated table headers we left out)
-    src = collections.Counter(re.sub(r'\s', '', glyphs(page_chars_text(path))))
+    raw = page_chars_text(path)
+    src = collections.Counter(re.sub(r'\s', '', glyphs(raw)))
     ours = collections.Counter(re.sub(r'\s', '', ''.join(cover) + visible(blocks) + ''.join(running) + ''.join(dropped)))
     missing, extra = src - ours, ours - src
-    pages_n = len(pages)
     for b in blocks:
         for k in ('page', 'page_last', 'drawing'): b.pop(k, None)
         if b['t'] == 'cols':
@@ -500,21 +537,78 @@ def convert(gid, cat, fname, outdir, official):
         if b['t'] == 'p' and not b.get('ind'): b.pop('ind', None)
         if b['t'] == 'p' and not b.get('hang'): b.pop('hang', None)
     finalize([b for b in blocks if b['t'] == 'table'])
+    return dict(cover=cover, blocks=blocks, atts=atts, running=running, dropped=dropped, pages=len(pages),
+                ok=not missing and not extra, missing=missing, extra=extra, glyphs=sum(raw.count(g) for g in GLYPHS))
+
+
+def scanned(path):
+    """A PDF with no text layer at all (a scan)."""
+    return not re.sub(r'\s', '', page_chars_text(path))
+
+
+def scan_pages(path, gid, imgdir):
+    """The original is only pictures of pages: show each page picture (white margins trimmed), nothing retyped."""
+    import pymupdf
+    from PIL import Image, ImageOps
+    doc = pymupdf.open(path)
+    out = []
+    for pg in doc:
+        pix = pg.get_pixmap(dpi=150, colorspace=pymupdf.csGRAY)
+        im = Image.frombytes('L', (pix.width, pix.height), pix.samples)
+        box = ImageOps.invert(im).point(lambda v: 255 if v > 40 else 0).getbbox()
+        if box:
+            pad = 12
+            im = im.crop((max(0, box[0] - pad), max(0, box[1] - pad), min(im.width, box[2] + pad), min(im.height, box[3] + pad)))
+        w, h = round(im.width * 72 / 150), round(im.height * 72 / 150)
+        out.append(dict(t='img', img=[dict(src=save_image(im, imgdir, gid + '-'), w=w, h=h)], scan=True))
+    return out
+
+
+def label_text(t): return re.sub(r'（.*?）|\(.*?\)$', '', t).strip()
+
+
+def convert(gid, cat, fname, outdir, official):
+    folder = dict((c[0], c[2]) for c in CATS)[cat]
+    path = os.path.join(SRC, folder, fname)
+    imgdir = os.path.join(outdir, 'attach', 'img')
+    if scanned(path):
+        blocks = scan_pages(path, gid, imgdir)
+        title = re.sub(r'\(\d+.*?\)$', '', official)
+        doc = dict(id=gid, name=title, cover=[], credit=CREDIT, scan=True, blocks=blocks)
+        json.dump(doc, open(os.path.join(outdir, 'text', gid + '.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+        print(f'{gid} {title}: {len(blocks)} pp, scanned PDF without a text layer -> page pictures; SCAN')
+        return dict(id=gid, cat=cat, name=title, pages=len(blocks), attach=[], ok=True, scan=True, running=[], dropped=[], glyphs=0)
+    d = document(path, gid, official, imgdir)
+    cover, blocks, atts = d['cover'], d['blocks'], d['atts']
     attach = []
     for a in atts:
         data = dict(id=a['id'], guide=gid, label=a['label'], title=a['title'], blocks=[blocks[k] for k in a['span']])
         json.dump(data, open(os.path.join(outdir, 'attach', a['id'] + '.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
         attach.append(dict(id=a['id'], label=a['label'], title=a['title']))
-    title = cover[0] if cover else os.path.splitext(fname)[0]
+    oks, notes = [d['ok']], []
+    # whole documents published with the guide (Q&A, 修正對照表): attachments holding the full converted document
+    for key, label, efile in EXTRAS.get(gid, []):
+        aid = f'{gid}-{key}'
+        e = document(os.path.join(SRC, folder, efile), aid, official, imgdir, with_cover=False)   # the text starts on page 1
+        for b in e['blocks']:
+            b.pop('cap', None); b.pop('att', None); b.pop('links', None)
+        etitle = ''
+        data = dict(id=aid, guide=gid, label=label, title=etitle, doc=True, cover=e['cover'][1:], blocks=e['blocks'])
+        json.dump(data, open(os.path.join(outdir, 'attach', aid + '.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+        attach.append(dict(id=aid, label=label, title=etitle, doc=True))
+        oks.append(e['ok'])
+        notes.append(f'{label}: {e["pages"]} pp ' + ('OK' if e['ok'] else f'FAIL missing={"".join(e["missing"].elements())[:60]!r} extra={"".join(e["extra"].elements())[:60]!r}'))
+        d['running'] += e['running']; d['dropped'] += e['dropped']; d['glyphs'] += e['glyphs']
+    title = cover[0] if cover else re.sub(r'(\(.*?\))+$', '', official)
     doc = dict(id=gid, name=title, cover=cover[1:] if cover else [], credit=CREDIT, blocks=blocks)
     json.dump(doc, open(os.path.join(outdir, 'text', gid + '.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     stats = collections.Counter(b['t'] for b in blocks)
-    ok = not missing and not extra
-    print(f'{gid} {title}: {pages_n} pp, {stats["h"]} headings, {stats["p"]} paras, {stats["table"]} tables, {stats["img"]} pictures, '
-          f'{stats["cols"]} column lists, {len(atts)} attachments; dropped {len(running)} header/footer lines, {len(dropped)} repeated cells; '
-          + ('OK' if ok else f'FAIL missing={"".join(missing.elements())[:80]!r} extra={"".join(extra.elements())[:80]!r}'))
-    return dict(id=gid, cat=cat, name=title, pages=pages_n, attach=attach, ok=ok, running=running, dropped=dropped,
-                glyphs=sum(page_chars_text(path).count(g) for g in GLYPHS))
+    print(f'{gid} {title}: {d["pages"]} pp, {stats["h"]} headings, {stats["p"]} paras, {stats["table"]} tables, {stats["img"]} pictures, '
+          f'{stats["cols"]} column lists, {len(attach)} attachments; dropped {len(d["running"])} header/footer lines, {len(d["dropped"])} repeated cells; '
+          + ('OK' if d['ok'] else f'FAIL missing={"".join(d["missing"].elements())[:80]!r} extra={"".join(d["extra"].elements())[:80]!r}')
+          + ''.join('; ' + n for n in notes))
+    return dict(id=gid, cat=cat, name=title, pages=d['pages'], attach=attach, ok=all(oks), running=d['running'], dropped=d['dropped'],
+                glyphs=d['glyphs'])
 
 
 if __name__ == '__main__':
@@ -530,6 +624,7 @@ if __name__ == '__main__':
         r = convert(gid, cat, fname, outdir, official)
         report[gid] = r
         have[gid] = dict(id=gid, cat=cat, name=r['name'], official=official, pages=r['pages'], attach=r['attach'])
+        if r.get('scan'): have[gid]['scan'] = True
     order = [g[0] for g in GUIDES]
     guides = sorted(have.values(), key=lambda g: order.index(g['id']))
     for g in guides: g['no'] = [x[0] for x in GUIDES if x[1] == g['cat']].index(g['id']) + 1
