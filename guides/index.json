@@ -34,19 +34,41 @@
 "id": "farm",
 "name": "農保",
 "src": "",
-"total": 0
+"total": 18
 },
 {
-"id": "public",
-"name": "公保",
+"id": "farm-e",
+"name": "人因性",
 "src": "",
-"total": 0
+"total": 2,
+"parent": "farm"
+},
+{
+"id": "farm-c",
+"name": "化學性",
+"src": "",
+"total": 4,
+"parent": "farm"
+},
+{
+"id": "farm-p",
+"name": "物理性",
+"src": "",
+"total": 3,
+"parent": "farm"
+},
+{
+"id": "farm-b",
+"name": "生物性",
+"src": "",
+"total": 9,
+"parent": "farm"
 },
 {
 "id": "plans",
 "name": "四大計畫",
 "src": "",
-"total": 0
+"total": 4
 }
 ],
 "guides": [
@@ -2791,6 +2813,429 @@
 "pages": 6,
 "attach": [],
 "no": 18
+},
+{
+"id": "farm-e01",
+"cat": "farm-e",
+"name": "農民職業災害保險職業病認定參考指引：手指骨關節炎導致手指變形",
+"official": "手指骨關節炎導致手指變形認定參考指引",
+"pages": 14,
+"attach": [],
+"no": 1
+},
+{
+"id": "farm-e02",
+"cat": "farm-e",
+"name": "長期壓迫引起之關節滑囊病變認定參考指引",
+"official": "長期壓迫引起之關節滑囊病變認定參考指引",
+"pages": 16,
+"attach": [
+{
+"id": "farm-e02-t1",
+"label": "表一",
+"title": "「長期壓迫引起的關節滑囊病變認定參考指引」之流行病學證據"
+},
+{
+"id": "farm-e02-t2",
+"label": "表二",
+"title": "各國/國際組織之關節滑囊病變職業疾病診斷標準"
+}
+],
+"no": 2
+},
+{
+"id": "farm-c01",
+"cat": "farm-c",
+"name": "農民職業災害保險職業病認定參考指引：有機氯殺蟲劑引起之中毒及其續發症",
+"official": "有機氯殺蟲劑引起之中毒及其續發症職業病認定參考指引",
+"pages": 17,
+"attach": [],
+"no": 1
+},
+{
+"id": "farm-c02",
+"cat": "farm-c",
+"name": "有機磷化合物中毒之認定基準",
+"official": "有機磷化合物中毒之認定基準",
+"pages": 14,
+"attach": [
+{
+"id": "farm-c02-t1",
+"label": "表一",
+"title": "有機磷急性中毒之表徵"
+},
+{
+"id": "farm-c02-t2",
+"label": "表二",
+"title": "有機磷中毒之分級及臨床症狀分級"
+}
+],
+"no": 2
+},
+{
+"id": "farm-c03",
+"cat": "farm-c",
+"name": "氨基甲酸鹽類殺蟲劑引起之中毒及其續發症職業病認定參考指引",
+"official": "氨基甲酸鹽類殺蟲劑引起之中毒及其續發症職業病認定參考指引",
+"pages": 16,
+"attach": [
+{
+"id": "farm-c03-f1",
+"label": "圖一",
+"title": "氨基甲酸的結構"
+},
+{
+"id": "farm-c03-t1",
+"label": "表一",
+"title": "「SLDGE」代表下列症狀:"
+},
+{
+"id": "farm-c03-t2",
+"label": "表二",
+"title": "「DUBELL」代表下列症狀:"
+}
+],
+"no": 3
+},
+{
+"id": "farm-c04",
+"cat": "farm-c",
+"name": "農民職業災害保險職業病認定參考指引：職業暴露甲醛引起之中毒及癌症",
+"official": "甲醛中毒職業病認定參考指引",
+"pages": 24,
+"attach": [
+{
+"id": "farm-c04-t1",
+"label": "表一",
+"title": "空氣中甲醛暴露規範"
+},
+{
+"id": "farm-c04-t2",
+"label": "表二",
+"title": "空氣中甲醛濃度與健康危害之關係"
+},
+{
+"id": "farm-c04-t3",
+"label": "表三",
+"title": "IARC所認定與鼻咽癌相關之危險因子"
+}
+],
+"no": 4
+},
+{
+"id": "farm-p01",
+"cat": "farm-p",
+"name": "農民職業災害保險職業病認定參考指引：紫外線暴露引發之皮膚鱗狀上皮細胞癌",
+"official": "紫外線暴露引發之皮膚鱗狀上皮細胞癌認定參考指引",
+"pages": 12,
+"attach": [
+{
+"id": "farm-p01-at1",
+"label": "附表一",
+"title": "台灣地區引發皮膚鱗狀上皮細胞癌之標準紅斑劑量及年數"
+}
+],
+"no": 1
+},
+{
+"id": "farm-p02",
+"cat": "farm-p",
+"name": "低溫引起農民職業病之認定參考指引",
+"official": "低溫引起農民職業病之認定參考指引",
+"pages": 12,
+"attach": [],
+"no": 2
+},
+{
+"id": "farm-p03",
+"cat": "farm-p",
+"name": "日射病 (中暑) 熱痙攣熱衰竭等疾病",
+"official": "日射病（中暑）熱痙攣熱衰竭等疾病之認定參考指引",
+"pages": 12,
+"attach": [
+{
+"id": "farm-p03-t1",
+"label": "表一",
+"title": "時量平均綜合溫度熱指數與休息作業比例"
+},
+{
+"id": "farm-p03-t2",
+"label": "表二",
+"title": "熱指數表"
+},
+{
+"id": "farm-p03-t3",
+"label": "表三",
+"title": "熱危害風險等級"
+},
+{
+"id": "farm-p03-t4",
+"label": "表四",
+"title": "心跳恢復率與熱應變對照"
+}
+],
+"no": 3
+},
+{
+"id": "farm-b01",
+"cat": "farm-b",
+"name": "農民職業災害保險職業病認定參考指引：日本腦炎",
+"official": "日本腦炎職業病認定參考指引",
+"pages": 8,
+"attach": [],
+"no": 1
+},
+{
+"id": "farm-b02",
+"cat": "farm-b",
+"name": "漢他病毒症候群之認定參考指引",
+"official": "漢他病毒症候群之認定參考指引",
+"pages": 12,
+"attach": [],
+"no": 2
+},
+{
+"id": "farm-b03",
+"cat": "farm-b",
+"name": "職業因素感染新型 A 型流感認定參考指引",
+"official": "職業因素感染新型A型流感認定參考指引",
+"pages": 10,
+"attach": [],
+"no": 3
+},
+{
+"id": "farm-b04",
+"cat": "farm-b",
+"name": "職業因素罹患恙蟲病之認定參考指引",
+"official": "職業因素罹患恙蟲病之認定參考指引",
+"pages": 11,
+"attach": [],
+"no": 4
+},
+{
+"id": "farm-b05",
+"cat": "farm-b",
+"name": "職業因素罹患豬丹毒、炭疽病、類鼻疽等疾病之認定參考指引",
+"official": "職業因素罹患豬丹毒、炭疽病、類鼻疽等疾病之認定參考指引",
+"pages": 20,
+"attach": [],
+"no": 5
+},
+{
+"id": "farm-b06",
+"cat": "farm-b",
+"name": "職業因素罹患黴菌性角膜疾病之認定參考指引",
+"official": "職業因素罹患黴菌性角膜疾病之認定參考指引",
+"pages": 12,
+"attach": [],
+"no": 6
+},
+{
+"id": "farm-b07",
+"cat": "farm-b",
+"name": "職業暴露鉤端螺旋體引起之疾病認定參考指引",
+"official": "職業暴露鉤端螺旋體引起之疾病認定參考指引",
+"pages": 10,
+"attach": [],
+"no": 7
+},
+{
+"id": "farm-b08",
+"cat": "farm-b",
+"name": "職業相關 Q 熱(Query Fever/ Q Fever)認定參考指引",
+"official": "職業相關Q熱認定參考指引",
+"pages": 9,
+"attach": [],
+"no": 8
+},
+{
+"id": "farm-b09",
+"cat": "farm-b",
+"name": "農民職業災害保險職業病認定參考指引：職業因素罹患鉤蟲病之認定參考指引",
+"official": "鉤蟲病職業病認定參考指引",
+"pages": 11,
+"attach": [],
+"no": 9
+},
+{
+"id": "plans01",
+"cat": "plans",
+"name": "人因性危害預防計畫指引",
+"official": "人因性危害預防計畫指引",
+"pages": 43,
+"attach": [
+{
+"id": "plans01-f1",
+"label": "圖1",
+"title": "人因性危害防止計畫的 PDCA 規劃流程圖"
+},
+{
+"id": "plans01-f2",
+"label": "圖2",
+"title": "勞工自覺「肌肉骨骼症狀調查表」樣張"
+},
+{
+"id": "plans01-f3",
+"label": "圖3",
+"title": "「肌肉骨骼症狀調查表追蹤一覽表」樣張"
+},
+{
+"id": "plans01-f4",
+"label": "圖4",
+"title": "二階段人因工程改善流程圖"
+},
+{
+"id": "plans01-t1",
+"label": "表1",
+"title": "肌肉骨骼傷病調查危害等級區分"
+},
+{
+"id": "plans01-t2",
+"label": "表2",
+"title": "肌肉骨骼傷病調查一覽表"
+},
+{
+"id": "plans01-f5",
+"label": "圖5",
+"title": "簡易人因工程檢核表(部分)"
+},
+{
+"id": "plans01-t3",
+"label": "表3",
+"title": "肌肉骨骼傷病人因工程改善管控追蹤一覽表"
+},
+{
+"id": "plans01-f6",
+"label": "圖6",
+"title": "人因性危害分析與改善流程"
+},
+{
+"id": "plans01-t4",
+"label": "表4",
+"title": "常見肌肉骨骼傷病分析工具"
+}
+],
+"no": 1
+},
+{
+"id": "plans02",
+"cat": "plans",
+"name": "執行職務遭受不法侵害預防指引",
+"official": "執行職務遭受不法侵害預防指引-第四版",
+"pages": 39,
+"attach": [
+{
+"id": "plans02-f1",
+"label": "圖一",
+"title": "職場不法侵害預防流程圖"
+},
+{
+"id": "plans02-f2",
+"label": "圖二",
+"title": "評估危害步驟圖"
+},
+{
+"id": "plans02-f3",
+"label": "圖三",
+"title": "疑似職場不法侵害事件處理流程圖"
+},
+{
+"id": "plans02-t1",
+"label": "表一",
+"title": "簡易風險等級分類"
+}
+],
+"no": 2
+},
+{
+"id": "plans03",
+"cat": "plans",
+"name": "工作場所母性健康保護技術指引",
+"official": "工作場所母性健康保護技術指引-第三版",
+"pages": 39,
+"attach": [
+{
+"id": "plans03-f1",
+"label": "圖一",
+"title": "母性健康保護措施推動之流程圖"
+},
+{
+"id": "plans03-at1",
+"label": "附表一",
+"title": "作業場所危害評估及母性健康保護採行措施表"
+},
+{
+"id": "plans03-at2",
+"label": "附表二",
+"title": "妊娠及分娩後未滿 1 年之勞工健康情形自我評估表"
+},
+{
+"id": "plans03-at3",
+"label": "附表三",
+"title": "母性健康保護危害風險分級參考表"
+},
+{
+"id": "plans03-at4",
+"label": "附表四",
+"title": "妊娠及分娩後未滿 1 年勞工之工作適性安排建議表"
+},
+{
+"id": "plans03-at5",
+"label": "附表五",
+"title": "母性健康保護執行紀錄表(參考例)"
+}
+],
+"no": 3
+},
+{
+"id": "plans04",
+"cat": "plans",
+"name": "異常工作負荷促發疾病預防指引",
+"official": "異常工作負荷促發疾病預防指引-第二版-108年4月",
+"pages": 25,
+"attach": [
+{
+"id": "plans04-f1",
+"label": "圖一",
+"title": "異常工作負荷促發疾病預防作法流程圖"
+},
+{
+"id": "plans04-t1",
+"label": "表一",
+"title": "10年內心血管疾病發病風險程度表"
+},
+{
+"id": "plans04-t2",
+"label": "表二",
+"title": "工作負荷程度表"
+},
+{
+"id": "plans04-t3",
+"label": "表三",
+"title": "工作型態評估表"
+},
+{
+"id": "plans04-t4",
+"label": "表四",
+"title": "職業促發腦心血管疾病之風險等級表"
+},
+{
+"id": "plans04-f2",
+"label": "圖二",
+"title": "異常工作負荷促發疾病高風險群之評估操作流程"
+},
+{
+"id": "plans04-t5",
+"label": "表五",
+"title": "風險分級與面談建議表"
+},
+{
+"id": "plans04-t6",
+"label": "表六",
+"title": "職業促發腦、心血管疾病風險分級之勞工健康管理措施"
+}
+],
+"no": 4
 }
 ]
 }

@@ -472,7 +472,7 @@
     const sc = by('lx-scroll'), top = sc.scrollTop;
     const tierLaws = state.index.laws.filter(l => l.tier === meta.tier);
     const tierInfo = state.index.tiers.find(t => t.id === meta.tier) || {};
-    let html = '<div class="lx-head sg-glass"><p class="sg-eyebrow">' + meta.tier + ' · ' + esc(TIER_NAMES[meta.tier] || '') + ' · ' + (meta.no || tierLaws.indexOf(meta) + 1) + ' / ' + (tierInfo.total || tierLaws.length) + '</p>' +
+    let html = '<div class="lx-head sg-glass"><p class="sg-eyebrow">' + [meta.tier, esc(tierInfo.name || TIER_NAMES[meta.tier] || ''), (meta.no || tierLaws.indexOf(meta) + 1) + ' / ' + (tierInfo.total || tierLaws.length)].filter(Boolean).join(' · ') + '</p>' +
       '<h1 class="lx-title">' + rich(meta.name, null, terms) + '</h1>' +
       '<p class="lx-meta">' + (law.date ? '<span>' + esc(law.dateLabel) + ' ' + esc(law.date) + '</span>' : '') + '<span>' + meta.articles + ' 條</span></p>' +
       (law.status ? '<p class="lx-status">' + esc(law.status) + '</p>' : '') +

@@ -82,6 +82,12 @@ mark.gx-mark, .gx-dialog mark.gx-mark { background: rgba(226,197,138,.32); color
 .gx-table tr:last-child > * { border-bottom: 0; }
 .gx-table th { background: rgba(255,255,255,.07); color: #fff; font-weight: 400; text-align: center; vertical-align: middle; }
 .gx-table td.gx-narrow { text-align: center; vertical-align: middle; }
+/* graded cells (熱指數表): darker in the PDF = higher hazard level; same heat ramp as the 法規 tab */
+.gx-table .gx-heat { text-align: center; vertical-align: middle; font-variant-numeric: tabular-nums; }
+.gx-table .gx-heat-0 { background: rgba(255,255,255,.06); }
+.gx-table .gx-heat-2 { background: rgba(250,204,21,.11); }
+.gx-table .gx-heat-3 { background: rgba(249,115,22,.2); }
+.gx-table .gx-heat-4 { background: rgba(239,68,68,.3); color: #fff; }
 .gx-table img { display: inline-block; vertical-align: middle; margin: 2px; background: #fff; border-radius: 4px; }
 .gx-table .gx-nested { margin: 6px 0; }
 .gx-cell-p { margin: 0 0 6px; }
@@ -158,6 +164,7 @@ mark.gx-mark, .gx-dialog mark.gx-mark { background: rgba(226,197,138,.32); color
 .gx-cat[aria-expanded="true"] .gx-cat-name .sg-icon { transform: rotate(90deg); }
 .gx-cat-list[hidden] { display: none; }
 .gx-cat-list { padding-bottom: 6px; }
+.gx-subcats { margin-left: 12px; padding-left: 5px; border-left: 1px solid rgba(255,255,255,.1); }
 @media (prefers-reduced-motion: reduce) { .gx-cat-name .sg-icon { transition: none; } }
 .gx-cat-empty { margin: 0 0 4px; padding: 4px 10px 6px 29px; color: rgba(255,255,255,.3); font-size: 12px; }
 .gx-cover { margin: 0; color: rgba(255,255,255,.62); font-size: 13px; line-height: 1.75; }

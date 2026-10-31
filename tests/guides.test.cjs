@@ -42,7 +42,8 @@ test('guides follow the official order and numbering, one section per category',
     gs.forEach(g => assert.equal(g.no, order.indexOf(g.name) + 1, g.name));
   }
   // The five official categories keep their order, followed by the additional study categories.
-  assert.deepEqual(index.cats.map(c => c.name), ['人因性危害', '化學性危害', '物理性危害', '生物性危害', '社會、心理性危害', '農保', '公保', '四大計畫']);
+  assert.deepEqual(index.cats.filter(c => !c.parent).map(c => c.name), ['人因性危害', '化學性危害', '物理性危害', '生物性危害', '社會、心理性危害', '農保', '四大計畫']);
+  assert.deepEqual(index.cats.filter(c => c.parent === 'farm').map(c => c.name), ['人因性', '化學性', '物理性', '生物性']);
   for (const g of index.guides) assert.ok(index.cats.some(c => c.id === g.cat), g.id);
   for (const c of index.cats) assert.ok(c.total >= index.guides.filter(g => g.cat === c.id).length, c.name);
   assert.equal(new Set(index.cats.map(c => c.name)).size, index.cats.length);
@@ -53,7 +54,7 @@ test('every guide file loads, credits its source and has headings', () => {
   for (const meta of index.guides) {
     const g = read('text/' + meta.id + '.json');
     assert.equal(g.name, meta.name);
-    assert.match(g.credit, /勞動部職業安全衛生署.*政府資料開放授權條款第1版/);
+    assert.match(g.credit, meta.cat.startsWith('farm-') || meta.cat === 'plans' ? /資料來源：使用者提供之「.+」PDF。/ : /勞動部職業安全衛生署.*政府資料開放授權條款第1版/);
     if (g.scan) {
       // a scanned PDF: one page picture per page, nothing retyped
       assert.equal(meta.scan, true, meta.name);
@@ -66,6 +67,31 @@ test('every guide file loads, credits its source and has headings', () => {
     // no private-use glyphs (Wingdings bullets) left in the text
     assert.doesNotMatch(JSON.stringify(g), /[-]/, meta.name);
   }
+});
+
+test('farm guides are grouped by hazard and the four prevention plans are complete', () => {
+  for (const [cat, count] of [['farm-e', 2], ['farm-c', 4], ['farm-p', 3], ['farm-b', 9], ['plans', 4]]) {
+    assert.equal(index.guides.filter(g => g.cat === cat).length, count, cat);
+  }
+  assert.equal(index.cats.find(c => c.id === 'farm').total, 18);
+  assert.ok(!index.cats.some(c => c.id === 'public' || c.name === '公保'));
+  for (const c of index.cats.filter(c => c.parent)) assert.ok(index.cats.some(parent => parent.id === c.parent));
+});
+
+test('tables that the farm PDFs print as pictures or without inner rules are native tables', () => {
+  const table = id => read('attach/' + id + '.json').blocks.find(b => b.t === 'table');
+  // 熱指數表 (picture in the PDF, transcribed): 16 temperatures × 13 humidities, every value cell shaded 1–4
+  const heat = table('farm-p03-t2');
+  assert.equal(heat.rows.length, 18);
+  const values = heat.rows.slice(0, 16).flatMap(r => r.filter(c => c.c >= 3));
+  assert.equal(values.length, 16 * 13);
+  assert.ok(values.every(c => [1, 2, 3, 4].includes(c.lv)));
+  assert.ok(!read('attach/farm-p03-t2.json').blocks.some(b => b.t === 'img'));
+  assert.equal(table('farm-p03-t3').rows.length, 5);
+  // 有機磷中毒分級: one row per grade under the header
+  assert.deepEqual(table('farm-c02-t2').rows.map(r => r[0].text), ['中毒分級', '無症狀', '輕微中毒', '中度中毒', '重度中毒']);
+  // 常見肌肉骨骼傷病分析工具: one category cell spanning its tools
+  assert.deepEqual(table('plans01-t4').rows.filter(r => r[0].c === 0 && r[0].rs > 1).map(r => [r[0].text, r[0].rs]), [['上肢', 7], ['下背部', 5], ['全身', 3]]);
 });
 
 test('every 表/圖 link and caption points at an attachment that exists, and every picture is shipped', () => {

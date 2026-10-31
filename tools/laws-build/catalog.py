@@ -51,3 +51,12 @@ LAWS = [
     ("c01", "C", "勞工職業災害保險醫療給付項目及支付標準", "勞工職業災害保險醫療給付項目及支付標準"),
     ("c02", "C", "職業災害勞工保護法", "職業災害勞工保護法"),
 ]
+
+# Public-service insurance and related laws from the supplied folder.
+TIERS.append(("公保", ""))
+LAWS += [('pub01', '公保', '公教人員保險法', '公教人員保險法'), ('pub02', '公保', '公教人員保險法施行細則', '公教人員保險法施行細則'), ('pub03', '公保', '公教人員保險失能給付標準', '公教人員保險失能給付標準'), ('pub04', '公保', '公務人員退休資遣撫卹法', '公務人員退休資遣撫卹法'), ('pub05', '公保', '公務人員退休資遣撫卹法施行細則', '公務人員退休資遣撫卹法施行細則'), ('pub06', '公保', '公務人員請假規則', '公務人員請假規則'), ('pub07', '公保', '公務人員執行職務意外傷亡慰問金發給辦法', '公務人員執行職務意外傷亡慰問金發給辦法')]
+PUBLIC_SRC = os.environ.get("PUBLIC_LAWS_SRC", os.path.join(os.path.expanduser("~"), "Downloads", "公保"))
+def source_dir(lid):
+    return PUBLIC_SRC if lid.startswith("pub") else SRC
+
+EXTRA_ANNEX_FILES = {"pub01": ["附表 公教人員保險被保險人於本法修正施行前保險年資養老給付月數標準表.PDF"]}

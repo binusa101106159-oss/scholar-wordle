@@ -3,7 +3,8 @@ import sys, json, asyncio, glob, os, re, math, io
 import pymupdf
 from PIL import Image, ImageDraw
 from playwright.async_api import async_playwright
-from catalog import SRC, LAWS
+from catalog import SRC, LAWS, source_dir, EXTRA_ANNEX_FILES
+from run_annex import annex_files, label_of
 from annex import visible_text
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -18,10 +19,10 @@ norm = lambda s: re.sub(r'\s+', '', s)
 
 def pdf_path(law_id, label):
     stem = STEM[law_id]
-    for f in sorted(glob.glob(os.path.join(SRC, stem + ' *'))):
-        rest = os.path.basename(f)[len(stem) + 1:]
-        if f.upper().endswith('.PDF') and rest.startswith(label) and rest[len(label):][:1] not in '一二三四五六七八九十之':
-            return f
+    folder = source_dir(law_id)
+    for f in annex_files(stem, folder) + EXTRA_ANNEX_FILES.get(law_id, []):
+        found, _ = label_of(f[:-4], stem if f.startswith(stem) else '')
+        if found == label: return os.path.join(folder, f)
     raise FileNotFoundError(stem + ' ' + label)
 
 
@@ -69,6 +70,9 @@ async def review_annex(pg, law, a):
         const d = document.getElementById('lx-annex');
         d.style.cssText = 'position:absolute;inset:0 auto auto 0;margin:0;width:1080px;max-width:none;height:auto;max-height:none;transform:none;overflow:visible';
         document.getElementById('lx-annex-body').style.cssText = 'height:auto;flex:none;overflow:visible;max-height:none';
+        const tables=[...d.querySelectorAll('table')];
+        d.querySelectorAll('.lx-twrap').forEach(el=>el.style.overflow='visible');
+        d.style.width=Math.max(1080,...tables.map(el=>el.scrollWidth+90))+'px';
         document.body.style.minHeight = (d.scrollHeight + 100) + 'px';
     }""")
     # Unique text anchors locate page breaks in reflowed native content. A Range
@@ -134,7 +138,7 @@ async def review_annex(pg, law, a):
         segments=max(1,math.ceil((y1-y0)/2100))
         for k in range(segments):
             top=y0+k*2100; height=max(1,min(2100,y1-top))
-            await pg.set_viewport_size(dict(width=1200,height=max(900,math.ceil(height))))
+            await pg.set_viewport_size(dict(width=max(1200,bounds['width']+20),height=max(900,math.ceil(height))))
             await pg.evaluate('(top)=>{document.getElementById("lx-annex").style.transform=`translateY(${-top}px)`}',top)
             raw=await pg.screenshot(clip=dict(x=0,y=0,width=bounds['width'],height=height), animations='disabled')
             app=Image.open(io.BytesIO(raw)).convert('RGB')

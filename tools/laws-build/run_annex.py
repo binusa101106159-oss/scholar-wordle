@@ -1,6 +1,6 @@
 import json, os, re, sys, subprocess, collections, glob
 from annex import convert, visible_text, page_chars_text
-from catalog import LAWS, SRC
+from catalog import LAWS, SRC, source_dir, EXTRA_ANNEX_FILES
 
 NUM = '一二三四五六七八九十'
 def label_of(stem, lawstem):
@@ -8,10 +8,10 @@ def label_of(stem, lawstem):
     m = re.match(r'^((?:附)?表[一二三四五六七八九十]*)[\s：、]*(.*)$', rest)
     return (m.group(1), m.group(2).strip()) if m else (rest, '')
 
-def annex_files(lawstem):
+def annex_files(lawstem, folder=SRC):
     out = []
-    for f in sorted(os.listdir(SRC)):
-        if f.upper().endswith('.PDF') and f.startswith(lawstem + ' ') and not f.lower().endswith('.pdf') or (f.endswith('.PDF') and f.startswith(lawstem + ' ')):
+    for f in sorted(os.listdir(folder)):
+        if f.lower().endswith('.pdf') and f.startswith(lawstem) and f[len(lawstem):].lstrip().startswith(('附表', '表')):
             out.append(f)
     return out
 
@@ -37,11 +37,12 @@ if __name__ == '__main__':
     for law_id, tier, name, stem in LAWS:
         if tiers and tier not in tiers and law_id not in tiers: continue
         annexes = []
-        for f in annex_files(stem):
-            label, title = label_of(f[:-4], stem)
+        folder = source_dir(law_id)
+        for f in annex_files(stem, folder) + EXTRA_ANNEX_FILES.get(law_id, []):
+            label, title = label_of(f[:-4], stem if f.startswith(stem) else '')
             if not label.startswith(('附表', '表')): continue
             aid = f'{law_id}-{order(label)}'
-            path = os.path.join(SRC, f)
+            path = os.path.join(folder, f)
             data = convert(path, aid, os.path.join(outdir, 'img'), aid + '-')
             data.update(law=law_id, label=label, title=title)
             missing, extra = qc(path, data)

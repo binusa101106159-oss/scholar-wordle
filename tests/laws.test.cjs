@@ -38,7 +38,7 @@ test('S, B and C tiers are present in the study order, and every law shows its d
   const a = index.laws.filter(l => l.tier === 'A');
   assert.deepEqual(a.map(l => l.name), A_ORDER.filter(n => a.some(l => l.name === n)));
   a.forEach(l => assert.equal(l.no, A_ORDER.indexOf(l.name) + 1, l.name));
-  assert.deepEqual(index.tiers.map(t => t.id), ['S', 'A', 'B', 'C']);
+  assert.deepEqual(index.tiers.map(t => t.id), ['S', 'A', 'B', 'C', '公保']);
   for (const l of index.laws) assert.match(l.date, /^民國 \d+ 年 \d\d 月 \d\d 日$/, l.name);
 });
 
@@ -52,6 +52,20 @@ test('every law file loads with numbered articles and matches the catalogue', ()
     assert.equal(new Set(nos).size, nos.length, 'unique article numbers in ' + meta.name);
     assert.deepEqual(law.annexes.map(a => a.id), meta.annexes.map(a => a.id));
   }
+});
+
+test('public-service laws and their image-only retirement table are native and complete', () => {
+  const laws = index.laws.filter(l => l.tier === '公保');
+  assert.equal(laws.length, 7);
+  assert.equal(laws.reduce((n, l) => n + l.annexes.length, 0), 9);
+  const annex = read('annex/pub04-3.json');
+  assert.ok(!JSON.stringify(annex).includes('"src"'));
+  const table = annex.blocks.find(b => b.t === 'table');
+  assert.equal(table.widths.length, 12);
+  assert.equal(table.rows.length, 27);
+  assert.equal(table.rows[0][0].diag.bl, '任職年資');
+  assert.equal(table.rows[1][1].text, '77.5%');
+  assert.equal(table.rows[26][11].text, '30.0%');
 });
 
 test('every 附表 link points at an annex that exists, and every annex image is shipped', () => {

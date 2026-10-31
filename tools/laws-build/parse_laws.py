@@ -4,7 +4,7 @@ Output per law: {id, name, tier, title, date, status, notes, items}
 items: {"t":"ch","text":"第 一 章 總則"} | {"t":"art","no":"2","paras":[{"n":1|null,"lines":[{"lv":0..4,"text":...}]}]}
 """
 import json, re, subprocess, sys, os
-from catalog import LAWS, SRC
+from catalog import LAWS, SRC, source_dir
 from boxtables import box_tables, BOX
 from formulas import find_formulas, norm
 
@@ -32,7 +32,7 @@ def join(a, b):
 
 
 def parse(law_id, tier, name, stem):
-    lines = [l for l in raw_text(os.path.join(SRC, stem + '.pdf')) if l.strip()]
+    lines = [l for l in raw_text(os.path.join(source_dir(law_id), stem + '.pdf')) if l.strip()]
     law = {"id": law_id, "name": name, "tier": tier, "title": "", "dateLabel": "", "date": "", "status": "", "notes": [], "items": []}
     i = 0
     # header
@@ -143,7 +143,7 @@ if __name__ == '__main__':
         if only and tier not in only and law_id not in only: continue
         law = parse(law_id, tier, name, stem)
         # QC: every non-space character of the PDF text must appear, in order, in our data
-        src = re.sub(r'\s+', '', ''.join(raw_text(os.path.join(SRC, stem + '.pdf'))))
+        src = re.sub(r'\s+', '', ''.join(raw_text(os.path.join(source_dir(law_id), stem + '.pdf'))))
         src = ''.join(ch for ch in src if ch not in BOX)
         ntab = sum(1 for it in law['items'] if it['t'] == 'art' for p in it['paras'] for l in p['lines'] if 'table' in l or 'formula' in l)
 

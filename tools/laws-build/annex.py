@@ -692,7 +692,7 @@ NEWITEM = re.compile(r'^(?:\d+(?:[-.]\d+)+|\d+$|[A-Z][a-z]?\s*[-−]\s*\d+m?(?:\
 
 
 def blank(c):
-    return not c['text'] and not c.get('img') and not c.get('blocks')
+    return not c['text'] and not c.get('img') and not c.get('blocks') and not c.get('diag')
 
 
 def same_frame(a, b):
@@ -777,12 +777,38 @@ def join_nested(cell):
         i += 1
 
 
+def box(t):
+    """A cell holding only a check box: a row split by the page break never prints its box twice."""
+    return bool(re.fullmatch(r'\s*[□■☐☑]\s*', t or ''))
+
+
+def item_rows(prev, occ, L, x):
+    """A column that holds one numbered item per row (1.… | 2.… each in its own ruled row): the continuation's
+    first entry with the next number starts a new row instead of joining the last one."""
+    m = re.match(r'^(\d+)[.．、]', x['text'] or '')
+    if not m or '\n' in x['text'].strip(): return False
+    last, before = occ.get((L, x['c'])), occ.get((L - 1, x['c']))
+    width = len(prev['xs']) - 1
+    if last is None or last['c'] != x['c'] or last['rs'] != 1 or last['cs'] == width or '\n' in (last['text'] or '').strip(): return False
+    n = re.match(r'^(\d+)[.．、]', last['text'] or '')
+    if not n or int(n.group(1)) + 1 != int(m.group(1)): return False
+    if before is None: return False
+    if before['cs'] == width and before['rs'] == 1: return True          # 1. right under a full-width section row
+    b = re.match(r'^(\d+)[.．、]', before['text'] or '')
+    return bool(b) and before['rs'] == 1 and '\n' not in before['text'].strip() and int(b.group(1)) + 1 == int(n.group(1))
+
+
 def merge_continued(prev, it, dropped):
     """Append a table continued on the next page; stitch a row/cell that the page break split."""
     split_leading_nested(prev, it)
     if it.get('_scientific'):prev['_scientific']=True
     # the same column line can sit a few points apart on two pages
-    it['xs'] = [next((p for p in prev['xs'] if abs(p - x) <= 7), x) for x in it['xs']]
+    # Snap seams one-to-one. Two close nested-table seams must never collapse
+    # onto the same outer border when the continuation shifts a few points.
+    snaps = {}; used = set()
+    for distance, i, p in sorted((abs(p-x), i, p) for i,x in enumerate(it['xs']) for p in prev['xs'] if abs(p-x) <= 7):
+        if i not in snaps and p not in used: snaps[i] = p; used.add(p)
+    it['xs'] = [snaps.get(i, x) for i,x in enumerate(it['xs'])]
     if len(prev['xs']) != len(it['xs']) or any(abs(a - b) > 3 for a, b in zip(prev['xs'], it['xs'])):
         U = cluster(prev['xs'] + it['xs'], 3)
         remap(prev, U); remap(it, U)
@@ -806,7 +832,10 @@ def merge_continued(prev, it, dropped):
     first = [c for c in cells if c['r'] == base]
     cont = bool(first) and all(occ.get((L, x['c'])) is not None and occ[(L, x['c'])]['c'] == x['c'] and occ[(L, x['c'])]['cs'] == x['cs'] for x in first) \
         and any(blank(x) for x in first) and not any(NEWITEM.match(x['text']) for x in first if x['text']) \
-        and all(not blank(occ[(L, x['c'])]) for x in first if not blank(x))
+        and not any(x.get('diag') for x in first) \
+        and all(not blank(occ[(L, x['c'])]) for x in first if not blank(x)) \
+        and not any(box(x['text']) and box(occ[(L, x['c'])]['text']) for x in first) \
+        and not any(item_rows(prev, occ, L, x) for x in first)
     offset = (L - base) if cont else (L + 1 - base)
     for c in cells: c['r'] += offset
 

@@ -106,6 +106,7 @@
     if (t && c.c != null) { const total = t.widths.reduce((a, b) => a + b, 0) || 1; share = t.widths.slice(c.c, c.c + (c.cs || 1)).reduce((a, b) => a + b, 0) / total; }
     const cls = [];
     if (tag === 'td' && c.text && !c.blocks && (c.rs || 1) <= 4 && share <= 0.16 && c.text.length <= 12) cls.push('gx-narrow');
+    if (c.lv != null) cls.push('gx-heat gx-heat-' + c.lv);
     return '<' + tag + span + (cls.length ? ' class="' + cls.join(' ') + '"' : '') + '>' + inner + '</' + tag + '>';
   }
   function tableHTML(t, terms, nested) {
@@ -147,7 +148,10 @@
         figure = null; return;
       }
       flush();
-      if (b.t === 'h') { out.push('<h' + (b.lv + 1) + ' class="gx-h gx-h' + b.lv + '"' + aid + '>' + rich(b.text, b.links, terms) + '</h' + (b.lv + 1) + '>'); return; }
+      if (b.t === 'h') {
+        const content = b.cap && !opts.card ? '<button type="button" class="gx-cap-btn" data-att="' + b.cap + '" title="在視窗中開啟">' + rich(b.text, null, terms) + '</button>' : rich(b.text, b.links, terms);
+        out.push('<h' + (b.lv + 1) + ' class="gx-h gx-h' + b.lv + '"' + aid + '>' + content + '</h' + (b.lv + 1) + '>'); return;
+      }
       if (b.t === 'p') {
         if (opts.inCell) { out.push('<p class="gx-cell-p">' + rich(b.text, null, terms) + '</p>'); return; }
         if (b.cap && !opts.card) { out.push('<p class="gx-cap"' + aid + '><button type="button" class="gx-cap-btn" data-att="' + b.cap + '" title="在視窗中開啟">' + rich(b.text, null, terms) + '</button></p>'); return; }
@@ -227,7 +231,8 @@
       if (cat) {
         const open = Object.assign({}, prefs().open);
         open[cat.dataset.cat] = !catOpen(cat.dataset.cat);
-        setPrefs({ open }); renderSide(); return;
+        setPrefs({ open }); renderSide();
+        by('gx-list').querySelector('[data-cat="' + cat.dataset.cat + '"]').focus({ preventScroll: true }); return;
       }
       if (more) { state.expanded = state.expanded || new Set(); state.expanded.add(more.dataset.more); renderSide(); return; }
       if (!g) return;
@@ -337,7 +342,12 @@
   function catOpen(id) {
     const saved = (prefs().open || {})[id];
     if (saved != null) return saved;
-    return Boolean(state.current && state.current.meta.cat === id);
+    return Boolean(state.current && categoryContains(id, state.current.meta.cat));
+  }
+  function categoryContains(parent, child) {
+    if (parent === child) return true;
+    const cat = state.index.cats.find(c => c.id === child);
+    return Boolean(cat && cat.parent && categoryContains(parent, cat.parent));
   }
   function renderSide() {
     const list = by('gx-list');
@@ -347,15 +357,18 @@
     by('gx-scope').hidden = !state.query;
     by('gx-scope').querySelectorAll('[data-scope]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.scope === state.scope)));
     if (!state.query) {
-      list.innerHTML = idx.cats.map(c => {
-        const gs = idx.guides.filter(g => g.cat === c.id);
+      const categoryHTML = c => {
+        const children = idx.cats.filter(child => child.parent === c.id);
+        const gs = idx.guides.filter(g => categoryContains(c.id, g.cat));
         const count = c.total > gs.length ? gs.length + ' / ' + c.total + ' 份' : gs.length + ' 份';
         const open = catOpen(c.id);
         return '<button type="button" class="gx-cat" data-cat="' + c.id + '" aria-expanded="' + open + '" aria-controls="gx-cat-' + c.id + '">' +
           '<span class="gx-cat-name">' + icon.right + esc(c.name) + '</span><span>' + count + '</span></button>' +
           '<div class="gx-cat-list" id="gx-cat-' + c.id + '"' + (open ? '' : ' hidden') + '>' +
-          (gs.length ? gs.map(guideButton).join('') : '<p class="gx-cat-empty">尚未收錄</p>') + '</div>';
-      }).join('');
+          (children.length ? '<div class="gx-subcats">' + children.map(categoryHTML).join('') + '</div>' :
+            gs.length ? gs.map(guideButton).join('') : '<p class="gx-cat-empty">尚未收錄</p>') + '</div>';
+      };
+      list.innerHTML = idx.cats.filter(c => !c.parent).map(categoryHTML).join('');
       return;
     }
     if (!state.corpus) { list.innerHTML = '<p class="gx-empty">正在載入全部指引以供搜尋…</p>'; return; }
@@ -453,7 +466,12 @@
       catch (_) { by('gx-doc').innerHTML = '<p class="gx-loading">無法載入這份指引。請確認網路連線後再試一次。</p>'; return; }
       state.current = Object.assign({}, data, { meta });
       setPrefs({ guide: id });
-      if (!opts.boot && !catOpen(meta.cat)) setPrefs({ open: Object.assign({}, prefs().open, { [meta.cat]: true }) });
+      if (!opts.boot) {
+        const open = Object.assign({}, prefs().open);
+        let cat = state.index.cats.find(c => c.id === meta.cat);
+        while (cat) { open[cat.id] = true; cat = state.index.cats.find(c => c.id === cat.parent); }
+        setPrefs({ open });
+      }
       renderDoc(state.current, false);
       renderSide();
       const saved = (prefs().pos || {})[id];
@@ -502,7 +520,7 @@
 
   /* ── 表/圖 window ── */
   function attMeta(id) {
-    const g = state.byId.get(id.split('-')[0]);
+    const g = state.index.guides.find(g => g.attach.some(a => a.id === id));
     const list = g ? g.attach : [];
     return { g, list, pos: list.findIndex(a => a.id === id) };
   }
