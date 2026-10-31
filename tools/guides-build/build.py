@@ -27,7 +27,7 @@ APPX = re.compile(r'^(附錄|附件)\s*([一二三四五六七八九十ㄧ]*|[IV
 H2 = re.compile(r'^[（(][一二三四五六七八九十]+[)）]')
 MENTION = re.compile(r'(?<![發代外報])((?:附)?[表圖])\s*([一二三四五六七八九十]+|\d+)(?![一二三四五六七八九十\d])')
 # Wingdings bullets have no Unicode meaning; the PDF draws them as a black dot
-GLYPHS = {'\uf06c': '●', '\uf06e': '■', '\uf0fc': '✓', '\uf0b3': '≥', '\uf06d': 'μ', '\uf07e': '∼', '\uf02d': '−', '\uf061': 'α', '\uf0a0': '▪', '\uf0d8': '➢'}   # Wingdings ● ■ ✓; Symbol ≥ μ ∼
+GLYPHS = {'\uf06c': '●', '\uf06e': '■', '\uf0fc': '✓', '\uf0b3': '≥', '\uf06d': 'μ', '\uf07e': '∼', '\uf02d': '−', '\uf061': 'α', '\uf0a0': '▪', '\uf0d8': '➢', '\uf0b0': '°'}   # Wingdings ● ■ ✓; Symbol ≥ μ ∼
 
 
 def glyphs(s):
@@ -57,13 +57,14 @@ def highlight(t, words):
     return False
 
 
-def rule_tables(page, words, taken):
+def rule_tables(page, words, taken, keep=()):
     """Tables drawn with horizontal rules only (Word tables with hidden side borders, booktabs style).
     Each rule's segment ends mark the columns; each printed line between two rules is a row; a cell that the
     rule above does not close off continues the cell above it (row span)."""
     segs = [e for e in visible_edges(page) if e['orientation'] == 'h' and e['x1'] - e['x0'] > 8
             and 50 < e['top'] < page.height - 80
-            and not any(b[0] - 3 <= e['x0'] and e['x1'] <= b[2] + 3 and b[1] - 3 <= e['top'] <= b[3] + 3 for b in taken)]
+            and (any(abs(e['top'] - y) <= 1 and abs(e['x0'] - a) <= 1.5 and abs(e['x1'] - b) <= 1.5 for y, a, b in keep)   # a dark rule stays a rule on a shaded row's edge
+                 or not any(b[0] - 3 <= e['x0'] and e['x1'] <= b[2] + 3 and b[1] - 3 <= e['top'] <= b[3] + 3 for b in taken))]
     if not segs: return []
     rules = []
     for e in sorted(segs, key=lambda e: e['top']):
@@ -91,12 +92,18 @@ def rule_tables(page, words, taken):
                  and x0 - 3 <= e['x0'] <= x1 + 3 and g[0]['y'] - 3 <= e['top'] and e['bottom'] <= g[-1]['y'] + 3
                  and not any(b[0] - 3 <= e['x0'] <= b[2] + 3 and b[1] - 3 <= e['top'] <= b[3] + 3 for b in taken)]
         if len(sides) >= 4: continue
+        # arrows drawn between the rules: a chart (a scale with arrows under it), not a table
+        arrows = [c for c in page.curves if c.get('fill') and not is_white(c.get('non_stroking_color'))
+                  and x0 - 3 <= c['x0'] and c['x1'] <= x1 + 3 and g[0]['y'] - 3 <= c['top'] and c['bottom'] <= g[-1]['y'] + 3]
+        if len(arrows) >= 2: continue
         marks = cluster([v for r in g for s in r['segs'] for v in s] + [x0, x1], 2.5)
         def ends(r):          # column marks this rule draws
             return {k for k, m in enumerate(marks) if any(abs(m - v) <= 2.5 for s in r['segs'] for v in s)}
         def covered(r, a, b):  # does rule r run along the whole interval a..b?
             return any(s[0] - 2.5 <= a and b <= s[1] + 2.5 for s in r['segs'])
         def col_of(x): return max(0, min(len(marks) - 2, next((k for k in range(len(marks) - 1) if x < marks[k + 1]), len(marks) - 2)))
+        def splits(a, b):      # a column line runs through the gap between two words
+            return any(a['x1'] - 1 <= m <= b['x0'] + 1 for m in marks[1:-1])
         def seg_of(r, x): return next((s for s in r['segs'] if s[0] - 2.5 <= x <= s[1] + 2.5), None)
         cells, nrow, head = [], 0, 0
         prev_row = {}
@@ -109,11 +116,53 @@ def rule_tables(page, words, taken):
             # every word belongs to exactly one printed line: the one nearest its middle
             owner = [min(range(len(blines)), key=lambda k: abs((w['top'] + w['bottom']) / 2 - (blines[k]['top'] + blines[k]['bottom']) / 2))
                      if blines else 0 for w in band]
+            mid = lambda ln: (ln['top'] + ln['bottom']) / 2
+            # records whose first-column entry (a case number, a heading) is centred on several printed lines:
+            # every line belongs to the nearest such entry, so one record stays one row
+            anchors = [li for li in range(len(blines))
+                       if any(o == li and col_of((w['x0'] + w['x1']) / 2) == 0 for w, o in zip(band, owner))]
+            # a first-column cell printed on several lines (line spacing within 1.5 line heights) is one entry
+            groups = []
+            for a in anchors:
+                ln = blines[a]
+                if groups and mid(ln) - mid(blines[groups[-1][-1]]) <= 1.5 * (ln['bottom'] - ln['top']): groups[-1].append(a)
+                else: groups.append([a])
+            # every column but the first holds at most one entry: the whole band is one record
+            def entries(k): return sum(1 for li in range(len(blines)) if any(o == li and col_of((w['x0'] + w['x1']) / 2) == k for w, o in zip(band, owner)))
+            single = len(blines) > 1 and anchors and all(entries(k) <= 1 for k in range(1, len(marks) - 1))
+            if single or (groups and groups[0][0] > 0 and len(blines) > len(groups) and len(blines) <= 8 * len(groups)):
+                recs = {}
+                for li in range(len(blines)):
+                    if single: near = 0
+                    else:
+                        dist = lambda gr: max(0, mid(blines[gr[0]]) - mid(blines[li]), mid(blines[li]) - mid(blines[gr[-1]]))
+                        near = min(range(len(groups)), key=lambda k: (dist(groups[k]), k))
+                    recs.setdefault(near, []).append(li)
+                for a in sorted(recs):
+                    row = {}
+                    for li in recs[a]:
+                        lw = sorted([w for w, o in zip(band, owner) if o == li], key=lambda w: w['x0'])
+                        pieces = []
+                        for w in lw:
+                            if pieces and w['x0'] - pieces[-1][-1]['x1'] <= 6 and not splits(pieces[-1][-1], w): pieces[-1].append(w)
+                            else: pieces.append([w])
+                        for pc in pieces:
+                            k = col_of((pc[0]['x0'] + pc[-1]['x1']) / 2)
+                            text = lines_of(pc)[0]['text']
+                            if k in row: row[k]['text'] += ('\n' if row[k]['_li'] != li else ' ') + text; row[k]['_li'] = li
+                            else:
+                                row[k] = dict(r=nrow, c=k, rs=1, cs=1, text=text, _li=li); cells.append(row[k])
+                    for k in range(len(marks) - 1):
+                        if k not in row: row[k] = dict(r=nrow, c=k, rs=1, cs=1, text=''); cells.append(row[k])
+                    for c in row.values(): c.pop('_li', None)
+                    prev_row = row; nrow += 1
+                if bi < len(g) - 2: head = nrow
+                continue
             for li, ln in enumerate(blines):
                 ws = sorted([w for w, o in zip(band, owner) if o == li], key=lambda w: w['x0'])
                 pieces = []                      # words closer than 6pt belong together
                 for w in ws:
-                    if pieces and w['x0'] - pieces[-1][-1]['x1'] <= 6: pieces[-1].append(w)
+                    if pieces and w['x0'] - pieces[-1][-1]['x1'] <= 6 and not splits(pieces[-1][-1], w): pieces[-1].append(w)
                     else: pieces.append([w])
                 row = {}
                 for pc in pieces:
@@ -204,8 +253,43 @@ def read_pages(path, imgdir, prefix):
             def has_words(t):
                 return any(t.bbox[0] <= (w['x0'] + w['x1']) / 2 <= t.bbox[2] and t.bbox[1] <= (w['top'] + w['bottom']) / 2 <= t.bbox[3] for w in words)
             found = [t for t in found if has_words(t) or page.crop(t.bbox).images]
+            # a ruled strip that is mostly empty with arrows drawn across it is a chart (a scale with arrows), not a table
+            def chart(t):
+                cells = [c for c in t.cells if c]
+                full = sum(1 for c in cells if any(c[0] <= (w['x0'] + w['x1']) / 2 <= c[2] and c[1] <= (w['top'] + w['bottom']) / 2 <= c[3] for w in words))
+                arrows = [c for c in page.curves if c.get('fill') and t.bbox[0] - 2 <= c['x0'] and c['x1'] <= t.bbox[2] + 2
+                          and t.bbox[1] - 2 <= c['top'] and c['bottom'] <= t.bbox[3] + 2]
+                return len(arrows) >= 2 and full <= len(cells) * 0.4
+            found = [t for t in found if not chart(t)]
+            # zebra shading: a single shaded row (light fill, no border) between two dark rules is the row's background,
+            # the rules make the table
+            def light(c):
+                if c is None: return False
+                c = (c,) if isinstance(c, (int, float)) else tuple(c)
+                return (len(c) == 4 and max(c) <= 0.15) or (len(c) in (1, 3) and min(c) >= 0.8)
+            def zebra(t):
+                if len(t.rows) != 1: return False
+                filled = [c for c in t.cells if c and any(c[0] <= (w['x0'] + w['x1']) / 2 <= c[2] and c[1] <= (w['top'] + w['bottom']) / 2 <= c[3] for w in words)]
+                if len(filled) < 2: return False       # a shaded heading bar keeps its box
+                inside = [r for r in page.rects if t.bbox[0] - 1 <= r['x0'] and r['x1'] <= t.bbox[2] + 1 and t.bbox[1] - 1 <= r['top'] and r['bottom'] <= t.bbox[3] + 1
+                          and min(r['x1'] - r['x0'], r['bottom'] - r['top']) > 1.5]
+                if not inside or any(r.get('stroke') or not light(r.get('non_stroking_color')) for r in inside): return False
+                w = t.bbox[2] - t.bbox[0]
+                def rule(r, below):
+                    return (r['bottom'] - r['top'] <= 1.5 and not light(r.get('non_stroking_color')) and r['x0'] <= t.bbox[0] + 8 and r['x1'] >= t.bbox[2] - 8
+                            and (0 <= r['top'] - t.bbox[3] <= 150 if below else 0 <= t.bbox[1] - r['bottom'] <= 150))
+                def covers(below):
+                    segs = sorted((r['x0'], r['x1']) for r in page.rects if r['bottom'] - r['top'] <= 1.5 and not light(r.get('non_stroking_color'))
+                                  and (-2 <= r['top'] - t.bbox[3] <= 150 if below else -2 <= t.bbox[1] - r['bottom'] <= 150))
+                    reach = t.bbox[0] + 8
+                    for a, b in segs:
+                        if a <= reach + 2: reach = max(reach, b)
+                    return reach >= t.bbox[2] - 8
+                return covers(False) and covers(True)
+            zebras = [t for t in found if zebra(t)]
+            found = [t for t in found if t not in zebras]
             tables = [t for t in found if not highlight(t, words)]
-            shaded = [t.bbox for t in found if highlight(t, words)]     # their edges are not table rules either
+            shaded = [t.bbox for t in found if highlight(t, words)] + [t.bbox for t in zebras]     # their edges are not table rules either
             def inside(a, b):
                 return a is not b and b.bbox[0] - 2 <= a.bbox[0] and a.bbox[2] <= b.bbox[2] + 2 and b.bbox[1] - 2 <= a.bbox[1] and a.bbox[3] <= b.bbox[3] + 2
             built = {}
@@ -213,7 +297,9 @@ def read_pages(path, imgdir, prefix):
                 kids = [built.pop(id(k)) for k in tables if id(k) in built and inside(k, t)]
                 built[id(t)] = table_struct(page, t, words, images, imgsave, kids)
             items = [dict(k='table', tb=tb, top=tb['top'], bottom=tb['bottom']) for tb in built.values()]
-            for tb in rule_tables(page, words, [(t['x0'], t['top'], t['x1'], t['bottom']) for t in built.values()] + shaded):
+            dark = [(y, r['x0'], r['x1']) for r in page.rects if r['bottom'] - r['top'] <= 1.5 and r['x1'] - r['x0'] > 8 and r.get('fill')
+                    and not light(r.get('non_stroking_color')) for y in (r['top'], r['bottom'])] if zebras else []
+            for tb in rule_tables(page, words, [(t['x0'], t['top'], t['x1'], t['bottom']) for t in built.values()] + shaded, dark):
                 items.append(dict(k='table', tb=tb, top=tb['top'], bottom=tb['bottom']))
             dropped = []
             # vector drawings outside tables become a picture of the drawing (same rule as the laws converter)
@@ -606,6 +692,7 @@ def scan_pages(path, gid, imgdir):
             pad = 12
             im = im.crop((max(0, box[0] - pad), max(0, box[1] - pad), min(im.width, box[2] + pad), min(im.height, box[3] + pad)))
         w, h = round(im.width * 72 / 150), round(im.height * 72 / 150)
+        im = im.quantize(colors=16, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)   # 16 greys: same to the eye, half the bytes
         out.append(dict(t='img', img=[dict(src=save_image(im, imgdir, gid + '-'), w=w, h=h)], scan=True))
     return out
 

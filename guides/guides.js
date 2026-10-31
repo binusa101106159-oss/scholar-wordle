@@ -861,8 +861,7 @@
         renderSide();
         const last = prefs().guide;
         await openGuide(state.byId.has(last) ? last : state.index.guides[0].id, { boot: true });
-        const idle = window.requestIdleCallback || (fn => setTimeout(fn, 1500));
-        idle(() => loadCorpus().catch(() => {}));
+        // the full-text search index (every guide) loads when the search box is first used, not on every visit
       })();
     } else if (state.current) {
       document.title = state.current.meta.name + ' · Scholar';
