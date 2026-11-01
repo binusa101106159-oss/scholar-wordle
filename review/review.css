@@ -69,7 +69,9 @@ body[data-game="review"] { height: 100dvh; min-height: 0; overflow: hidden; }
 .rv-message { max-width: 680px; margin: 40px auto; }
 .rv-item:focus-visible, .rv-toc button:focus-visible, .rv-filters select:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
 @media(min-width:761px) {
-  .rv-layout[data-sidebar-collapsed="true"] { grid-template-columns: 62px minmax(0,1fr); gap: 18px; }
+  .rv-layout[data-sidebar-collapsed="true"] { position: relative; grid-template-columns: minmax(0,1fr); gap: 0; }
+  .rv-layout[data-sidebar-collapsed="true"] .rv-side { position: absolute; top: 18px; left: 24px; z-index: 2; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 10px; background: transparent; box-shadow: none; backdrop-filter: none; overflow: visible; }
+  .rv-layout[data-sidebar-collapsed="true"] .rv-toolbar { padding-left: 48px; }
   .rv-layout[data-sidebar-collapsed="true"] .rv-side-head { padding: 0; justify-content: center; }
   .rv-layout[data-sidebar-collapsed="true"] .rv-side-content, .rv-layout[data-sidebar-collapsed="true"] .rv-side-head h1 { display: none; }
   .rv-layout[data-sidebar-collapsed="true"] .rv-paper { max-width: 1100px; }
