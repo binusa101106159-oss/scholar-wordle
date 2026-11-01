@@ -3,9 +3,16 @@ body[data-game="review"] { height: 100dvh; min-height: 0; overflow: hidden; }
 .rv-app { min-height: 0; --rv-line: rgba(255,255,255,.12); --rv-muted: rgba(241,245,249,.52); }
 #review-panel, #review-panel *:not(svg):not(path) { font-family: 'Roboto','Noto Sans TC','Microsoft JhengHei',system-ui,sans-serif; }
 .rv-layout { flex: 1; width: min(100%,1360px); height: 100%; min-height: 0; margin: 0 auto; padding: 18px 24px; display: grid; grid-template-columns: 318px minmax(0,1fr); gap: 22px; }
-.rv-side { min-height: 0; display: flex; flex-direction: column; padding: 20px 12px 12px; border-radius: 24px; }
-.rv-side-head { padding: 0 6px 14px; }
-.rv-side-head h1 { margin: 0 0 5px; color: #fff; font-size: 21px; font-weight: 400; }
+.rv-side { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 14px 10px 12px; border-radius: 22px; overflow: hidden; }
+.rv-side-head { display: flex; align-items: center; gap: 9px; padding: 0 4px 12px; flex-shrink: 0; }
+.rv-side-content { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; }
+.rv-snapshot { margin: 0; padding: 0 7px 16px; color: var(--rv-muted); font-size: 12px; }
+.rv-sidebar-toggle { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 36px; height: 36px; padding: 7px; border: 1px solid transparent; border-radius: 10px; color: #cbd5e1; background: transparent; cursor: pointer; transition: background .16s ease, color .16s ease; }
+.rv-sidebar-toggle:hover { color: #fff; background: rgba(255,255,255,.09); }
+.rv-sidebar-toggle:active { background: rgba(255,255,255,.15); }
+.rv-sidebar-toggle:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
+.rv-sidebar-toggle svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.rv-side-head h1 { margin: 0; color: #fff; font-size: 21px; font-weight: 400; }
 .rv-side-head p { margin: 0; font-size: 12px; color: var(--rv-muted); }
 .rv-search-label { display: block; padding: 0 5px; margin-bottom: 9px; }
 .rv-search-label span, .rv-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -28,7 +35,6 @@ body[data-game="review"] { height: 100dvh; min-height: 0; overflow: hidden; }
 .rv-spacer { flex: 1; }
 .rv-position { color: var(--rv-muted); font-size: 12px; }
 .rv-toolbar .rv-menu { display: none; }
-.rv-toolbar .rv-sidebar-toggle { display: inline-flex; }
 .rv-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 0 5px 40px 0; scrollbar-width: thin; scrollbar-color: #ffffff33 transparent; }
 .rv-paper { max-width: 900px; margin: 0 auto; padding: clamp(20px,3vw,34px); border-radius: 24px; }
 .rv-meta { margin: 0 0 16px; color: var(--rv-muted); font-size: 12px; line-height: 1.7; }
@@ -63,8 +69,9 @@ body[data-game="review"] { height: 100dvh; min-height: 0; overflow: hidden; }
 .rv-message { max-width: 680px; margin: 40px auto; }
 .rv-item:focus-visible, .rv-toc button:focus-visible, .rv-filters select:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
 @media(min-width:761px) {
-  .rv-layout[data-sidebar-collapsed="true"] { grid-template-columns: minmax(0,1fr); gap: 0; }
-  .rv-layout[data-sidebar-collapsed="true"] .rv-side { display: none; }
+  .rv-layout[data-sidebar-collapsed="true"] { grid-template-columns: 62px minmax(0,1fr); gap: 18px; }
+  .rv-layout[data-sidebar-collapsed="true"] .rv-side-head { padding: 0; justify-content: center; }
+  .rv-layout[data-sidebar-collapsed="true"] .rv-side-content, .rv-layout[data-sidebar-collapsed="true"] .rv-side-head h1 { display: none; }
   .rv-layout[data-sidebar-collapsed="true"] .rv-paper { max-width: 1100px; }
 }
 @media(max-width:760px) {
@@ -74,7 +81,7 @@ body[data-game="review"] { height: 100dvh; min-height: 0; overflow: hidden; }
   .rv-layout[data-view="reader"] .rv-side { display: none; }
   .rv-layout[data-view="list"] .rv-reader { display: none; }
   .rv-toolbar .rv-menu { display: inline-flex; }
-  .rv-toolbar .rv-sidebar-toggle { display: none; }
+  .rv-sidebar-toggle { width: 44px; height: 44px; }
   .rv-paper { padding: 20px 16px; border-radius: 20px; }
   .rv-toolbar { gap: 6px; padding-bottom: 10px; }
   .rv-toolbar .sg-btn { padding: 6px 10px; }

@@ -46,8 +46,10 @@
   function updateSidebar() {
     by('nt-layout').dataset.sidebarCollapsed = String(state.sidebarCollapsed);
     const button = by('nt-sidebar-toggle');
-    button.setAttribute('aria-expanded', String(!state.sidebarCollapsed));
-    button.textContent = state.sidebarCollapsed ? '展開目錄' : '收起目錄';
+    const expanded = window.matchMedia('(max-width:760px)').matches ? by('nt-layout').dataset.view === 'list' : !state.sidebarCollapsed;
+    button.setAttribute('aria-expanded', String(expanded));
+    button.setAttribute('aria-label', expanded ? '收合側欄' : '展開側欄');
+    button.title = expanded ? '收合側欄' : '展開側欄';
   }
   function markText(text, queryTerms) {
     let result = '', end = 0;
@@ -64,7 +66,9 @@
     by('notes-panel').innerHTML = `
       <div id="nt-layout" class="nt-layout" data-view="list" data-sidebar-collapsed="${state.sidebarCollapsed}">
         <aside id="nt-sidebar" class="nt-side sg-glass" aria-label="筆記目錄">
-          <div class="nt-side-head"><h1>職專共筆</h1><p>${esc(snapshot)} 備份 · 109 個主目錄項目</p></div>
+          <div class="nt-side-head"><button id="nt-sidebar-toggle" type="button" class="nt-sidebar-toggle" data-nt-action="sidebar" aria-controls="nt-sidebar-content" aria-expanded="${!state.sidebarCollapsed}" aria-label="收合側欄" title="收合側欄"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><h1>職專共筆</h1></div>
+          <div id="nt-sidebar-content" class="nt-side-content">
+          <p class="nt-snapshot">${esc(snapshot)} 備份 · 109 個主目錄項目</p>
           <label class="nt-search-label"><span>搜尋筆記</span><input id="nt-search" class="nt-search" type="search" placeholder="搜尋標題或全文…" autocomplete="off"></label>
           <div class="nt-filters">
             <label><span class="nt-sr">內容類型</span><select id="nt-kind" aria-label="內容類型"><option value="main">主目錄（109）</option><option value="all">全部內容（160）</option><option value="note">筆記（107）</option><option value="database">資料庫（2）</option><option value="row">資料庫項目（50）</option><option value="child">子頁（1）</option></select></label>
@@ -72,11 +76,11 @@
           </div>
           <div id="nt-count" class="nt-count" role="status" aria-live="polite"></div>
           <nav id="nt-list" class="nt-list" aria-label="文章"></nav>
+          </div>
         </aside>
         <section class="nt-reader" aria-label="筆記閱讀區">
           <div class="nt-toolbar">
-            <button type="button" class="sg-btn nt-menu" data-nt-action="list">目錄／搜尋</button>
-            <button id="nt-sidebar-toggle" type="button" class="sg-btn nt-sidebar-toggle" data-nt-action="sidebar" aria-controls="nt-sidebar" aria-expanded="${!state.sidebarCollapsed}">${state.sidebarCollapsed ? '展開目錄' : '收起目錄'}</button>
+            <button type="button" class="nt-sidebar-toggle nt-menu" data-nt-action="list" aria-label="展開側欄" title="展開側欄"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button>
             <button id="nt-prev" type="button" class="sg-btn" data-nt-action="prev" aria-label="上一篇">← 上一篇</button>
             <button id="nt-next" type="button" class="sg-btn" data-nt-action="next" aria-label="下一篇">下一篇 →</button>
             <span class="nt-spacer"></span><span id="nt-position" class="nt-position"></span>
@@ -107,8 +111,12 @@
         if (noteId && !dest.hash && state.byId.has(noteId)) { event.preventDefault(); open(noteId, true); return; }
       }
       const action = event.target.closest('[data-nt-action]')?.dataset.ntAction;
-      if (action === 'list') { by('nt-layout').dataset.view = 'list'; by('nt-search').focus(); }
-      if (action === 'sidebar') { state.sidebarCollapsed = !state.sidebarCollapsed; updateSidebar(); remember(); }
+      if (action === 'list') { by('nt-layout').dataset.view = 'list'; updateSidebar(); by('nt-search').focus(); }
+      if (action === 'sidebar') {
+        if (window.matchMedia('(max-width:760px)').matches) { by('nt-layout').dataset.view = 'reader'; by('nt-scroll').focus({ preventScroll: true }); }
+        else { state.sidebarCollapsed = !state.sidebarCollapsed; remember(); }
+        updateSidebar();
+      }
       if (action === 'prev' || action === 'next') {
         const at = state.visible.findIndex(item => item.id === state.current), next = at + (action === 'next' ? 1 : -1);
         if (at >= 0 && state.visible[next]) open(state.visible[next].id, true);
@@ -176,7 +184,7 @@
   }
   function open(id, focus) {
     if (!state.byId.has(id)) return;
-    state.current = id; by('nt-layout').dataset.view = 'reader';
+    state.current = id; by('nt-layout').dataset.view = 'reader'; updateSidebar();
     renderList(); renderArticle(); remember();
     const url = new URL(location.href); url.searchParams.set('note', id); url.hash = 'notes';
     try { history.replaceState(null, '', url); } catch (_) { /* standalone preview */ }
@@ -203,6 +211,8 @@
         state.current = state.byId.has(requested) ? requested : state.byId.has(pref.current) ? pref.current : sort(state.items, 'source')[0].id;
         shell(data.snapshot); renderList(); renderArticle();
         if (requested && state.byId.has(requested)) by('nt-layout').dataset.view = 'reader';
+        updateSidebar();
+        window.matchMedia('(max-width:760px)').addEventListener('change', updateSidebar);
         state.ready = true;
       } catch (error) {
         state.promise = null;

@@ -3,9 +3,16 @@ body[data-game="notes"] { height: 100dvh; min-height: 0; overflow: hidden; }
 .nt-app { min-height: 0; --nt-line: rgba(255,255,255,.12); --nt-muted: rgba(241,245,249,.52); }
 #notes-panel, #notes-panel *:not(svg):not(path) { font-family: 'Roboto','Noto Sans TC','Microsoft JhengHei',system-ui,sans-serif; }
 .nt-layout { flex: 1; width: min(100%,1360px); height: 100%; min-height: 0; margin: 0 auto; padding: 18px 24px; display: grid; grid-template-columns: 318px minmax(0,1fr); gap: 22px; }
-.nt-side { min-height: 0; display: flex; flex-direction: column; padding: 20px 12px 12px; border-radius: 24px; }
-.nt-side-head { padding: 0 6px 14px; }
-.nt-side-head h1 { margin: 0 0 5px; color: #fff; font-size: 21px; font-weight: 400; }
+.nt-side { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 14px 10px 12px; border-radius: 22px; overflow: hidden; }
+.nt-side-head { display: flex; align-items: center; gap: 9px; padding: 0 4px 12px; flex-shrink: 0; }
+.nt-side-content { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; }
+.nt-snapshot { margin: 0; padding: 0 7px 16px; color: var(--nt-muted); font-size: 12px; }
+.nt-sidebar-toggle { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 36px; height: 36px; padding: 7px; border: 1px solid transparent; border-radius: 10px; color: #cbd5e1; background: transparent; cursor: pointer; transition: background .16s ease, color .16s ease; }
+.nt-sidebar-toggle:hover { color: #fff; background: rgba(255,255,255,.09); }
+.nt-sidebar-toggle:active { background: rgba(255,255,255,.15); }
+.nt-sidebar-toggle:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
+.nt-sidebar-toggle svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.nt-side-head h1 { margin: 0; color: #fff; font-size: 21px; font-weight: 400; }
 .nt-side-head p { margin: 0; font-size: 12px; color: var(--nt-muted); }
 .nt-search-label { display: block; padding: 0 5px; margin-bottom: 9px; }
 .nt-search-label span, .nt-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -28,7 +35,6 @@ body[data-game="notes"] { height: 100dvh; min-height: 0; overflow: hidden; }
 .nt-spacer { flex: 1; }
 .nt-position { color: var(--nt-muted); font-size: 12px; }
 .nt-toolbar .nt-menu { display: none; }
-.nt-toolbar .nt-sidebar-toggle { display: inline-flex; }
 .nt-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 0 5px 40px 0; scrollbar-width: thin; scrollbar-color: #ffffff33 transparent; }
 .nt-paper { max-width: 900px; margin: 0 auto; padding: clamp(20px,3vw,34px); border-radius: 24px; }
 .nt-meta { margin: 0 0 16px; color: var(--nt-muted); font-size: 12px; line-height: 1.7; }
@@ -63,8 +69,9 @@ body[data-game="notes"] { height: 100dvh; min-height: 0; overflow: hidden; }
 .nt-message { max-width: 680px; margin: 40px auto; }
 .nt-item:focus-visible, .nt-toc button:focus-visible, .nt-filters select:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
 @media(min-width:761px) {
-  .nt-layout[data-sidebar-collapsed="true"] { grid-template-columns: minmax(0,1fr); gap: 0; }
-  .nt-layout[data-sidebar-collapsed="true"] .nt-side { display: none; }
+  .nt-layout[data-sidebar-collapsed="true"] { grid-template-columns: 62px minmax(0,1fr); gap: 18px; }
+  .nt-layout[data-sidebar-collapsed="true"] .nt-side-head { padding: 0; justify-content: center; }
+  .nt-layout[data-sidebar-collapsed="true"] .nt-side-content, .nt-layout[data-sidebar-collapsed="true"] .nt-side-head h1 { display: none; }
   .nt-layout[data-sidebar-collapsed="true"] .nt-paper { max-width: 1100px; }
 }
 @media(max-width:760px) {
@@ -74,7 +81,7 @@ body[data-game="notes"] { height: 100dvh; min-height: 0; overflow: hidden; }
   .nt-layout[data-view="reader"] .nt-side { display: none; }
   .nt-layout[data-view="list"] .nt-reader { display: none; }
   .nt-toolbar .nt-menu { display: inline-flex; }
-  .nt-toolbar .nt-sidebar-toggle { display: none; }
+  .nt-sidebar-toggle { width: 44px; height: 44px; }
   .nt-paper { padding: 20px 16px; border-radius: 20px; }
   .nt-toolbar { gap: 6px; padding-bottom: 10px; }
   .nt-toolbar .sg-btn { padding: 6px 10px; }

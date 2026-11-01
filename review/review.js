@@ -51,8 +51,10 @@
   function updateSidebar() {
     by('rv-layout').dataset.sidebarCollapsed = String(state.sidebarCollapsed);
     const button = by('rv-sidebar-toggle');
-    button.setAttribute('aria-expanded', String(!state.sidebarCollapsed));
-    button.textContent = state.sidebarCollapsed ? '展開目錄' : '收起目錄';
+    const expanded = window.matchMedia('(max-width:760px)').matches ? by('rv-layout').dataset.view === 'list' : !state.sidebarCollapsed;
+    button.setAttribute('aria-expanded', String(expanded));
+    button.setAttribute('aria-label', expanded ? '收合側欄' : '展開側欄');
+    button.title = expanded ? '收合側欄' : '展開側欄';
   }
   function markText(text, queryTerms) {
     let result = '', end = 0;
@@ -69,7 +71,9 @@
     by('review-panel').innerHTML = `
       <div id="rv-layout" class="rv-layout" data-view="list" data-sidebar-collapsed="${state.sidebarCollapsed}">
         <aside id="rv-sidebar" class="rv-side sg-glass" aria-label="複習信目錄">
-          <div class="rv-side-head"><h1>每日複習信</h1><p>${esc(snapshot)} 備份 · ${state.items.length} 篇全文</p></div>
+          <div class="rv-side-head"><button id="rv-sidebar-toggle" type="button" class="rv-sidebar-toggle" data-rv-action="sidebar" aria-controls="rv-sidebar-content" aria-expanded="${!state.sidebarCollapsed}" aria-label="收合側欄" title="收合側欄"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><h1>每日複習信</h1></div>
+          <div id="rv-sidebar-content" class="rv-side-content">
+          <p class="rv-snapshot">${esc(snapshot)} 備份 · ${state.items.length} 篇全文</p>
           <label class="rv-search-label"><span>搜尋複習信</span><input id="rv-search" class="rv-search" type="search" placeholder="搜尋主題、Day 或全文…" autocomplete="off"></label>
           <div class="rv-filters">
             <label><span class="rv-sr">來源版本</span><select id="rv-kind" aria-label="來源版本"><option value="all">全部版本</option><option value="letter">每日信（99）</option><option value="mail">郵件封存（57）</option><option value="document">Google 文件（2）</option></select></label>
@@ -77,11 +81,11 @@
           </div>
           <div id="rv-count" class="rv-count" role="status" aria-live="polite"></div>
           <nav id="rv-list" class="rv-list" aria-label="文章"></nav>
+          </div>
         </aside>
         <section class="rv-reader" aria-label="複習信閱讀區">
           <div class="rv-toolbar">
-            <button type="button" class="sg-btn rv-menu" data-rv-action="list">目錄／搜尋</button>
-            <button id="rv-sidebar-toggle" type="button" class="sg-btn rv-sidebar-toggle" data-rv-action="sidebar" aria-controls="rv-sidebar" aria-expanded="${!state.sidebarCollapsed}">${state.sidebarCollapsed ? '展開目錄' : '收起目錄'}</button>
+            <button type="button" class="rv-sidebar-toggle rv-menu" data-rv-action="list" aria-label="展開側欄" title="展開側欄"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button>
             <button id="rv-prev" type="button" class="sg-btn" data-rv-action="prev" aria-label="上一篇">← 上一篇</button>
             <button id="rv-next" type="button" class="sg-btn" data-rv-action="next" aria-label="下一篇">下一篇 →</button>
             <span class="rv-spacer"></span><span id="rv-position" class="rv-position"></span>
@@ -106,8 +110,12 @@
       const entry = event.target.closest('[data-rv-id]');
       if (entry) { open(entry.dataset.rvId, true); return; }
       const action = event.target.closest('[data-rv-action]')?.dataset.rvAction;
-      if (action === 'list') { by('rv-layout').dataset.view = 'list'; by('rv-search').focus(); }
-      if (action === 'sidebar') { state.sidebarCollapsed = !state.sidebarCollapsed; updateSidebar(); remember(); }
+      if (action === 'list') { by('rv-layout').dataset.view = 'list'; updateSidebar(); by('rv-search').focus(); }
+      if (action === 'sidebar') {
+        if (window.matchMedia('(max-width:760px)').matches) { by('rv-layout').dataset.view = 'reader'; by('rv-scroll').focus({ preventScroll: true }); }
+        else { state.sidebarCollapsed = !state.sidebarCollapsed; remember(); }
+        updateSidebar();
+      }
       if (action === 'prev' || action === 'next') {
         const at = state.visible.findIndex(item => item.id === state.current), next = at + (action === 'next' ? 1 : -1);
         if (at >= 0 && state.visible[next]) open(state.visible[next].id, true);
@@ -172,7 +180,7 @@
   }
   function open(id, focus) {
     if (!state.byId.has(id)) return;
-    state.current = id; by('rv-layout').dataset.view = 'reader';
+    state.current = id; by('rv-layout').dataset.view = 'reader'; updateSidebar();
     renderList(); renderArticle(); remember();
     const url = new URL(location.href); url.searchParams.set('letter', id); url.hash = 'review';
     try { history.replaceState(null, '', url); } catch (_) { /* standalone preview */ }
@@ -199,6 +207,8 @@
         state.current = state.byId.has(requested) ? requested : state.byId.has(pref.current) ? pref.current : sort(state.items, 'newest')[0].id;
         shell(data.snapshot); renderList(); renderArticle();
         if (requested && state.byId.has(requested)) by('rv-layout').dataset.view = 'reader';
+        updateSidebar();
+        window.matchMedia('(max-width:760px)').addEventListener('change', updateSidebar);
         state.ready = true;
       } catch (error) {
         state.promise = null;
