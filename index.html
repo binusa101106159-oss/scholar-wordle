@@ -429,13 +429,15 @@
   <script src="ama/ama.js" defer></script>
 <link rel="stylesheet" href="review/review.css">
   <script src="review/review.js" defer></script>
+<link rel="stylesheet" href="notes/notes.css">
+<script src="notes/notes.js" defer></script>
 <style id="scholar-games-style">
 /* Shared additions to the original OLED / liquid-glass interface. */
 [hidden] { display: none !important; }
 body[data-game="crossword"] #game-main, body[data-game="sudoku"] #game-main,
 body[data-game="crossword"] #wordle-toolbar, body[data-game="sudoku"] #wordle-toolbar { display: none !important; }
 body[data-game="ama"] #game-main, body[data-game="ama"] #wordle-toolbar,
-body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar { display: none !important; }
+body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, body[data-game="notes"] #game-main, body[data-game="notes"] #wordle-toolbar { display: none !important; }
 .sg-nav-shell, .sg-app { --sg-edge: rgba(255,255,255,.16); --sg-muted: rgba(255,255,255,.5); --sg-blue: #a9c8ff; color: #f1f5f9; }
 .sg-nav-shell { position: relative; z-index: 22; border-bottom: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.025); backdrop-filter: blur(24px) saturate(180%); }
 .sg-nav-inner { max-width: 1200px; min-height: 62px; margin: auto; padding: 10px 24px; display: flex; align-items: center; justify-content: center; position: relative; }
@@ -590,6 +592,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar { 
         <button id="game-tab-guides" class="sg-tab" type="button" role="tab" data-game-tab="guides" aria-controls="guides-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5C7.5 4.5 10 4.5 12 6c2-1.5 4.5-1.5 7-.5V19c-2.5-1-5-1-7 .5-2-1.5-4.5-1.5-7-.5z"/><path d="M12 6v13.5"/></svg>指引</button>
         <button id="game-tab-ama" class="sg-tab" type="button" role="tab" data-game-tab="ama" aria-controls="ama-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM16 4v3h3M8 11h8M8 15h8M12 8v10"/></svg>AMA</button>
         <button id="game-tab-review" class="sg-tab" type="button" role="tab" data-game-tab="review" aria-controls="review-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>每日複習信</button>
+        <button id="game-tab-notes" class="sg-tab" type="button" role="tab" data-game-tab="notes" aria-controls="notes-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM16 4v3h3M8 11h8M8 15h8"/></svg>職專共筆</button>
       </nav>
     </div>
   </div>
@@ -706,6 +709,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar { 
   <main id="ama-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-ama" hidden>
     <p>正在載入 AMA 章節目錄…</p>
   </main>
+  <main id="notes-panel" class="sg-app nt-app" role="tabpanel" aria-labelledby="game-tab-notes" hidden></main>
   <main id="review-panel" class="sg-app rv-app" role="tabpanel" aria-labelledby="game-tab-review" hidden>
     <p class="rv-message" role="status">正在載入複習信全文…</p>
   </main>
@@ -3020,7 +3024,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar { 
     confirmAction = create; by('scholar-new-dialog').showModal();
   }
   function switchGame(game, updateURL = true) {
-    if (!['wordle', 'crossword', 'sudoku', 'laws', 'guides', 'ama', 'review'].includes(game)) game = 'wordle';
+    if (!['wordle', 'crossword', 'sudoku', 'laws', 'guides', 'ama', 'review', 'notes'].includes(game)) game = 'wordle';
     activeGame = game; document.body.dataset.game = game;
     by('crossword-panel').hidden = game !== 'crossword'; by('sudoku-panel').hidden = game !== 'sudoku';
     by('laws-panel').hidden = game !== 'laws';
@@ -3029,6 +3033,8 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar { 
     if (game === 'guides' && window.ScholarGuides) window.ScholarGuides.show();
     by('ama-panel').hidden = game !== 'ama';
     if (game === 'ama' && window.ScholarAMA) window.ScholarAMA.show();
+    by('notes-panel').hidden = game !== 'notes';
+    if (game === 'notes' && window.ScholarNotes) window.ScholarNotes.show();
     by('review-panel').hidden = game !== 'review';
     if (game === 'review' && window.ScholarReview) window.ScholarReview.show();
     by('game-main').setAttribute('aria-hidden', String(game !== 'wordle'));
@@ -3043,7 +3049,8 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar { 
       if (!crossword) newCrossword(9);
       else { buildCrossword(); renderCrossword(); announce('crossword', crossword.won ? 'Crossword completed. Choose New for another.' : 'Progress saved on this device.'); }
     }
-    if (game === 'review') document.title = '每日複習信 · Scholar';
+    if (game === 'notes') document.title = '職專共筆 · Scholar';
+    else if (game === 'review') document.title = '每日複習信 · Scholar';
     else if (game === 'ama') document.title = 'AMA · Scholar';
     else if (game !== 'laws' && game !== 'guides') document.title = game === 'wordle' ? 'Scholar Wordle' : 'Scholar ' + game[0].toUpperCase() + game.slice(1);
     if (updateURL) {
@@ -3079,7 +3086,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar { 
     focusSelected(activeGame); save();
   }
   function keyboard(event) {
-    if (activeGame === 'wordle' || activeGame === 'laws' || activeGame === 'guides' || activeGame === 'ama' || activeGame === 'review' || by('scholar-new-dialog').open || event.altKey) return;
+    if (activeGame === 'wordle' || activeGame === 'laws' || activeGame === 'guides' || activeGame === 'ama' || activeGame === 'review' || activeGame === 'notes' || by('scholar-new-dialog').open || event.altKey) return;
     const target = event.target;
     if (target && target.closest && target.closest('input,select,textarea,[contenteditable="true"]')) return;
     if (event.key === 'Escape') { event.preventDefault(); by('game-tab-' + activeGame).focus(); return; }
@@ -3141,7 +3148,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar { 
       data.seconds++; by(activeGame + '-clock').textContent = time(data.seconds);
       if (data.seconds % 5 === 0) save();
     }, 1000);
-    switchGame(location.hash === '#sudoku' ? 'sudoku' : location.hash === '#crossword' ? 'crossword' : location.hash === '#laws' ? 'laws' : location.hash === '#guides' ? 'guides' : location.hash === '#ama' ? 'ama' : location.hash === '#review' ? 'review' : 'wordle', false);
+    switchGame(location.hash === '#sudoku' ? 'sudoku' : location.hash === '#crossword' ? 'crossword' : location.hash === '#laws' ? 'laws' : location.hash === '#guides' ? 'guides' : location.hash === '#ama' ? 'ama' : location.hash === '#review' ? 'review' : location.hash === '#notes' ? 'notes' : 'wordle', false);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
