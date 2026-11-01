@@ -43,11 +43,17 @@
 
   const STORE = 'scholar-review-v1';
   const labels = { letter: '每日信', document: 'Google 文件', mail: '郵件封存' };
-  const state = { items: [], byId: new Map(), visible: [], current: null, query: '', kind: 'all', order: 'newest', promise: null, ready: false };
+  const state = { items: [], byId: new Map(), visible: [], current: null, query: '', kind: 'all', order: 'newest', sidebarCollapsed: false, promise: null, ready: false };
   const by = id => document.getElementById(id);
   const esc = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   function saved() { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (_) { return {}; } }
-  function remember() { try { localStorage.setItem(STORE, JSON.stringify({ current: state.current, kind: state.kind, order: state.order })); } catch (_) { /* Reading still works without storage. */ } }
+  function remember() { try { localStorage.setItem(STORE, JSON.stringify({ current: state.current, kind: state.kind, order: state.order, sidebarCollapsed: state.sidebarCollapsed })); } catch (_) { /* Reading still works without storage. */ } }
+  function updateSidebar() {
+    by('rv-layout').dataset.sidebarCollapsed = String(state.sidebarCollapsed);
+    const button = by('rv-sidebar-toggle');
+    button.setAttribute('aria-expanded', String(!state.sidebarCollapsed));
+    button.textContent = state.sidebarCollapsed ? '展開目錄' : '收起目錄';
+  }
   function markText(text, queryTerms) {
     let result = '', end = 0;
     for (const [a, b] of ranges(text, queryTerms)) { result += esc(text.slice(end, a)) + '<mark class="rv-mark">' + esc(text.slice(a, b)) + '</mark>'; end = b; }
@@ -61,8 +67,8 @@
   }
   function shell(snapshot) {
     by('review-panel').innerHTML = `
-      <div id="rv-layout" class="rv-layout" data-view="list">
-        <aside class="rv-side sg-glass" aria-label="複習信目錄">
+      <div id="rv-layout" class="rv-layout" data-view="list" data-sidebar-collapsed="${state.sidebarCollapsed}">
+        <aside id="rv-sidebar" class="rv-side sg-glass" aria-label="複習信目錄">
           <div class="rv-side-head"><h1>每日複習信</h1><p>${esc(snapshot)} 備份 · ${state.items.length} 篇全文</p></div>
           <label class="rv-search-label"><span>搜尋複習信</span><input id="rv-search" class="rv-search" type="search" placeholder="搜尋主題、Day 或全文…" autocomplete="off"></label>
           <div class="rv-filters">
@@ -75,6 +81,7 @@
         <section class="rv-reader" aria-label="複習信閱讀區">
           <div class="rv-toolbar">
             <button type="button" class="sg-btn rv-menu" data-rv-action="list">目錄／搜尋</button>
+            <button id="rv-sidebar-toggle" type="button" class="sg-btn rv-sidebar-toggle" data-rv-action="sidebar" aria-controls="rv-sidebar" aria-expanded="${!state.sidebarCollapsed}">${state.sidebarCollapsed ? '展開目錄' : '收起目錄'}</button>
             <button id="rv-prev" type="button" class="sg-btn" data-rv-action="prev" aria-label="上一篇">← 上一篇</button>
             <button id="rv-next" type="button" class="sg-btn" data-rv-action="next" aria-label="下一篇">下一篇 →</button>
             <span class="rv-spacer"></span><span id="rv-position" class="rv-position"></span>
@@ -100,6 +107,7 @@
       if (entry) { open(entry.dataset.rvId, true); return; }
       const action = event.target.closest('[data-rv-action]')?.dataset.rvAction;
       if (action === 'list') { by('rv-layout').dataset.view = 'list'; by('rv-search').focus(); }
+      if (action === 'sidebar') { state.sidebarCollapsed = !state.sidebarCollapsed; updateSidebar(); remember(); }
       if (action === 'prev' || action === 'next') {
         const at = state.visible.findIndex(item => item.id === state.current), next = at + (action === 'next' ? 1 : -1);
         if (at >= 0 && state.visible[next]) open(state.visible[next].id, true);
@@ -184,6 +192,7 @@
         const pref = saved();
         state.kind = ['all', 'letter', 'mail', 'document'].includes(pref.kind) ? pref.kind : 'all';
         state.order = ['newest', 'oldest', 'day'].includes(pref.order) ? pref.order : 'newest';
+        state.sidebarCollapsed = pref.sidebarCollapsed === true;
         state.items = data.items.map(item => ({ ...item, searchText: normalize([item.title, item.sourceTitle, item.text].join('\n')) }));
         state.byId = new Map(state.items.map(item => [item.id, item]));
         const requested = new URL(location.href).searchParams.get('letter');
