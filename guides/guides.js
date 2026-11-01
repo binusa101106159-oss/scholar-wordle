@@ -171,14 +171,16 @@
 
   function updateSidebar() {
     const layout = by('gx-layout'); if (!layout) return;
-    const collapsed = prefs().sidebarCollapsed === true;
-    layout.dataset.sidebarCollapsed = String(collapsed);
-    const expanded = window.matchMedia('(max-width:900px)').matches ? by('guides-panel').classList.contains('gx-drawer') : !collapsed;
-    const button = by('gx-side-close');
-    button.setAttribute('aria-expanded', String(expanded));
-    button.setAttribute('aria-label', expanded ? '收合側欄' : '展開側欄');
-    button.title = expanded ? '收合側欄' : '展開側欄';
-    by('gx-menu').setAttribute('aria-expanded', String(expanded));
+    const expanded = by('guides-panel').classList.contains('gx-drawer');
+    layout.dataset.sidebarCollapsed = String(!expanded);
+    by('gx-sidebar').inert = !expanded;
+    by('gx-sidebar').setAttribute('aria-hidden', String(!expanded));
+    for (const id of ['gx-side-close', 'gx-menu']) {
+      const button = by(id);
+      button.setAttribute('aria-expanded', String(expanded));
+      button.setAttribute('aria-label', expanded ? '收合目錄' : '展開目錄');
+      button.title = expanded ? '收合目錄' : '展開目錄';
+    }
   }
 
   /* ── shell ── */
@@ -267,24 +269,32 @@
     // the drawer gets its own history entry, so the phone's back gesture closes it instead of leaving the page
     const drawerOpen = () => by('guides-panel').classList.contains('gx-drawer');
     const openDrawer = () => {
-      if (!window.matchMedia('(max-width:900px)').matches) { setPrefs({ sidebarCollapsed: false }); updateSidebar(); return; }
       if (drawerOpen()) return;
       by('guides-panel').classList.add('gx-drawer'); updateSidebar();
-      try { history.pushState({ gxDrawer: true }, ''); } catch (_) { /* file:// */ }
+      if (window.matchMedia('(max-width:900px)').matches) { try { history.pushState({ gxDrawer: true }, ''); } catch (_) { /* Optional navigation state. */ } }
     };
-    const closeDrawer = () => {
+    const closeDrawer = (replaceHistory = false) => {
       if (!drawerOpen()) return;
+      const restoreFocus = by('gx-sidebar').contains(document.activeElement);
       by('guides-panel').classList.remove('gx-drawer'); updateSidebar();
-      if (history.state && history.state.gxDrawer) history.back();
+      if (restoreFocus && replaceHistory !== true) by('gx-menu').focus({ preventScroll: true });
+      if (history.state && history.state.gxDrawer) {
+        if (replaceHistory === true) { const next = Object.assign({}, history.state); delete next.gxDrawer; history.replaceState(next, ''); }
+        else history.back();
+      }
     };
     state.openDrawer = openDrawer; state.closeDrawer = closeDrawer;
     window.addEventListener('popstate', () => { if (drawerOpen()) { by('guides-panel').classList.remove('gx-drawer'); updateSidebar(); } });
-    by('gx-side-close').addEventListener('click', () => {
-      if (window.matchMedia('(max-width:900px)').matches) { closeDrawer(); by('gx-menu').focus({ preventScroll: true }); }
-      else { setPrefs({ sidebarCollapsed: prefs().sidebarCollapsed !== true }); updateSidebar(); }
-    });
+    by('gx-side-close').addEventListener('click', () => { closeDrawer(); by('gx-menu').focus({ preventScroll: true }); });
     by('gx-scrim').addEventListener('click', closeDrawer);
-    by('gx-menu').addEventListener('click', () => drawerOpen() ? closeDrawer() : openDrawer());
+    by('gx-menu').addEventListener('click', event => {
+      if (drawerOpen()) closeDrawer();
+      else { openDrawer(); if (event.detail === 0) q.focus({ preventScroll: true }); }
+    });
+    document.addEventListener('pointerdown', event => {
+      if (!drawerOpen() || by('gx-sidebar').contains(event.target) || by('gx-menu').contains(event.target)) return;
+      closeDrawer(Boolean(event.target.closest('[data-game-tab]')));
+    });
     by('gx-doc').addEventListener('click', e => {
       const go = e.target.closest('[data-goto]');
       if (go) { e.preventDefault(); scrollToBlock(go.dataset.goto, true); return; }

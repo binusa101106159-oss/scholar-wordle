@@ -321,12 +321,20 @@ mark.lx-hl mark.lx-mark { background: transparent; box-shadow: 0 0 0 1px rgba(22
 .lx-sidebar-toggle:active { background:rgba(255,255,255,.15); }
 .lx-sidebar-toggle:focus-visible { outline:2px solid #93c5fd; outline-offset:2px; }
 .lx-sidebar-toggle svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-@media(min-width:901px) {
-  .lx-layout[data-sidebar-collapsed="true"] { position:relative; grid-template-columns:minmax(0,1fr); gap:0; }
-  .lx-layout[data-sidebar-collapsed="true"] .lx-side { position:absolute; top:18px; left:24px; z-index:2; width:36px; height:36px; padding:0; margin:0; border:0; border-radius:10px; background:transparent; box-shadow:none; backdrop-filter:none; overflow:visible; }
-  .lx-layout[data-sidebar-collapsed="true"] .lx-side-head { padding:0; margin:0; justify-content:center; }
-  .lx-layout[data-sidebar-collapsed="true"] .lx-side-content,
-  .lx-layout[data-sidebar-collapsed="true"] .lx-side-heading { display:none; }
-  .lx-layout[data-sidebar-collapsed="true"] .lx-bar { padding-left:48px; min-height:48px; }
-}
 @media(max-width:900px) { .lx-sidebar-toggle { width:44px; height:44px; } }
+
+/* A small edge tab opens a compact, nonmodal navigation popover. */
+.lx-layout { grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr); gap:0; }
+.lx-reader { grid-column:1; grid-row:1; }
+.lx-bar { padding-left:20px; min-height:56px; }
+#lx-menu { display:inline-flex!important; position:fixed; z-index:42; left:0; top:calc(var(--lx-top) + 14px); width:30px; height:56px; padding:4px!important; margin:0; border:1px solid rgba(169,200,255,.28); border-left:0; border-radius:0 12px 12px 0; background:rgba(29,39,54,.9); color:#d5e4fa; box-shadow:2px 3px 14px #0004; backdrop-filter:blur(18px); }
+#lx-menu svg { width:18px; height:18px; }
+#lx-menu::after { content:""; position:absolute; top:-2px; bottom:-2px; left:0; right:-14px; }
+#lx-menu:hover { background:rgba(49,66,91,.96); }
+#lx-sidebar { display:flex; position:fixed; z-index:43; left:10px; right:auto; top:calc(var(--lx-top) + 80px); bottom:auto; width:min(292px,calc(100vw - 36px)); height:min(440px,calc(100dvh - var(--lx-top) - 104px)); max-height:min(440px,calc(100dvh - var(--lx-top) - 104px)); box-sizing:border-box; padding:14px 10px 12px; margin:0; border:1px solid rgba(169,200,255,.25); border-radius:18px; background:rgba(20,27,38,.97); box-shadow:0 16px 46px #0008; backdrop-filter:blur(24px); visibility:hidden; opacity:0; pointer-events:none; transform:translateX(-8px); transition:opacity .16s ease,transform .16s ease; }
+#laws-panel.lx-drawer #lx-sidebar { visibility:visible; opacity:1; pointer-events:auto; transform:none; }
+.lx-side-head { flex-shrink:0; }
+.lx-side-heading { font-size:17px; }
+.lx-scrim { display:none!important; }
+@media(max-width:900px) { .lx-bar { padding-left:32px; } }
+@media(prefers-reduced-motion:reduce) { #lx-sidebar { transition:none; } }

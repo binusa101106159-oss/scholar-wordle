@@ -17,7 +17,7 @@
     if (panel && !panel.hidden) panel.style.setProperty('--ax-top',Math.max(0,panel.getBoundingClientRect().top)+'px');
   }
   function revealSelection() {
-    if (by('ax-side').hidden || (!mobile.matches && saved.sidebarCollapsed === true)) return;
+    if (!menuOpen) return;
     const list = by('ax-list'), selected = list.querySelector('[aria-selected="true"]');
     if (!selected) return;
     const item = selected.getBoundingClientRect(), bounds = list.getBoundingClientRect();
@@ -25,18 +25,22 @@
     else if (item.bottom > bounds.bottom) list.scrollTop += item.bottom-bounds.bottom;
   }
   function updateSidebar() {
-    const expanded = mobile.matches ? menuOpen : saved.sidebarCollapsed !== true;
-    by('ax-layout').dataset.sidebarCollapsed = String(saved.sidebarCollapsed === true);
-    by('ax-side').hidden = mobile.matches && !menuOpen;
-    const button = by('ax-sidebar-toggle');
-    button.setAttribute('aria-expanded', String(expanded));
-    button.setAttribute('aria-label', expanded ? '收合側欄' : '展開側欄');
-    button.title = expanded ? '收合側欄' : '展開側欄';
-    by('ax-menu').setAttribute('aria-expanded', String(expanded));
+    by('ax-layout').dataset.sidebarCollapsed = String(!menuOpen);
+    by('ama-panel').classList.toggle('ax-drawer', menuOpen);
+    by('ax-side').hidden = false;
+    by('ax-side').inert = !menuOpen;
+    by('ax-side').setAttribute('aria-hidden', String(!menuOpen));
+    for (const id of ['ax-sidebar-toggle', 'ax-menu']) {
+      const button = by(id);
+      button.setAttribute('aria-expanded', String(menuOpen));
+      button.setAttribute('aria-label', menuOpen ? '收合目錄' : '展開目錄');
+      button.title = menuOpen ? '收合目錄' : '展開目錄';
+    }
   }
   function menu(open) {
-    menuOpen = mobile.matches && open;
-    updateSidebar(); revealSelection();
+    const restoreFocus = !open && by('ax-side').contains(document.activeElement);
+    menuOpen = Boolean(open);
+    updateSidebar(); if (restoreFocus) by('ax-menu').focus({preventScroll:true}); revealSelection();
   }
   async function content(id) {
     if (!chapters.has(id)) chapters.set(id,(async () => {
@@ -139,7 +143,7 @@
     by('ax-tools').hidden=!chapter.ready; by('ax-status').textContent=''; by('ax-section').replaceChildren();
     by('ax-body').innerHTML='<div class="ax-pending sg-glass"><p>'+(chapter.ready?'載入中…':'正文準備中。')+'</p>'+(chapter.ready?'':'<p>本章正文與圖表尚未匯入。</p>')+'</div>';
     saved.chapter=id; persist();
-    if (mobile.matches && options.closeMenu!==false) menu(false); else revealSelection();
+    if (options.closeMenu!==false) menu(false); else revealSelection();
     if (options.focusTab) by('ax-tab-'+id).focus();
     else if (options.focusHeading && mobile.matches) by('ax-title').focus({preventScroll:true});
     by('ax-scroll').scrollTop=0;
@@ -226,10 +230,10 @@
       const next=event.key==='Home'?0:event.key==='End'?list.length-1:(index+(event.key==='ArrowDown'?1:-1)+list.length)%list.length;
       selectChapter(list[next].id,{focusTab:true,closeMenu:false});
     });
-    by('ax-menu').addEventListener('click',()=>menu(!menuOpen));
-    by('ax-sidebar-toggle').addEventListener('click',()=>{
-      if (mobile.matches) { menu(false); by('ax-menu').focus({preventScroll:true}); }
-      else { saved.sidebarCollapsed = saved.sidebarCollapsed !== true; persist(); updateSidebar(); if (!saved.sidebarCollapsed) revealSelection(); }
+    by('ax-menu').addEventListener('click',event=>{menu(!menuOpen);if(menuOpen && event.detail===0)by('ax-query').focus({preventScroll:true});});
+    by('ax-sidebar-toggle').addEventListener('click',()=>{menu(false);by('ax-menu').focus({preventScroll:true});});
+    document.addEventListener('pointerdown',event=>{
+      if(menuOpen && !by('ax-side').contains(event.target) && !by('ax-menu').contains(event.target))menu(false);
     });
     by('ax-section').addEventListener('change',()=>scrollToId(by('ax-section').value));
     by('ax-body').addEventListener('click',event=>{
