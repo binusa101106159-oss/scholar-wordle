@@ -199,6 +199,69 @@
     saved.fontSize=Math.max(15,Math.min(24,(Number(saved.fontSize)||18)+delta));
     by('ama-panel').style.setProperty('--ax-font-size',saved.fontSize+'px');persist();
   }
+
+  function copyText(node) {
+    if (node.nodeType === Node.TEXT_NODE) return node.nodeValue;
+    if (node.nodeType !== Node.ELEMENT_NODE) return '';
+    if (node.tagName === 'BR') return '\n';
+    if (node.tagName === 'TABLE') {
+      const rows=[], occupied=[];
+      for (const [r,row] of Array.from(node.rows).entries()) {
+        const cells=[];let col=0;
+        for (const cell of row.cells) {
+          while (occupied[col]>r) cells[col++]='';
+          cells[col]=copyChildren(cell).replace(/\s+/g,' ').trim();
+          for (let c=0;c<cell.colSpan;c++) {occupied[col+c]=r+cell.rowSpan;if(c)cells[col+c]='';}
+          col+=cell.colSpan;
+        }
+        while (col<occupied.length) cells[col++]='';
+        rows.push(cells.join('\t'));
+      }
+      return rows.join('\n')+'\n\n';
+    }
+    return copyChildren(node) + (/^(P|DIV|SECTION|ARTICLE|ASIDE|H[1-6])$/.test(node.tagName) ? '\n' : '');
+  }
+  function copyChildren(node) { return Array.from(node.childNodes, copyText).join(''); }
+  async function copyAMA(all) {
+    const button=by(all?'ax-copy-all':'ax-copy-chapter'); button.disabled=true;
+    try {
+      const chosen=catalogue.chapters.filter(c=>c.ready && (all || c.id===current));
+      const root=document.createElement('article');
+      for (const chapter of chosen) {
+        const data=await content(chapter.id), heading=document.createElement('h1');
+        heading.textContent='Chapter '+chapter.no+' '+chapter.title; root.append(heading);
+        for (const page of data.pages) {
+          const section=document.createElement('section'), label=document.createElement('p');
+          label.textContent='原書第 '+page.page+' 頁'; section.append(label);
+          const body=document.createElement('div'); body.innerHTML=page.html;
+          body.querySelectorAll('button').forEach(n=>n.remove());
+          body.querySelectorAll('svg').forEach(svg=>{
+            const labels=document.createElement('div');
+            for (const text of svg.querySelectorAll('text')) {const line=document.createElement('p');line.textContent=text.textContent;labels.append(line);}
+            svg.replaceWith(labels);
+          });
+          body.querySelectorAll('a[data-open]').forEach(link=>link.replaceWith(...link.childNodes));
+          body.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+          body.querySelectorAll('table').forEach(table=>{table.style.borderCollapse='collapse';});
+          body.querySelectorAll('th,td').forEach(cell=>{cell.style.border='1px solid #888';cell.style.padding='4px 8px';});
+          section.append(body);root.append(section);
+        }
+      }
+      const plain=copyText(root).replace(/\n{3,}/g,'\n\n').trim();
+      try {
+        if (navigator.clipboard?.write && window.ClipboardItem) await navigator.clipboard.write([new ClipboardItem({'text/plain':new Blob([plain],{type:'text/plain'}),'text/html':new Blob([root.outerHTML],{type:'text/html'})})]);
+        else await navigator.clipboard.writeText(plain);
+      } catch (_) {
+        const active=document.activeElement, selection=getSelection(), ranges=Array.from({length:selection.rangeCount},(_,i)=>selection.getRangeAt(i).cloneRange());
+        const area=document.createElement('textarea');area.value=plain;area.style.cssText='position:fixed;left:-10000px;top:0';document.body.append(area);area.select();
+        let ok;try {ok=document.execCommand('copy');} finally {area.remove();active?.focus({preventScroll:true});selection.removeAllRanges();ranges.forEach(range=>selection.addRange(range));}
+        if(!ok)throw Error('Copy unavailable');
+      }
+      by('ax-status').textContent=all?'已複製全部已匯入章節（含表格與圖中文字）。':'已複製本章全文（含表格與圖中文字）。';
+    } catch (_) {by('ax-status').textContent='複製未成功，仍可直接選取文字後複製。';}
+    finally {button.disabled=false;}
+  }
+
   async function boot() {
     const response=await fetch('ama/index.json',{cache:'no-cache'});
     if (!response.ok) throw new Error('AMA catalogue unavailable');
@@ -209,7 +272,7 @@
       '<form id="ax-search" class="ax-search"><label class="ax-sr" for="ax-query">搜尋已匯入章節</label><input id="ax-query" type="search" placeholder="搜尋已匯入章節" autocomplete="off"><button type="submit" class="sg-btn">搜尋</button></form>'+
       '<div id="ax-results" class="ax-results" aria-live="polite" hidden></div><div id="ax-list" class="ax-list" role="tablist" aria-label="AMA 章節" aria-orientation="vertical"></div></div></aside>'+
       '<div class="ax-reader"><div class="ax-bar"><button id="ax-menu" class="ax-sidebar-toggle" type="button" aria-controls="ax-sidebar-content" aria-expanded="false" aria-label="展開側欄" title="展開側欄"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><span id="ax-location" class="ax-location"></span></div>'+
-      '<div id="ax-tools" class="ax-tools" hidden><label class="ax-sr" for="ax-section">本章小節</label><select id="ax-section"></select><div class="ax-reading-controls"><button id="ax-smaller" type="button" aria-label="縮小文字">A−</button><button id="ax-larger" type="button" aria-label="放大文字">A＋</button><button id="ax-mark" type="button">標記選取</button><button id="ax-clear-marks" type="button">清除本章標記</button></div></div><div id="ax-status" class="ax-status" role="status"></div>'+
+      '<div id="ax-tools" class="ax-tools" hidden><label class="ax-sr" for="ax-section">本章小節</label><select id="ax-section"></select><div class="ax-reading-controls"><button id="ax-smaller" type="button" aria-label="縮小文字">A−</button><button id="ax-larger" type="button" aria-label="放大文字">A＋</button><button id="ax-mark" type="button">標記選取</button><button id="ax-copy-chapter" type="button">複製本章</button><button id="ax-copy-all" type="button">複製已匯入全文</button><button id="ax-clear-marks" type="button">清除本章標記</button></div></div><div id="ax-status" class="ax-status" role="status"></div>'+
       '<div id="ax-scroll" class="ax-scroll"><article id="ax-content" role="tabpanel" tabindex="0"><div class="ax-head sg-glass"><p id="ax-kicker" class="ax-kicker"></p><h1 id="ax-title" class="ax-title" tabindex="-1"></h1><p id="ax-meta" class="ax-meta"></p></div><div id="ax-body"></div></article></div></div></div>'+
       '<dialog id="ax-dialog" class="ax-dialog" aria-labelledby="ax-dialog-title"><div class="ax-dialog-bar"><h2 id="ax-dialog-title"></h2><button id="ax-dialog-close" type="button" aria-label="關閉圖表">關閉</button></div><div id="ax-dialog-body" class="ax-dialog-body"></div></dialog>';
     by('ax-count').textContent=catalogue.chapters.length+' 章';
@@ -248,6 +311,8 @@
     by('ax-query').addEventListener('input',()=>{if(!by('ax-query').value){searchRevision++;by('ax-results').hidden=true;}});
     by('ax-smaller').addEventListener('click',()=>fontSize(-1));by('ax-larger').addEventListener('click',()=>fontSize(1));
     by('ax-mark').addEventListener('mousedown',event=>event.preventDefault());by('ax-mark').addEventListener('click',markSelection);
+    by('ax-copy-chapter').addEventListener('click',()=>copyAMA(false));
+    by('ax-copy-all').addEventListener('click',()=>copyAMA(true));
     by('ax-clear-marks').addEventListener('click',()=>{
       delete highlights[current];try{localStorage.setItem(MARKS,JSON.stringify(highlights));}catch(_){/* Optional storage. */}
       by('ax-body').querySelectorAll('mark.ax-highlight').forEach(mark=>mark.replaceWith(...mark.childNodes));by('ax-status').textContent='已清除本章標記。';

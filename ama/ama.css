@@ -133,3 +133,6 @@
 .ax-scrim { display:none!important; }
 @media(max-width:900px) { .ax-bar { padding-left:32px; } }
 @media(prefers-reduced-motion:reduce) { #ax-side { transition:none; } }
+
+/* All AMA text, including tables and diagram labels, supports native selection. */
+#ama-panel, #ama-panel * { user-select:text !important; -webkit-user-select:text !important; }
