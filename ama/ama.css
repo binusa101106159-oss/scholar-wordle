@@ -136,3 +136,14 @@
 
 /* All AMA text, including tables and diagram labels, supports native selection. */
 #ama-panel, #ama-panel * { user-select:text !important; -webkit-user-select:text !important; }
+
+/* Wide source tables scroll inside their own wrapper on small screens. */
+.ax-table:has(.ax-grid-ornament) { min-width:760px; }
+.ax-spread-table { min-width:1300px; table-layout:auto; }
+.ax-table:has(col:nth-child(10)) { min-width:1000px; }
+.ax-method-table { min-width:760px; }
+.ax-spread-table td:first-child { min-width:85px; }
+.ax-positioned { min-width:842.256px; width:842.256px; }
+.ax-positioned td { border:0; padding:0; }
+.ax-positioned td+td { border-left:1px solid #555; }
+.ax-positioned-cell > svg { position:absolute;inset:0;width:100%;height:100%; }

@@ -15,11 +15,13 @@ from pathlib import Path
 import re
 
 import pymupdf as pdf
+from layout_45 import TABLES as TABLES_45, coordinate_grid, keyed_grid, SPREADS
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SOURCE = Path(r"A:\職醫\AMA\AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf")
-GLYPHS = {"H11001": "+", "H11005": "="}
-CHAPTERS = {"c01": (1, 18), "c02": (19, 30), "c03": (31, 46)}
+GLYPHS = {"H11001": "+", "H11005": "=", "H9252": "β", "H11080": "·",
+          "H11021": "<", "H11022": ">", "H11002": "−", "H11350": "≥"}
+CHAPTERS = {"c01": (1, 18), "c02": (19, 30), "c03": (31, 46), "c04": (47, 76), "c05": (77, 99)}
 
 # Printed object extents in cropped PDF points. These contain no transcriptions.
 TABLES = {
@@ -32,6 +34,7 @@ TABLES = {
     20: [("2-1", (71, 398, 541, 735), "list", (71, 423, 541, 735))],
     40: [("3-1", (320, 72, 541, 223), "grid", (320, 117, 541, 223))],
 }
+TABLES.update(TABLES_45)
 FIGURES = {
     3: [("1-1", (71, 408, 541, 737), (72, 440, 540, 737))],
     4: [("1-2", (78, 510, 535, 680), (78, 544, 534, 649))],
@@ -74,20 +77,25 @@ def symbol_map(doc, page):
     mappings = {}
     for xref, _, _, name, *_ in page.get_fonts(full=True):
         name = re.sub(r"^[A-Z]{6}\+", "", name)
-        if "MathematicalPi" not in name:
+        if "MathematicalPi" not in name and name != "WWDOC08":
             continue
         kind, encoding = doc.xref_get_key(xref, "Encoding")
         encoding = doc.xref_object(int(encoding.split()[0])) if kind == "xref" else encoding
         match = re.search(r"/Differences\s*\[([^]]+)\]", encoding, re.S)
         if not match:
+            # A subset containing only the ordinary space uses a base encoding.
+            if kind == 'name':
+                if name == 'WWDOC08': mappings.setdefault(name,{})[99]='↑'
+                continue
             raise ValueError(f"No encoding for {name}")
         code, mapping = 0, {}
-        for token in match[1].split():
+        # Inline dictionaries may omit whitespace: [33/H9252/H11022].
+        for token in re.findall(r'\d+|/[^\s/\[\]<>]+',match[1]):
             if token.isdigit():
                 code = int(token)
             elif token.startswith("/"):
                 glyph = token[1:]
-                value = GLYPHS.get(glyph)
+                value = '↑' if name == 'WWDOC08' and glyph == 'c' else GLYPHS.get(glyph)
                 if value is None:
                     uni = pdf.glyph_name_to_unicode(glyph)
                     if uni == 65533:
@@ -95,9 +103,10 @@ def symbol_map(doc, page):
                     value = chr(uni)
                 mapping[code] = value
                 code += 1
-        if name in mappings and mappings[name] != mapping:
+        previous=mappings.setdefault(name,{})
+        if any(code in previous and previous[code]!=value for code,value in mapping.items()):
             raise ValueError("Ambiguous same-name mathematical font")
-        mappings[name] = mapping
+        previous.update(mapping)
     return mappings
 
 
@@ -107,6 +116,7 @@ class Page:
         self.chars, self.owners, self.excluded, self.sections = [], {}, [], []
         self.attachments, self.grids, self.vectors, self.rules = [], [], [], []
         maps = symbol_map(doc, self.page)
+        bottom=max([750]+[box[3] for _,box,_,_ in TABLES.get(number,[])])
         for bi, block in enumerate(self.page.get_text("rawdict")["blocks"]):
             if block["type"] != 0:
                 box = block["bbox"]
@@ -126,7 +136,7 @@ class Page:
                                     uid=(bi, li, si, ci), block=bi)
                         # Running heads, chapter edge tabs and printer furniture
                         # are audited separately; the reader supplies page labels.
-                        if inside(item, (60, 45, 555, 750)):
+                        if inside(item, (60, 45, 555, bottom)):
                             if any(ord(c) < 32 and not c.isspace() for c in text) or "\ufffd" in text:
                                 raise ValueError(f"Unreadable character {number}: {text!r}/{font}")
                             self.chars.append(item)
@@ -313,7 +323,7 @@ class Page:
         self.vectors.append(dict(owner=owner, box=box, characters=len(canon("".join(c["text"] for c in chars)))))
         return "".join(parts)
 
-    def grid(self, chars, table, owner, decorated=False):
+    def grid(self, chars, table, owner, decorated=False, positioned=False):
         cells = list(dict.fromkeys(tuple(c) for row in table.rows for c in row.cells if c))
         xs = sorted(set(round(c[i], 3) for c in cells for i in (0, 2)))
         ys = sorted(set(round(c[i], 3) for c in cells for i in (1, 3)))
@@ -349,7 +359,9 @@ class Page:
                         matrix[r][c] = (ri, ci)
                 selected = [c for c in chars if c["uid"] not in assigned and inside(c, match)]
                 assigned.update(c["uid"] for c in selected)
-                if decorated and ri == 0:
+                if positioned:
+                    value = self.positioned_cell(selected, match, owner+f"-r{ri}c{ci}")
+                elif decorated and ri == 0:
                     value = self.svg(selected, match, owner+"-ornament")
                 else:
                     self.take(selected, f"{owner}-r{ri}c{ci}")
@@ -368,7 +380,21 @@ class Page:
         self.take(leftover, owner+"-whitespace")
         self.grids.append(dict(id=owner, rows=len(ys)-1, cols=len(xs)-1, cells=specs))
         widths = [f'<col style="width:{(b-a)/(xs[-1]-xs[0])*100:.3f}%">' for a,b in zip(xs,xs[1:])]
-        return '<div class="ax-table-wrap"><table class="ax-table"><colgroup>'+"".join(widths)+'</colgroup><tbody>'+"".join(rows)+'</tbody></table></div>'
+        return '<div class="ax-table-wrap"><table class="ax-table'+(' ax-positioned' if positioned else '')+'"><colgroup>'+"".join(widths)+'</colgroup><tbody>'+"".join(rows)+'</tbody></table></div>'
+
+    def positioned_cell(self, chars, box, owner):
+        """Unruled chart data remains native text at its source x/y positions."""
+        x0,y0,x1,y1=box
+        labels=[]
+        lines=defaultdict(list)
+        for c in chars: lines[c['line']].append(c)
+        for line in lines.values():
+            left,top,right,bottom=extent(line)
+            labels.append(f'<span style="position:absolute;left:{(left-x0)/(x1-x0)*100:.5f}%;top:{(top-y0)*1.8:.3f}px;font-size:{max(c["size"] for c in line)*1.8:.3f}px;white-space:pre">'+self.rich(line)+'</span> ')
+        # Arrows and rules are original vector artwork; all data is native HTML.
+        art=self.svg([],box,owner+'-rules')
+        self.take(chars,owner)
+        return f'<div class="ax-positioned-cell" style="position:relative;height:{(y1-y0)*1.8:.3f}px">'+art+''.join(labels)+'</div>'
 
     def paragraphs_preview(self, chars):
         # Cells have already claimed their source characters.
@@ -379,8 +405,20 @@ class Page:
 
     def formal_table(self, chars, ident, mode, bodybox):
         owner = "table-"+ident
+        if mode in ('coordinates','positioned','method'):
+            table=coordinate_grid(self.number,ident)
+            body=self.select(chars,table.bbox)
+            remaining=[c for c in chars if c not in body]
+            nodes=self.paragraphs(remaining,owner,headings=False)
+            value=self.grid(body,table,owner,positioned=mode=='positioned')
+            if mode=='method':
+                value=value.replace('class="ax-table"','class="ax-table ax-method-table"')
+                art=(72,bodybox[1],540,table.bbox[1])
+                value=self.svg([],art,owner+'-ornament')+value
+            nodes.append(dict(box=table.bbox,html=value))
+            return self.flow(nodes)
         if mode == "composite":
-            tables = self.page.find_tables(strategy="lines_strict").tables
+            tables = [t for t in self.page.find_tables(strategy="lines_strict").tables if any(inside(c,t.bbox) for c in chars)]
             nodes, remaining = [], list(chars)
             for ti, table in enumerate(tables):
                 selected = self.select(remaining, table.bbox)
@@ -391,11 +429,11 @@ class Page:
         body = self.select(chars, bodybox)
         others = [c for c in chars if c not in body]
         nodes = self.paragraphs(others, owner, headings=False)
-        if mode == "grid":
+        if mode in ("grid","keyed"):
             tables = [t for t in self.page.find_tables(strategy="lines_strict").tables if pdf.Rect(t.bbox).intersects(pdf.Rect(bodybox))]
             if len(tables) != 1:
                 raise ValueError(f"Expected one table: {ident}")
-            value = self.grid(body, tables[0], owner)
+            value = self.grid(body, keyed_grid(tables[0],body,inside) if mode=="keyed" else tables[0], owner)
         else:
             groups = defaultdict(list)
             for c in body:
@@ -571,10 +609,36 @@ class Page:
         return nodes, remaining
 
 
+def join_spreads(result):
+    """Join horizontal continuations by row, preserving every source character."""
+    for chapter,ident,left,right in SPREADS:
+        if result['id']!=chapter: continue
+        anchor='t'+ident
+        a=next(item for item in result['attachments'] if item['id']==anchor)
+        b=next(item for item in result['attachments'] if item['id']==anchor+'-next')
+        first,last=[next(p for p in result['pages'] if p['page']==n) for n in (left,right)]
+        before=a['html']
+        lrows=re.findall(r'<tr>(.*?)</tr>',before,re.S)
+        rrows=re.findall(r'<tr>(.*?)</tr>',b['html'],re.S)
+        if len(lrows)!=len(rrows): raise ValueError('Spread row mismatch')
+        rows=''.join('<tr>'+l+r+'</tr>' for l,r in zip(lrows,rrows))
+        value=re.sub(r'<tbody>.*?</tbody>','<tbody>'+rows+'</tbody>',before,flags=re.S)
+        value=re.sub(r'<colgroup>.*?</colgroup>','',value,flags=re.S)
+        value=value.replace('class="ax-table"','class="ax-table ax-spread-table"')
+        a.update(html=value,sourcePages=[left,right])
+        first['html']=first['html'].replace(before,value)
+        first['sourcePages']=[left,right]
+        # A continuation consists solely of the second half of the same table.
+        if re.sub(r'<[^>]+>','',last['html']).replace('放大檢視','').strip()!=re.sub(r'<[^>]+>','',b['html']).strip():
+            raise ValueError('Unexpected body text beside spread continuation')
+        result['pages'].remove(last);result['attachments'].remove(b)
+
+
 def add_links(value, known, current):
     """References are linked only when the cited original object is imported."""
     from html.parser import HTMLParser
-    pattern = re.compile(r"\b(Tables?|Fig(?:ure)?s?\.?|Appendix(?:es)?)\s*(\d+)[-–](\d+)(?:\s+(?:and|to|through)\s+(?:(\d+)[-–])?(\d+))?",re.I)
+    separator=r'(?:,\s*(?:(?:and|or)\s+)?|\s+(?:and|or|to|through)\s+)'
+    pattern = re.compile(r"\b(Tables?|Fig(?:ure)?s?\.?|Appendix(?:es)?)\s*(\d+[-–]\d+(?:\s*"+separator+r"(?:\d+[-–])?\d+)*)",re.I)
     class Linker(HTMLParser):
         def __init__(self): super().__init__(convert_charrefs=False); self.out=[]; self.skip=0
         def handle_starttag(self, tag, attrs):
@@ -588,20 +652,20 @@ def add_links(value, known, current):
             if self.skip: self.out.append(text); return
             def replace(m):
                 kind="t" if m[1].lower().startswith("table") else "f" if m[1].lower().startswith("fig") else "ap"
-                key=f'{kind}{m[2]}-{m[3]}'
-                if key not in known: return m[0]
-                target=known[key]
-                first_end=m.end(3)-m.start()
-                result=f'<a href="#ama" class="ax-ref" data-chapter="{target}" data-open="{key}">{m[0][:first_end]}</a>'
-                if not m[5]:
-                    return result
-                second_start=(m.start(4) if m[4] else m.start(5))-m.start()
-                second=f'{kind}{m[4] or m[2]}-{m[5]}'
-                result+=m[0][first_end:second_start]
-                ending=m[0][second_start:]
-                if second in known:
-                    ending=f'<a href="#ama" class="ax-ref" data-chapter="{known[second]}" data-open="{second}">{ending}</a>'
-                return result+ending
+                refs=m[2];parts=[];position=0;chapter=None
+                for token in re.finditer(r'(\d+)[-–](\d+)|(\d+)',refs):
+                    if token[1]:chapter,number=token[1],token[2]
+                    else:number=token[3]
+                    key=f'{kind}{chapter}-{number}'
+                    # Include the word Table/Figure in the first linked mention.
+                    prefix=m[0][:m.start(2)-m.start()] if position==0 else ''
+                    segment=prefix+refs[position:token.start()]+token[0]
+                    if key in known:
+                        lead=prefix if position==0 else ''
+                        gap=refs[position:token.start()]
+                        segment=gap+f'<a href="#ama" class="ax-ref" data-chapter="{known[key]}" data-open="{key}">{lead+token[0]}</a>'
+                    parts.append(segment);position=token.end()
+                return ''.join(parts)+refs[position:]
             self.out.append(pattern.sub(replace, text))
         def handle_entityref(self,name): self.out.append('&'+name+';')
         def handle_charref(self,name): self.out.append('&#'+name+';')
@@ -618,6 +682,10 @@ def main():
     doc=pdf.open(args.source)
     index=json.loads((args.output/"index.json").read_text(encoding="utf-8"))
     chapters, audits, known = {}, [], {}
+    for metadata in index['chapters']:
+        if metadata.get('ready') and metadata['id'] not in args.ids:
+            previous=json.loads((args.output/(metadata['id']+'.json')).read_text(encoding='utf-8'))
+            known.update({a['id']:metadata['id'] for a in previous['attachments']})
     for ident in args.ids:
         start,end=CHAPTERS[ident]
         result=dict(id=ident, pages=[], attachments=[], sections=[])
@@ -627,6 +695,7 @@ def main():
             result["pages"].append(content); result["attachments"].extend(page.attachments)
             result["sections"].extend(page.sections); audits.append(audit)
             print(f'{ident} p{number:02d}: OK ({audit["characters"]} characters; {len(page.grids)} native tables)')
+        join_spreads(result)
         for attachment in result["attachments"]:
             if attachment["id"] in known: raise ValueError("Repeated attachment ID")
             known[attachment["id"]]=ident
@@ -635,14 +704,14 @@ def main():
     for ident,result in chapters.items():
         for page in result["pages"]: page["html"]=add_links(page["html"],known,ident)
         for attachment in result["attachments"]: attachment["html"]=add_links(attachment["html"],known,ident)
-        (args.output/(ident+".json")).write_text(json.dumps(result,ensure_ascii=False,separators=(",",":"))+"\n",encoding="utf-8")
+        (args.output/(ident+".json")).write_text(json.dumps(result,ensure_ascii=False,separators=(",",":"))+"\n",encoding="utf-8",newline="\n")
         metadata=next(c for c in index["chapters"] if c["id"]==ident)
         metadata["ready"]=True
         metadata["tables"]=sum(a["kind"]=="table" for a in result["attachments"])
         metadata["figures"]=sum(a["kind"]=="figure" for a in result["attachments"])
-    (args.output/"index.json").write_text(json.dumps(index,ensure_ascii=False,separators=(",",":"))+"\n",encoding="utf-8")
+    (args.output/"index.json").write_text(json.dumps(index,ensure_ascii=False,separators=(",",":"))+"\n",encoding="utf-8",newline="\n")
     args.audit.parent.mkdir(parents=True,exist_ok=True)
-    args.audit.write_text(json.dumps(dict(source=str(args.source),pages=audits,objects=known),ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    args.audit.write_text(json.dumps(dict(source=str(args.source),pages=audits,objects=known),ensure_ascii=False,indent=2)+"\n",encoding="utf-8",newline="\n")
     print(f'OK: {len(chapters)} chapters, {len(audits)} pages, {len(known)} linked original objects')
 
 

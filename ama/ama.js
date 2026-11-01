@@ -50,6 +50,7 @@
     })().catch(error => { chapters.delete(id); throw error; }));
     return chapters.get(id);
   }
+  function sourcePages(source) { return (source.sourcePages || [source.page]).join('–'); }
   function chapterText(node) {
     const copy = node.cloneNode(true);
     copy.querySelectorAll('button,.ax-page-label').forEach(n => n.remove());
@@ -111,7 +112,7 @@
     const fragment = document.createDocumentFragment();
     for (const source of data.pages) {
       const page = document.createElement('section'); page.className='ax-page'; page.id='ax-page-'+source.page; page.dataset.page=source.page;
-      const label = document.createElement('div'); label.className='ax-page-label'; label.textContent='原書第 '+source.page+' 頁';
+      const label = document.createElement('div'); label.className='ax-page-label'; label.textContent='原書第 '+sourcePages(source)+' 頁';
       const body = document.createElement('div'); body.className='ax-page-content'; body.innerHTML=source.html;
       page.append(label,body); fragment.append(page);
     }
@@ -161,7 +162,7 @@
   async function openObject(id,chapterId) {
     const chapter=chapterId||current, data=await content(chapter), object=data.attachments.find(a=>a.id===id);
     if (!object) return;
-    by('ax-dialog-title').textContent=object.label+' · 原書第 '+object.page+' 頁';
+    by('ax-dialog-title').textContent=object.label+' · 原書第 '+sourcePages(object)+' 頁';
     const body=by('ax-dialog-body'); body.innerHTML=object.html; body.dataset.chapter=chapter;
     const ids=new Map();
     body.querySelectorAll('[id]').forEach(node=>{const old=node.id;node.id='ax-popup-'+old;ids.set(old,node.id);});
@@ -185,7 +186,7 @@
         const text=chapterText(holder).replace(/\s+/g,' '),index=text.toLocaleLowerCase().indexOf(needle);
         if (index<0) continue;
         const button=document.createElement('button');button.type='button';button.className='ax-result';
-        const label=document.createElement('strong');label.textContent='Chapter '+chapter.no+' · 第 '+page.page+' 頁';
+        const label=document.createElement('strong');label.textContent='Chapter '+chapter.no+' · 第 '+sourcePages(page)+' 頁';
         const excerpt=document.createElement('span');excerpt.textContent=(index>60?'…':'')+text.slice(Math.max(0,index-60),index+needle.length+100)+'…';
         button.append(label,excerpt);
         button.addEventListener('click',async()=>{results.hidden=true;await selectChapter(chapter.id,{anchor:'ax-page-'+page.page});});
@@ -232,7 +233,7 @@
         heading.textContent='Chapter '+chapter.no+' '+chapter.title; root.append(heading);
         for (const page of data.pages) {
           const section=document.createElement('section'), label=document.createElement('p');
-          label.textContent='原書第 '+page.page+' 頁'; section.append(label);
+          label.textContent='原書第 '+sourcePages(page)+' 頁'; section.append(label);
           const body=document.createElement('div'); body.innerHTML=page.html;
           body.querySelectorAll('button').forEach(n=>n.remove());
           body.querySelectorAll('svg').forEach(svg=>{

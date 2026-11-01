@@ -17,35 +17,46 @@ from PIL import Image, ImageDraw
 from playwright.async_api import async_playwright
 
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-from build import ROOT, DEFAULT_SOURCE, Page, canon, CHAPTERS
+from build import ROOT, DEFAULT_SOURCE, Page, canon, CHAPTERS, TABLES
+from layout_45 import SPREADS
 
 
 async def main(args):
-    output=ROOT/'.local'/'ama-part1'/'review'; output.mkdir(parents=True,exist_ok=True)
+    output=args.output; output.mkdir(parents=True,exist_ok=True)
     doc=pdf.open(args.source); errors=[]; totals=dict(pages=0,links=0,cells=0,objects=0)
-    all_objects={a['id']:a for ident in args.ids for a in json.loads((ROOT/'ama'/(ident+'.json')).read_text(encoding='utf-8'))['attachments']}
+    all_objects={a['id']:a for file in (ROOT/'ama').glob('c*.json') for a in json.loads(file.read_text(encoding='utf-8'))['attachments']}
     async with async_playwright() as p:
         browser=await p.chromium.launch()
         context=await browser.new_context(viewport=dict(width=1500,height=1000),service_workers='block',reduced_motion='reduce')
         page=await context.new_page(); page.on('pageerror',lambda error:errors.append(str(error)))
         await page.goto(args.url+'index.html#ama')
         await page.locator('.ax-page').first.wait_for()
+        async def select_chapter(ident):
+            if not await page.locator('#ax-tab-'+ident).is_visible(): await page.locator('#ax-menu').click()
+            await page.locator('#ax-tab-'+ident).click()
         for ident in args.ids:
             data=json.loads((ROOT/'ama'/(ident+'.json')).read_text(encoding='utf-8'))
-            await page.locator('#ax-tab-'+ident).click()
+            await select_chapter(ident)
             await page.locator(f'.ax-page[data-page="{data["pages"][-1]["page"]}"]').wait_for()
             for source in data['pages']:
                 number=source['page']; native=page.locator(f'.ax-page[data-page="{number}"] .ax-page-content')
                 actual=await native.evaluate("""el=>{const c=el.cloneNode(true);c.querySelectorAll('button').forEach(n=>n.remove());return c.textContent;}""")
-                original=Page(doc,number); text=''.join(c['text'] for c in original.chars)
+                originals=[Page(doc,n) for n in source.get('sourcePages',[number])]; text=''.join(c['text'] for original in originals for c in original.chars)
                 assert Counter(canon(text))==Counter(canon(actual)),f'p{number}: native DOM character mismatch'
                 bullets=await native.locator('p').evaluate_all("items=>items.filter(p=>p.textContent.trimStart().startsWith('•')).length")
                 assert bullets==text.count('•'),f'p{number}: flattened bullet paragraphs'
                 assert await native.locator('img,iframe,object,embed,canvas').count()==0
                 # Character distribution is checked independently inside every
                 # physical grid cell, including merged footnote/header cells.
-                original.build()
-                grids=[g for g in original.grids if 'cells' in g]
+                for original in originals: original.build()
+                grids=[g for original in originals for g in original.grids if 'cells' in g]
+                if len(originals)==2:
+                    left,right=grids
+                    cells=[]
+                    for row in range(left['rows']):
+                        cells.extend(c for c in left['cells'] if c['row']==row)
+                        cells.extend(c for c in right['cells'] if c['row']==row)
+                    grids=[dict(id=left['id'],cells=cells)]
                 actual_tables=await native.locator('table.ax-table').evaluate_all("""tables=>tables.map(t=>Array.from(t.rows,r=>Array.from(r.cells,c=>({text:c.textContent,rs:c.rowSpan,cs:c.colSpan}))))""")
                 for grid in grids:
                     candidates=[]
@@ -60,14 +71,17 @@ async def main(args):
                     style=await page.add_style_tag(content=f'''body{{overflow:visible!important;height:auto!important}} .ax-layout{{height:auto!important;display:block!important;width:900px!important}} .ax-side,.ax-bar,.ax-tools,.ax-status,.ax-head{{display:none!important}} .ax-scroll{{overflow:visible!important;height:auto!important}} .ax-page{{display:none!important}} .ax-page[data-page="{number}"]{{display:block!important}}''')
                     await native.screenshot(path=str(output/f'app-p{number:03d}.png'))
                     await style.evaluate('(el)=>el.remove()')
-                    source_image=Image.open(BytesIO(doc[number+24].get_pixmap(matrix=pdf.Matrix(1.4,1.4)).tobytes('png'))).convert('RGB')
+                    sources=[Image.open(BytesIO(doc[n+24].get_pixmap(matrix=pdf.Matrix(1.4,1.4)).tobytes('png'))).convert('RGB') for n in source.get('sourcePages',[number])]
+                    source_image=Image.new('RGB',(sum(im.width for im in sources),max(im.height for im in sources)),'white')
+                    offset=0
+                    for im in sources: source_image.paste(im,(offset,0));offset+=im.width
                     app_image=Image.open(output/f'app-p{number:03d}.png').convert('RGB')
                     width=source_image.width+app_image.width+24
                     combined=Image.new('RGB',(width,max(source_image.height,app_image.height)+36),'#777')
                     combined.paste(source_image,(0,36));combined.paste(app_image,(source_image.width+24,36))
                     ImageDraw.Draw(combined).text((8,10),f'Original p{number} | Native app (reflow)',fill='white')
                     combined.save(output/f'p{number:03d}.png')
-                totals['pages']+=1
+                totals['pages']+=len(originals)
             # Open every inline reference, not only each distinct target.
             refs=await page.locator('#ax-body [data-open]').count()
             for i in range(refs):
@@ -85,7 +99,21 @@ async def main(args):
                 if args.images:
                     await page.locator('#ax-dialog-body').evaluate('(el)=>{el.style.maxHeight="none";}')
                     await page.locator('#ax-dialog').evaluate('(el)=>{el.style.maxHeight="none";}')
-                    await page.locator('#ax-dialog-body').screenshot(path=str(output/(attachment['id']+'.png')))
+                    style=await page.add_style_tag(content='.ax-dialog{width:1450px!important;max-width:none!important}.ax-dialog-body{width:1450px!important}.ax-table-wrap,.ax-object{overflow:visible!important}')
+                    await page.locator('#ax-dialog-body').screenshot(path=str(output/(attachment['id']+'-app.png')))
+                    await style.evaluate('(el)=>el.remove()')
+                    app_image=Image.open(output/(attachment['id']+'-app.png')).convert('RGB')
+                    sources=[]
+                    for n in attachment.get('sourcePages',[attachment['page']]):
+                        region=next((box for tid,box,_,_ in TABLES.get(n,[]) if 't'+tid in (attachment['id'],attachment['id']+'-next')),None)
+                        if region:
+                            sources.append(Image.open(BytesIO(doc[n+24].get_pixmap(matrix=pdf.Matrix(2,2),clip=pdf.Rect(region)).tobytes('png'))).convert('RGB'))
+                    if sources:
+                        wide=sum(im.width for im in sources)
+                        original_image=Image.new('RGB',(wide,max(im.height for im in sources)),'white');x=0
+                        for im in sources:original_image.paste(im,(x,0));x+=im.width
+                        comparison=Image.new('RGB',(original_image.width+app_image.width+12,max(original_image.height,app_image.height)),'#777')
+                        comparison.paste(original_image,(0,0));comparison.paste(app_image,(original_image.width+12,0));comparison.save(output/(attachment['id']+'.png'))
                     await page.locator('#ax-dialog-body').evaluate('(el)=>{el.style.maxHeight="";}')
                     await page.locator('#ax-dialog').evaluate('(el)=>{el.style.maxHeight="";}')
                 await page.keyboard.press('Escape');totals['objects']+=1
@@ -97,12 +125,12 @@ async def main(args):
             await page.goto(args.url+'index.html#ama');await page.locator('.ax-page').first.wait_for()
             catalogue=json.loads((ROOT/'ama/index.json').read_text(encoding='utf-8'))['chapters']
             for chapter in catalogue:
-                if width<=900:await page.locator('#ax-menu').click()
+                if not await page.locator('#ax-side').is_visible():await page.locator('#ax-menu').click()
                 await page.locator('#ax-tab-'+chapter['id']).click()
                 assert await page.locator('#ax-title').text_content()==chapter['title']
                 if chapter.get('ready'):await page.locator('.ax-page[data-page="'+str(chapter['end'])+'"]').wait_for()
                 else:assert await page.locator('.ax-pending').is_visible()
-            if width<=900:await page.locator('#ax-menu').click()
+            if not await page.locator('#ax-side').is_visible():await page.locator('#ax-menu').click()
             await page.locator('#ax-tab-c17').focus();await page.keyboard.press('ArrowDown')
             await page.locator('.ax-page[data-page="18"]').wait_for()
             if width<=900:await page.keyboard.press('Escape')
@@ -117,8 +145,8 @@ async def main(args):
             await page.reload();await page.locator('.ax-page[data-page="18"]').wait_for();await page.wait_for_timeout(150)
             assert await page.locator('mark.ax-highlight').count()>0
             assert await page.locator('#ax-scroll').evaluate('el=>el.scrollTop')>700
-            if width<=900:await page.locator('#ax-menu').click()
-            await page.locator('#ax-query').fill('Questionnaire');await page.locator('#ax-search button').click()
+            if not await page.locator('#ax-side').is_visible():await page.locator('#ax-menu').click()
+            await page.locator('#ax-query').fill('Pain Disability Questionnaire');await page.locator('#ax-search button').click()
             await page.locator('.ax-result').first.wait_for();assert await page.locator('.ax-result').count()>0
             await page.locator('.ax-result').last.click();await page.wait_for_timeout(100)
             assert 'Chapter 3'==await page.locator('#ax-kicker').text_content()
@@ -142,5 +170,6 @@ async def main(args):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('ids',nargs='*',default=list(CHAPTERS));parser.add_argument('--url',default='http://localhost:8765/')
+    parser.add_argument('--output',type=Path,default=ROOT/'.local'/'ama45'/'review')
     parser.add_argument('--source',type=Path,default=DEFAULT_SOURCE);parser.add_argument('--images',action='store_true')
     asyncio.run(main(parser.parse_args()))
