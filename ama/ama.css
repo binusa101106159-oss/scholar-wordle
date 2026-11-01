@@ -1,5 +1,5 @@
 /* AMA chapter navigation and native document reader. */
-#ama-panel { --ax-top: 62px; }
+#ama-panel { --ax-top: 62px; --ax-paper:#151b23; --ax-ink:#e5e7eb; --ax-rule:#536174; color-scheme:dark; }
 #ama-panel, #ama-panel button { font-family: 'Roboto', 'Noto Sans TC', 'Microsoft JhengHei', system-ui, sans-serif; }
 .ax-layout { width: min(100%,1360px); margin: 0 auto; padding: 18px 24px; display: grid; grid-template-columns: 318px minmax(0,1fr); gap: 22px; height: calc(100dvh - var(--ax-top)); min-height: 360px; box-sizing: border-box; }
 .ax-side { min-height: 0; display: flex; flex-direction: column; padding: 20px 12px 12px; border-radius: 26px; }
@@ -51,17 +51,18 @@
 .ax-page sup { font-size: .7em; line-height: 0; }
 .ax-source-rule { border: 0; height: 1px; background: linear-gradient(90deg,#c7c7c7,transparent); margin: 12px 0; }
 .ax-note { border-left: 2px solid #d4b77b; padding: 4px 18px; margin: 1.3em 0; background: #d4b77b09; }
-.ax-object { background: #fff; color: #222; border-radius: 12px; margin: 1.4em 0; padding: 16px; font-family: Arial,sans-serif; font-size: 14px; line-height: 1.5; overflow: hidden; }
+.ax-object { background: var(--ax-paper); color: var(--ax-ink); border-radius: 12px; margin: 1.4em 0; padding: 16px; font-family: Arial,sans-serif; font-size: 14px; line-height: 1.5; overflow: hidden; }
 .ax-object p { margin: .4em 0; }
 .ax-page .ax-object p,.ax-dialog-body p,.ax-table td { font-family: Arial,sans-serif !important; }
-.ax-vector { width: 100%; height: auto; display: block; background: #fff; }
+/* Invert the source vector ink as well as its paper; keep all labels selectable. */
+.ax-vector { width: 100%; height: auto; display: block; background: #eae4dc; filter:invert(1); }
 .ax-vector text { font-family: Arial,sans-serif !important; white-space: pre; }
 .ax-vector text[font-family^="Georgia"] { font-family: Georgia,serif !important; }
 .ax-vector text[font-weight="bold"] { font-weight: 700 !important; }
 .ax-vector text[font-style="italic"] { font-style: italic !important; }
 .ax-table-wrap { overflow-x: auto; margin: 10px 0; }
-.ax-table { width: 100%; border-collapse: collapse; table-layout: fixed; background: #fff; color: #222; font: 13px/1.45 Arial,sans-serif; }
-.ax-table td { vertical-align: top; border: 1px solid #555; padding: 6px; overflow-wrap: break-word; }
+.ax-table { width: 100%; border-collapse: collapse; table-layout: fixed; background: var(--ax-paper); color: var(--ax-ink); font: 13px/1.45 Arial,sans-serif; }
+.ax-table td { vertical-align: top; border: 1px solid var(--ax-rule); padding: 6px; overflow-wrap: break-word; }
 .ax-table td p { margin: 0 0 .45em; }
 .ax-table td p:last-child { margin-bottom: 0; }
 .ax-list-table td { border-left: 0; border-right: 0; }
@@ -69,24 +70,24 @@
 #t1-5 .ax-table { min-width: 760px; }
 .ax-pdq { margin: 16px 0; min-width: 540px; }
 .ax-pdq td { border: 0; }
-.ax-pdq tr:first-child td { border-top: 1px solid #bbb; font-weight: 600; }
+.ax-pdq tr:first-child td { border-top: 1px solid var(--ax-rule); font-weight: 600; }
 .ax-pdq td:nth-child(2) { text-align: right; }
 .ax-pdq-scale { white-space: nowrap; font-size: 12px; }
 .ax-report-form { min-width: 660px; }
-.ax-form-field { min-height: 42px; border-bottom: 1px solid #bbb; padding: 6px 0; }
+.ax-form-field { min-height: 42px; border-bottom: 1px solid var(--ax-rule); padding: 6px 0; }
 .ax-form-fields { display: grid; gap: 5px; margin: 14px 0; font: 13px/1.5 Arial,sans-serif; }
 .ax-form-fields > div { display: flex; align-items: baseline; gap: 3px; white-space: nowrap; }
-.ax-form-blank { display: inline-block; flex: 1; min-width: 8px; border-bottom: 1px solid #555; }
-.ax-form-signature { margin: 20px 0 10px auto; border-top: 1px solid #555; font-size: 13px; }
-.ax-expand { display: block; margin: 12px 0 0 auto; padding: 6px 12px; font: 12px/1.5 'Noto Sans TC',sans-serif; border: 1px solid #777; background: #f7f7f7; color: #333; border-radius: 7px; cursor: pointer; }
+.ax-form-blank { display: inline-block; flex: 1; min-width: 8px; border-bottom: 1px solid var(--ax-rule); }
+.ax-form-signature { margin: 20px 0 10px auto; border-top: 1px solid var(--ax-rule); font-size: 13px; }
+.ax-expand { display: block; margin: 12px 0 0 auto; padding: 6px 12px; font: 12px/1.5 'Noto Sans TC',sans-serif; border: 1px solid var(--ax-rule); background: #263449; color: var(--ax-ink); border-radius: 7px; cursor: pointer; }
 .ax-ref { color: #93c5fd; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-.ax-object .ax-ref,.ax-dialog-body .ax-ref { color: #1d4ed8; }
+.ax-object .ax-ref,.ax-dialog-body .ax-ref { color: #93c5fd; }
 .ax-highlight { background: #f8df7c; color: #222; border-radius: 2px; }
-.ax-dialog { width: min(1120px,94vw); max-width: 94vw; max-height: 90dvh; padding: 0; border: 1px solid #777; border-radius: 16px; background: #fff; color: #222; overflow: hidden; }
+.ax-dialog { width: min(1120px,94vw); max-width: 94vw; max-height: 90dvh; padding: 0; border: 1px solid var(--ax-rule); border-radius: 16px; background: var(--ax-paper); color: var(--ax-ink); overflow: hidden; }
 .ax-dialog::backdrop { background: #000a; }
-.ax-dialog-bar { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 12px 18px; border-bottom: 1px solid #ccc; }
+.ax-dialog-bar { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--ax-rule); background:#1c2735; }
 .ax-dialog-bar h2 { margin: 0; font: 500 15px/1.5 'Roboto','Noto Sans TC',sans-serif; }
-.ax-dialog-bar button { border: 1px solid #aaa; border-radius: 8px; padding: 6px 12px; background: #f7f7f7; cursor: pointer; white-space: nowrap; }
+.ax-dialog-bar button { border: 1px solid var(--ax-rule); border-radius: 8px; padding: 6px 12px; background: #263449; color:var(--ax-ink); cursor: pointer; white-space: nowrap; }
 .ax-dialog-body { padding: 20px; overflow: auto; max-height: calc(90dvh - 65px); box-sizing: border-box; font: 15px/1.65 Arial,sans-serif; }
 .ax-dialog-body p { margin: .5em 0; }
 .ax-dialog-body:has(.ax-grid-ornament) .ax-table { min-width: 760px; }
@@ -145,5 +146,5 @@
 .ax-spread-table td:first-child { min-width:85px; }
 .ax-positioned { min-width:842.256px; width:842.256px; }
 .ax-positioned td { border:0; padding:0; }
-.ax-positioned td+td { border-left:1px solid #555; }
+.ax-positioned td+td { border-left:1px solid var(--ax-rule); }
 .ax-positioned-cell > svg { position:absolute;inset:0;width:100%;height:100%; }
