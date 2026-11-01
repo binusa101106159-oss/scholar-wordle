@@ -427,6 +427,8 @@
   <script src="guides/guides.js" defer></script>
 <link rel="stylesheet" href="ama/ama.css">
   <script src="ama/ama.js" defer></script>
+<link rel="stylesheet" href="review/review.css">
+  <script src="review/review.js" defer></script>
 <style id="scholar-games-style">
 /* Shared additions to the original OLED / liquid-glass interface. */
 [hidden] { display: none !important; }
@@ -704,19 +706,8 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar { 
   <main id="ama-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-ama" hidden>
     <p>正在載入 AMA 章節目錄…</p>
   </main>
-  <main id="review-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-review" hidden>
-    <section class="sg-stage">
-      <div class="sg-glass" style="max-width:640px;margin:auto;padding:clamp(24px,4vw,40px)">
-        <p class="sg-eyebrow">2026-11-01 備份</p>
-        <h1 class="sg-title">每日複習信</h1>
-        <p class="sg-description">逐篇閱讀每日複習信，或下載完整原始檔備份。</p>
-        <div class="sg-actions">
-          <a class="sg-btn sg-primary" href="https://github.com/binusa101106159-oss/occupational-medicine-notes/blob/f988f5eb013ee56648a4786335bed18ed6833a25/daily-review/2026-11-01/README.md" target="_blank" rel="noopener noreferrer">閱讀複習信</a>
-          <a class="sg-btn" href="https://github.com/binusa101106159-oss/occupational-medicine-notes/blob/f988f5eb013ee56648a4786335bed18ed6833a25/daily-review/2026-11-01/originals.zip" target="_blank" rel="noopener noreferrer">完整備份 ZIP</a>
-        </div>
-        <p class="sg-description" style="margin:18px 0 0">私人備份，需登入 GitHub。</p>
-      </div>
-    </section>
+  <main id="review-panel" class="sg-app rv-app" role="tabpanel" aria-labelledby="game-tab-review" hidden>
+    <p class="rv-message" role="status">正在載入複習信全文…</p>
   </main>
 
   <!-- Modal 1: Oxford Dictionary Explorer -->
@@ -3039,6 +3030,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar { 
     by('ama-panel').hidden = game !== 'ama';
     if (game === 'ama' && window.ScholarAMA) window.ScholarAMA.show();
     by('review-panel').hidden = game !== 'review';
+    if (game === 'review' && window.ScholarReview) window.ScholarReview.show();
     by('game-main').setAttribute('aria-hidden', String(game !== 'wordle'));
     document.querySelectorAll('[data-game-tab]').forEach(tab => { const active = tab.dataset.gameTab === game; tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; });
     by('game-tab-' + game).scrollIntoView({ block: 'nearest', inline: 'nearest' });
