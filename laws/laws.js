@@ -148,14 +148,27 @@
     }).join('');
   }
 
+  function updateSidebar() {
+    const layout = by('lx-layout'); if (!layout) return;
+    const collapsed = prefs().sidebarCollapsed === true;
+    layout.dataset.sidebarCollapsed = String(collapsed);
+    const expanded = window.matchMedia('(max-width:900px)').matches ? by('laws-panel').classList.contains('lx-drawer') : !collapsed;
+    const button = by('lx-side-close');
+    button.setAttribute('aria-expanded', String(expanded));
+    button.setAttribute('aria-label', expanded ? '收合側欄' : '展開側欄');
+    button.title = expanded ? '收合側欄' : '展開側欄';
+    by('lx-menu').setAttribute('aria-expanded', String(expanded));
+  }
+
   /* ── shell ── */
   function shell() {
     const panel = by('laws-panel');
     panel.innerHTML = `
-      <div class="lx-layout">
+      <div id="lx-layout" class="lx-layout">
         <div class="lx-scrim" id="lx-scrim" aria-hidden="true"></div>
-        <aside class="lx-side sg-glass" aria-label="法規目錄與搜尋">
-          <div class="lx-side-head"><span>法規目錄</span><button type="button" class="sg-btn lx-icon-btn" id="lx-side-close" aria-label="關閉目錄">${icon.x}</button></div>
+        <aside id="lx-sidebar" class="lx-side sg-glass" aria-label="法規目錄與搜尋">
+          <div class="lx-side-head"><button type="button" class="lx-sidebar-toggle" id="lx-side-close" aria-label="收合側欄" title="收合側欄" aria-controls="lx-sidebar-content" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><span class="lx-side-heading">法規目錄</span></div>
+          <div id="lx-sidebar-content" class="lx-side-content">
           <div class="lx-search">${icon.search}
             <input id="lx-q" type="search" placeholder="搜尋法規名稱、條文與附表" aria-label="關鍵字搜尋" autocomplete="off" spellcheck="false" enterkeyhint="search">
             <button type="button" class="lx-clear" id="lx-clear" aria-label="清除搜尋" hidden>${icon.x}</button>
@@ -171,10 +184,11 @@
             </div>
           </div>
           <div class="lx-list" id="lx-list"><p class="lx-empty">載入中…</p></div>
+          </div>
         </aside>
         <section class="lx-reader">
           <div class="lx-bar">
-            <button type="button" class="sg-btn lx-menu-btn" id="lx-menu">${icon.list}法規目錄</button>
+            <button type="button" class="lx-sidebar-toggle lx-menu-btn" id="lx-menu" aria-label="展開側欄" title="展開側欄" aria-controls="lx-sidebar-content" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button>
             <label class="lx-jump">第<input id="lx-jump" inputmode="numeric" aria-label="跳到第幾條" placeholder="" autocomplete="off">條</label>
             <select class="lx-select" id="lx-chapters" aria-label="跳到章節" hidden></select>
             <span class="lx-spacer"></span>
@@ -233,18 +247,22 @@
     // the drawer gets its own history entry, so the phone's back gesture closes it instead of leaving the page
     const drawerOpen = () => by('laws-panel').classList.contains('lx-drawer');
     const openDrawer = () => {
+      if (!window.matchMedia('(max-width:900px)').matches) { setPrefs({ sidebarCollapsed: false }); updateSidebar(); return; }
       if (drawerOpen()) return;
-      by('laws-panel').classList.add('lx-drawer');
+      by('laws-panel').classList.add('lx-drawer'); updateSidebar();
       try { history.pushState({ lxDrawer: true }, ''); } catch (_) { /* file:// */ }
     };
     const closeDrawer = () => {
       if (!drawerOpen()) return;
-      by('laws-panel').classList.remove('lx-drawer');
+      by('laws-panel').classList.remove('lx-drawer'); updateSidebar();
       if (history.state && history.state.lxDrawer) history.back();
     };
     state.openDrawer = openDrawer; state.closeDrawer = closeDrawer;
-    window.addEventListener('popstate', () => { if (drawerOpen()) by('laws-panel').classList.remove('lx-drawer'); });
-    by('lx-side-close').addEventListener('click', () => { closeDrawer(); by('lx-menu').focus({ preventScroll: true }); });
+    window.addEventListener('popstate', () => { if (drawerOpen()) { by('laws-panel').classList.remove('lx-drawer'); updateSidebar(); } });
+    by('lx-side-close').addEventListener('click', () => {
+      if (window.matchMedia('(max-width:900px)').matches) { closeDrawer(); by('lx-menu').focus({ preventScroll: true }); }
+      else { setPrefs({ sidebarCollapsed: prefs().sidebarCollapsed !== true }); updateSidebar(); }
+    });
     by('lx-scrim').addEventListener('click', closeDrawer);
     by('lx-menu').addEventListener('click', () => drawerOpen() ? closeDrawer() : openDrawer());
     by('lx-doc').addEventListener('click', e => {
@@ -299,13 +317,14 @@
       const typing = t && t.closest && t.closest('input,select,textarea');
       if ((e.key === '/' && !typing) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) {
         e.preventDefault();
-        if (window.matchMedia('(max-width: 900px)').matches) state.openDrawer();
+        state.openDrawer();
         q.focus(); q.select();
       } else if (e.key === 'Escape' && by('laws-panel').classList.contains('lx-drawer')) {
         state.closeDrawer();
       }
     });
-    window.addEventListener('resize', measure);
+    updateSidebar();
+    window.addEventListener('resize', () => { measure(); updateSidebar(); });
     window.addEventListener('load', measure);
     if (window.ResizeObserver) new ResizeObserver(measure).observe(document.querySelector('.sg-nav-shell') || document.body);
     window.addEventListener('pagehide', rememberPosition);

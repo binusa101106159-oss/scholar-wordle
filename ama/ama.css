@@ -104,3 +104,24 @@
   .ax-object { padding: 12px; overflow-x: auto; }
   .ax-dialog-body { padding: 12px; }
 }
+
+.ax-side { min-width:0; }
+.ax-side-head { display:flex; align-items:center; gap:9px; padding:0 4px 16px; }
+.ax-side-heading { flex:1; min-width:0; }
+
+/* Sidebar controls shared with the study-note readers. */
+.ax-side-content { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; }
+.ax-sidebar-toggle { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; width:36px; height:36px; padding:7px; border:1px solid transparent; border-radius:10px; color:#cbd5e1; background:transparent; cursor:pointer; transition:background .16s ease,color .16s ease; }
+.ax-sidebar-toggle:hover { color:#fff; background:rgba(255,255,255,.09); }
+.ax-sidebar-toggle:active { background:rgba(255,255,255,.15); }
+.ax-sidebar-toggle:focus-visible { outline:2px solid #93c5fd; outline-offset:2px; }
+.ax-sidebar-toggle svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+@media(min-width:901px) {
+  .ax-layout[data-sidebar-collapsed="true"] { position:relative; grid-template-columns:minmax(0,1fr); gap:0; }
+  .ax-layout[data-sidebar-collapsed="true"] .ax-side { position:absolute; top:18px; left:24px; z-index:2; width:36px; height:36px; padding:0; margin:0; border:0; border-radius:10px; background:transparent; box-shadow:none; backdrop-filter:none; overflow:visible; }
+  .ax-layout[data-sidebar-collapsed="true"] .ax-side-head { padding:0; margin:0; justify-content:center; }
+  .ax-layout[data-sidebar-collapsed="true"] .ax-side-content,
+  .ax-layout[data-sidebar-collapsed="true"] .ax-side-heading { display:none; }
+  .ax-layout[data-sidebar-collapsed="true"] .ax-bar { padding-left:48px; min-height:48px; }
+}
+@media(max-width:900px) { .ax-sidebar-toggle { width:44px; height:44px; } }

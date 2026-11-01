@@ -17,17 +17,26 @@
     if (panel && !panel.hidden) panel.style.setProperty('--ax-top',Math.max(0,panel.getBoundingClientRect().top)+'px');
   }
   function revealSelection() {
-    if (by('ax-side').hidden) return;
+    if (by('ax-side').hidden || (!mobile.matches && saved.sidebarCollapsed === true)) return;
     const list = by('ax-list'), selected = list.querySelector('[aria-selected="true"]');
     if (!selected) return;
     const item = selected.getBoundingClientRect(), bounds = list.getBoundingClientRect();
     if (item.top < bounds.top) list.scrollTop += item.top-bounds.top;
     else if (item.bottom > bounds.bottom) list.scrollTop += item.bottom-bounds.bottom;
   }
+  function updateSidebar() {
+    const expanded = mobile.matches ? menuOpen : saved.sidebarCollapsed !== true;
+    by('ax-layout').dataset.sidebarCollapsed = String(saved.sidebarCollapsed === true);
+    by('ax-side').hidden = mobile.matches && !menuOpen;
+    const button = by('ax-sidebar-toggle');
+    button.setAttribute('aria-expanded', String(expanded));
+    button.setAttribute('aria-label', expanded ? '收合側欄' : '展開側欄');
+    button.title = expanded ? '收合側欄' : '展開側欄';
+    by('ax-menu').setAttribute('aria-expanded', String(expanded));
+  }
   function menu(open) {
     menuOpen = mobile.matches && open;
-    by('ax-side').hidden = mobile.matches && !menuOpen;
-    by('ax-menu').setAttribute('aria-expanded',String(menuOpen)); revealSelection();
+    updateSidebar(); revealSelection();
   }
   async function content(id) {
     if (!chapters.has(id)) chapters.set(id,(async () => {
@@ -191,11 +200,11 @@
     if (!response.ok) throw new Error('AMA catalogue unavailable');
     catalogue=await response.json();
     const panel=by('ama-panel');
-    panel.innerHTML='<div class="ax-layout">'+
-      '<aside id="ax-side" class="ax-side sg-glass" aria-label="AMA 章節選單"><div class="ax-side-head"><p>AMA Guides · Sixth Edition</p><h2>章節<span id="ax-count"></span></h2></div>'+
+    panel.innerHTML='<div id="ax-layout" class="ax-layout">'+
+      '<aside id="ax-side" class="ax-side sg-glass" aria-label="AMA 章節選單"><div class="ax-side-head"><button id="ax-sidebar-toggle" class="ax-sidebar-toggle" type="button" aria-label="收合側欄" title="收合側欄" aria-controls="ax-sidebar-content" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><div class="ax-side-heading"><p>AMA Guides · Sixth Edition</p><h2>章節<span id="ax-count"></span></h2></div></div><div id="ax-sidebar-content" class="ax-side-content">'+
       '<form id="ax-search" class="ax-search"><label class="ax-sr" for="ax-query">搜尋已匯入章節</label><input id="ax-query" type="search" placeholder="搜尋已匯入章節" autocomplete="off"><button type="submit" class="sg-btn">搜尋</button></form>'+
-      '<div id="ax-results" class="ax-results" aria-live="polite" hidden></div><div id="ax-list" class="ax-list" role="tablist" aria-label="AMA 章節" aria-orientation="vertical"></div></aside>'+
-      '<div class="ax-reader"><div class="ax-bar"><button id="ax-menu" class="sg-btn" type="button" aria-controls="ax-side" aria-expanded="false">章節</button><span id="ax-location" class="ax-location"></span></div>'+
+      '<div id="ax-results" class="ax-results" aria-live="polite" hidden></div><div id="ax-list" class="ax-list" role="tablist" aria-label="AMA 章節" aria-orientation="vertical"></div></div></aside>'+
+      '<div class="ax-reader"><div class="ax-bar"><button id="ax-menu" class="ax-sidebar-toggle" type="button" aria-controls="ax-sidebar-content" aria-expanded="false" aria-label="展開側欄" title="展開側欄"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><span id="ax-location" class="ax-location"></span></div>'+
       '<div id="ax-tools" class="ax-tools" hidden><label class="ax-sr" for="ax-section">本章小節</label><select id="ax-section"></select><div class="ax-reading-controls"><button id="ax-smaller" type="button" aria-label="縮小文字">A−</button><button id="ax-larger" type="button" aria-label="放大文字">A＋</button><button id="ax-mark" type="button">標記選取</button><button id="ax-clear-marks" type="button">清除本章標記</button></div></div><div id="ax-status" class="ax-status" role="status"></div>'+
       '<div id="ax-scroll" class="ax-scroll"><article id="ax-content" role="tabpanel" tabindex="0"><div class="ax-head sg-glass"><p id="ax-kicker" class="ax-kicker"></p><h1 id="ax-title" class="ax-title" tabindex="-1"></h1><p id="ax-meta" class="ax-meta"></p></div><div id="ax-body"></div></article></div></div></div>'+
       '<dialog id="ax-dialog" class="ax-dialog" aria-labelledby="ax-dialog-title"><div class="ax-dialog-bar"><h2 id="ax-dialog-title"></h2><button id="ax-dialog-close" type="button" aria-label="關閉圖表">關閉</button></div><div id="ax-dialog-body" class="ax-dialog-body"></div></dialog>';
@@ -218,6 +227,10 @@
       selectChapter(list[next].id,{focusTab:true,closeMenu:false});
     });
     by('ax-menu').addEventListener('click',()=>menu(!menuOpen));
+    by('ax-sidebar-toggle').addEventListener('click',()=>{
+      if (mobile.matches) { menu(false); by('ax-menu').focus({preventScroll:true}); }
+      else { saved.sidebarCollapsed = saved.sidebarCollapsed !== true; persist(); updateSidebar(); if (!saved.sidebarCollapsed) revealSelection(); }
+    });
     by('ax-section').addEventListener('change',()=>scrollToId(by('ax-section').value));
     by('ax-body').addEventListener('click',event=>{
       const ref=event.target.closest('[data-open]');if(ref){event.preventDefault();openObject(ref.dataset.open,ref.dataset.chapter);}

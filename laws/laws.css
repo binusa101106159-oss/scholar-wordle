@@ -310,3 +310,23 @@ mark.lx-hl mark.lx-mark { background: transparent; box-shadow: 0 0 0 1px rgba(22
   .lx-menu-btn { font-size: 0 !important; gap: 0 !important; padding: 0 10px !important; }
   .lx-menu-btn .sg-icon { font-size: 14px; }
 }
+
+.lx-side-head { display:flex; align-items:center; justify-content:flex-start; gap:9px; margin:0 4px 12px 0; color:#fff; font-size:20px; }
+.lx-side { min-width:0; }
+
+/* Sidebar controls shared with the study-note readers. */
+.lx-side-content { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; }
+.lx-sidebar-toggle { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; width:36px; height:36px; padding:7px; border:1px solid transparent; border-radius:10px; color:#cbd5e1; background:transparent; cursor:pointer; transition:background .16s ease,color .16s ease; }
+.lx-sidebar-toggle:hover { color:#fff; background:rgba(255,255,255,.09); }
+.lx-sidebar-toggle:active { background:rgba(255,255,255,.15); }
+.lx-sidebar-toggle:focus-visible { outline:2px solid #93c5fd; outline-offset:2px; }
+.lx-sidebar-toggle svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+@media(min-width:901px) {
+  .lx-layout[data-sidebar-collapsed="true"] { position:relative; grid-template-columns:minmax(0,1fr); gap:0; }
+  .lx-layout[data-sidebar-collapsed="true"] .lx-side { position:absolute; top:18px; left:24px; z-index:2; width:36px; height:36px; padding:0; margin:0; border:0; border-radius:10px; background:transparent; box-shadow:none; backdrop-filter:none; overflow:visible; }
+  .lx-layout[data-sidebar-collapsed="true"] .lx-side-head { padding:0; margin:0; justify-content:center; }
+  .lx-layout[data-sidebar-collapsed="true"] .lx-side-content,
+  .lx-layout[data-sidebar-collapsed="true"] .lx-side-heading { display:none; }
+  .lx-layout[data-sidebar-collapsed="true"] .lx-bar { padding-left:48px; min-height:48px; }
+}
+@media(max-width:900px) { .lx-sidebar-toggle { width:44px; height:44px; } }

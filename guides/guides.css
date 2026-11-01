@@ -289,3 +289,23 @@ mark.gx-hl mark.gx-mark { background: transparent; box-shadow: 0 0 0 1px rgba(22
   .gx-panel { position: fixed; top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; max-height: 72dvh; border-radius: 24px; }
   .gx-swatch { width: 32px; height: 32px; }
 }
+
+.gx-side-head { display:flex; align-items:center; justify-content:flex-start; gap:9px; margin:0 4px 12px 0; color:#fff; font-size:20px; }
+.gx-side { min-width:0; }
+
+/* Sidebar controls shared with the study-note readers. */
+.gx-side-content { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; }
+.gx-sidebar-toggle { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; width:36px; height:36px; padding:7px; border:1px solid transparent; border-radius:10px; color:#cbd5e1; background:transparent; cursor:pointer; transition:background .16s ease,color .16s ease; }
+.gx-sidebar-toggle:hover { color:#fff; background:rgba(255,255,255,.09); }
+.gx-sidebar-toggle:active { background:rgba(255,255,255,.15); }
+.gx-sidebar-toggle:focus-visible { outline:2px solid #93c5fd; outline-offset:2px; }
+.gx-sidebar-toggle svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+@media(min-width:901px) {
+  .gx-layout[data-sidebar-collapsed="true"] { position:relative; grid-template-columns:minmax(0,1fr); gap:0; }
+  .gx-layout[data-sidebar-collapsed="true"] .gx-side { position:absolute; top:18px; left:24px; z-index:2; width:36px; height:36px; padding:0; margin:0; border:0; border-radius:10px; background:transparent; box-shadow:none; backdrop-filter:none; overflow:visible; }
+  .gx-layout[data-sidebar-collapsed="true"] .gx-side-head { padding:0; margin:0; justify-content:center; }
+  .gx-layout[data-sidebar-collapsed="true"] .gx-side-content,
+  .gx-layout[data-sidebar-collapsed="true"] .gx-side-heading { display:none; }
+  .gx-layout[data-sidebar-collapsed="true"] .gx-bar { padding-left:48px; min-height:48px; }
+}
+@media(max-width:900px) { .gx-sidebar-toggle { width:44px; height:44px; } }

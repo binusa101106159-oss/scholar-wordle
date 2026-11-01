@@ -169,14 +169,27 @@
     return out.join('');
   }
 
+  function updateSidebar() {
+    const layout = by('gx-layout'); if (!layout) return;
+    const collapsed = prefs().sidebarCollapsed === true;
+    layout.dataset.sidebarCollapsed = String(collapsed);
+    const expanded = window.matchMedia('(max-width:900px)').matches ? by('guides-panel').classList.contains('gx-drawer') : !collapsed;
+    const button = by('gx-side-close');
+    button.setAttribute('aria-expanded', String(expanded));
+    button.setAttribute('aria-label', expanded ? '收合側欄' : '展開側欄');
+    button.title = expanded ? '收合側欄' : '展開側欄';
+    by('gx-menu').setAttribute('aria-expanded', String(expanded));
+  }
+
   /* ── shell ── */
   function shell() {
     const panel = by('guides-panel');
     panel.innerHTML = `
-      <div class="gx-layout">
+      <div id="gx-layout" class="gx-layout">
         <div class="gx-scrim" id="gx-scrim" aria-hidden="true"></div>
-        <aside class="gx-side sg-glass" aria-label="指引目錄與搜尋">
-          <div class="gx-side-head"><span>指引目錄</span><button type="button" class="sg-btn gx-icon-btn" id="gx-side-close" aria-label="關閉目錄">${icon.x}</button></div>
+        <aside id="gx-sidebar" class="gx-side sg-glass" aria-label="指引目錄與搜尋">
+          <div class="gx-side-head"><button type="button" class="gx-sidebar-toggle" id="gx-side-close" aria-label="收合側欄" title="收合側欄" aria-controls="gx-sidebar-content" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><span class="gx-side-heading">指引目錄</span></div>
+          <div id="gx-sidebar-content" class="gx-side-content">
           <div class="gx-search">${icon.search}
             <input id="gx-q" type="search" placeholder="搜尋指引名稱或全文" aria-label="關鍵字搜尋" autocomplete="off" spellcheck="false" enterkeyhint="search">
             <button type="button" class="gx-clear" id="gx-clear" aria-label="清除搜尋" hidden>${icon.x}</button>
@@ -192,10 +205,11 @@
             </div>
           </div>
           <div class="gx-list" id="gx-list"><p class="gx-empty">載入中…</p></div>
+          </div>
         </aside>
         <section class="gx-reader">
           <div class="gx-bar">
-            <button type="button" class="sg-btn gx-menu-btn" id="gx-menu">${icon.list}指引目錄</button>
+            <button type="button" class="gx-sidebar-toggle gx-menu-btn" id="gx-menu" aria-label="展開側欄" title="展開側欄" aria-controls="gx-sidebar-content" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button>
             <select class="gx-select" id="gx-chapters" aria-label="跳到章節" hidden></select>
             <span class="gx-spacer"></span>
             <button type="button" class="sg-btn gx-tool-btn" id="gx-marks-btn" aria-haspopup="dialog" aria-controls="gx-panel" title="我的畫線">${icon.pen}<span>畫線</span></button>
@@ -253,18 +267,22 @@
     // the drawer gets its own history entry, so the phone's back gesture closes it instead of leaving the page
     const drawerOpen = () => by('guides-panel').classList.contains('gx-drawer');
     const openDrawer = () => {
+      if (!window.matchMedia('(max-width:900px)').matches) { setPrefs({ sidebarCollapsed: false }); updateSidebar(); return; }
       if (drawerOpen()) return;
-      by('guides-panel').classList.add('gx-drawer');
+      by('guides-panel').classList.add('gx-drawer'); updateSidebar();
       try { history.pushState({ gxDrawer: true }, ''); } catch (_) { /* file:// */ }
     };
     const closeDrawer = () => {
       if (!drawerOpen()) return;
-      by('guides-panel').classList.remove('gx-drawer');
+      by('guides-panel').classList.remove('gx-drawer'); updateSidebar();
       if (history.state && history.state.gxDrawer) history.back();
     };
     state.openDrawer = openDrawer; state.closeDrawer = closeDrawer;
-    window.addEventListener('popstate', () => { if (drawerOpen()) by('guides-panel').classList.remove('gx-drawer'); });
-    by('gx-side-close').addEventListener('click', () => { closeDrawer(); by('gx-menu').focus({ preventScroll: true }); });
+    window.addEventListener('popstate', () => { if (drawerOpen()) { by('guides-panel').classList.remove('gx-drawer'); updateSidebar(); } });
+    by('gx-side-close').addEventListener('click', () => {
+      if (window.matchMedia('(max-width:900px)').matches) { closeDrawer(); by('gx-menu').focus({ preventScroll: true }); }
+      else { setPrefs({ sidebarCollapsed: prefs().sidebarCollapsed !== true }); updateSidebar(); }
+    });
     by('gx-scrim').addEventListener('click', closeDrawer);
     by('gx-menu').addEventListener('click', () => drawerOpen() ? closeDrawer() : openDrawer());
     by('gx-doc').addEventListener('click', e => {
@@ -314,13 +332,14 @@
       const typing = t && t.closest && t.closest('input,select,textarea');
       if ((e.key === '/' && !typing) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) {
         e.preventDefault();
-        if (window.matchMedia('(max-width: 900px)').matches) state.openDrawer();
+        state.openDrawer();
         q.focus(); q.select();
       } else if (e.key === 'Escape' && by('guides-panel').classList.contains('gx-drawer')) {
         state.closeDrawer();
       }
     });
-    window.addEventListener('resize', measure);
+    updateSidebar();
+    window.addEventListener('resize', () => { measure(); updateSidebar(); });
     window.addEventListener('load', measure);
     if (window.ResizeObserver) new ResizeObserver(measure).observe(document.querySelector('.sg-nav-shell') || document.body);
     window.addEventListener('pagehide', rememberPosition);
