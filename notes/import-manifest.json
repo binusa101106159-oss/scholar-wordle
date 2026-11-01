@@ -3,13 +3,6 @@
   "root": "https://app.notion.com/p/3f40e05cff3080738462f6bd716c80c7?pvs=204",
   "inventory": [
     {
-      "number": 1,
-      "id": "4000e05cff3081e88ac1cce8f1b9524c",
-      "type": "page",
-      "title": "AI 編輯守則（給協作者的 Claude／AI agent 看）",
-      "url": "https://app.notion.com/p/4000e05cff3081e88ac1cce8f1b9524c"
-    },
-    {
       "number": 2,
       "id": "1060e05cff308322886e01626794b5c7",
       "type": "page",
@@ -766,11 +759,11 @@
       "url": "https://app.notion.com/p/8190e05cff3082ce94a381eddaccfaff"
     }
   ],
-  "notes": 107,
+  "notes": 106,
   "databases": 2,
   "databaseRows": 50,
   "childPages": 1,
-  "readablePages": 160,
+  "readablePages": 159,
   "images": 419,
   "attachments": 1,
   "uniqueFiles": 418,
@@ -3718,25 +3711,6 @@
   },
   "checks": [
     {
-      "id": "4000e05cff3081e88ac1cce8f1b9524c",
-      "title": "🤖 AI 編輯守則（給協作者的 Claude／AI agent 看）",
-      "characters": 1485,
-      "sha256": "377f2728f3d2d890184e045ba27f8358b1c8a12df5187260f5a62c922aa1b70f",
-      "sourceLinks": [
-        "https://app.notion.com/p/4000e05cff3081388324de49d044f50a",
-        "https://app.notion.com/p/4b70e05cff30836bb6a381801067d488"
-      ],
-      "headings": [
-        "## 一、絕對不要做的事",
-        "## 二、新增筆記的格式",
-        "## 三、修改既有筆記",
-        "## 四、考古趨勢總表",
-        "## 五、編輯紀錄（每次編輯完請加一列）"
-      ],
-      "firstLine": "> 這頁寫給被邀請進來的協作者，以及他們使用的 Claude 或其他 AI agent。<b>動手編輯職專筆記v2之前，請先讀完這頁。</b>如果你是協作者本人，跟你的 AI 說：「先讀〈AI 編輯守則〉再改職專筆記v2」即可。",
-      "lastLine": "| 2026/10/21 | 楊其家＋Claude | 個案討論：齒模技師的多發性肺腺癌（鈹？矽？石綿？）2026/10/21 | 新增頁面：以去識別化個案整理鈹／矽／石綿／鎳肺癌、沉積物分析、五大基準討論與考點問答 |"
-    },
-    {
       "id": "1060e05cff308322886e01626794b5c7",
       "title": "🎵 會考的職業病指引標題",
       "characters": 18212,
@@ -6314,8 +6288,6 @@
     }
   ],
   "hyperlinks": [
-    "https://app.notion.com/p/4000e05cff3081388324de49d044f50a",
-    "https://app.notion.com/p/4b70e05cff30836bb6a381801067d488",
     "https://www.osha.gov.tw/media/sxoj4aru/6%E8%81%B7%E6%A5%AD%E6%9A%B4%E9%9C%B2%E6%9C%A8%E7%B2%89%E5%BC%95%E8%B5%B7%E4%B9%8B%E9%BC%BB%E8%85%94%E7%99%8C-%E9%BC%BB%E7%AB%87%E7%99%8C%E8%AA%8D%E5%AE%9A%E5%8F%83%E8%80%83%E6%8C%87%E5%BC%95.pdf?mediaDL=true",
     "https://www.osha.gov.tw/media/0m2ntq2x/%E8%81%B7%E6%A5%AD%E6%9A%B4%E9%9C%B2%E6%9C%89%E6%A9%9F%E7%B2%89%E5%A1%B5%E5%BC%95%E8%B5%B7%E4%B9%8B%E6%9C%89%E6%A9%9F%E7%B2%89%E5%A1%B5%E6%AF%92%E6%80%A7%E7%97%87%E5%80%99%E7%BE%A4%E8%AA%8D%E5%AE%9A%E5%8F%83%E8%80%83%E6%8C%87%E5%BC%95.pdf?mediaDL=true",
     "https://www.osha.gov.tw/media/kykczmrn/%E8%81%B7%E6%A5%AD%E6%9A%B4%E9%9C%B2%E7%84%A1%E6%A9%9F%E9%8E%B3%E5%8F%8A%E5%85%B6%E5%8C%96%E5%90%88%E7%89%A9%E5%BC%95%E8%B5%B7%E4%B9%8B%E8%82%BA%E7%99%8C-%E9%BC%BB%E7%AB%87%E7%99%8C-%E9%BC%BB%E7%99%8C%E8%AA%8D%E5%AE%9A%E5%8F%83%E8%80%83%E6%8C%87%E5%BC%95.pdf?mediaDL=true",
@@ -6581,16 +6553,16 @@
     "https://app.notion.com/p/5ca0e05cff308260be4d8112e3487a06"
   ],
   "validation": {
-    "rootSections": 109,
-    "readablePages": 160,
+    "rootSections": 108,
+    "readablePages": 159,
     "images": 419,
     "uniqueFiles": 418,
-    "tables": 66,
-    "hyperlinkDestinations": 265,
+    "tables": 64,
+    "hyperlinkDestinations": 263,
     "missingLinks": [],
     "failures": [],
     "text": {
-      "pages": 158,
+      "pages": 157,
       "issues": []
     }
   }

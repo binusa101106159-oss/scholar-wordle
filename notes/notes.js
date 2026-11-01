@@ -68,10 +68,10 @@
         <aside id="nt-sidebar" class="nt-side sg-glass" aria-label="筆記目錄">
           <div class="nt-side-head"><button id="nt-sidebar-toggle" type="button" class="nt-sidebar-toggle" data-nt-action="sidebar" aria-controls="nt-sidebar-content" aria-expanded="${!state.sidebarCollapsed}" aria-label="收合側欄" title="收合側欄"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><h1>職專共筆</h1></div>
           <div id="nt-sidebar-content" class="nt-side-content">
-          <p class="nt-snapshot">${esc(snapshot)} 備份 · 109 個主目錄項目</p>
+          <p class="nt-snapshot">${esc(snapshot)} 備份 · 108 個主目錄項目</p>
           <label class="nt-search-label"><span>搜尋筆記</span><input id="nt-search" class="nt-search" type="search" placeholder="搜尋標題或全文…" autocomplete="off"></label>
           <div class="nt-filters">
-            <label><span class="nt-sr">內容類型</span><select id="nt-kind" aria-label="內容類型"><option value="main">主目錄（109）</option><option value="all">全部內容（160）</option><option value="note">筆記（107）</option><option value="database">資料庫（2）</option><option value="row">資料庫項目（50）</option><option value="child">子頁（1）</option></select></label>
+            <label><span class="nt-sr">內容類型</span><select id="nt-kind" aria-label="內容類型"><option value="main">主目錄（108）</option><option value="all">全部內容（159）</option><option value="note">筆記（106）</option><option value="database">資料庫（2）</option><option value="row">資料庫項目（50）</option><option value="child">子頁（1）</option></select></label>
             <label><span class="nt-sr">排序</span><select id="nt-order" aria-label="排序"><option value="source">Notion 原順序</option><option value="title">標題順序</option></select></label>
           </div>
           <div id="nt-count" class="nt-count" role="status" aria-live="polite"></div>
