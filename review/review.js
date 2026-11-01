@@ -29,7 +29,7 @@
   function matches(item, queryTerms, kind) {
     return (!kind || kind === 'all' || item.kind === kind) && queryTerms.every(term => item.searchText.includes(term));
   }
-  function sort(items, order) {
+  function sort(items, order = 'day') {
     return items.slice().sort((a, b) => {
       const byDate = String(b.date).localeCompare(String(a.date));
       const byDay = (a.day ?? 9999) - (b.day ?? 9999);
@@ -37,17 +37,20 @@
       return value || ({ letter: 0, document: 1, mail: 2 }[a.kind] - { letter: 0, document: 1, mail: 2 }[b.kind]) || a.id.localeCompare(b.id);
     });
   }
-  const core = { normalize, terms, ranges, matches, sort };
+  function savedOrder(pref) {
+    return pref.orderVersion === 2 && ['newest', 'oldest', 'day'].includes(pref.order) ? pref.order : 'day';
+  }
+  const core = { normalize, terms, ranges, matches, sort, savedOrder };
   if (typeof module !== 'undefined' && module.exports) module.exports = core;
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
   const STORE = 'scholar-review-v1';
   const labels = { letter: '每日信', document: 'Google 文件', mail: '郵件封存' };
-  const state = { items: [], byId: new Map(), visible: [], current: null, query: '', kind: 'all', order: 'newest', sidebarCollapsed: false, promise: null, ready: false };
+  const state = { items: [], byId: new Map(), visible: [], current: null, query: '', kind: 'all', order: 'day', sidebarCollapsed: false, promise: null, ready: false };
   const by = id => document.getElementById(id);
   const esc = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   function saved() { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (_) { return {}; } }
-  function remember() { try { localStorage.setItem(STORE, JSON.stringify({ current: state.current, kind: state.kind, order: state.order, sidebarCollapsed: state.sidebarCollapsed })); } catch (_) { /* Reading still works without storage. */ } }
+  function remember() { try { localStorage.setItem(STORE, JSON.stringify({ current: state.current, kind: state.kind, order: state.order, orderVersion: 2, sidebarCollapsed: state.sidebarCollapsed })); } catch (_) { /* Reading still works without storage. */ } }
   function updateSidebar() {
     by('rv-layout').dataset.sidebarCollapsed = String(state.sidebarCollapsed);
     const button = by('rv-sidebar-toggle');
@@ -77,7 +80,7 @@
           <label class="rv-search-label"><span>搜尋複習信</span><input id="rv-search" class="rv-search" type="search" placeholder="搜尋主題、Day 或全文…" autocomplete="off"></label>
           <div class="rv-filters">
             <label><span class="rv-sr">來源版本</span><select id="rv-kind" aria-label="來源版本"><option value="all">全部版本</option><option value="letter">每日信（99）</option><option value="mail">郵件封存（57）</option><option value="document">Google 文件（2）</option></select></label>
-            <label><span class="rv-sr">排序</span><select id="rv-order" aria-label="排序"><option value="newest">日期由新到舊</option><option value="oldest">日期由舊到新</option><option value="day">Day 順序</option></select></label>
+            <label><span class="rv-sr">排序</span><select id="rv-order" aria-label="排序"><option value="day">Day 由小到大</option><option value="oldest">日期由舊到新</option><option value="newest">日期由新到舊</option></select></label>
           </div>
           <div id="rv-count" class="rv-count" role="status" aria-live="polite"></div>
           <nav id="rv-list" class="rv-list" aria-label="文章"></nav>
@@ -199,12 +202,12 @@
         if (data.version !== 1 || !Array.isArray(data.items) || !data.items.length) throw new Error('Invalid review data');
         const pref = saved();
         state.kind = ['all', 'letter', 'mail', 'document'].includes(pref.kind) ? pref.kind : 'all';
-        state.order = ['newest', 'oldest', 'day'].includes(pref.order) ? pref.order : 'newest';
+        state.order = savedOrder(pref);
         state.sidebarCollapsed = pref.sidebarCollapsed === true;
         state.items = data.items.map(item => ({ ...item, searchText: normalize([item.title, item.sourceTitle, item.text].join('\n')) }));
         state.byId = new Map(state.items.map(item => [item.id, item]));
         const requested = new URL(location.href).searchParams.get('letter');
-        state.current = state.byId.has(requested) ? requested : state.byId.has(pref.current) ? pref.current : sort(state.items, 'newest')[0].id;
+        state.current = state.byId.has(requested) ? requested : state.byId.has(pref.current) ? pref.current : sort(state.items, state.order)[0].id;
         shell(data.snapshot); renderList(); renderArticle();
         if (requested && state.byId.has(requested)) by('rv-layout').dataset.view = 'reader';
         updateSidebar();

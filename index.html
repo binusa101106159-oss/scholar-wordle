@@ -452,6 +452,10 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
 .sg-tab[aria-selected="true"] { color: #fff; border-color: rgba(255,255,255,.17); background: linear-gradient(180deg,rgba(255,255,255,.25),rgba(255,255,255,.08)); box-shadow: inset 0 1px 0 rgba(255,255,255,.5),0 2px 8px rgba(0,0,0,.35); }
 .sg-tab:hover { color: #fff; }
 .sg-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.study-nav { display:flex; flex:none; align-self:center; gap:4px; max-width:calc(100% - 32px); margin:10px 16px 0; padding:4px; border:1px solid rgba(255,255,255,.14); border-radius:999px; background:rgba(255,255,255,.04); }
+.study-nav button { appearance:none; border:1px solid transparent; border-radius:999px; padding:8px 16px; min-height:40px; font:inherit; font-size:13px; color:#aeb8c8; background:transparent; cursor:pointer; white-space:nowrap; }
+.study-nav button[aria-selected="true"] { color:#fff; border-color:rgba(255,255,255,.15); background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.07)); box-shadow:inset 0 1px 0 rgba(255,255,255,.2); }
+.study-nav button:focus-visible { outline:2px solid #93c5fd; outline-offset:2px; }
 .sg-app { position: relative; z-index: 10; flex: 1; display: flex; flex-direction: column; width: 100%; font-family: 'Roboto',system-ui,-apple-system,sans-serif; }
 .sg-toolbar { min-height: 51px; padding: 9px 16px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid rgba(255,255,255,.07); background: rgba(255,255,255,.025); }
 .sg-segment { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--sg-edge); border-radius: 999px; background: rgba(255,255,255,.04); box-shadow: inset 0 1px 0 rgba(255,255,255,.18); }
@@ -591,8 +595,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
         <button id="game-tab-laws" class="sg-tab" type="button" role="tab" data-game-tab="laws" aria-controls="laws-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9l3 3v13H6z"/><path d="M15 4v3h3M9 11h6M9 14.5h6M9 18h4"/></svg>法規</button>
         <button id="game-tab-guides" class="sg-tab" type="button" role="tab" data-game-tab="guides" aria-controls="guides-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5C7.5 4.5 10 4.5 12 6c2-1.5 4.5-1.5 7-.5V19c-2.5-1-5-1-7 .5-2-1.5-4.5-1.5-7-.5z"/><path d="M12 6v13.5"/></svg>指引</button>
         <button id="game-tab-ama" class="sg-tab" type="button" role="tab" data-game-tab="ama" aria-controls="ama-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM16 4v3h3M8 11h8M8 15h8M12 8v10"/></svg>AMA</button>
-        <button id="game-tab-review" class="sg-tab" type="button" role="tab" data-game-tab="review" aria-controls="review-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>每日複習信</button>
-        <button id="game-tab-notes" class="sg-tab" type="button" role="tab" data-game-tab="notes" aria-controls="notes-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM16 4v3h3M8 11h8M8 15h8"/></svg>職專共筆</button>
+        <button id="game-tab-study" class="sg-tab" type="button" role="tab" data-game-tab="study" aria-controls="review-panel notes-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM16 4v3h3M8 11h8M8 15h8"/></svg>職專</button>
       </nav>
     </div>
   </div>
@@ -709,8 +712,12 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
   <main id="ama-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-ama" hidden>
     <p>正在載入 AMA 章節目錄…</p>
   </main>
-  <main id="notes-panel" class="sg-app nt-app" role="tabpanel" aria-labelledby="game-tab-notes" hidden></main>
-  <main id="review-panel" class="sg-app rv-app" role="tabpanel" aria-labelledby="game-tab-review" hidden>
+  <div id="study-nav" class="study-nav" role="tablist" aria-label="職專內容" hidden>
+    <button id="study-section-review" type="button" role="tab" data-study-section="review" aria-controls="review-panel" aria-selected="true">每日複習信</button>
+    <button id="study-section-notes" type="button" role="tab" data-study-section="notes" aria-controls="notes-panel" aria-selected="false" tabindex="-1">職專共筆</button>
+  </div>
+  <main id="notes-panel" class="sg-app nt-app" role="tabpanel" aria-labelledby="study-section-notes" hidden></main>
+  <main id="review-panel" class="sg-app rv-app" role="tabpanel" aria-labelledby="study-section-review" hidden>
     <p class="rv-message" role="status">正在載入複習信全文…</p>
   </main>
 
@@ -3023,9 +3030,18 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     if (!started) return create();
     confirmAction = create; by('scholar-new-dialog').showModal();
   }
+  let studySection = 'review';
   function switchGame(game, updateURL = true) {
+    if (game === 'study') game = studySection;
     if (!['wordle', 'crossword', 'sudoku', 'laws', 'guides', 'ama', 'review', 'notes'].includes(game)) game = 'wordle';
     activeGame = game; document.body.dataset.game = game;
+    const isStudy = game === 'review' || game === 'notes';
+    if (isStudy) studySection = game;
+    by('study-nav').hidden = !isStudy;
+    document.querySelectorAll('[data-study-section]').forEach(tab => {
+      const active = tab.dataset.studySection === game;
+      tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1;
+    });
     by('crossword-panel').hidden = game !== 'crossword'; by('sudoku-panel').hidden = game !== 'sudoku';
     by('laws-panel').hidden = game !== 'laws';
     if (game === 'laws' && window.ScholarLaws) window.ScholarLaws.show();
@@ -3038,8 +3054,8 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     by('review-panel').hidden = game !== 'review';
     if (game === 'review' && window.ScholarReview) window.ScholarReview.show();
     by('game-main').setAttribute('aria-hidden', String(game !== 'wordle'));
-    document.querySelectorAll('[data-game-tab]').forEach(tab => { const active = tab.dataset.gameTab === game; tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; });
-    by('game-tab-' + game).scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    document.querySelectorAll('[data-game-tab]').forEach(tab => { const active = tab.dataset.gameTab === (isStudy ? 'study' : game); tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; });
+    by('game-tab-' + (isStudy ? 'study' : game)).scrollIntoView({ block: 'nearest', inline: 'nearest' });
     document.querySelectorAll('[id^="modal-"]').forEach(modal => { if (game !== 'wordle') { modal.classList.add('hidden'); modal.classList.remove('flex'); } });
     if (game === 'sudoku') {
       if (!sudoku) newSudoku('easy');
@@ -3108,6 +3124,16 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
   }
   function init() {
     shell(); restore();
+    document.querySelectorAll('[data-study-section]').forEach(tab => {
+      tab.addEventListener('click', () => switchGame(tab.dataset.studySection));
+      tab.addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault(); event.stopPropagation();
+        const tabs = [...document.querySelectorAll('[data-study-section]')];
+        const next = event.key === 'Home' ? tabs[0] : event.key === 'End' ? tabs[1] : tabs[1 - tabs.indexOf(tab)];
+        switchGame(next.dataset.studySection); next.focus();
+      });
+    });
     document.querySelectorAll('[data-game-tab]').forEach(tab => {
       tab.addEventListener('click', () => switchGame(tab.dataset.gameTab));
       tab.addEventListener('keydown', event => {
@@ -3148,7 +3174,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
       data.seconds++; by(activeGame + '-clock').textContent = time(data.seconds);
       if (data.seconds % 5 === 0) save();
     }, 1000);
-    switchGame(location.hash === '#sudoku' ? 'sudoku' : location.hash === '#crossword' ? 'crossword' : location.hash === '#laws' ? 'laws' : location.hash === '#guides' ? 'guides' : location.hash === '#ama' ? 'ama' : location.hash === '#review' ? 'review' : location.hash === '#notes' ? 'notes' : 'wordle', false);
+    switchGame(location.hash === '#study' ? 'study' : location.hash === '#sudoku' ? 'sudoku' : location.hash === '#crossword' ? 'crossword' : location.hash === '#laws' ? 'laws' : location.hash === '#guides' ? 'guides' : location.hash === '#ama' ? 'ama' : location.hash === '#review' ? 'review' : location.hash === '#notes' ? 'notes' : 'wordle', false);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
