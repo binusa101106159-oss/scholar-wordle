@@ -154,3 +154,11 @@
 .ax-hearing-table.ax-spread-table { min-width:3600px; table-layout:fixed; }
 .ax-hearing-table td { padding:5px 4px; white-space:nowrap; }
 .ax-hearing-table td p { margin:0; }
+
+.ax-reading-acuity { min-width:1300px; }
+.ax-reading-acuity td { padding:5px; white-space:nowrap; }
+
+.ax-reading-acuity td:last-child { white-space:normal; overflow-wrap:anywhere; }
+.ax-source-overlay { min-width:700px; }
+.ax-object:has(.ax-source-overlay) { overflow-x:auto; }
+.ax-dialog-body .ax-source-overlay { max-height:none; }

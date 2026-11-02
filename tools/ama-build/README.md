@@ -4,17 +4,17 @@
 
 ## 來源與範圍
 
-使用使用者提供的完整版 `AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf`。目前支援 c01–c11，原書第 1–99、101–127、129–279 頁，共 277 頁，對應完整版 PDF 第 26–124、126–152、154–304 頁。來源共 659 頁。`AMA_SRC` 可指定完整版 PDF 的絕對路徑；預設為 `A:\職醫\AMA\AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf`。
+使用使用者提供的完整版 `AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf`。目前支援 c01–c14，原書第 1–99、101–127、129–319、321–345、347–382 頁，共 377 頁，對應完整版 PDF 第 26–124、126–152、154–344、346–370、372–407 頁。來源共 659 頁。`AMA_SRC` 可指定完整版 PDF 的絕對路徑；預設為 `A:\職醫\AMA\AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf`。
 
 ```powershell
 $env:AMA_SRC = 'A:\職醫\AMA\AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf'
-python tools/ama-build/build.py c09 c10 c11 --audit .local/ama911/audit.json
+python tools/ama-build/build.py c12 c13 c14 --audit .local/ama1214/audit.json
 python -m http.server 8765
 # 另一個終端機，使用同一 Python 環境與 Playwright 瀏覽器設定：
-python tools/ama-build/review.py c09 c10 c11 --images --output .local/ama911/review
+python tools/ama-build/review.py c12 c13 c14 --images --output .local/ama1214/review
 ```
 
-需要 Python 3.11+、PyMuPDF、Pillow、Playwright 及其 Chromium。上述影像比較與完整稽核寫入 `.local/ama911/`，不放入網站。第 1–3 章的既有紀錄保留於 `.local/ama-part1/`。只建置指定章節，其他已匯入 JSON 不重寫；引用目標則讀取所有已匯入章節。網站只讀取 `ama/index.json`、各章 JSON，以及 AMA 自己的 JS/CSS。
+需要 Python 3.11+、PyMuPDF、Pillow、Playwright 及其 Chromium。上述影像比較與完整稽核寫入 `.local/ama1214/`，不放入網站。第 1–3 章的既有紀錄保留於 `.local/ama-part1/`。只建置指定章節，其他已匯入 JSON 不重寫；引用目標則讀取所有已匯入章節。網站只讀取 `ama/index.json`、各章 JSON，以及 AMA 自己的 JS/CSS。
 
 ## 原文與版面
 
@@ -39,10 +39,14 @@ Table/Tables、Figure/Fig.、Appendix/Appendixes 的引用，只連到已匯入�
 
 ## 驗證與發布
 
-`review.py` 從實際瀏覽器 DOM 回讀指定章節的全部頁面（目前可驗證原書 277 頁），跨頁總表合併核對左右頁來源，逐格比對 PDF 來源、點開每一個圖表引用及放大按鈕，並測試 1400、390、320 px 的章節切換、鍵盤操作、搜尋、標記及閱讀位置還原。`--images` 會產生原書在左、重排後網站在右的逐頁比較圖，以及每個圖表的放大圖，須人工檢視。
+`review.py` 從實際瀏覽器 DOM 回讀指定章節的全部頁面（目前可驗證原書 377 頁），跨頁總表合併核對左右頁來源，逐格比對 PDF 來源、點開每一個圖表引用及放大按鈕，並測試 1400、390、320 px 的章節切換、鍵盤操作、搜尋、標記及閱讀位置還原。`--images` 會產生原書在左、重排後網站在右的逐頁比較圖，以及每個圖表的放大圖，須人工檢視。
 
 發布前執行 `node --test` 的既有全站測試，確認 `laws/`、`guides/`、兩個既有轉換器、`index.html` 與遊戲沒有差異。AMA JS/CSS 改動須遞增 `sw.js` 的快取名稱。只提交 AMA 成品、獨立工具與快取版本；不提交來源 PDF、環境或比較影像。
 
-詳細紀錄：[第 1–3 章](c01-c03-review.md)、[第 4–5 章](c04-c05-review.md)、[第 6–8 章](c06-c08-review.md)、[第 9–11 章](c09-c11-review.md)。
+詳細紀錄：[第 1–3 章](c01-c03-review.md)、[第 4–5 章](c04-c05-review.md)、[第 6–8 章](c06-c08-review.md)、[第 9–11 章](c09-c11-review.md)、[第 12–14 章](c12-c14-review.md)。
 
 第 9–11 章新增 38 張表格。Table 9-14、10-15 的左右續頁總表在放大視窗接成 7 欄；Table 11-2 接成 56 欄，保留原書空白格及兩側均未印出的 315 列，不補數值。大矩陣可橫向捲動；Table 11-1、11-3 的欄名獨立成表頭列。白色填色覆蓋表格線的物件以座標格線重建，裝飾用 SVG 路徑，數值仍為原生文字。引用也支援 Table 10-2a/10-2b 與原書無空格的 SeeTable 文字。
+
+第 12–14 章包含 48 張編號表格、11 個圖／表單，以及 BPRS 的 24 項症狀評分表。Table 12-6 的三組數值使用各自的欄位；Table 12-11 保留空白窄欄、合併標籤與每格上下兩個數值。BPRS 的續欄／續頁保留實體頁碼，表格範圍依原書橫線分段，不把下一小節包進格內。
+
+第 315、317 頁的視野疊圖是 PDF 中原本的點陣圖形，僅這兩張原始圖形以嵌入 SVG 的圖片保留；不是頁面截圖。第 317 頁共有 109 個圖內文字標籤，放大核讀後由 raster_1214.py 記錄其文字及位置，改為可選取、可複製的 SVG 文字。原有格線與點保留，只移除原來的圖片文字，避免雙重顯示。圖內數字不是依公式重算；左右 8x／6x 差異也保留。新增字型解碼 ±、″、°、| 及另一組 =、+、× 編碼，均以原書放大字形確認。

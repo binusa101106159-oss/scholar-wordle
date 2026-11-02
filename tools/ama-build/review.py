@@ -17,7 +17,7 @@ from PIL import Image, ImageDraw
 from playwright.async_api import async_playwright
 
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-from build import ROOT, DEFAULT_SOURCE, Page, canon, CHAPTERS, TABLES
+from build import ROOT, DEFAULT_SOURCE, Page, canon, CHAPTERS, TABLES, FIGURES
 from layout_45 import SPREADS
 
 
@@ -96,7 +96,7 @@ async def main(args):
             for attachment in data['attachments']:
                 await page.locator('#ax-body .ax-expand[data-open="'+attachment['id']+'"]').first.click()
                 await page.locator('#ax-dialog[open]').wait_for()
-                if ident in ('c06','c07','c08','c09','c10','c11'):
+                if ident in ('c06','c07','c08','c09','c10','c11','c12','c13','c14'):
                     raw=[]
                     for n in attachment.get('sourcePages',[attachment['page']]):
                         original=Page(doc,n);original.build()
@@ -118,7 +118,7 @@ async def main(args):
                 if args.images:
                     await page.locator('#ax-dialog-body').evaluate('(el)=>{el.style.maxHeight="none";}')
                     await page.locator('#ax-dialog').evaluate('(el)=>{el.style.maxHeight="none";}')
-                    capture_width=3700 if attachment['id']=='t11-2' else 1450
+                    capture_width=3700 if attachment['id']=='t11-2' else 1600 if attachment['id']=='t12-11' else 1450
                     style=await page.add_style_tag(content=f'.ax-dialog{{width:{capture_width}px!important;max-width:none!important}}.ax-dialog-body{{width:{capture_width}px!important}}.ax-table-wrap,.ax-object{{overflow:visible!important}}')
                     await page.locator('#ax-dialog-body').screenshot(path=str(output/(attachment['id']+'-app.png')))
                     await style.evaluate('(el)=>el.remove()')
@@ -126,6 +126,8 @@ async def main(args):
                     sources=[]
                     for n in attachment.get('sourcePages',[attachment['page']]):
                         region=next((box for tid,box,_,_ in TABLES.get(n,[]) if 't'+tid in (attachment['id'],attachment['id']+'-next') or ('t'+tid).startswith(attachment['id']+'-p')),None)
+                        if region is None:
+                            region=next((box for fid,box,_ in FIGURES.get(n,[]) if 'f'+fid==attachment['id'] or ('f'+fid).startswith(attachment['id']+'-p')),None)
                         if region:
                             sources.append(Image.open(BytesIO(doc[n+24].get_pixmap(matrix=pdf.Matrix(2,2),clip=pdf.Rect(region)).tobytes('png'))).convert('RGB'))
                     if sources:

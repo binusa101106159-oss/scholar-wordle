@@ -16,18 +16,22 @@ import re
 
 import pymupdf as pdf
 from layout_678 import TABLES as TABLES_678, COORDINATES as COORDINATES_678, MERGES as MERGES_678
+from layout_1214 import TABLES as TABLES_1214, COORDINATES as COORDINATES_1214, MERGES as MERGES_1214, FIGURES as FIGURES_1214, EXTRA_GRIDS
+from raster_1214 import LABELS as RASTER_LABELS, artwork_without_lettering
 from layout_911 import TABLES as TABLES_911, COORDINATES as COORDINATES_911, MERGES as MERGES_911
 MERGES_678.update(MERGES_911)
+MERGES_678.update(MERGES_1214)
 import layout_45
 layout_45.COORDINATES.update(COORDINATES_678)
 layout_45.COORDINATES.update(COORDINATES_911)
+layout_45.COORDINATES.update(COORDINATES_1214)
 from layout_45 import TABLES as TABLES_45, coordinate_grid, keyed_grid, SPREADS
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SOURCE = Path(r"A:\職醫\AMA\AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf")
 GLYPHS = {"H11001": "+", "H11005": "=", "H9252": "β", "H11080": "·",
-          "H11021": "<", "H11022": ">", "H11002": "−", "H11350": "≥", "H9262": "μ", "H9251": "α", "H11003": "×", "H11349": "≤", "H11004": "÷"}
-CHAPTERS = {"c01": (1, 18), "c02": (19, 30), "c03": (31, 46), "c04": (47, 76), "c05": (77, 99), "c06": (101,127), "c07": (129,158), "c08": (159,182), "c09": (183,212), "c10": (213,246), "c11": (247,279)}
+          "H11021": "<", "H11022": ">", "H11002": "−", "H11350": "≥", "H9262": "μ", "H9251": "α", "H11003": "×", "H11349": "≤", "H11004": "÷", "H11006":"±", "H11549":"=", "H11545":"+", "H11547":"×", "H11033":"″", "H11034":"°", "H20870":"|"}
+CHAPTERS = {"c01": (1, 18), "c02": (19, 30), "c03": (31, 46), "c04": (47, 76), "c05": (77, 99), "c06": (101,127), "c07": (129,158), "c08": (159,182), "c09": (183,212), "c10": (213,246), "c11": (247,279), "c12": (281,319), "c13": (321,345), "c14": (347,382)}
 
 # Printed object extents in cropped PDF points. These contain no transcriptions.
 TABLES = {
@@ -43,6 +47,7 @@ TABLES = {
 TABLES.update(TABLES_45)
 TABLES.update(TABLES_678)
 TABLES.update(TABLES_911)
+TABLES.update(TABLES_1214)
 FIGURES = {
     3: [("1-1", (71, 408, 541, 737), (72, 440, 540, 737))],
     4: [("1-2", (78, 510, 535, 680), (78, 544, 534, 649))],
@@ -51,6 +56,8 @@ FIGURES = {
     30: [("2-3", (71, 59, 541, 735), None)],
     33: [("3-1", (71, 346, 541, 745), (99, 459, 513, 724))],
 }
+FIGURES.update(FIGURES_1214)
+FIGURES.update({314:[("12-10",(320,508,542,555),(321,532,540,555))],315:[("12-10-p315",(62,52,551,750),(62,52,551,750))],316:[("12-11",(320,591,542,636),(321,615,540,636))],317:[("12-11-p317",(72,67,542,746),(72,67,542,746))]})
 SIDEBARS = {
     4: [(72, 60, 540, 683)], 6: [(321, 60, 540, 483)],
     7: [(321, 60, 541, 507)], 8: [(72, 60, 291, 309)],
@@ -123,6 +130,7 @@ class Page:
         self.number, self.page = number, doc[number+24]
         self.chars, self.owners, self.excluded, self.sections = [], {}, [], []
         self.attachments, self.grids, self.vectors, self.rules = [], [], [], []
+        self.source_rasters=[]
         maps = symbol_map(doc, self.page)
         bottom=max([750]+[box[3] for _,box,_,_ in TABLES.get(number,[])])
         right=max([555]+[box[2] for _,box,_,_ in TABLES.get(number,[])])
@@ -131,6 +139,9 @@ class Page:
                 box = block["bbox"]
                 if block["type"] == 1 and box[3]-box[1] < 2 and box[2]-box[0] > 400:
                     self.rules.append(dict(box=box, html='<hr class="ax-source-rule">'))
+                    continue
+                if number in (315,317) and block['type']==1:
+                    self.source_rasters.append(block)
                     continue
                 raise ValueError(f"Unexpected raster object on page {number}")
             for li, line in enumerate(block["lines"]):
@@ -145,12 +156,19 @@ class Page:
                                     uid=(bi, li, si, ci), block=bi)
                         # Running heads, chapter edge tabs and printer furniture
                         # are audited separately; the reader supplies page labels.
-                        if inside(item, (60, 45, right, bottom)) and (number<101 or abs(line["dir"][1])<.01):
+                        if inside(item, (min([60]+[b[0] for _,b,_,_ in TABLES.get(number,[])]), 45, right, bottom)) and (number<101 or abs(line["dir"][1])<.01 or any(inside(item,b) for _,b,_,_ in TABLES.get(number,[]))):
                             if any(ord(c) < 32 and not c.isspace() for c in text) or "\ufffd" in text:
                                 raise ValueError(f"Unreadable character {number}: {text!r}/{font}")
                             self.chars.append(item)
                         else:
                             self.excluded.append(item)
+
+        if number==317:
+            b=self.source_rasters[0];x0,y0,x1,y1=b['bbox'];sx=(x1-x0)/b['width'];sy=(y1-y0)/b['height']
+            for i,label in enumerate(RASTER_LABELS):
+                a,t,c,u=label['box'];text=label['text'];width=(c-a)*sx/len(text)
+                for j,ch in enumerate(text):
+                    self.chars.append(dict(text=ch,bbox=(x0+a*sx+j*width,y0+t*sy,x0+a*sx+(j+1)*width,y0+u*sy),origin=(x0+a*sx+j*width,y0+(u-2)*sy),font='Arial-Bold',size=label['size']*sy,flags=16,line=(10000+i,0),span=(10000+i,0,0),uid=(10000+i,0,0,j),block=10000+i))
 
     def take(self, chars, owner):
         for char in chars:
@@ -374,13 +392,13 @@ class Page:
                         matrix[r][c] = (ri, ci)
                 selected = [c for c in chars if c["uid"] not in assigned and inside(c, match)]
                 assigned.update(c["uid"] for c in selected)
-                if positioned:
-                    value = self.positioned_cell(selected, match, owner+f"-r{ri}c{ci}")
+                if positioned or (owner=="table-12-2" and ri>0 and ci in (4,5) and rs>1):
+                    value = self.positioned_cell(selected, match, owner+f"-r{ri}c{ci}",rules=owner!="table-12-2")
                 elif decorated and ri == 0:
                     value = self.svg(selected, match, owner+"-ornament")
                 else:
                     self.take(selected, f"{owner}-r{ri}c{ci}")
-                    value = self.flow(self.paragraphs_preview(selected))
+                    value = self.rich(selected,lines=True) if owner=="table-12-11" else self.flow(self.paragraphs_preview(selected))
                 attrs = (f' colspan="{cs}"' if cs>1 else "")+(f' rowspan="{rs}"' if rs>1 else "")
                 cls = ' class="ax-grid-ornament"' if decorated and ri == 0 else ""
                 row.append(f'<td{attrs}{cls}>{value}</td>')
@@ -397,7 +415,7 @@ class Page:
         widths = [f'<col style="width:{(b-a)/(xs[-1]-xs[0])*100:.3f}%">' for a,b in zip(xs,xs[1:])]
         return '<div class="ax-table-wrap"><table class="ax-table'+(' ax-positioned' if positioned else '')+'"><colgroup>'+"".join(widths)+'</colgroup><tbody>'+"".join(rows)+'</tbody></table></div>'
 
-    def positioned_cell(self, chars, box, owner):
+    def positioned_cell(self, chars, box, owner, rules=True):
         """Unruled chart data remains native text at its source x/y positions."""
         x0,y0,x1,y1=box
         labels=[]
@@ -407,7 +425,7 @@ class Page:
             left,top,right,bottom=extent(line)
             labels.append(f'<span style="position:absolute;left:{(left-x0)/(x1-x0)*100:.5f}%;top:{(top-y0)*1.8:.3f}px;font-size:{max(c["size"] for c in line)*1.8:.3f}px;white-space:pre">'+self.rich(line)+'</span> ')
         # Arrows and rules are original vector artwork; all data is native HTML.
-        art=self.svg([],box,owner+'-rules')
+        art=self.svg([],box,owner+'-rules') if rules else ''
         self.take(chars,owner)
         return f'<div class="ax-positioned-cell" style="position:relative;height:{(y1-y0)*1.8:.3f}px">'+art+''.join(labels)+'</div>'
 
@@ -420,6 +438,12 @@ class Page:
 
     def formal_table(self, chars, ident, mode, bodybox):
         owner = "table-"+ident
+        if mode=='subgrids':
+            nodes=[];remaining=list(chars)
+            for suffix in ('a','b','c'):
+                key=ident+'-'+suffix;table=coordinate_grid(self.number,key);selected=self.select(remaining,table.bbox);remaining=[c for c in remaining if c not in selected]
+                nodes.append(dict(box=table.bbox,html=self.grid(selected,table,'table-'+key)))
+            nodes.extend(self.paragraphs(remaining,owner,headings=False));return self.flow(nodes)
         if mode in ('coordinates','positioned','method','painted'):
             table=coordinate_grid(self.number,ident)
             body=self.select(chars,table.bbox)
@@ -433,6 +457,8 @@ class Page:
             value=self.grid(body,table,owner,positioned=mode=='positioned')
             if mode=='painted':
                 value=self.svg(artchars,art,owner+'-ornament')+value
+            if ident=='12-11':
+                value=value.replace('class="ax-table"','class="ax-table ax-reading-acuity"')
             if ident.startswith('11-2'):
                 value=value.replace('class="ax-table"','class="ax-table ax-hearing-table"')
             if mode=='method':
@@ -453,7 +479,16 @@ class Page:
         body = self.select(chars, bodybox)
         others = [c for c in chars if c not in body]
         nodes = self.paragraphs(others, owner, headings=False)
-        if mode in ("grid","keyed"):
+        if mode=='flowlist':
+            nodes_in=self.paragraphs(body,owner,headings=False)
+            rows=[];specs=[]
+            for i,node in enumerate(sorted(nodes_in,key=lambda n:n['box'][1])):
+                text=html.unescape(re.sub('<[^>]+>','',node['html']))
+                specs.append(dict(row=i,col=0,rowspan=1,colspan=1,box=node['box'],text=text))
+                rows.append('<tr><td>'+node['html']+'</td></tr>')
+            self.grids.append(dict(id=owner,rows=len(rows),cols=1,cells=specs))
+            value='<div class="ax-table-wrap"><table class="ax-table ax-list-table"><tbody>'+''.join(rows)+'</tbody></table></div>'
+        elif mode in ("grid","keyed"):
             tables = [t for t in self.page.find_tables(strategy="lines_strict").tables if pdf.Rect(t.bbox).intersects(pdf.Rect(bodybox))]
             if len(tables) != 1:
                 raise ValueError(f"Expected one table: {ident}")
@@ -560,7 +595,22 @@ class Page:
 
     def region(self, chars, box, kind, ident, body=None, mode=None):
         anchor = ("t" if kind=="table" else "f" if kind=="figure" else "ap")+ident
-        if kind == "table":
+        if kind=='figure' and self.number in (315,317):
+            import base64
+            b=self.source_rasters[0];x0,y0,x1,y1=b['bbox']
+            pixels=artwork_without_lettering(b['image']) if self.number==317 else b['image']
+            src='data:'+('image/png' if self.number==317 or b['ext']=='png' else 'image/jpeg')+';base64,'+base64.b64encode(pixels).decode('ascii')
+            parts=[f'<svg xmlns="http://www.w3.org/2000/svg" class="ax-vector ax-source-overlay" viewBox="0 0 {b["width"]} {b["height"]}" role="img" aria-label="原書視野疊圖"><image href="{src}" width="{b["width"]}" height="{b["height"]}"/>']
+            if self.number==315:
+                # This source image uses a rotated, nonuniform PDF placement matrix.
+                # Pixel aspect ratio alone would turn its printed circle into an oval.
+                matrix=' '.join(str(v) for v in b['transform'])
+                parts=[f'<svg xmlns="http://www.w3.org/2000/svg" class="ax-vector ax-source-overlay" viewBox="{x0} {y0} {x1-x0} {y1-y0}" role="img" aria-label="原書視野疊圖"><image href="{src}" width="1" height="1" preserveAspectRatio="none" transform="matrix({matrix})"/>']
+            if self.number==317:
+                for label in RASTER_LABELS:
+                    a,t,c,u=label['box'];parts.append(f'<text x="{a}" y="{u-2}" textLength="{c-a}" lengthAdjust="spacingAndGlyphs" font-family="Arial,sans-serif" font-size="{label["size"]}" font-weight="bold" fill="#222">{esc(label["text"])}</text>')
+            parts.append('</svg>');value=''.join(parts);self.take(chars,'figure-'+ident+'-raster-labels')
+        elif kind == "table":
             value = self.formal_table(chars, ident, mode, body)
         elif kind == "figure" and body:
             artchars = self.select(chars, body)
@@ -622,11 +672,15 @@ class Page:
         remaining, nodes = list(chars), []
         regions = [("table", ident, box, body, mode) for ident,box,mode,body in TABLES.get(self.number, [])]
         regions += [("figure", ident, box, art, None) for ident,box,art in FIGURES.get(self.number, [])]
+        for ident,box in EXTRA_GRIDS.get(self.number,[]):
+            selected=self.select(remaining,box);remaining=[c for c in remaining if c not in selected]
+            table=coordinate_grid(self.number,ident)
+            nodes.append(dict(box=box,html=self.grid(selected,table,'table-'+ident)))
         if self.number in (43,44,45):
             regions.append(("appendix", f"3-{self.number-42}", (71, 93 if self.number==43 else 70, 542, 735), None, None))
         for kind,ident,box,body,mode in regions:
             selected = self.select(remaining, box)
-            if not selected:
+            if not selected and self.number not in (315,317):
                 continue
             remaining = [c for c in remaining if c not in selected]
             nodes.append(self.region(selected, box, kind, ident, body, mode))
@@ -748,6 +802,11 @@ def main():
             print(f'{ident} p{number:02d}: OK ({audit["characters"]} characters; {len(page.grids)} native tables)')
         join_spreads(result)
         join_long_tables(result)
+        if ident=='c12':
+            for base,n in [('12-10',315),('12-11',317)]:
+                a=next(x for x in result['attachments'] if x['id']=='f'+base);b=next(x for x in result['attachments'] if x['id']==f'f{base}-p{n}')
+                a['html']+=b['html'];a['sourcePages']=[n-1,n];result['attachments'].remove(b)
+                for content in result['pages']:content['html']=content['html'].replace(f'data-open="f{base}-p{n}"',f'data-open="f{base}"')
         for attachment in result["attachments"]:
             if attachment["id"] in known: raise ValueError("Repeated attachment ID")
             known[attachment["id"]]=ident
