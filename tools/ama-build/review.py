@@ -94,8 +94,27 @@ async def main(args):
                 if args.images and i==0:await page.screenshot(path=str(output/(ident+'-popup.png')))
                 await page.locator('#ax-dialog-close').click();totals['links']+=1
             for attachment in data['attachments']:
-                await page.locator('#ax-body .ax-expand[data-open="'+attachment['id']+'"]').click()
+                await page.locator('#ax-body .ax-expand[data-open="'+attachment['id']+'"]').first.click()
                 await page.locator('#ax-dialog[open]').wait_for()
+                if ident in ('c06','c07','c08'):
+                    raw=[]
+                    for n in attachment.get('sourcePages',[attachment['page']]):
+                        original=Page(doc,n);original.build()
+                        raw.append(next(a['html'] for a in original.attachments
+                                        if a['id']==attachment['id'] or a['id'].startswith(attachment['id']+'-p')))
+                    checked=await page.locator('#ax-dialog-body').evaluate("""(el,{sources,spread})=>{
+                        const nodes=sources.map(html=>{const d=document.createElement('div');d.innerHTML=html;return d;});
+                        const canon=s=>s.replace(/\s+/g,'');
+                        const frequency=s=>{const counts={};for(const c of canon(s))counts[c]=(counts[c]||0)+1;return JSON.stringify(Object.entries(counts).sort());};
+                        if(frequency(nodes.map(n=>n.textContent).join(''))!==frequency(el.textContent))throw Error('Popup missing or doubled source text');
+                        const rows=n=>Array.from(n.querySelectorAll('tr'),r=>Array.from(r.cells,c=>[canon(c.textContent),c.rowSpan,c.colSpan]));
+                        let expected=[];
+                        if(spread){for(let i=0;i<nodes.length;i+=2){const left=rows(nodes[i]),right=rows(nodes[i+1]);if(left.length!==right.length)throw Error('Spread rows');expected.push(...left.map((r,j)=>r.concat(right[j])));}}
+                        else expected=nodes.flatMap(rows);
+                        if(JSON.stringify(expected)!==JSON.stringify(rows(el)))throw Error('Popup cell order or spans');
+                        for(const cell of el.querySelectorAll('td')){const rgb=getComputedStyle(cell).backgroundColor.match(/\d+/g);if(rgb&&+rgb[0]>230&&+rgb[1]>230&&+rgb[2]>230)throw Error('White table cell');}
+                        return expected.length;
+                    }""",{'sources':raw,'spread':attachment['id'] in ('t6-11','t7-13','t8-3')})
                 if args.images:
                     await page.locator('#ax-dialog-body').evaluate('(el)=>{el.style.maxHeight="none";}')
                     await page.locator('#ax-dialog').evaluate('(el)=>{el.style.maxHeight="none";}')
@@ -105,7 +124,7 @@ async def main(args):
                     app_image=Image.open(output/(attachment['id']+'-app.png')).convert('RGB')
                     sources=[]
                     for n in attachment.get('sourcePages',[attachment['page']]):
-                        region=next((box for tid,box,_,_ in TABLES.get(n,[]) if 't'+tid in (attachment['id'],attachment['id']+'-next')),None)
+                        region=next((box for tid,box,_,_ in TABLES.get(n,[]) if 't'+tid in (attachment['id'],attachment['id']+'-next') or ('t'+tid).startswith(attachment['id']+'-p')),None)
                         if region:
                             sources.append(Image.open(BytesIO(doc[n+24].get_pixmap(matrix=pdf.Matrix(2,2),clip=pdf.Rect(region)).tobytes('png'))).convert('RGB'))
                     if sources:

@@ -15,13 +15,16 @@ from pathlib import Path
 import re
 
 import pymupdf as pdf
+from layout_678 import TABLES as TABLES_678, COORDINATES as COORDINATES_678, MERGES as MERGES_678
+import layout_45
+layout_45.COORDINATES.update(COORDINATES_678)
 from layout_45 import TABLES as TABLES_45, coordinate_grid, keyed_grid, SPREADS
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SOURCE = Path(r"A:\職醫\AMA\AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf")
 GLYPHS = {"H11001": "+", "H11005": "=", "H9252": "β", "H11080": "·",
-          "H11021": "<", "H11022": ">", "H11002": "−", "H11350": "≥"}
-CHAPTERS = {"c01": (1, 18), "c02": (19, 30), "c03": (31, 46), "c04": (47, 76), "c05": (77, 99)}
+          "H11021": "<", "H11022": ">", "H11002": "−", "H11350": "≥", "H9262": "μ", "H9251": "α", "H11003": "×"}
+CHAPTERS = {"c01": (1, 18), "c02": (19, 30), "c03": (31, 46), "c04": (47, 76), "c05": (77, 99), "c06": (101,127), "c07": (129,158), "c08": (159,182)}
 
 # Printed object extents in cropped PDF points. These contain no transcriptions.
 TABLES = {
@@ -35,6 +38,7 @@ TABLES = {
     40: [("3-1", (320, 72, 541, 223), "grid", (320, 117, 541, 223))],
 }
 TABLES.update(TABLES_45)
+TABLES.update(TABLES_678)
 FIGURES = {
     3: [("1-1", (71, 408, 541, 737), (72, 440, 540, 737))],
     4: [("1-2", (78, 510, 535, 680), (78, 544, 534, 649))],
@@ -117,6 +121,7 @@ class Page:
         self.attachments, self.grids, self.vectors, self.rules = [], [], [], []
         maps = symbol_map(doc, self.page)
         bottom=max([750]+[box[3] for _,box,_,_ in TABLES.get(number,[])])
+        right=max([555]+[box[2] for _,box,_,_ in TABLES.get(number,[])])
         for bi, block in enumerate(self.page.get_text("rawdict")["blocks"]):
             if block["type"] != 0:
                 box = block["bbox"]
@@ -136,7 +141,7 @@ class Page:
                                     uid=(bi, li, si, ci), block=bi)
                         # Running heads, chapter edge tabs and printer furniture
                         # are audited separately; the reader supplies page labels.
-                        if inside(item, (60, 45, 555, bottom)):
+                        if inside(item, (60, 45, right, bottom)) and (number<101 or abs(line["dir"][1])<.01):
                             if any(ord(c) < 32 and not c.isspace() for c in text) or "\ufffd" in text:
                                 raise ValueError(f"Unreadable character {number}: {text!r}/{font}")
                             self.chars.append(item)
@@ -340,6 +345,12 @@ class Page:
                 edges = [c[1]]+[y for y in cuts if c[1]+.1<y<c[3]-.1]+[c[3]]
                 split.extend((c[0], a, c[2], b) for a, b in zip(edges, edges[1:]))
             cells = split
+        # Unruled hierarchical headers need their printed spanning geometry.
+        for ri, ci, rs, cs in MERGES_678.get((self.number, owner.removeprefix('table-')), []):
+            box = (xs[ci], ys[ri], xs[ci+cs], ys[ri+rs])
+            cells = [c for c in cells if not (c[0]>=box[0]-.1 and c[1]>=box[1]-.1
+                                              and c[2]<=box[2]+.1 and c[3]<=box[3]+.1)]
+            cells.append(box)
         matrix = [[None]*(len(xs)-1) for _ in range(len(ys)-1)]
         assigned, specs = set(), []
         rows = []
@@ -413,7 +424,7 @@ class Page:
             value=self.grid(body,table,owner,positioned=mode=='positioned')
             if mode=='method':
                 value=value.replace('class="ax-table"','class="ax-table ax-method-table"')
-                art=(72,bodybox[1],540,table.bbox[1])
+                art=(table.bbox[0],bodybox[1],table.bbox[2],table.bbox[1])
                 value=self.svg([],art,owner+'-ornament')+value
             nodes.append(dict(box=table.bbox,html=value))
             return self.flow(nodes)
@@ -634,6 +645,33 @@ def join_spreads(result):
         result['pages'].remove(last);result['attachments'].remove(b)
 
 
+def join_long_tables(result):
+    """Keep physical-page body text, but join horizontal/vertical popup tables."""
+    groups={'c06':('6-11',[(124,125),(126,127)]),'c07':('7-13',[(156,157)]),'c08':('8-3',[(178,179),(180,181)])}
+    if result['id'] not in groups:return
+    base,pairs=groups[result['id']]
+    def attachment(n):return next(a for a in result['attachments'] if a['page']==n and a['id'].startswith('t'+base))
+    first=attachment(pairs[0][0]);parts=[];numbers=[];remove=[]
+    for left,right in pairs:
+        a,b=attachment(left),attachment(right);numbers.extend([left,right])
+        lrows=re.findall(r'<tr>(.*?)</tr>',a['html'],re.S);rrows=re.findall(r'<tr>(.*?)</tr>',b['html'],re.S)
+        if len(lrows)!=len(rrows):raise ValueError('Unequal spread rows')
+        merged=''.join('<tr>'+l+r+'</tr>' for l,r in zip(lrows,rrows))
+        value=re.sub(r'<tbody>.*?</tbody>','<tbody>'+merged+'</tbody>',a['html'],flags=re.S)
+        value=re.sub(r'<colgroup>.*?</colgroup>','',value,flags=re.S).replace('class="ax-table"','class="ax-table ax-spread-table"')
+        parts.append(value)
+        remove.extend(x for x in [a,b] if x is not first)
+    first.update(html=''.join(parts),sourcePages=numbers)
+    for item in remove:
+        for page in result['pages']:page['html']=page['html'].replace('data-open="'+item['id']+'"','data-open="'+first['id']+'"')
+        result['attachments'].remove(item)
+    if result['id']=='c08':
+        a=next(x for x in result['attachments'] if x['id']=='t8-2');b=next(x for x in result['attachments'] if x['id']=='t8-2-p167')
+        a.update(html=a['html']+b['html'],sourcePages=[166,167])
+        for page in result['pages']:page['html']=page['html'].replace('data-open="t8-2-p167"','data-open="t8-2"')
+        result['attachments'].remove(b)
+
+
 def add_links(value, known, current):
     """References are linked only when the cited original object is imported."""
     from html.parser import HTMLParser
@@ -696,6 +734,7 @@ def main():
             result["sections"].extend(page.sections); audits.append(audit)
             print(f'{ident} p{number:02d}: OK ({audit["characters"]} characters; {len(page.grids)} native tables)')
         join_spreads(result)
+        join_long_tables(result)
         for attachment in result["attachments"]:
             if attachment["id"] in known: raise ValueError("Repeated attachment ID")
             known[attachment["id"]]=ident

@@ -4,17 +4,17 @@
 
 ## 來源與範圍
 
-使用使用者提供的完整版 `AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf`。目前支援 c01–c05，原書第 1–99 頁，對應完整版 PDF 第 26–124 頁。來源共 659 頁。`AMA_SRC` 可指定完整版 PDF 的絕對路徑；預設為 `A:\職醫\AMA\AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf`。
+使用使用者提供的完整版 `AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf`。目前支援 c01–c08，原書第 1–99、101–127、129–182 頁，共 180 頁，對應完整版 PDF 第 26–124、126–152、154–207 頁。來源共 659 頁。`AMA_SRC` 可指定完整版 PDF 的絕對路徑；預設為 `A:\職醫\AMA\AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf`。
 
 ```powershell
 $env:AMA_SRC = 'A:\職醫\AMA\AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf'
-python tools/ama-build/build.py c04 c05 --audit .local/ama45/audit.json
+python tools/ama-build/build.py c06 c07 c08 --audit .local/ama678/audit.json
 python -m http.server 8765
 # 另一個終端機，使用同一 Python 環境與 Playwright 瀏覽器設定：
-python tools/ama-build/review.py c04 c05 --images --output .local/ama45/review
+python tools/ama-build/review.py c06 c07 c08 --images --output .local/ama678/review
 ```
 
-需要 Python 3.11+、PyMuPDF、Pillow、Playwright 及其 Chromium。上述影像比較與完整稽核寫入 `.local/ama45/`，不放入網站。第 1–3 章的既有紀錄保留於 `.local/ama-part1/`。只建置指定章節，其他已匯入 JSON 不重寫；引用目標則讀取所有已匯入章節。網站只讀取 `ama/index.json`、各章 JSON，以及 AMA 自己的 JS/CSS。
+需要 Python 3.11+、PyMuPDF、Pillow、Playwright 及其 Chromium。上述影像比較與完整稽核寫入 `.local/ama678/`，不放入網站。第 1–3 章的既有紀錄保留於 `.local/ama-part1/`。只建置指定章節，其他已匯入 JSON 不重寫；引用目標則讀取所有已匯入章節。網站只讀取 `ama/index.json`、各章 JSON，以及 AMA 自己的 JS/CSS。
 
 ## 原文與版面
 
@@ -24,10 +24,12 @@ python tools/ama-build/review.py c04 c05 --images --output .local/ama45/review
 - 跑馬頁首、書名頁眉、頁碼與書邊章節標籤另列稽核；閱讀器提供原書頁碼。三張章首裝飾分隔線以原生水平線呈現。
 - 省略三張章首重複的淡色裝飾徽記；Table 1-5 內的原始裝飾圖形保留為向量。
 - 保留原文的行末連字號、拼字、數字、標點與上標，不做文字校訂。
-- MathematicalPi 的編碼依 PDF 字型 Encoding/Differences 解碼；支援 β、·、<、>、−、+、=、≥，以及無空白的 inline 編碼字典。WWDOC08 的 `c` 字形依來源轉成 ↑。未知字形或不可讀字元會中止建置。
+- MathematicalPi 的編碼依 PDF 字型 Encoding/Differences 解碼；支援 β、α、μ、×、·、<、>、−、+、=、≥，以及無空白的 inline 編碼字典。WWDOC08 的 `c` 字形依來源轉成 ↑。未知字形或不可讀字元會中止建置。
 - 表格為原生 HTML，保留空白格與合併格；Table 4-2 的非等距數值位置用原生文字座標保留，箭頭用 SVG 路徑；Table 4-3 保留全部 15 欄；兩張左右續頁總表依列接成 7 欄。Table 1-5 的填色表頭不視為跨列合併。Figure 2-3 報告表及 Appendix 3-1 問卷也使用原生欄位與表格。
 - 真正的圖形使用原書向量路徑，圖內字仍可選取。水平或垂直線段的邊界面積為零，不能用面積交集判斷是否保留。沒有整頁影像或 PDF 嵌入。
 - 正文改為單欄閱讀；採瀏覽器字型，空白填寫區和換行適應視窗，因此不承諾與印刷版逐像素相同。文字與表格數值不近似。
+
+第 6–8 章的三張左右續頁總表在放大視窗依列接成 7 欄；正文保留實體頁片段與頁碼，以免第 6 章續表下方參考文獻移位。Table 8-2 的上下續表集中於同一放大視窗，保留印刷版重複表頭。兩張體重表保留 Height 跨列及 Weight 跨三欄表頭。
 
 ## 引用與閱讀功能
 
@@ -37,8 +39,8 @@ Table/Tables、Figure/Fig.、Appendix/Appendixes 的引用，只連到已匯入�
 
 ## 驗證與發布
 
-`review.py` 從實際瀏覽器 DOM 回讀指定章節的全部頁面（目前可驗證原書 99 頁），跨頁總表合併核對左右頁來源，逐格比對 PDF 來源、點開每一個圖表引用及放大按鈕，並測試 1400、390、320 px 的章節切換、鍵盤操作、搜尋、標記及閱讀位置還原。`--images` 會產生原書在左、重排後網站在右的逐頁比較圖，以及每個圖表的放大圖，須人工檢視。
+`review.py` 從實際瀏覽器 DOM 回讀指定章節的全部頁面（目前可驗證原書 180 頁），跨頁總表合併核對左右頁來源，逐格比對 PDF 來源、點開每一個圖表引用及放大按鈕，並測試 1400、390、320 px 的章節切換、鍵盤操作、搜尋、標記及閱讀位置還原。`--images` 會產生原書在左、重排後網站在右的逐頁比較圖，以及每個圖表的放大圖，須人工檢視。
 
 發布前執行 `node --test` 的既有全站測試，確認 `laws/`、`guides/`、兩個既有轉換器、`index.html` 與遊戲沒有差異。AMA JS/CSS 改動須遞增 `sw.js` 的快取名稱。只提交 AMA 成品、獨立工具與快取版本；不提交來源 PDF、環境或比較影像。
 
-詳細紀錄：[第 1–3 章](c01-c03-review.md)、[第 4–5 章](c04-c05-review.md)。
+詳細紀錄：[第 1–3 章](c01-c03-review.md)、[第 4–5 章](c04-c05-review.md)、[第 6–8 章](c06-c08-review.md)。
