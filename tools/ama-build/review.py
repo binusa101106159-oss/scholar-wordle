@@ -43,12 +43,13 @@ async def main(args):
                 actual=await native.evaluate("""el=>{const c=el.cloneNode(true);c.querySelectorAll('button').forEach(n=>n.remove());return c.textContent;}""")
                 originals=[Page(doc,n) for n in source.get('sourcePages',[number])]; text=''.join(c['text'] for original in originals for c in original.chars)
                 assert Counter(canon(text))==Counter(canon(actual)),f'p{number}: native DOM character mismatch'
-                bullets=await native.locator('p').evaluate_all("items=>items.filter(p=>p.textContent.trimStart().startsWith('•')).length")
-                assert bullets==text.count('•'),f'p{number}: flattened bullet paragraphs'
                 assert await native.locator('img,iframe,object,embed,canvas').count()==0
                 # Character distribution is checked independently inside every
                 # physical grid cell, including merged footnote/header cells.
                 for original in originals: original.build()
+                bullets=await native.locator('p').evaluate_all("items=>items.filter(p=>!p.closest('.ax-object')&&p.textContent.trimStart().startsWith('•')).length")
+                expected_bullets=sum(c['text'].count('•') for original in originals for c in original.chars if original.owners[c['uid']] in ('body','sidebar'))
+                assert bullets==expected_bullets,f'p{number}: flattened body bullet paragraphs'
                 grids=[g for original in originals for g in original.grids if 'cells' in g]
                 if len(originals)==2:
                     left,right=grids
@@ -57,7 +58,7 @@ async def main(args):
                         cells.extend(c for c in left['cells'] if c['row']==row)
                         cells.extend(c for c in right['cells'] if c['row']==row)
                     grids=[dict(id=left['id'],cells=cells)]
-                actual_tables=await native.locator('table.ax-table').evaluate_all("""tables=>tables.map(t=>Array.from(t.rows,r=>Array.from(r.cells,c=>({text:c.textContent,rs:c.rowSpan,cs:c.colSpan}))))""")
+                actual_tables=await native.locator('table.ax-table').evaluate_all("""tables=>tables.map(t=>Array.from(t.rows,r=>Array.from(r.cells,c=>({text:c.textContent,rs:c.rowSpan,cs:c.colSpan,w:c.getBoundingClientRect().width,h:c.getBoundingClientRect().height,precise:t.classList.contains('ax-source-table')}))))""")
                 for grid in grids:
                     candidates=[]
                     for table in actual_tables:
@@ -65,6 +66,12 @@ async def main(args):
                         if len(flat)!=len(grid['cells']):continue
                         if all(canon(c['text'])==canon(s['text']) and c['rs']==s['rowspan'] and c['cs']==s['colspan'] for c,s in zip(flat,grid['cells'])):candidates.append(table)
                     assert candidates,f'p{number}: wrong cell text/span in {grid["id"]}'
+                    if args.precise_tables:
+                        for cell,source_cell in zip([c for row in candidates[0] for c in row],grid['cells']):
+                            if not cell['precise']:continue
+                            a,b,c,d=source_cell['box']
+                            assert abs(cell['w']-(c-a)*1.8)<1.1,f'p{number}: stretched source column in {grid["id"]}'
+                            assert abs(cell['h']-(d-b)*1.8)<1.1,f'p{number}: altered source row height in {grid["id"]}'
                     totals['cells']+=len(grid['cells'])
                 if args.images:
                     # Reflowed app page is shown at readable width beside source.
@@ -96,6 +103,7 @@ async def main(args):
             for attachment in data['attachments']:
                 await page.locator('#ax-body .ax-expand[data-open="'+attachment['id']+'"]').first.click()
                 await page.locator('#ax-dialog[open]').wait_for()
+                await page.locator('#ax-dialog-body .ax-source-grid > svg').evaluate_all("""items=>{for(const svg of items){const m=svg.getScreenCTM();if(Math.abs(m.a-1.8)>.015||Math.abs(m.d-1.8)>.015)throw Error('Source table rules stretched or capped independently from native cells');}}""")
                 if ident in ('c06','c07','c08','c09','c10','c11','c12','c13','c14','c17'):
                     raw=[]
                     for n in attachment.get('sourcePages',[attachment['page']]):
@@ -195,4 +203,6 @@ if __name__=='__main__':
     parser.add_argument('ids',nargs='*',default=list(CHAPTERS));parser.add_argument('--url',default='http://localhost:8765/')
     parser.add_argument('--output',type=Path,default=ROOT/'.local'/'ama45'/'review')
     parser.add_argument('--source',type=Path,default=DEFAULT_SOURCE);parser.add_argument('--images',action='store_true')
-    asyncio.run(main(parser.parse_args()))
+    parser.add_argument('--precise-tables',action='store_true',default=True)
+    args=parser.parse_args();Page.precise_tables=args.precise_tables
+    asyncio.run(main(args))

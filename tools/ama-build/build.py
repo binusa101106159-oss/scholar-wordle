@@ -130,11 +130,13 @@ def symbol_map(doc, page):
 
 
 class Page:
+    precise_tables = True
     def __init__(self, doc, number):
         self.number, self.page = number, doc[number+24]
         self.chars, self.owners, self.excluded, self.sections = [], {}, [], []
         self.attachments, self.grids, self.vectors, self.rules = [], [], [], []
         self.source_rasters=[]
+        self.table_region=None
         maps = symbol_map(doc, self.page)
         bottom=max([750]+[box[3] for _,box,_,_ in TABLES.get(number,[])])
         right=max([555]+[box[2] for _,box,_,_ in TABLES.get(number,[])])
@@ -259,6 +261,10 @@ class Page:
                 anchor = f"p{self.number}-b{bi}-{si}"
                 value = self.rich(segment)
                 self.take(segment, owner)
+                if self.precise_tables and self.table_region is not None:
+                    value=self.positioned_cell(segment,extent(segment),owner,rules=False,claim=False)
+                    nodes.append(dict(box=extent(segment),html=value))
+                    continue
                 nodes.append(dict(box=extent(segment), html=f'<{tag} id="{anchor}">{value}</{tag}>'))
                 title = clean("".join(c["text"] for c in segment))
                 if headings and tag in ("h2", "h3"):
@@ -266,6 +272,13 @@ class Page:
         return nodes
 
     def flow(self, nodes):
+        if self.precise_tables and self.table_region is not None:
+            x0,y0,x1,y1=self.table_region
+            pieces=[]
+            for node in nodes:
+                a,b,c,d=node['box']
+                pieces.append(f'<div style="position:absolute;left:{(a-x0)*1.8:.3f}px;top:{(b-y0)*1.8:.3f}px;width:{(c-a)*1.8:.3f}px">'+node['html']+'</div>')
+            return f'<div class="ax-source-object" style="position:relative;width:{(x1-x0)*1.8:.3f}px;height:{(y1-y0)*1.8:.3f}px">'+''.join(pieces)+'</div>'
         full = sorted([n for n in nodes if n["box"][0] < 300 and n["box"][2] > 310], key=lambda n: n["box"][1])
         columns = [n for n in nodes if n not in full]
         output = []
@@ -322,7 +335,13 @@ class Page:
                 path.append("Z")
             def color(value):
                 return "none" if value is None else "#" + "".join(f"{round(max(0,min(1,c))*255):02x}" for c in value)
-            attrs = f'fill="{color(draw.get("fill"))}" stroke="{color(draw.get("color"))}" stroke-width="{(draw.get("width") or 0):.3f}"'
+            fill=color(draw.get('fill'))
+            if self.precise_tables and owner.endswith(('-rules','-ornament')) and draw.get('fill') is not None:
+                # A black rectangular PDF header must stay dark after the
+                # reader's ink inversion. Preserve nonrectangular arrows.
+                if sum(draw['fill'])<.6 and any(i[0]=='re' for i in draw['items']) and rect.width>8 and rect.height>4:
+                    fill='#eae4dc'
+            attrs = f'fill="{fill}" stroke="{color(draw.get("color"))}" stroke-width="{(draw.get("width") or 0):.3f}"'
             if draw.get("color") is not None and not draw.get("width"):
                 attrs = attrs.replace('stroke-width="0.000"', 'stroke-width="1" vector-effect="non-scaling-stroke"')
             if draw.get("even_odd"):
@@ -396,7 +415,9 @@ class Page:
                         matrix[r][c] = (ri, ci)
                 selected = [c for c in chars if c["uid"] not in assigned and inside(c, match)]
                 assigned.update(c["uid"] for c in selected)
-                if positioned or (owner=="table-12-2" and ri>0 and ci in (4,5) and rs>1):
+                if self.precise_tables and not (decorated and ri==0):
+                    value=self.positioned_cell(selected,match,owner+f'-r{ri}c{ci}',rules=False)
+                elif positioned or (owner=="table-12-2" and ri>0 and ci in (4,5) and rs>1):
                     value = self.positioned_cell(selected, match, owner+f"-r{ri}c{ci}",rules=owner!="table-12-2" and not (owner=="table-17-10" and ri<2))
                     if owner=="table-17-10":value=value.replace('font-size:','line-height:1;font-size:')
                 elif decorated and ri == 0:
@@ -419,11 +440,31 @@ class Page:
         self.take(leftover, owner+"-whitespace")
         self.grids.append(dict(id=owner, rows=len(ys)-1, cols=len(xs)-1, cells=specs))
         widths = [f'<col style="width:{(b-a)/(xs[-1]-xs[0])*100:.3f}%">' for a,b in zip(xs,xs[1:])]
+        if self.precise_tables:
+            widths=[f'<col style="width:{(b-a)*1.8:.3f}px">' for a,b in zip(xs,xs[1:])]
+            size=(xs[-1]-xs[0])*1.8
+            # Share the source rules instead of duplicating the full drawing
+            # stream inside every cell of large conversion matrices.
+            artwork=self.svg([], (xs[0],ys[0],xs[-1],ys[-1]),owner+'-rules')
+            return f'<div class="ax-table-wrap"><div class="ax-source-grid" style="position:relative;width:{size:.3f}px">'+artwork+f'<table class="ax-table ax-positioned ax-source-table" style="position:relative;background:transparent;width:{size:.3f}px;min-width:{size:.3f}px;table-layout:fixed"><colgroup>'+''.join(widths)+'</colgroup><tbody>'+''.join(rows)+'</tbody></table></div></div>'
         return '<div class="ax-table-wrap"><table class="ax-table'+(' ax-positioned' if positioned else '')+'"><colgroup>'+"".join(widths)+'</colgroup><tbody>'+"".join(rows)+'</tbody></table></div>'
 
-    def positioned_cell(self, chars, box, owner, rules=True):
+    def positioned_cell(self, chars, box, owner, rules=True, claim=True):
         """Unruled chart data remains native text at its source x/y positions."""
         x0,y0,x1,y1=box
+        if self.precise_tables:
+            labels=[];runs=defaultdict(list)
+            for c in chars:runs[c['span']].append(c)
+            for run in runs.values():
+                first=run[0];left,top,_,_=extent(run)
+                style=f'left:{(left-x0)/(x1-x0)*100:.5f}%;top:{(top-y0)*1.8:.3f}px;font-size:{first["size"]*1.8:.3f}px'
+                if first['flags']&16 or any(t in first['font'] for t in ('Bold','Black','Heavy')):style+=';font-weight:700'
+                if first['flags']&2 or any(t in first['font'] for t in ('Italic','Oblique')):style+=';font-style:italic'
+                glyphs=''.join(f'<span style="left:{(c["bbox"][0]-left)*1.8:.3f}px">{esc(c["text"])}</span>' for c in run)
+                labels.append(f'<span class="ax-source-run" style="{style}">{glyphs}</span> ')
+            if claim:self.take(chars,owner)
+            art=self.svg([],box,owner+'-rules') if rules else ''
+            return f'<div class="ax-positioned-cell" style="position:relative;height:{(y1-y0)*1.8:.3f}px">'+art+''.join(labels)+'</div>'
         labels=[]
         lines=defaultdict(list)
         for c in chars: lines[c['line']].append(c)
@@ -476,7 +517,9 @@ class Page:
             nodes=self.paragraphs(remaining,owner,headings=False)
             value=self.grid(body,table,owner,positioned=mode=='positioned')
             if mode=='painted':
-                value=self.svg(artchars,art,owner+'-ornament')+value
+                ornament=self.svg(artchars,art,owner+'-ornament')
+                if self.precise_tables:nodes.append(dict(box=art,html=ornament))
+                else:value=ornament+value
             if ident=='12-11':
                 value=value.replace('class="ax-table"','class="ax-table ax-reading-acuity"')
             if ident.startswith('11-2'):
@@ -484,7 +527,9 @@ class Page:
             if mode=='method':
                 value=value.replace('class="ax-table"','class="ax-table ax-method-table"')
                 art=(table.bbox[0],bodybox[1],table.bbox[2],table.bbox[1])
-                value=self.svg([],art,owner+'-ornament')+value
+                ornament=self.svg([],art,owner+'-ornament')
+                if self.precise_tables:nodes.append(dict(box=art,html=ornament))
+                else:value=ornament+value
             nodes.append(dict(box=table.bbox,html=value))
             return self.flow(nodes)
         if mode == "composite":
@@ -499,6 +544,11 @@ class Page:
         body = self.select(chars, bodybox)
         others = [c for c in chars if c not in body]
         nodes = self.paragraphs(others, owner, headings=False)
+        if self.precise_tables and mode in ('list','flowlist'):
+            from types import SimpleNamespace
+            table=SimpleNamespace(bbox=bodybox,rows=[SimpleNamespace(cells=[bodybox])])
+            nodes.append(dict(box=bodybox,html=self.grid(body,table,owner)))
+            return self.flow(nodes)
         if mode=='flowlist':
             nodes_in=self.paragraphs(body,owner,headings=False)
             rows=[];specs=[]
@@ -640,7 +690,9 @@ class Page:
                     a,t,c,u=label['box'];parts.append(f'<text x="{a}" y="{u-2}" textLength="{c-a}" lengthAdjust="spacingAndGlyphs" font-family="Arial,sans-serif" font-size="{label["size"]}" font-weight="bold" fill="#222">{esc(label["text"])}</text>')
             parts.append('</svg>');value=''.join(parts);self.take(chars,'figure-'+ident+'-raster-labels')
         elif kind == "table":
-            value = self.formal_table(chars, ident, mode, body)
+            self.table_region=box
+            try:value = self.formal_table(chars, ident, mode, body)
+            finally:self.table_region=None
         elif kind == "figure" and body:
             artchars = self.select(chars, body)
             remaining = [c for c in chars if c not in artchars]
@@ -716,6 +768,26 @@ class Page:
         return nodes, remaining
 
 
+def spread_columns(value,left,right):
+    """Retain physical column widths when joining two printed table halves."""
+    groups=[re.search(r'<colgroup>(.*?)</colgroup>',s,re.S)[1] for s in (left,right)]
+    width=sum(float(n) for g in groups for n in re.findall(r'width:([\d.]+)px',g))
+    left_width=sum(float(n) for n in re.findall(r'width:([\d.]+)px',groups[0]))
+    # The two printed drawing layers keep their own physical widths, just as
+    # the joined native cells do. Neither half is stretched across both pages.
+    pattern=r'(<div class="ax-source-grid"[^>]*>)(<svg.*?</svg>)(<table)'
+    right_art=re.search(pattern,right,re.S)
+    if right_art:
+        def artwork(m):
+            a=m[2].replace('<svg ',f'<svg style="width:{left_width:.3f}px" ',1)
+            b=right_art[2].replace('<svg ',f'<svg style="left:{left_width:.3f}px;width:{width-left_width:.3f}px" ',1)
+            wrapper=re.sub(r'width:[\d.]+px',f'width:{width:.3f}px',m[1])
+            return wrapper+a+b+m[3]
+        value=re.sub(pattern,artwork,value,count=1,flags=re.S)
+    value=re.sub(r'(<table[^>]*?)style="[^"]*"',rf'\1style="width:{width:.3f}px;min-width:{width:.3f}px;table-layout:fixed"',value,count=1)
+    return re.sub(r'(<table[^>]*>)',lambda m:m[0]+'<colgroup>'+''.join(groups)+'</colgroup>',value,count=1)
+
+
 def join_spreads(result):
     """Join horizontal continuations by row, preserving every source character."""
     for chapter,ident,left,right in SPREADS:
@@ -731,6 +803,7 @@ def join_spreads(result):
         rows=''.join('<tr>'+l+r+'</tr>' for l,r in zip(lrows,rrows))
         value=re.sub(r'<tbody>.*?</tbody>','<tbody>'+rows+'</tbody>',before,flags=re.S)
         value=re.sub(r'<colgroup>.*?</colgroup>','',value,flags=re.S)
+        if Page.precise_tables:value=spread_columns(value,a['html'],b['html'])
         value=value.replace('class="ax-table"','class="ax-table ax-spread-table"')
         a.update(html=value,sourcePages=[left,right])
         first['html']=first['html'].replace(before,value)
@@ -763,6 +836,7 @@ def join_long_tables(result):
         merged=''.join('<tr>'+l+r+'</tr>' for l,r in zip(lrows,rrows))
         value=re.sub(r'<tbody>.*?</tbody>','<tbody>'+merged+'</tbody>',a['html'],flags=re.S)
         value=re.sub(r'<colgroup>.*?</colgroup>','',value,flags=re.S).replace('class="ax-table"','class="ax-table ax-spread-table"').replace('class="ax-table ax-hearing-table"','class="ax-table ax-hearing-table ax-spread-table"')
+        if Page.precise_tables:value=spread_columns(value,a['html'],b['html'])
         parts.append(value)
         remove.extend(x for x in [a,b] if x is not first)
     first.update(html=''.join(parts),sourcePages=numbers)
@@ -820,7 +894,9 @@ def main():
     parser.add_argument("--source", type=Path, default=Path(os.environ.get("AMA_SRC", DEFAULT_SOURCE)))
     parser.add_argument("--output", type=Path, default=ROOT/"ama")
     parser.add_argument("--audit", type=Path, default=ROOT/".local"/"ama-part1"/"audit.json")
+    parser.add_argument('--precise-tables',action='store_true',default=True,help='Preserve PDF glyph positions and physical table geometry in native HTML (default)')
     args=parser.parse_args()
+    Page.precise_tables=args.precise_tables
     doc=pdf.open(args.source)
     index=json.loads((args.output/"index.json").read_text(encoding="utf-8"))
     chapters, audits, known = {}, [], {}

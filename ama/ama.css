@@ -162,3 +162,15 @@
 .ax-source-overlay { min-width:700px; }
 .ax-object:has(.ax-source-overlay) { overflow-x:auto; }
 .ax-dialog-body .ax-source-overlay { max-height:none; }
+
+/* Source table geometry: original glyph positions, cells, and column widths. */
+.ax-source-table td { padding:0!important; border:0!important; overflow:visible; }
+.ax-source-run { position:absolute; white-space:pre; line-height:1; }
+.ax-source-run > span { position:absolute; top:0; }
+.ax-source-grid > svg { position:absolute; inset:0; width:100%; height:100%; }
+.ax-source-object .ax-table-wrap { margin:0; }
+/* Override the site's regular-weight Roboto rule only within source cells. */
+.ax-source-run,.ax-source-run > span { font-family:Arial,sans-serif!important; font-weight:400!important; font-style:normal!important; }
+.ax-source-run[style*="font-weight:700"],.ax-source-run[style*="font-weight:700"] > span { font-weight:700!important; }
+.ax-source-run[style*="font-style:italic"],.ax-source-run[style*="font-style:italic"] > span { font-style:italic!important; }
+.ax-dialog-body .ax-source-grid > svg,.ax-dialog-body .ax-positioned-cell > svg { max-height:none; }
