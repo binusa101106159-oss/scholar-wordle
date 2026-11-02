@@ -96,7 +96,7 @@ async def main(args):
             for attachment in data['attachments']:
                 await page.locator('#ax-body .ax-expand[data-open="'+attachment['id']+'"]').first.click()
                 await page.locator('#ax-dialog[open]').wait_for()
-                if ident in ('c06','c07','c08'):
+                if ident in ('c06','c07','c08','c09','c10','c11'):
                     raw=[]
                     for n in attachment.get('sourcePages',[attachment['page']]):
                         original=Page(doc,n);original.build()
@@ -114,11 +114,12 @@ async def main(args):
                         if(JSON.stringify(expected)!==JSON.stringify(rows(el)))throw Error('Popup cell order or spans');
                         for(const cell of el.querySelectorAll('td')){const rgb=getComputedStyle(cell).backgroundColor.match(/\d+/g);if(rgb&&+rgb[0]>230&&+rgb[1]>230&&+rgb[2]>230)throw Error('White table cell');}
                         return expected.length;
-                    }""",{'sources':raw,'spread':attachment['id'] in ('t6-11','t7-13','t8-3')})
+                    }""",{'sources':raw,'spread':attachment['id'] in ('t6-11','t7-13','t8-3','t9-14','t10-15','t11-2')})
                 if args.images:
                     await page.locator('#ax-dialog-body').evaluate('(el)=>{el.style.maxHeight="none";}')
                     await page.locator('#ax-dialog').evaluate('(el)=>{el.style.maxHeight="none";}')
-                    style=await page.add_style_tag(content='.ax-dialog{width:1450px!important;max-width:none!important}.ax-dialog-body{width:1450px!important}.ax-table-wrap,.ax-object{overflow:visible!important}')
+                    capture_width=3700 if attachment['id']=='t11-2' else 1450
+                    style=await page.add_style_tag(content=f'.ax-dialog{{width:{capture_width}px!important;max-width:none!important}}.ax-dialog-body{{width:{capture_width}px!important}}.ax-table-wrap,.ax-object{{overflow:visible!important}}')
                     await page.locator('#ax-dialog-body').screenshot(path=str(output/(attachment['id']+'-app.png')))
                     await style.evaluate('(el)=>el.remove()')
                     app_image=Image.open(output/(attachment['id']+'-app.png')).convert('RGB')

@@ -16,15 +16,18 @@ import re
 
 import pymupdf as pdf
 from layout_678 import TABLES as TABLES_678, COORDINATES as COORDINATES_678, MERGES as MERGES_678
+from layout_911 import TABLES as TABLES_911, COORDINATES as COORDINATES_911, MERGES as MERGES_911
+MERGES_678.update(MERGES_911)
 import layout_45
 layout_45.COORDINATES.update(COORDINATES_678)
+layout_45.COORDINATES.update(COORDINATES_911)
 from layout_45 import TABLES as TABLES_45, coordinate_grid, keyed_grid, SPREADS
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SOURCE = Path(r"A:\職醫\AMA\AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf")
 GLYPHS = {"H11001": "+", "H11005": "=", "H9252": "β", "H11080": "·",
-          "H11021": "<", "H11022": ">", "H11002": "−", "H11350": "≥", "H9262": "μ", "H9251": "α", "H11003": "×"}
-CHAPTERS = {"c01": (1, 18), "c02": (19, 30), "c03": (31, 46), "c04": (47, 76), "c05": (77, 99), "c06": (101,127), "c07": (129,158), "c08": (159,182)}
+          "H11021": "<", "H11022": ">", "H11002": "−", "H11350": "≥", "H9262": "μ", "H9251": "α", "H11003": "×", "H11349": "≤", "H11004": "÷"}
+CHAPTERS = {"c01": (1, 18), "c02": (19, 30), "c03": (31, 46), "c04": (47, 76), "c05": (77, 99), "c06": (101,127), "c07": (129,158), "c08": (159,182), "c09": (183,212), "c10": (213,246), "c11": (247,279)}
 
 # Printed object extents in cropped PDF points. These contain no transcriptions.
 TABLES = {
@@ -39,6 +42,7 @@ TABLES = {
 }
 TABLES.update(TABLES_45)
 TABLES.update(TABLES_678)
+TABLES.update(TABLES_911)
 FIGURES = {
     3: [("1-1", (71, 408, 541, 737), (72, 440, 540, 737))],
     4: [("1-2", (78, 510, 535, 680), (78, 544, 534, 649))],
@@ -416,12 +420,21 @@ class Page:
 
     def formal_table(self, chars, ident, mode, bodybox):
         owner = "table-"+ident
-        if mode in ('coordinates','positioned','method'):
+        if mode in ('coordinates','positioned','method','painted'):
             table=coordinate_grid(self.number,ident)
             body=self.select(chars,table.bbox)
             remaining=[c for c in chars if c not in body]
+            artchars=[]
+            if mode=='painted':
+                art=(table.bbox[0],bodybox[1],table.bbox[2],table.bbox[1])
+                artchars=self.select(remaining,art)
+                remaining=[c for c in remaining if c not in artchars]
             nodes=self.paragraphs(remaining,owner,headings=False)
             value=self.grid(body,table,owner,positioned=mode=='positioned')
+            if mode=='painted':
+                value=self.svg(artchars,art,owner+'-ornament')+value
+            if ident.startswith('11-2'):
+                value=value.replace('class="ax-table"','class="ax-table ax-hearing-table"')
             if mode=='method':
                 value=value.replace('class="ax-table"','class="ax-table ax-method-table"')
                 art=(table.bbox[0],bodybox[1],table.bbox[2],table.bbox[1])
@@ -647,7 +660,7 @@ def join_spreads(result):
 
 def join_long_tables(result):
     """Keep physical-page body text, but join horizontal/vertical popup tables."""
-    groups={'c06':('6-11',[(124,125),(126,127)]),'c07':('7-13',[(156,157)]),'c08':('8-3',[(178,179),(180,181)])}
+    groups={'c06':('6-11',[(124,125),(126,127)]),'c07':('7-13',[(156,157)]),'c08':('8-3',[(178,179),(180,181)]),'c09':('9-14',[(210,211)]),'c10':('10-15',[(244,245)]),'c11':('11-2',[(252,253)])}
     if result['id'] not in groups:return
     base,pairs=groups[result['id']]
     def attachment(n):return next(a for a in result['attachments'] if a['page']==n and a['id'].startswith('t'+base))
@@ -658,7 +671,7 @@ def join_long_tables(result):
         if len(lrows)!=len(rrows):raise ValueError('Unequal spread rows')
         merged=''.join('<tr>'+l+r+'</tr>' for l,r in zip(lrows,rrows))
         value=re.sub(r'<tbody>.*?</tbody>','<tbody>'+merged+'</tbody>',a['html'],flags=re.S)
-        value=re.sub(r'<colgroup>.*?</colgroup>','',value,flags=re.S).replace('class="ax-table"','class="ax-table ax-spread-table"')
+        value=re.sub(r'<colgroup>.*?</colgroup>','',value,flags=re.S).replace('class="ax-table"','class="ax-table ax-spread-table"').replace('class="ax-table ax-hearing-table"','class="ax-table ax-hearing-table ax-spread-table"')
         parts.append(value)
         remove.extend(x for x in [a,b] if x is not first)
     first.update(html=''.join(parts),sourcePages=numbers)
@@ -676,7 +689,7 @@ def add_links(value, known, current):
     """References are linked only when the cited original object is imported."""
     from html.parser import HTMLParser
     separator=r'(?:,\s*(?:(?:and|or)\s+)?|\s+(?:and|or|to|through)\s+)'
-    pattern = re.compile(r"\b(Tables?|Fig(?:ure)?s?\.?|Appendix(?:es)?)\s*(\d+[-–]\d+(?:\s*"+separator+r"(?:\d+[-–])?\d+)*)",re.I)
+    pattern = re.compile(r"(?:\b|(?<=See))(Tables?|Fig(?:ure)?s?\.?|Appendix(?:es)?)\s*(\d+[-–]\d+[a-z]?(?:\s*"+separator+r"(?:\d+[-–])?\d+[a-z]?)*)",re.I)
     class Linker(HTMLParser):
         def __init__(self): super().__init__(convert_charrefs=False); self.out=[]; self.skip=0
         def handle_starttag(self, tag, attrs):
@@ -691,9 +704,9 @@ def add_links(value, known, current):
             def replace(m):
                 kind="t" if m[1].lower().startswith("table") else "f" if m[1].lower().startswith("fig") else "ap"
                 refs=m[2];parts=[];position=0;chapter=None
-                for token in re.finditer(r'(\d+)[-–](\d+)|(\d+)',refs):
-                    if token[1]:chapter,number=token[1],token[2]
-                    else:number=token[3]
+                for token in re.finditer(r'(\d+)[-–](\d+[a-z]?)|(\d+[a-z]?)',refs):
+                    if token[1]:chapter,number=token[1],token[2].lower()
+                    else:number=token[3].lower()
                     key=f'{kind}{chapter}-{number}'
                     # Include the word Table/Figure in the first linked mention.
                     prefix=m[0][:m.start(2)-m.start()] if position==0 else ''
