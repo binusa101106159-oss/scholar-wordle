@@ -281,7 +281,7 @@
       const button=document.createElement('button');
       button.type='button';button.id='ax-tab-'+chapter.id;button.className='ax-chapter';button.dataset.chapter=chapter.id;
       button.setAttribute('role','tab');button.setAttribute('aria-controls','ax-content');
-      for (const [cls,value] of [['ax-number',chapter.no],['ax-name',chapter.title],['ax-pages',chapter.pages+' 頁'+(chapter.ready?' · 已匯入':'')]]) {
+      for (const [cls,value] of [['ax-number',chapter.no],['ax-name',chapter.title]]) {
         const span=document.createElement('span');span.className=cls;span.textContent=value;button.append(span);
       }
       button.addEventListener('click',()=>selectChapter(chapter.id,{focusHeading:true}));by('ax-list').append(button);
