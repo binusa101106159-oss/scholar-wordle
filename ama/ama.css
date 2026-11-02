@@ -174,3 +174,6 @@
 .ax-source-run[style*="font-weight:700"],.ax-source-run[style*="font-weight:700"] > span { font-weight:700!important; }
 .ax-source-run[style*="font-style:italic"],.ax-source-run[style*="font-style:italic"] > span { font-style:italic!important; }
 .ax-dialog-body .ax-source-grid > svg,.ax-dialog-body .ax-positioned-cell > svg { max-height:none; }
+.ax-dialog-body .ax-source-object .ax-vector { max-height:none; }
+.ax-table-wrap:has(> .ax-source-grid) { padding-bottom:4px; }
+.ax-object:has(.ax-source-object),.ax-object:has(.ax-source-table) { overflow-x:auto; }

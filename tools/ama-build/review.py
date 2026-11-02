@@ -104,12 +104,13 @@ async def main(args):
                 await page.locator('#ax-body .ax-expand[data-open="'+attachment['id']+'"]').first.click()
                 await page.locator('#ax-dialog[open]').wait_for()
                 await page.locator('#ax-dialog-body .ax-source-grid > svg').evaluate_all("""items=>{for(const svg of items){const m=svg.getScreenCTM();if(Math.abs(m.a-1.8)>.015||Math.abs(m.d-1.8)>.015)throw Error('Source table rules stretched or capped independently from native cells');}}""")
-                if ident in ('c06','c07','c08','c09','c10','c11','c12','c13','c14','c17'):
+                if ident in ('c06','c07','c08','c09','c10','c11','c12','c13','c14','c16','c17'):
                     raw=[]
-                    for n in attachment.get('sourcePages',[attachment['page']]):
+                    for part in attachment.get('sourceParts',[dict(page=n,id=attachment['id']) for n in attachment.get('sourcePages',[attachment['page']])]):
+                        n=part['page']
                         original=Page(doc,n);original.build()
                         raw.append(next(a['html'] for a in original.attachments
-                                        if a['id']==attachment['id'] or a['id'].startswith(attachment['id']+'-p')))
+                                        if a['id']==part['id'] or a['id'].startswith(part['id']+'-p')))
                     checked=await page.locator('#ax-dialog-body').evaluate("""(el,{sources,spread})=>{
                         const nodes=sources.map(html=>{const d=document.createElement('div');d.innerHTML=html;return d;});
                         const canon=s=>s.replace(/\s+/g,'');
