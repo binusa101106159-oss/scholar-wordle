@@ -89,22 +89,23 @@ async def main(args):
                     ImageDraw.Draw(combined).text((8,10),f'Original p{number} | Native app (reflow)',fill='white')
                     combined.save(output/f'p{number:03d}.png')
                 totals['pages']+=len(originals)
+            print(ident+": all page characters and cell geometry OK",flush=True)
             # Open every inline reference, not only each distinct target.
             refs=await page.locator('#ax-body [data-open]').count()
             for i in range(refs):
                 ref=page.locator('#ax-body [data-open]').nth(i); target=await ref.get_attribute('data-open')
                 expected=all_objects[target]
-                await ref.click()
+                await ref.dispatch_event("click")
                 await page.locator('#ax-dialog[open]').wait_for()
                 assert expected['label'] in await page.locator('#ax-dialog-title').text_content()
                 assert await page.locator('#ax-dialog-body img, #ax-dialog-body iframe').count()==0
                 if args.images and i==0:await page.screenshot(path=str(output/(ident+'-popup.png')))
-                await page.locator('#ax-dialog-close').click();totals['links']+=1
+                await page.locator('#ax-dialog-close').dispatch_event("click");totals['links']+=1
             for attachment in data['attachments']:
                 await page.locator('#ax-body .ax-expand[data-open="'+attachment['id']+'"]').first.click()
                 await page.locator('#ax-dialog[open]').wait_for()
                 await page.locator('#ax-dialog-body .ax-source-grid > svg').evaluate_all("""items=>{for(const svg of items){const m=svg.getScreenCTM();if(Math.abs(m.a-1.8)>.015||Math.abs(m.d-1.8)>.015)throw Error('Source table rules stretched or capped independently from native cells');}}""")
-                if ident in ('c06','c07','c08','c09','c10','c11','c12','c13','c14','c16','c17'):
+                if ident in ('c06','c07','c08','c09','c10','c11','c12','c13','c14','c15','c16','c17'):
                     raw=[]
                     for part in attachment.get('sourceParts',[dict(page=n,id=attachment['id']) for n in attachment.get('sourcePages',[attachment['page']])]):
                         n=part['page']

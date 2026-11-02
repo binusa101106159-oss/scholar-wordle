@@ -22,9 +22,11 @@ from layout_911 import TABLES as TABLES_911, COORDINATES as COORDINATES_911, MER
 from layout_17 import TABLES as TABLES_17, FIGURES as FIGURES_17, EXTRA_GRIDS as EXTRA_GRIDS_17, printed_grid as printed_grid_17
 from layout_16 import TABLES as TABLES_16, FIGURES as FIGURES_16, EXTRA_GRIDS as EXTRA_GRIDS_16, GRIDS as GRIDS_16, printed_grid as printed_grid_16
 from raster_16 import label_characters, source_svg
+from raster_15 import label_characters as labels_15, artwork as artwork_15
+from layout_15 import TABLES as TABLES_15, FIGURES as FIGURES_15, EXTRA_GRIDS as EXTRA_GRIDS_15, GRIDS as GRIDS_15, printed_grid as printed_grid_15
 
 def printed_grid(number,ident):
-    return (printed_grid_16 if 493<=number<=556 else printed_grid_17)(number,ident)
+    return (printed_grid_15 if 383<=number<=492 else printed_grid_16 if 493<=number<=556 else printed_grid_17)(number,ident)
 MERGES_678.update(MERGES_911)
 MERGES_678.update(MERGES_1214)
 import layout_45
@@ -37,7 +39,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SOURCE = Path(r"A:\職醫\AMA\AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf")
 GLYPHS = {"H11001": "+", "H11005": "=", "H9252": "β", "H11080": "·",
           "H11021": "<", "H11022": ">", "H11002": "−", "H11350": "≥", "H9262": "μ", "H9251": "α", "H11003": "×", "H11349": "≤", "H11004": "÷", "H11006":"±", "H11549":"=", "H11545":"+", "H11547":"×", "H11033":"″", "H11034":"°", "H20870":"|", "H9001":"A", "H9002":"B"}
-CHAPTERS = {"c01": (1, 18), "c02": (19, 30), "c03": (31, 46), "c04": (47, 76), "c05": (77, 99), "c06": (101,127), "c07": (129,158), "c08": (159,182), "c09": (183,212), "c10": (213,246), "c11": (247,279), "c12": (281,319), "c13": (321,345), "c14": (347,382), "c16": (493,556), "c17": (557,601)}
+CHAPTERS = {"c01": (1, 18), "c02": (19, 30), "c03": (31, 46), "c04": (47, 76), "c05": (77, 99), "c06": (101,127), "c07": (129,158), "c08": (159,182), "c09": (183,212), "c10": (213,246), "c11": (247,279), "c12": (281,319), "c13": (321,345), "c14": (347,382), "c15": (383,492), "c16": (493,556), "c17": (557,601)}
 
 # Printed object extents in cropped PDF points. These contain no transcriptions.
 TABLES = {
@@ -56,8 +58,10 @@ TABLES.update(TABLES_911)
 TABLES.update(TABLES_1214)
 TABLES.update(TABLES_17)
 TABLES.update(TABLES_16)
+TABLES.update(TABLES_15)
 EXTRA_GRIDS.update(EXTRA_GRIDS_17)
 EXTRA_GRIDS.update(EXTRA_GRIDS_16)
+EXTRA_GRIDS.update(EXTRA_GRIDS_15)
 FIGURES = {
     3: [("1-1", (71, 408, 541, 737), (72, 440, 540, 737))],
     4: [("1-2", (78, 510, 535, 680), (78, 544, 534, 649))],
@@ -69,6 +73,7 @@ FIGURES = {
 FIGURES.update(FIGURES_1214)
 FIGURES.update(FIGURES_17)
 FIGURES.update(FIGURES_16)
+FIGURES.update(FIGURES_15)
 FIGURES.update({314:[("12-10",(320,508,542,555),(321,532,540,555))],315:[("12-10-p315",(62,52,551,750),(62,52,551,750))],316:[("12-11",(320,591,542,636),(321,615,540,636))],317:[("12-11-p317",(72,67,542,746),(72,67,542,746))]})
 SIDEBARS = {
     521: [(321,171,542,521)],
@@ -148,8 +153,8 @@ class Page:
         self.table_region=None
         maps = symbol_map(doc, self.page)
         regions=[box for _,box,_,_ in TABLES.get(number,[])]
-        if 493<=number<=556:regions.extend(box for _,box,_ in FIGURES.get(number,[]))
-        bottom=max([777 if 493<=number<=556 else 750]+[box[3] for box in regions])
+        if 383<=number<=556:regions.extend(box for _,box,_ in FIGURES.get(number,[]))
+        bottom=max([777 if 383<=number<=556 else 750]+[box[3] for box in regions])
         right=max([555]+[box[2] for box in regions])
         top=min([45]+[box[1] for box in regions])
         left=min([60]+[box[0] for box in regions])
@@ -159,9 +164,10 @@ class Page:
                 if block["type"] == 1 and box[3]-box[1] < 2 and box[2]-box[0] > 400:
                     self.rules.append(dict(box=box, html='<hr class="ax-source-rule">'))
                     continue
-                if (number in (315,317) or 493<=number<=556) and block['type']==1:
+                if (number in (315,317) or 383<=number<=556) and block['type']==1:
                     self.source_rasters.append(block)
                     if number in (546,548):self.chars.extend(label_characters(number,block))
+                    if number==467:self.chars.extend(labels_15(block))
                     continue
                 raise ValueError(f"Unexpected raster object on page {number}")
             for li, line in enumerate(block["lines"]):
@@ -183,9 +189,17 @@ class Page:
                         else:
                             self.excluded.append(item)
 
-        if 493<=number<=556:
+        self.overprints=[]
+        if 383<=number<=492:
+            seen=set();unique=[]
+            for item in self.chars:
+                key=(item['text'],item['bbox'],item['origin'],item['font'],item['size'])
+                if key in seen:self.overprints.append(item)
+                else:seen.add(key);unique.append(item)
+            self.chars=unique
+        if 383<=number<=556:
             furniture=''.join(c['text'] for c in self.excluded)
-            for label in ('Guides to the Evaluation of Permanent Impairment','The Lower Extremities','Chapter 16',str(number)):
+            for label in ('Guides to the Evaluation of Permanent Impairment','The Lower Extremities' if number>=493 else 'The Upper Extremities','Chapter 16' if number>=493 else 'Chapter 15',str(number)):
                 furniture=furniture.replace(label,'')
             if canon(furniture):raise ValueError(f'Unreviewed excluded source text p{number}: {furniture!r}')
         if number==317:
@@ -322,7 +336,7 @@ class Page:
             # Only paths belonging to this actual picture. Exclude page/printer boxes.
             # A horizontal/vertical stroke has a zero-area rectangle. Rect's
             # intersects() deliberately rejects these; they are still ink.
-            tolerance=.01 if 493<=self.number<=556 else 0
+            tolerance=.01 if 383<=self.number<=556 else 0
             overlaps = rect.x1 >= x0-tolerance and rect.x0 <= x1+tolerance and rect.y1 >= y0-tolerance and rect.y0 <= y1+tolerance
             # One PDF path can combine a sidebar border with several diagram
             # boxes. Clip the original path rather than dropping the entire
@@ -397,7 +411,7 @@ class Page:
         cells = list(dict.fromkeys(tuple(c) for row in table.rows for c in row.cells if c))
         xs = sorted(set(round(c[i], 3) for c in cells for i in (0, 2)))
         ys = sorted(set(round(c[i], 3) for c in cells for i in (1, 3)))
-        if decorated or 493<=self.number<=556:
+        if decorated or 383<=self.number<=556:
             # A dark filled header masks vertical strokes from the line detector.
             # Keep each printed header row distinct at the fill's bottom edge.
             cuts = []
@@ -435,7 +449,7 @@ class Page:
                         matrix[r][c] = (ri, ci)
                 selected = [c for c in chars if c["uid"] not in assigned and inside(c, match)]
                 assigned.update(c["uid"] for c in selected)
-                if self.precise_tables and not (decorated and ri==0):
+                if self.precise_tables and (not (decorated and ri==0) or 383<=self.number<=492):
                     value=self.positioned_cell(selected,match,owner+f'-r{ri}c{ci}',rules=False)
                 elif positioned or (owner=="table-12-2" and ri>0 and ci in (4,5) and rs>1):
                     value = self.positioned_cell(selected, match, owner+f"-r{ri}c{ci}",rules=owner!="table-12-2" and not (owner=="table-17-10" and ri<2))
@@ -513,11 +527,18 @@ class Page:
 
     def formal_table(self, chars, ident, mode, bodybox):
         owner = "table-"+ident
+        if mode=='panels15':
+            nodes=[];remaining=list(chars)
+            for key in (ident,ident+'-p420b'):
+                table=printed_grid(self.number,key);body=self.select(remaining,table.bbox);remaining=[c for c in remaining if c not in body]
+                nodes.append(dict(box=table.bbox,html=self.grid(body,table,'table-'+key)))
+            nodes.extend(self.paragraphs(remaining,owner,headings=False))
+            return self.flow(nodes)
         if mode=='sourcegrid':
             table=printed_grid(self.number,ident)
             body=self.select(chars,table.bbox)
             nodes=self.paragraphs([c for c in chars if c not in body],owner,headings=False)
-            decorated=self.number in (564,567,570,593) or (493<=self.number<=556 and len(table.rows[0].cells)==1 and table.rows[0].cells[0][3]-table.rows[0].cells[0][1]>40)
+            decorated=self.number in (564,567,570,593) or (383<=self.number<=556 and len(table.rows[0].cells)==1 and table.rows[0].cells[0][3]-table.rows[0].cells[0][1]>40)
             nodes.append(dict(box=table.bbox,html=self.grid(body,table,owner,decorated=decorated,positioned=ident=='17-10')))
             return self.flow(nodes)
         if mode=='subgrids':
@@ -688,11 +709,11 @@ class Page:
         """Native source text and form cells over original picture/vector ink."""
         nodes=[];remaining=list(chars)
         artwork=self.svg([],box,'figure-'+ident+'-rules')
-        if self.source_rasters:
+        if self.source_rasters or 383<=self.number<=492:
             pixels=self.source_rasters[0]['image'] if self.number in (546,548) else b''
-            artwork=source_svg(self.page.get_svg_image(text_as_path=False),self.number,box,'figure-'+ident,pixels)
+            artwork=artwork_15(self.page.get_svg_image(text_as_path=False),self.number,box,'figure-'+ident) if self.number<493 else source_svg(self.page.get_svg_image(text_as_path=False),self.number,box,'figure-'+ident,pixels)
         nodes.append(dict(box=box,html=artwork))
-        for n,key in GRIDS_16:
+        for n,key in (GRIDS_15 if self.number<493 else GRIDS_16):
             if n!=self.number or not key.startswith('form-'):continue
             table=printed_grid(self.number,key);selected=self.select(remaining,table.bbox);remaining=[c for c in remaining if c not in selected]
             nodes.append(dict(box=table.bbox,html=self.grid(selected,table,'figure-'+ident+'-'+key,rules=False)))
@@ -703,7 +724,7 @@ class Page:
 
     def region(self, chars, box, kind, ident, body=None, mode=None):
         anchor = ("t" if kind=="table" else "f" if kind=="figure" else "ap")+ident
-        if (kind=='figure' or ident=='16-A') and 493<=self.number<=556:
+        if (kind=='figure' or ident=='16-A') and 383<=self.number<=556:
             value=self.source_figure(chars,box,ident)
         elif kind=='figure' and self.number==600:
             value=self.pdq(chars)
@@ -787,7 +808,7 @@ class Page:
             raise ValueError(f"HTML character mismatch p{self.number}: "+str(Counter(canon(original))-Counter(canon(actual))))
         return dict(page=self.number, html=value), dict(page=self.number, characters=len(canon(original)),
             owned=len(self.owners), grids=self.grids, vectors=self.vectors,
-            excluded=clean("".join(c["text"] for c in self.excluded)), status="OK",rasterLabels=sum(c['uid'][0]=='raster' for c in self.chars))
+            excluded=clean("".join(c["text"] for c in self.excluded)), status="OK",overprintCharacters=len(self.overprints),rasterLabels=sum(c['uid'][0]=='raster' for c in self.chars))
 
     def objects(self, chars):
         remaining, nodes = list(chars), []
@@ -796,7 +817,7 @@ class Page:
         for ident,box in EXTRA_GRIDS.get(self.number,[]):
             selected=self.select(remaining,box);remaining=[c for c in remaining if c not in selected]
             if not selected:continue
-            table=printed_grid(self.number,ident) if self.number>=493 else coordinate_grid(self.number,ident)
+            table=printed_grid(self.number,ident) if self.number>=383 else coordinate_grid(self.number,ident)
             nodes.append(dict(box=box,html=self.grid(selected,table,'table-'+ident)))
         if self.number in (43,44,45):
             regions.append(("appendix", f"3-{self.number-42}", (71, 93 if self.number==43 else 70, 542, 735), None, None))
@@ -858,14 +879,20 @@ def join_spreads(result):
 
 def join_long_tables(result):
     """Keep physical-page body text, but join horizontal/vertical popup tables."""
-    if result['id']=='c16':
-        for base in ('16-2','16-3','16-4','16-8','16-10','16-12'):
+    if result['id'] in ('c15','c16'):
+        bases=('15-2','15-3','15-4','15-5','15-9','15-11','15-12','15-20','15-21') if result['id']=='c15' else ('16-2','16-3','16-4','16-8','16-10','16-12')
+        for base in bases:
             group=[a for a in result['attachments'] if a['id']=='t'+base or a['id'].startswith('t'+base+'-p')]
             first=group[0]
             first.update(html=''.join(a['html'] for a in group),sourcePages=list(dict.fromkeys(a['page'] for a in group)),sourceParts=[dict(page=a['page'],id=a['id']) for a in group])
             for item in group[1:]:
                 for page in result['pages']:page['html']=page['html'].replace('data-open="'+item['id']+'"','data-open="'+first['id']+'"')
                 result['attachments'].remove(item)
+        if result['id']=='c15':
+            first=next(a for a in result['attachments'] if a['id']=='f15-13');last=next(a for a in result['attachments'] if a['id']=='f15-13-p463')
+            first.update(html=first['html']+last['html'],sourcePages=[462,463],sourceParts=[dict(page=462,id=first['id']),dict(page=463,id=last['id'])])
+            for page in result['pages']:page['html']=page['html'].replace('data-open="f15-13-p463"','data-open="f15-13"')
+            result['attachments'].remove(last)
         return
     if result['id']=='c17':
         for base in ('17-2','17-3','17-4'):
