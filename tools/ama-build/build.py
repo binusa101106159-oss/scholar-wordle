@@ -428,6 +428,14 @@ class Page:
         lines=defaultdict(list)
         for c in chars: lines[c['line']].append(c)
         for line in lines.values():
+            if owner.startswith(('figure-17-2-grid-','figure-17-7-grid-')):
+                # Source circles and choice boxes must align with the actual
+                # letters, even when the browser font has different advances.
+                for c in line:
+                    left,top,right,bottom=c['bbox']
+                    labels.append(f'<span style="position:absolute;left:{(left-x0)/(x1-x0)*100:.5f}%;top:{(top-y0)*1.8:.3f}px;font-size:{c["size"]*1.8:.3f}px;white-space:pre">'+self.rich([c])+'</span>')
+                labels.append(' ')
+                continue
             left,top,right,bottom=extent(line)
             labels.append(f'<span style="position:absolute;left:{(left-x0)/(x1-x0)*100:.5f}%;top:{(top-y0)*1.8:.3f}px;font-size:{max(c["size"] for c in line)*1.8:.3f}px;white-space:pre">'+self.rich(line)+'</span> ')
         # Arrows and rules are original vector artwork; all data is native HTML.
