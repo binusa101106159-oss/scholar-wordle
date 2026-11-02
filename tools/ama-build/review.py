@@ -96,7 +96,7 @@ async def main(args):
             for attachment in data['attachments']:
                 await page.locator('#ax-body .ax-expand[data-open="'+attachment['id']+'"]').first.click()
                 await page.locator('#ax-dialog[open]').wait_for()
-                if ident in ('c06','c07','c08','c09','c10','c11','c12','c13','c14'):
+                if ident in ('c06','c07','c08','c09','c10','c11','c12','c13','c14','c17'):
                     raw=[]
                     for n in attachment.get('sourcePages',[attachment['page']]):
                         original=Page(doc,n);original.build()
@@ -170,8 +170,9 @@ async def main(args):
             if not await page.locator('#ax-side').is_visible():await page.locator('#ax-menu').click()
             await page.locator('#ax-query').fill('Pain Disability Questionnaire');await page.locator('#ax-search button').click()
             await page.locator('.ax-result').first.wait_for();assert await page.locator('.ax-result').count()>0
+            result_title=await page.locator('.ax-result').last.locator('strong').text_content()
             await page.locator('.ax-result').last.click();await page.wait_for_timeout(100)
-            assert 'Chapter 3'==await page.locator('#ax-kicker').text_content()
+            assert (await page.locator('#ax-kicker').text_content())==result_title.split(' · ')[0]
             if width<=900 and await page.locator('#ax-side').is_visible():await page.keyboard.press('Escape')
             await page.screenshot(path=str(output/f'layout-{width}.png'))
             dimensions=await page.evaluate('({width:document.documentElement.scrollWidth,viewport:innerWidth,bottom:document.querySelector(".ax-layout").getBoundingClientRect().bottom,height:innerHeight})')

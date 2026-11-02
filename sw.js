@@ -1,4 +1,4 @@
-const CACHE_NAME = "scholar-games-v76";
+const CACHE_NAME = "scholar-games-v77";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./laws/laws.css", "./laws/laws.js", "./laws/index.json", "./guides/guides.css", "./guides/guides.js", "./guides/index.json", "./ama/ama.css", "./ama/ama.js", "./ama/index.json", "./review/review.css", "./review/review.js", "./notes/notes.css", "./notes/notes.js"];
 
 self.addEventListener("install", (e) => {

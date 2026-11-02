@@ -19,6 +19,7 @@ from layout_678 import TABLES as TABLES_678, COORDINATES as COORDINATES_678, MER
 from layout_1214 import TABLES as TABLES_1214, COORDINATES as COORDINATES_1214, MERGES as MERGES_1214, FIGURES as FIGURES_1214, EXTRA_GRIDS
 from raster_1214 import LABELS as RASTER_LABELS, artwork_without_lettering
 from layout_911 import TABLES as TABLES_911, COORDINATES as COORDINATES_911, MERGES as MERGES_911
+from layout_17 import TABLES as TABLES_17, FIGURES as FIGURES_17, EXTRA_GRIDS as EXTRA_GRIDS_17, printed_grid
 MERGES_678.update(MERGES_911)
 MERGES_678.update(MERGES_1214)
 import layout_45
@@ -31,7 +32,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SOURCE = Path(r"A:\職醫\AMA\AMA Guides to the Evaluation of Permanent Impairment, 6e.pdf")
 GLYPHS = {"H11001": "+", "H11005": "=", "H9252": "β", "H11080": "·",
           "H11021": "<", "H11022": ">", "H11002": "−", "H11350": "≥", "H9262": "μ", "H9251": "α", "H11003": "×", "H11349": "≤", "H11004": "÷", "H11006":"±", "H11549":"=", "H11545":"+", "H11547":"×", "H11033":"″", "H11034":"°", "H20870":"|"}
-CHAPTERS = {"c01": (1, 18), "c02": (19, 30), "c03": (31, 46), "c04": (47, 76), "c05": (77, 99), "c06": (101,127), "c07": (129,158), "c08": (159,182), "c09": (183,212), "c10": (213,246), "c11": (247,279), "c12": (281,319), "c13": (321,345), "c14": (347,382)}
+CHAPTERS = {"c01": (1, 18), "c02": (19, 30), "c03": (31, 46), "c04": (47, 76), "c05": (77, 99), "c06": (101,127), "c07": (129,158), "c08": (159,182), "c09": (183,212), "c10": (213,246), "c11": (247,279), "c12": (281,319), "c13": (321,345), "c14": (347,382), "c17": (557,601)}
 
 # Printed object extents in cropped PDF points. These contain no transcriptions.
 TABLES = {
@@ -48,6 +49,8 @@ TABLES.update(TABLES_45)
 TABLES.update(TABLES_678)
 TABLES.update(TABLES_911)
 TABLES.update(TABLES_1214)
+TABLES.update(TABLES_17)
+EXTRA_GRIDS.update(EXTRA_GRIDS_17)
 FIGURES = {
     3: [("1-1", (71, 408, 541, 737), (72, 440, 540, 737))],
     4: [("1-2", (78, 510, 535, 680), (78, 544, 534, 649))],
@@ -57,6 +60,7 @@ FIGURES = {
     33: [("3-1", (71, 346, 541, 745), (99, 459, 513, 724))],
 }
 FIGURES.update(FIGURES_1214)
+FIGURES.update(FIGURES_17)
 FIGURES.update({314:[("12-10",(320,508,542,555),(321,532,540,555))],315:[("12-10-p315",(62,52,551,750),(62,52,551,750))],316:[("12-11",(320,591,542,636),(321,615,540,636))],317:[("12-11-p317",(72,67,542,746),(72,67,542,746))]})
 SIDEBARS = {
     4: [(72, 60, 540, 683)], 6: [(321, 60, 540, 483)],
@@ -393,12 +397,14 @@ class Page:
                 selected = [c for c in chars if c["uid"] not in assigned and inside(c, match)]
                 assigned.update(c["uid"] for c in selected)
                 if positioned or (owner=="table-12-2" and ri>0 and ci in (4,5) and rs>1):
-                    value = self.positioned_cell(selected, match, owner+f"-r{ri}c{ci}",rules=owner!="table-12-2")
+                    value = self.positioned_cell(selected, match, owner+f"-r{ri}c{ci}",rules=owner!="table-12-2" and not (owner=="table-17-10" and ri<2))
+                    if owner=="table-17-10":value=value.replace('font-size:','line-height:1;font-size:')
                 elif decorated and ri == 0:
                     value = self.svg(selected, match, owner+"-ornament")
                 else:
                     self.take(selected, f"{owner}-r{ri}c{ci}")
-                    value = self.rich(selected,lines=True) if owner=="table-12-11" else self.flow(self.paragraphs_preview(selected))
+                    value = self.rich(selected,lines=True) if owner in ("table-12-11","table-17-8") or (owner=="table-17-7" and ri==4) else self.flow(self.paragraphs_preview(selected))
+                    if owner=="table-17-7" and ri==4 and ci>0:value='<br>'+value
                 attrs = (f' colspan="{cs}"' if cs>1 else "")+(f' rowspan="{rs}"' if rs>1 else "")
                 cls = ' class="ax-grid-ornament"' if decorated and ri == 0 else ""
                 row.append(f'<td{attrs}{cls}>{value}</td>')
@@ -438,6 +444,12 @@ class Page:
 
     def formal_table(self, chars, ident, mode, bodybox):
         owner = "table-"+ident
+        if mode=='sourcegrid':
+            table=printed_grid(self.number,ident)
+            body=self.select(chars,table.bbox)
+            nodes=self.paragraphs([c for c in chars if c not in body],owner,headings=False)
+            nodes.append(dict(box=table.bbox,html=self.grid(body,table,owner,decorated=self.number in (564,567,570,593),positioned=ident=='17-10')))
+            return self.flow(nodes)
         if mode=='subgrids':
             nodes=[];remaining=list(chars)
             for suffix in ('a','b','c'):
@@ -557,7 +569,7 @@ class Page:
             text = clean("".join(c["text"] for c in block))
             if not re.match(r"\d{1,2}\.\s", text):
                 box=extent(block)
-                field=self.field_row(block,'appendix-3-1-fields') if 110<box[1]<124 else None
+                field=self.field_row(block,'appendix-3-1-fields') if (98<box[1]<110 if self.number==600 else 110<box[1]<124) else None
                 if field:
                     nodes.append(field)
                     continue
@@ -595,7 +607,16 @@ class Page:
 
     def region(self, chars, box, kind, ident, body=None, mode=None):
         anchor = ("t" if kind=="table" else "f" if kind=="figure" else "ap")+ident
-        if kind=='figure' and self.number in (315,317):
+        if kind=='figure' and self.number==600:
+            value=self.pdq(chars)
+        elif kind=='figure' and self.number in (561,598):
+            table=printed_grid(self.number,'form');selected=self.select(chars,table.bbox)
+            nodes=self.paragraphs([c for c in chars if c not in selected],'figure-'+ident,headings=False)
+            value=self.grid(selected,table,'figure-'+ident+'-grid',positioned=True)
+            value=value.replace('font-size:','line-height:1;font-size:')
+            nodes.append(dict(box=table.bbox,html=value))
+            value=self.flow(nodes)
+        elif kind=='figure' and self.number in (315,317):
             import base64
             b=self.source_rasters[0];x0,y0,x1,y1=b['bbox']
             pixels=artwork_without_lettering(b['image']) if self.number==317 else b['image']
@@ -674,7 +695,7 @@ class Page:
         regions += [("figure", ident, box, art, None) for ident,box,art in FIGURES.get(self.number, [])]
         for ident,box in EXTRA_GRIDS.get(self.number,[]):
             selected=self.select(remaining,box);remaining=[c for c in remaining if c not in selected]
-            table=coordinate_grid(self.number,ident)
+            table=printed_grid(self.number,ident) if self.number>=557 else coordinate_grid(self.number,ident)
             nodes.append(dict(box=box,html=self.grid(selected,table,'table-'+ident)))
         if self.number in (43,44,45):
             regions.append(("appendix", f"3-{self.number-42}", (71, 93 if self.number==43 else 70, 542, 735), None, None))
@@ -714,6 +735,14 @@ def join_spreads(result):
 
 def join_long_tables(result):
     """Keep physical-page body text, but join horizontal/vertical popup tables."""
+    if result['id']=='c17':
+        for base in ('17-2','17-3','17-4'):
+            group=[a for a in result['attachments'] if a['id']=='t'+base or a['id'].startswith('t'+base+'-p')]
+            first=group[0];first['html']=''.join(a['html'] for a in group);first['sourcePages']=[a['page'] for a in group]
+            for item in group[1:]:
+                for page in result['pages']:page['html']=page['html'].replace('data-open="'+item['id']+'"','data-open="'+first['id']+'"')
+                result['attachments'].remove(item)
+        return
     groups={'c06':('6-11',[(124,125),(126,127)]),'c07':('7-13',[(156,157)]),'c08':('8-3',[(178,179),(180,181)]),'c09':('9-14',[(210,211)]),'c10':('10-15',[(244,245)]),'c11':('11-2',[(252,253)])}
     if result['id'] not in groups:return
     base,pairs=groups[result['id']]
@@ -743,7 +772,7 @@ def add_links(value, known, current):
     """References are linked only when the cited original object is imported."""
     from html.parser import HTMLParser
     separator=r'(?:,\s*(?:(?:and|or)\s+)?|\s+(?:and|or|to|through)\s+)'
-    pattern = re.compile(r"(?:\b|(?<=See))(Tables?|Fig(?:ure)?s?\.?|Appendix(?:es)?)\s*(\d+[-–]\d+[a-z]?(?:\s*"+separator+r"(?:\d+[-–])?\d+[a-z]?)*)",re.I)
+    pattern = re.compile(r"(?:\b|(?<=See))(Tables?|Fig(?:ure)?s?\.?|Appendix(?:es)?)\s*(\d+[-–](?:\d+[a-z]?|[A-Z]\b)(?:\s*"+separator+r"(?:\d+[-–])?\d+[a-z]?)*)",re.I)
     class Linker(HTMLParser):
         def __init__(self): super().__init__(convert_charrefs=False); self.out=[]; self.skip=0
         def handle_starttag(self, tag, attrs):
@@ -758,7 +787,7 @@ def add_links(value, known, current):
             def replace(m):
                 kind="t" if m[1].lower().startswith("table") else "f" if m[1].lower().startswith("fig") else "ap"
                 refs=m[2];parts=[];position=0;chapter=None
-                for token in re.finditer(r'(\d+)[-–](\d+[a-z]?)|(\d+[a-z]?)',refs):
+                for token in re.finditer(r'(\d+)[-–](\d+[a-z]?|[A-Za-z])|(\d+[a-z]?)',refs):
                     if token[1]:chapter,number=token[1],token[2].lower()
                     else:number=token[3].lower()
                     key=f'{kind}{chapter}-{number}'
