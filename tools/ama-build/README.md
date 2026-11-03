@@ -1,5 +1,11 @@
 # AMA 原文轉換
 
+## 加州調整補充資料
+
+`california.py` 匯入使用者提供的 2005 年 January 版 Permanent Disability Rating Schedule，作為第 17 章後的「加州調整」附錄。與 AMA 章節分開，原有 17 章 JSON 不重建。執行 `python tools/ama-build/california.py "來源的絕對路徑/加州調整.pdf"` 產出 `ama/california.json`、更新目錄末項並寫入 `.local/california/audit.json`。可用 `--output` 指定隔離輸出，此時不更新網站目錄。
+
+89 頁保留橫式來源座標、原生文字與 HTML 表格；頁內可橫向捲動、放大與複製。SVG 只保留格線及原稿修訂線，沒有 PDF 或頁面截圖。瀏覽器替代字型可能與印刷字形略有差異。此附錄沒有替換 AMA 原書尚未匯入的 Combined Values Chart 引用。詳見 [加州調整核對報告](california-review.md)。
+
 這是獨立的 AMA 轉換器；不修改法規、指引、遊戲或其轉換器。
 
 ## 來源與範圍

@@ -177,3 +177,17 @@
 .ax-dialog-body .ax-source-object .ax-vector { max-height:none; }
 .ax-table-wrap:has(> .ax-source-grid) { padding-bottom:4px; }
 .ax-object:has(.ax-source-object),.ax-object:has(.ax-source-table) { overflow-x:auto; }
+
+/* Separately supplied PDRS source pages retain their original landscape geometry. */
+.ax-ca-scroll { overflow:auto; max-width:100%; }
+.ax-ca-sheet { position:relative; background:var(--ax-paper); color:var(--ax-ink); }
+.ax-ca-art { position:absolute; inset:0; width:100%; height:100%; filter:invert(.9); pointer-events:none; }
+.ax-ca-grid { position:absolute; }
+.ax-ca-sheet .ax-table-wrap { overflow:visible; }
+.ax-ca-sheet .ax-table { background:transparent; }
+.ax-ca-sheet .ax-source-run { user-select:text; }
+.ax-dialog-body .ax-ca-art { max-height:none; }
+
+.ax-ca-sheet .ax-ca-serif,.ax-ca-sheet .ax-ca-serif > span { font-family:"Times New Roman",serif!important; }
+
+.ax-ca-grid .ax-table-wrap { margin:0; padding:0; }

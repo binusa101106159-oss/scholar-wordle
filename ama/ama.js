@@ -50,7 +50,8 @@
     })().catch(error => { chapters.delete(id); throw error; }));
     return chapters.get(id);
   }
-  function sourcePages(source) { return (source.sourcePages || [source.page]).join('–'); }
+  function sourcePages(source) { return source.label || (source.sourcePages || [source.page]).join('–'); }
+  function chapterLabel(chapter) { return chapter.type==='supplement' ? '補充資料' : 'Chapter '+chapter.no; }
   function chapterText(node) {
     const copy = node.cloneNode(true);
     copy.querySelectorAll('button,.ax-page-label').forEach(n => n.remove());
@@ -138,9 +139,9 @@
       button.setAttribute('aria-selected',String(selected)); button.tabIndex=selected?0:-1;
     });
     by('ax-content').setAttribute('aria-labelledby','ax-tab-'+id);
-    by('ax-kicker').textContent='Chapter '+chapter.no; by('ax-title').textContent=chapter.title;
-    by('ax-meta').textContent='原書第 '+chapter.start+'–'+chapter.end+' 頁 · '+chapter.pages+' 頁';
-    by('ax-location').textContent='第 '+chapter.no+' 章／共 '+catalogue.chapters.length+' 章';
+    by('ax-kicker').textContent=chapterLabel(chapter); by('ax-title').textContent=chapter.title;
+    by('ax-meta').textContent=chapter.description || '原書第 '+chapter.start+'–'+chapter.end+' 頁 · '+chapter.pages+' 頁';
+    by('ax-location').textContent=chapter.type==='supplement' ? chapter.title : '第 '+chapter.no+' 章／共 '+catalogue.chapters.filter(c=>c.type!=='supplement').length+' 章';
     by('ax-tools').hidden=!chapter.ready; by('ax-status').textContent=''; by('ax-section').replaceChildren();
     by('ax-body').innerHTML='<div class="ax-pending sg-glass"><p>'+(chapter.ready?'載入中…':'正文準備中。')+'</p>'+(chapter.ready?'':'<p>本章正文與圖表尚未匯入。</p>')+'</div>';
     saved.chapter=id; persist();
@@ -186,7 +187,7 @@
         const text=chapterText(holder).replace(/\s+/g,' '),index=text.toLocaleLowerCase().indexOf(needle);
         if (index<0) continue;
         const button=document.createElement('button');button.type='button';button.className='ax-result';
-        const label=document.createElement('strong');label.textContent='Chapter '+chapter.no+' · 第 '+sourcePages(page)+' 頁';
+        const label=document.createElement('strong');label.textContent=chapterLabel(chapter)+' · 第 '+sourcePages(page)+' 頁';
         const excerpt=document.createElement('span');excerpt.textContent=(index>60?'…':'')+text.slice(Math.max(0,index-60),index+needle.length+100)+'…';
         button.append(label,excerpt);
         button.addEventListener('click',async()=>{results.hidden=true;await selectChapter(chapter.id,{anchor:'ax-page-'+page.page});});
@@ -230,7 +231,7 @@
       const root=document.createElement('article');
       for (const chapter of chosen) {
         const data=await content(chapter.id), heading=document.createElement('h1');
-        heading.textContent='Chapter '+chapter.no+' '+chapter.title; root.append(heading);
+        heading.textContent=chapterLabel(chapter)+' '+chapter.title; root.append(heading);
         for (const page of data.pages) {
           const section=document.createElement('section'), label=document.createElement('p');
           label.textContent='原書第 '+sourcePages(page)+' 頁'; section.append(label);
@@ -276,7 +277,8 @@
       '<div id="ax-tools" class="ax-tools" hidden><label class="ax-sr" for="ax-section">本章小節</label><select id="ax-section"></select><div class="ax-reading-controls"><button id="ax-smaller" type="button" aria-label="縮小文字">A−</button><button id="ax-larger" type="button" aria-label="放大文字">A＋</button><button id="ax-mark" type="button">標記選取</button><button id="ax-copy-chapter" type="button">複製本章</button><button id="ax-copy-all" type="button">複製已匯入全文</button><button id="ax-clear-marks" type="button">清除本章標記</button></div></div><div id="ax-status" class="ax-status" role="status"></div>'+
       '<div id="ax-scroll" class="ax-scroll"><article id="ax-content" role="tabpanel" tabindex="0"><div class="ax-head sg-glass"><p id="ax-kicker" class="ax-kicker"></p><h1 id="ax-title" class="ax-title" tabindex="-1"></h1><p id="ax-meta" class="ax-meta"></p></div><div id="ax-body"></div></article></div></div></div>'+
       '<dialog id="ax-dialog" class="ax-dialog" aria-labelledby="ax-dialog-title"><div class="ax-dialog-bar"><h2 id="ax-dialog-title"></h2><button id="ax-dialog-close" type="button" aria-label="關閉圖表">關閉</button></div><div id="ax-dialog-body" class="ax-dialog-body"></div></dialog>';
-    by('ax-count').textContent=catalogue.chapters.length+' 章';
+    const supplements=catalogue.chapters.filter(c=>c.type==='supplement').length;
+    by('ax-count').textContent=(catalogue.chapters.length-supplements)+' 章'+(supplements?'＋'+supplements+' 附錄':'');
     for (const chapter of catalogue.chapters) {
       const button=document.createElement('button');
       button.type='button';button.id='ax-tab-'+chapter.id;button.className='ax-chapter';button.dataset.chapter=chapter.id;
