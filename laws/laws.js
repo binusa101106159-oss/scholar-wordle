@@ -668,17 +668,26 @@
     by('lx-annex-title').innerHTML = '<b>' + esc(a.label) + '</b>' + esc(a.title || '');
     dlg.querySelector('[data-step="-1"]').disabled = pos <= 0;
     dlg.querySelector('[data-step="1"]').disabled = pos >= list.length - 1;
-    by('lx-annex-body').innerHTML = '<p class="lx-loading">載入中…</p>';
+    const body=by('lx-annex-body'),key=id+'|'+JSON.stringify(state.terms);
+    if(body.dataset.renderKey===key) {
+      window.ScholarPeek.open(dlg);body.scrollTop=0;
+      const mark=body.querySelector('mark.lx-mark');if(mark)mark.scrollIntoView({block:'center'});
+      return;
+    }
+    delete body.dataset.renderKey;
+    body.innerHTML = '<p class="lx-loading">載入中…</p>';
     window.ScholarPeek.open(dlg);
     await renderAnnexBody(id);
   }
   async function renderAnnexBody(id) {
+    delete by('lx-annex-body').dataset.renderKey;
     let data;
     try { data = await getAnnex(id); }
     catch (_) { by('lx-annex-body').innerHTML = '<p class="lx-loading">無法載入這個附表。請確認網路連線後再試一次。</p>'; return; }
     if (state.annexOpen !== id) return;
     const body = by('lx-annex-body');
     body.innerHTML = blocksHTML(data.blocks, state.terms, false);
+    body.dataset.renderKey=id+'|'+JSON.stringify(state.terms);
     body.scrollTop = 0;
     const m = body.querySelector('mark.lx-mark');
     if (m) m.scrollIntoView({ block: 'center' });

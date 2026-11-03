@@ -268,3 +268,10 @@
   .ax-eager-position .ax-page { content-visibility:visible; }
 }
 @media print { .ax-page { content-visibility:visible; } }
+
+/* Each source sheet already has an exact width/height. Keep that geometry while
+   postponing layout of the other sheets in a long, joined table. */
+@supports(content-visibility:auto) {
+  .ax-dialog-body .ax-source-object { content-visibility:auto;overflow-clip-margin:4px; }
+}
+@media print { .ax-dialog-body .ax-source-object { content-visibility:visible; } }

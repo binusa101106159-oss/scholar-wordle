@@ -612,11 +612,19 @@
     by('gx-att-title').innerHTML = '<b>' + esc(a.label) + '</b>' + esc(a.title || '');
     dlg.querySelector('[data-step="-1"]').disabled = pos <= 0;
     dlg.querySelector('[data-step="1"]').disabled = pos >= list.length - 1;
-    by('gx-att-body').innerHTML = '<p class="gx-loading">載入中…</p>';
+    const body=by('gx-att-body'),key=id+'|'+JSON.stringify(state.terms);
+    if(body.dataset.renderKey===key) {
+      window.ScholarPeek.open(dlg);body.scrollTop=0;
+      const mark=body.querySelector('mark.gx-mark');if(mark)mark.scrollIntoView({block:'center'});
+      return;
+    }
+    delete body.dataset.renderKey;
+    body.innerHTML = '<p class="gx-loading">載入中…</p>';
     window.ScholarPeek.open(dlg);
     await renderAttBody(id);
   }
   async function renderAttBody(id) {
+    delete by('gx-att-body').dataset.renderKey;
     let data;
     try { data = await getAtt(id); }
     catch (_) { by('gx-att-body').innerHTML = '<p class="gx-loading">無法載入這個表或圖。請確認網路連線後再試一次。</p>'; return; }
@@ -625,6 +633,7 @@
     // the caption is the window title; show everything else
     body.innerHTML = (data.cover || []).map(c => '<p class="gx-cover">' + rich(c, null, state.terms) + '</p>').join('') +
       blocksHTML(data.blocks.filter(b => !b.cap), state.terms, { card: true });
+    body.dataset.renderKey=id+'|'+JSON.stringify(state.terms);
     body.scrollTop = 0;
     const m = body.querySelector('mark.gx-mark');
     if (m) m.scrollIntoView({ block: 'center' });

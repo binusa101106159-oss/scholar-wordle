@@ -286,16 +286,19 @@
       by('ax-dialog').classList.remove('ax-peek','ax-popped');by('ax-peek-expand').hidden=true;
     }
     by('ax-dialog-title').textContent=object.label+' · 原書第 '+sourcePages(object)+' 頁';
-    const body=by('ax-dialog-body'); body.innerHTML=object.html; body.dataset.chapter=chapter;body.dataset.object=id;
+    const body=by('ax-dialog-body'),reuse=body.dataset.chapter===chapter&&body.dataset.object===id&&body.childElementCount>0;
+    if(!reuse)body.innerHTML=object.html;body.dataset.chapter=chapter;body.dataset.object=id;
     const tables=data.attachments.filter(item=>item.kind==='table'),index=tables.findIndex(item=>item.id===id);
     by('ax-table-nav').hidden=index<0;
     by('ax-table-prev').disabled=index<=0;by('ax-table-next').disabled=index<0||index===tables.length-1;
     by('ax-table-position').textContent=index<0?'':(index+1)+'／'+tables.length;
+    if(!reuse) {
     const ids=new Map();
     body.querySelectorAll('[id]').forEach(node=>{const old=node.id;node.id='ax-popup-'+old;ids.set(old,node.id);});
     body.querySelectorAll('[clip-path]').forEach(node=>{
       node.setAttribute('clip-path',node.getAttribute('clip-path').replace(/url\(#([^)]+)\)/g,(_,old)=>'url(#'+(ids.get(old)||old)+')'));
     });
+    }
     presentPopup(before);
     body.scrollTop=0;
     } catch(_){if(request===objectRevision)by('ax-status').textContent='無法載入圖表，請檢查連線後再試。';}
@@ -321,7 +324,9 @@
     return tableCaptions.get(object.id);
   }
   async function openTableIndex(chapterId=current) {
-    const data=await content(chapterId),tables=data.attachments.filter(object=>object.kind==='table');
+    const request=++objectRevision;
+    const data=await content(chapterId);if(request!==objectRevision)return;
+    const tables=data.attachments.filter(object=>object.kind==='table');
     const before=by('ax-dialog').open?by('ax-dialog').getBoundingClientRect():null;
     const chapter=catalogue.chapters.find(item=>item.id===chapterId),body=by('ax-dialog-body');
     by('ax-dialog').classList.remove('ax-peek','ax-popped');by('ax-peek-expand').hidden=true;
@@ -521,6 +526,24 @@
       if(menuOpen && !by('ax-side').contains(event.target) && !by('ax-menu').contains(event.target))menu(false);
     });
     by('ax-section').addEventListener('change',()=>scrollToId(by('ax-section').value));
+    let tableIntentTimer;
+    const warmTable=async ref=>{
+      const chapter=ref.dataset.chapter||current,id=ref.dataset.tableOpen||ref.dataset.open;
+      if(!chapter||!id)return;
+      try{const data=await content(chapter),meta=data.attachments.find(a=>a.id===id);if(meta?.file&&!objects.has(id))await objectContent(meta,chapter);}catch(_){ /* Clicking retains the normal retry/error path. */ }
+    };
+    by('ama-panel').addEventListener('pointerover',event=>{
+      if(event.pointerType==='touch')return;
+      const ref=event.target.closest('[data-table-open],[data-open]');
+      clearTimeout(tableIntentTimer);if(ref)tableIntentTimer=setTimeout(()=>warmTable(ref),90);
+    },{passive:true});
+    by('ama-panel').addEventListener('pointerout',event=>{
+      const ref=event.target.closest('[data-table-open],[data-open]');
+      if(ref&&!ref.contains(event.relatedTarget))clearTimeout(tableIntentTimer);
+    },{passive:true});
+    for(const event of ['focusin','pointerdown'])by('ama-panel').addEventListener(event,e=>{
+      const ref=e.target.closest('[data-table-open],[data-open]');if(ref)warmTable(ref);
+    },{passive:true});
     by('ax-table-shortcuts').addEventListener('click',event=>{const button=event.target.closest('[data-table-open]');if(button)openObject(button.dataset.tableOpen,current,{peek:true});});
     by('ax-peek-expand').addEventListener('click',()=>{const before=by('ax-dialog').getBoundingClientRect();by('ax-dialog').classList.add('ax-popped');by('ax-peek-expand').hidden=true;presentPopup(before);by('ax-dialog-close').focus({preventScroll:true});});
     by('ax-table-prev').addEventListener('click',()=>moveTable(-1));by('ax-table-next').addEventListener('click',()=>moveTable(1));
