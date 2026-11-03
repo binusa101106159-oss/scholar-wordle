@@ -192,3 +192,25 @@
 
 .ax-ca-grid .ax-table-wrap { margin:0; padding:0; }
 .ax-ca-sheet .ax-source-run a > span { position:absolute; top:0; }
+
+/* Chapter table index and complete-table paging share the native dialog. */
+.ax-tables-button { flex-shrink:0; border:1px solid #93c5fd60; border-radius:9px; background:#233c58; color:#e5efff; padding:8px 12px; font-size:12px; cursor:pointer; }
+.ax-dialog[open] { display:flex; flex-direction:column; }
+.ax-dialog-bar,.ax-table-nav { flex-shrink:0; }
+.ax-dialog-body { flex:1 1 auto; min-height:0; }
+.ax-table-nav { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 18px; border-bottom:1px solid var(--ax-rule); background:#19232f; }
+.ax-table-nav[hidden] { display:none; }
+.ax-table-nav button { border:1px solid var(--ax-rule); border-radius:7px; padding:6px 12px; background:#263449; color:var(--ax-ink); cursor:pointer; }
+.ax-table-nav button:disabled { opacity:.4; cursor:default; }
+.ax-table-nav span { margin-left:auto; font-size:12px; color:#a8b7ca; }
+.ax-table-intro { color:#b5c1d0; }
+.ax-table-filter { display:block; margin:14px 0; color:#b5c1d0; font-size:12px; }
+.ax-table-filter input { display:block; box-sizing:border-box; width:100%; margin-top:6px; border:1px solid var(--ax-rule); border-radius:10px; padding:10px 12px; background:#1c2735; color:var(--ax-ink); font-size:15px; }
+.ax-table-index { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); gap:10px; }
+.ax-table-item { display:flex; flex-direction:column; gap:6px; min-width:0; padding:16px; border:1px solid #53617480; border-radius:12px; background:#1c2735; color:var(--ax-ink); text-align:left; cursor:pointer; }
+.ax-table-item[hidden] { display:none; }
+.ax-table-item:hover { background:#263449; border-color:#93c5fd; }
+.ax-table-item strong { color:#bfdbfe; font-size:14px; }
+.ax-table-item span { font-size:14px; line-height:1.5; }
+.ax-table-item small { color:#a8b7ca; font-size:11px; }
+.ax-tables-button:focus-visible,.ax-table-item:focus-visible,.ax-table-nav button:focus-visible { outline:2px solid #93c5fd; outline-offset:2px; }

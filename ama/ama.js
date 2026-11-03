@@ -3,6 +3,7 @@
   'use strict';
   const STORE = 'scholar-ama-v1', MARKS = 'scholar-ama-marks-v1';
   const mobile = matchMedia('(max-width: 900px)'), by = id => document.getElementById(id), chapters = new Map();
+  const tableCaptions=new Map(), tableQueries=new Map();
   let catalogue, loading, current, menuOpen = false, revision = 0, scrollTimer, searchRevision = 0;
   let saved = {}, highlights = {};
   try { saved = JSON.parse(localStorage.getItem(STORE) || '{}'); } catch (_) { /* Optional storage. */ }
@@ -50,7 +51,7 @@
     })().catch(error => { chapters.delete(id); throw error; }));
     return chapters.get(id);
   }
-  function sourcePages(source) { return source.label || (source.sourcePages || [source.page]).join('–'); }
+  function sourcePages(source) { return !source.kind && source.label ? source.label : (source.sourcePages || [source.page]).join('–'); }
   function chapterLabel(chapter) { return chapter.type==='supplement' ? '補充資料' : 'Chapter '+chapter.no; }
   function chapterText(node) {
     const copy = node.cloneNode(true);
@@ -118,7 +119,10 @@
       page.append(label,body); fragment.append(page);
     }
     by('ax-body').replaceChildren(fragment);
-    const choices = [{id:'',title:'本章小節'},...data.sections,...data.attachments.filter(a=>a.kind==='appendix').map(a=>({id:a.id,title:a.label}))];
+    const supplement=catalogue.chapters.find(chapter=>chapter.id===current)?.type==='supplement';
+    const sections=supplement ? data.sections : data.sections.filter(section=>/^\d+\.\d+(?=\s|$)/.test(section.title));
+    const choices = [{id:'',title:'本章小節'},...sections];
+    by('ax-tables').hidden=!data.attachments.some(object=>object.kind==='table');
     by('ax-section').replaceChildren(...choices.map(section => {
       const option=document.createElement('option'); option.value=section.id; option.textContent=section.title; return option;
     }));
@@ -164,7 +168,11 @@
     const chapter=chapterId||current, data=await content(chapter), object=data.attachments.find(a=>a.id===id);
     if (!object) return;
     by('ax-dialog-title').textContent=object.label+' · 原書第 '+sourcePages(object)+' 頁';
-    const body=by('ax-dialog-body'); body.innerHTML=object.html; body.dataset.chapter=chapter;
+    const body=by('ax-dialog-body'); body.innerHTML=object.html; body.dataset.chapter=chapter;body.dataset.object=id;
+    const tables=data.attachments.filter(item=>item.kind==='table'),index=tables.findIndex(item=>item.id===id);
+    by('ax-table-nav').hidden=index<0;
+    by('ax-table-prev').disabled=index<=0;by('ax-table-next').disabled=index<0||index===tables.length-1;
+    by('ax-table-position').textContent=index<0?'':(index+1)+'／'+tables.length;
     const ids=new Map();
     body.querySelectorAll('[id]').forEach(node=>{const old=node.id;node.id='ax-popup-'+old;ids.set(old,node.id);});
     body.querySelectorAll('[clip-path]').forEach(node=>{
@@ -172,6 +180,50 @@
     });
     if (!by('ax-dialog').open) by('ax-dialog').showModal();
     body.scrollTop=0;
+  }
+  function tableCaption(object) {
+    if (!tableCaptions.has(object.id)) {
+      const holder=document.createElement('div');holder.innerHTML=object.html;
+      const table=holder.querySelector('table');let title='';
+      if (table) {
+        const range=document.createRange();range.setStart(holder,0);range.setEndBefore(table);
+        title=chapterText(range.cloneContents()).replace(/\s+/g,' ').trim();
+        if (!title) {
+          // Positioned headings can follow the grid in DOM order while sitting above it.
+          const top=node=>{let y=0;for(let n=node;n&&n!==holder;n=n.parentElement)y+=parseFloat(n.style.top)||0;return y;};
+          title=[...holder.querySelectorAll('.ax-source-run')].filter(run=>!run.closest('table')&&top(run)<top(table)-.5).sort((a,b)=>top(a)-top(b)).map(run=>run.textContent).join(' ').replace(/\s+/g,' ').trim();
+        }
+        const label=[...object.label.replace(/\s/g,'')].map(char=>char.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('\\s*');
+        title=title.replace(new RegExp('^'+label+'\\s*','i'),'').trim();
+      }
+      tableCaptions.set(object.id,title.slice(0,180));
+    }
+    return tableCaptions.get(object.id);
+  }
+  async function openTableIndex(chapterId=current) {
+    const data=await content(chapterId),tables=data.attachments.filter(object=>object.kind==='table');
+    const chapter=catalogue.chapters.find(item=>item.id===chapterId),body=by('ax-dialog-body');
+    by('ax-dialog-title').textContent=chapterLabel(chapter)+' · 本章表格';by('ax-table-nav').hidden=true;
+    body.replaceChildren();body.dataset.chapter=chapterId;delete body.dataset.object;
+    const intro=document.createElement('p');intro.className='ax-table-intro';intro.textContent=chapter.title+' · '+tables.length+' 張表格';
+    const label=document.createElement('label');label.className='ax-table-filter';label.textContent='搜尋表號或標題';
+    const input=document.createElement('input');input.type='search';input.id='ax-table-query';input.placeholder='輸入表號或標題關鍵字';input.value=tableQueries.get(chapterId)||'';label.append(input);
+    const list=document.createElement('div');list.className='ax-table-index';const empty=document.createElement('p');empty.textContent='找不到符合的表格。';empty.hidden=true;
+    for (const object of tables) {
+      const button=document.createElement('button');button.type='button';button.className='ax-table-item';button.dataset.table=object.id;
+      const number=document.createElement('strong');number.textContent=object.label;
+      const title=document.createElement('span');title.textContent=tableCaption(object);
+      const source=document.createElement('small');source.textContent='原書第 '+sourcePages(object)+' 頁';button.append(number,title,source);
+      button.addEventListener('click',()=>openObject(object.id,chapterId));list.append(button);
+    }
+    const filter=()=>{const query=input.value.trim().toLocaleLowerCase();tableQueries.set(chapterId,input.value);let count=0;for(const button of list.children){button.hidden=!button.textContent.toLocaleLowerCase().includes(query);if(!button.hidden)count++;}empty.hidden=count>0;};
+    input.addEventListener('input',filter);filter();body.append(intro,label,list,empty);
+    if (!by('ax-dialog').open) by('ax-dialog').showModal();body.scrollTop=0;input.focus({preventScroll:true});
+  }
+  async function moveTable(direction) {
+    const body=by('ax-dialog-body'),data=await content(body.dataset.chapter),tables=data.attachments.filter(object=>object.kind==='table');
+    const index=tables.findIndex(object=>object.id===body.dataset.object),next=tables[index+direction];
+    if (index>=0 && next) openObject(next.id,body.dataset.chapter);
   }
   async function search() {
     const query=by('ax-query').value.trim(),version=++searchRevision,results=by('ax-results');
@@ -308,9 +360,9 @@
       '<form id="ax-search" class="ax-search"><label class="ax-sr" for="ax-query">搜尋已匯入章節</label><input id="ax-query" type="search" placeholder="搜尋已匯入章節" autocomplete="off"><button type="submit" class="sg-btn">搜尋</button></form>'+
       '<div id="ax-results" class="ax-results" aria-live="polite" hidden></div><div id="ax-list" class="ax-list" role="tablist" aria-label="AMA 章節" aria-orientation="vertical"></div></div></aside>'+
       '<div class="ax-reader"><div class="ax-bar"><button id="ax-menu" class="ax-sidebar-toggle" type="button" aria-controls="ax-sidebar-content" aria-expanded="false" aria-label="展開側欄" title="展開側欄"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><span id="ax-location" class="ax-location"></span></div>'+
-      '<div id="ax-tools" class="ax-tools" hidden><label class="ax-sr" for="ax-section">本章小節</label><select id="ax-section"></select><div class="ax-reading-controls"><button id="ax-smaller" type="button" aria-label="縮小文字">A−</button><button id="ax-larger" type="button" aria-label="放大文字">A＋</button><button id="ax-mark" type="button">標記選取</button><button id="ax-copy-chapter" type="button">複製本章</button><button id="ax-copy-all" type="button">複製已匯入全文</button><button id="ax-clear-marks" type="button">清除本章標記</button></div></div><div id="ax-status" class="ax-status" role="status"></div>'+
+      '<div id="ax-tools" class="ax-tools" hidden><button id="ax-tables" class="ax-tables-button" type="button" aria-haspopup="dialog">本章表格</button><label class="ax-sr" for="ax-section">本章小節</label><select id="ax-section"></select><div class="ax-reading-controls"><button id="ax-smaller" type="button" aria-label="縮小文字">A−</button><button id="ax-larger" type="button" aria-label="放大文字">A＋</button><button id="ax-mark" type="button">標記選取</button><button id="ax-copy-chapter" type="button">複製本章</button><button id="ax-copy-all" type="button">複製已匯入全文</button><button id="ax-clear-marks" type="button">清除本章標記</button></div></div><div id="ax-status" class="ax-status" role="status"></div>'+
       '<div id="ax-scroll" class="ax-scroll"><article id="ax-content" role="tabpanel" tabindex="0"><div class="ax-head sg-glass"><p id="ax-kicker" class="ax-kicker"></p><h1 id="ax-title" class="ax-title" tabindex="-1"></h1><p id="ax-meta" class="ax-meta"></p></div><div id="ax-body"></div></article></div></div></div>'+
-      '<dialog id="ax-dialog" class="ax-dialog" aria-labelledby="ax-dialog-title"><div class="ax-dialog-bar"><h2 id="ax-dialog-title"></h2><button id="ax-dialog-close" type="button" aria-label="關閉圖表">關閉</button></div><div id="ax-dialog-body" class="ax-dialog-body"></div></dialog>';
+      '<dialog id="ax-dialog" class="ax-dialog" aria-labelledby="ax-dialog-title"><div class="ax-dialog-bar"><h2 id="ax-dialog-title"></h2><button id="ax-dialog-close" type="button" aria-label="關閉圖表">關閉</button></div><div id="ax-table-nav" class="ax-table-nav" hidden><button id="ax-table-prev" type="button">上一張</button><button id="ax-table-index" type="button">表格目錄</button><button id="ax-table-next" type="button">下一張</button><span id="ax-table-position" aria-live="polite"></span></div><div id="ax-dialog-body" class="ax-dialog-body"></div></dialog>';
     const supplements=catalogue.chapters.filter(c=>c.type==='supplement').length;
     by('ax-count').textContent=(catalogue.chapters.length-supplements)+' 章'+(supplements?'＋'+supplements+' 附錄':'');
     for (const chapter of catalogue.chapters) {
@@ -336,6 +388,9 @@
       if(menuOpen && !by('ax-side').contains(event.target) && !by('ax-menu').contains(event.target))menu(false);
     });
     by('ax-section').addEventListener('change',()=>scrollToId(by('ax-section').value));
+    by('ax-tables').addEventListener('click',()=>openTableIndex());
+    by('ax-table-prev').addEventListener('click',()=>moveTable(-1));by('ax-table-next').addEventListener('click',()=>moveTable(1));
+    by('ax-table-index').addEventListener('click',()=>openTableIndex(by('ax-dialog-body').dataset.chapter));
     by('ax-body').addEventListener('click',event=>{
       const ref=event.target.closest('[data-open]');if(ref){event.preventDefault();openObject(ref.dataset.open,ref.dataset.chapter);}
     });
@@ -350,7 +405,7 @@
     by('ax-mark').addEventListener('mousedown',event=>event.preventDefault());by('ax-mark').addEventListener('click',markSelection);
     by('ax-copy-chapter').addEventListener('click',()=>copyAMA(false));
     by('ax-copy-all').addEventListener('click',()=>copyAMA(true));
-      by('ama-panel').addEventListener('copy',copySelection);
+    by('ama-panel').addEventListener('copy',copySelection);
     by('ax-clear-marks').addEventListener('click',()=>{
       delete highlights[current];try{localStorage.setItem(MARKS,JSON.stringify(highlights));}catch(_){/* Optional storage. */}
       by('ax-body').querySelectorAll('mark.ax-highlight').forEach(mark=>mark.replaceWith(...mark.childNodes));by('ax-status').textContent='已清除本章標記。';
