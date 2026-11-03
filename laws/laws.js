@@ -3,6 +3,7 @@
   'use strict';
   const BASE = 'laws/';
   const STORE = 'scholar-laws-v1';
+  const CHECK_STORE = 'scholar-laws-checked-v1', checkedArticles = new Map();
   const TIER_NAMES = { S: '熟練應用', A: '常見個案與專題', B: '特定場景查用', C: '支付、歷史與過渡' };
   const state = { index: null, byId: new Map(), texts: new Map(), annexes: new Map(), current: null, query: '', terms: [],
     scope: 'all', field: null, corpus: null, corpusPromise: null, ready: false, annexOpen: null };
@@ -21,6 +22,66 @@
 
   function prefs() { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (_) { return {}; } }
   function setPrefs(patch) { try { localStorage.setItem(STORE, JSON.stringify(Object.assign(prefs(), patch))); } catch (_) { /* private mode */ } }
+  function loadChecked() {
+    checkedArticles.clear();
+    try { for (const [id, numbers] of Object.entries(JSON.parse(localStorage.getItem(CHECK_STORE)) || {})) {
+      if (!Array.isArray(numbers)) continue;
+      const valid = numbers.filter(no => typeof no === 'string' && /^\d+(?:-\d+)*$/.test(no));
+      if (valid.length) checkedArticles.set(id, new Set(valid));
+    } } catch (_) { /* Optional local storage. */ }
+  }
+  function checkedCount() { return [...checkedArticles].reduce((n, [id, numbers]) => n + (state.byId.has(id) ? numbers.size : 0), 0); }
+  function updateCheckedControls() {
+    by('lx-checked-count').textContent = String(checkedCount());
+    for (const input of by('laws-panel').querySelectorAll('[data-check-law]')) {
+      input.checked = Boolean(checkedArticles.get(input.dataset.checkLaw)?.has(input.dataset.checkNo));
+      input.closest('.lx-art')?.classList.toggle('lx-is-checked', input.checked);
+    }
+  }
+  function setArticleChecked(id, no, value) {
+    if (!state.byId.has(id)) return;
+    const numbers = checkedArticles.get(id) || new Set();
+    if (value) numbers.add(no); else numbers.delete(no);
+    if (numbers.size) checkedArticles.set(id, numbers); else checkedArticles.delete(id);
+    try { localStorage.setItem(CHECK_STORE, JSON.stringify(Object.fromEntries([...checkedArticles].map(([law, set]) => [law, [...set]])))); } catch (_) { /* Keep the current session usable. */ }
+    updateCheckedControls();
+    if (state.checkedView) renderCheckedPage(true);
+  }
+  function setCheckedView(checked) {
+    if (Boolean(state.checkedView) === checked) return;
+    const sc = by('lx-scroll');
+    if (checked) { rememberPosition(); state.checkedReturnTop = sc.scrollTop; }
+    else state.checkedTop = sc.scrollTop;
+    state.checkedView = checked;setPrefs({ view: checked ? 'checked' : 'law' });
+    by('lx-doc').hidden = checked;by('lx-checked-doc').hidden = !checked;by('lx-reader-tools').hidden = checked;
+    by('lx-view-read').setAttribute('aria-pressed', String(!checked));by('lx-view-checked').setAttribute('aria-pressed', String(checked));
+    closePanel();hideHlBar();
+    if (checked) renderCheckedPage();
+    else { sc.style.scrollBehavior = 'auto';sc.scrollTop = state.checkedReturnTop || 0;sc.style.scrollBehavior = '';if (state.current) document.title = state.current.meta.name + ' · Scholar'; }
+  }
+  let checkedRevision = 0;
+  async function renderCheckedPage(keepScroll = false) {
+    const revision = ++checkedRevision, sc = by('lx-scroll'), top = keepScroll ? sc.scrollTop : (state.checkedTop || 0), page = by('lx-checked-doc');
+    const focusWasInside = page.contains(document.activeElement);
+    if (!keepScroll) page.innerHTML = '<p class="lx-loading">載入已勾選條文…</p>';
+    const groups = await Promise.all(state.index.laws.filter(law => checkedArticles.has(law.id)).map(async meta => {
+      try { const law = await getText(meta.id);return { meta, law, items: law.items.filter(it => it.t === 'art' && checkedArticles.get(meta.id)?.has(it.no)) }; }
+      catch (_) { return { meta, error: true }; }
+    }));
+    if (!state.checkedView || revision !== checkedRevision) return;
+    let html = '<div class="lx-head sg-glass"><h1 class="lx-title" tabindex="-1">已勾選條文</h1><p class="lx-meta">共 ' + checkedCount() + ' 條 · 勾選保存在這台裝置</p></div>';
+    for (const group of groups) {
+      if (group.error) { html += '<p class="lx-empty">' + esc(group.meta.name) + '暫時無法載入。<button type="button" class="sg-btn" data-checked-retry>重試</button></p>';continue; }
+      if (!group.items.length) continue;
+      html += '<section class="lx-checked-group"><h2 class="lx-checked-law"><button type="button" data-checked-source="' + esc(group.meta.id) + '" data-checked-article="' + esc(group.items[0].no) + '">' + esc(group.meta.name) + '</button><small>' + group.items.length + ' 條</small></h2>';
+      for (const item of group.items) html += articleHTML(group.law, item, [], 'lx-checked-a-');
+      html += '</section>';
+    }
+    if (!groups.length) html += '<p class="lx-empty">尚未勾選條文。回到「法規全文」，勾選第○條旁的框框即可加入。</p>';
+    page.innerHTML = html;sc.style.scrollBehavior = 'auto';sc.scrollTop = top;sc.style.scrollBehavior = '';
+    if (focusWasInside) page.querySelector('h1').focus({ preventScroll: true });
+    document.title = '已勾選條文 · Scholar';
+  }
 
   async function fetchJSON(path) {
     const res = await fetch(BASE + path);
@@ -189,7 +250,8 @@
           </div>
         </aside>
         <section class="lx-reader">
-          <div class="lx-bar">
+          <div class="sg-segment lx-view-tabs" role="group" aria-label="法規閱讀頁面"><button type="button" class="sg-btn" id="lx-view-read" aria-pressed="true">法規全文</button><button type="button" class="sg-btn" id="lx-view-checked" aria-pressed="false">已勾選條文 <span id="lx-checked-count">0</span></button></div>
+          <div class="lx-bar" id="lx-reader-tools">
             <button type="button" class="lx-sidebar-toggle lx-menu-btn" id="lx-menu" aria-label="展開側欄" title="展開側欄" aria-controls="lx-sidebar-content" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button>
             <label class="lx-jump">第<input id="lx-jump" inputmode="numeric" aria-label="跳到第幾條" placeholder="" autocomplete="off">條</label>
             <select class="lx-select" id="lx-chapters" aria-label="跳到章節" hidden></select>
@@ -198,7 +260,7 @@
             <button type="button" class="sg-btn lx-tool-btn" id="lx-style-btn" aria-haspopup="dialog" aria-controls="lx-panel" title="閱讀設定">${icon.aa}<span>閱讀設定</span></button>
           </div>
           <div class="lx-panel" id="lx-panel" role="dialog" aria-label="閱讀設定與畫線" hidden></div>
-          <div class="lx-scroll" id="lx-scroll"><article class="lx-doc" id="lx-doc"></article></div>
+          <div class="lx-scroll" id="lx-scroll"><article class="lx-doc" id="lx-doc"></article><article class="lx-doc" id="lx-checked-doc" hidden></article></div>
         </section>
       </div>
       <dialog class="lx-dialog" id="lx-annex" aria-labelledby="lx-annex-title">
@@ -216,6 +278,15 @@
   }
 
   function wire() {
+    by('lx-view-read').addEventListener('click', () => setCheckedView(false));
+    by('lx-view-checked').addEventListener('click', () => setCheckedView(true));
+    by('laws-panel').addEventListener('change', e => { const input = e.target.closest('[data-check-law]');if (input) setArticleChecked(input.dataset.checkLaw, input.dataset.checkNo, input.checked); });
+    by('lx-checked-doc').addEventListener('click', e => {
+      const source = e.target.closest('[data-checked-source]');if (source) { openLaw(source.dataset.checkedSource, { art: source.dataset.checkedArticle, flash: true });return; }
+      const annex = e.target.closest('[data-annex]');if (annex) openAnnex(annex.dataset.annex);
+      if (e.target.closest('[data-checked-retry]')) renderCheckedPage(true);
+    });
+    window.addEventListener('storage', e => { if (e.key === CHECK_STORE) { loadChecked();updateCheckedControls();if (state.checkedView) renderCheckedPage(true); } });
     const q = by('lx-q');
     let timer = 0;
     q.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => setQuery(q.value), 180); });
@@ -349,7 +420,7 @@
   }
 
   function rememberPosition() {
-    if (!state.current) return;
+    if (!state.current || state.checkedView) return;
     const pos = Object.assign({}, prefs().pos);
     pos[state.current.id] = Math.round(by('lx-scroll').scrollTop);
     setPrefs({ law: state.current.id, pos });
@@ -496,6 +567,7 @@
   async function openLaw(id, opts = {}) {
     const meta = state.byId.get(id);
     if (!meta) return;
+    if (state.checkedView) setCheckedView(false);
     if (!state.current || state.current.id !== id) {
       rememberPosition();
       by('lx-doc').innerHTML = '<p class="lx-loading">載入中…</p>';
@@ -526,6 +598,21 @@
     if (flash) { el.classList.add('lx-flash'); setTimeout(() => el.classList.remove('lx-flash'), 1400); }
     return true;
   }
+  function articleHTML(law, it, terms, prefix = 'lx-a-') {
+    const isChecked = Boolean(checkedArticles.get(law.id)?.has(it.no));
+    let html = '<section class="lx-art' + (isChecked ? ' lx-is-checked' : '') + '" id="' + prefix + law.id + '-' + it.no + '"><h3 class="lx-art-no"><label class="lx-article-label"><input type="checkbox" class="lx-article-check" data-check-law="' + esc(law.id) + '" data-check-no="' + esc(it.no) + '" aria-label="勾選' + esc(law.name) + '第' + esc(it.no) + '條"' + (isChecked ? ' checked' : '') + '>第 ' + it.no + ' 條</label></h3><div class="lx-art-body">';
+      it.paras.forEach(p => {
+        html += '<div class="lx-para' + (p.n ? ' lx-numbered' : '') + '">' + (p.n ? '<span class="lx-pn" aria-label="第' + p.n + '項">' + p.n + '</span>' : '');
+        p.lines.forEach(l => {
+          if (l.table) html += tableHTML(l.table, terms, false);
+          else if (l.formula) html += formulaHTML(l.formula, terms);
+          else html += '<p class="lx-l lx-lv' + (l.lv || 0) + (l.notice ? ' lx-notice' : '') + '">' + rich(l.text, l.links, terms) + '</p>';
+        });
+        html += '</div>';
+      });
+      html += '</div></section>';
+    return html;
+  }
   function renderDoc(law, keepScroll) {
     const terms = state.terms, meta = law.meta;
     const sc = by('lx-scroll'), top = sc.scrollTop;
@@ -550,23 +637,14 @@
         html += '<h2 class="lx-ch lx-ch-' + level + '" id="' + hid + '">' + rich(it.text, null, terms) + '</h2>';
         return;
       }
-      html += '<section class="lx-art" id="lx-a-' + law.id + '-' + it.no + '"><h3 class="lx-art-no">第 ' + it.no + ' 條</h3><div class="lx-art-body">';
-      it.paras.forEach(p => {
-        html += '<div class="lx-para' + (p.n ? ' lx-numbered' : '') + '">' + (p.n ? '<span class="lx-pn" aria-label="第' + p.n + '項">' + p.n + '</span>' : '');
-        p.lines.forEach(l => {
-          if (l.table) html += tableHTML(l.table, terms, false);
-          else if (l.formula) html += formulaHTML(l.formula, terms);
-          else html += '<p class="lx-l lx-lv' + (l.lv || 0) + (l.notice ? ' lx-notice' : '') + '">' + rich(l.text, l.links, terms) + '</p>';
-        });
-        html += '</div>';
-      });
-      html += '</div></section>';
+      html += articleHTML(law, it, terms);
     });
     by('lx-doc').innerHTML = html;
     const sel = by('lx-chapters');
     sel.hidden = !chapters.length;
     sel.innerHTML = '<option value="">章節</option>' + chapters.map(c => '<option value="' + c.id + '">' + '　'.repeat(c.level - 1) + esc(c.text.replace(/\s+/g, ' ')) + '</option>').join('');
     by('lx-jump').value = '';
+    updateCheckedControls();
     paintMarks();
     if (keepScroll) { sc.style.scrollBehavior = 'auto'; sc.scrollTop = top; sc.style.scrollBehavior = ''; }
     document.title = meta.name + ' · Scholar';
@@ -936,15 +1014,17 @@
         try { state.index = await fetchJSON('index.json'); }
         catch (_) { by('lx-list').innerHTML = '<p class="lx-empty">無法載入法規目錄。第一次使用需要網路連線，之後可離線閱讀。</p>'; booted = null; return; }
         state.index.laws.forEach(l => state.byId.set(l.id, l));
+        loadChecked();updateCheckedControls();
         renderSide();
         const last = prefs().law;
         await openLaw(state.byId.has(last) ? last : state.index.laws[0].id, { boot: true });
+        if (prefs().view === 'checked') setCheckedView(true);
         // warm the cache for offline use and instant search
         const idle = window.requestIdleCallback || (fn => setTimeout(fn, 1500));
         idle(() => loadCorpus().catch(() => {}));
       })();
     } else if (state.current) {
-      document.title = state.current.meta.name + ' · Scholar';
+      document.title = state.checkedView ? '已勾選條文 · Scholar' : state.current.meta.name + ' · Scholar';
     }
     return booted;
   }
