@@ -433,6 +433,8 @@
 <script src="notes/notes.js" defer></script>
 <link rel="stylesheet" href="reader-top.css">
 <script src="reader-top.js" defer></script>
+<link rel="stylesheet" href="peek-glass.css">
+<script src="peek-glass.js" defer></script>
 <style id="scholar-games-style">
 /* Shared additions to the original OLED / liquid-glass interface. */
 [hidden] { display: none !important; }
@@ -2221,7 +2223,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
       resizeFxCanvas();
       startFxLoop();
       updateWinLoss();
-      document.getElementById('wl-pill').addEventListener('click', () => { renderStatsModal(); const m = document.getElementById('modal-stats'); m.classList.remove('hidden'); m.classList.add('flex'); });
+      document.getElementById('wl-pill').addEventListener('click', () => { renderStatsModal(); window.ScholarPeek.open(document.getElementById('modal-stats')); });
       window.addEventListener('resize', () => {
         resizeFxCanvas();
         drawShareScorecardCanvas();
@@ -2272,20 +2274,17 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
       });
       document.getElementById('btn-card-share').addEventListener('click', () => {
         renderStatsModal();
-        document.getElementById('modal-stats').classList.remove('hidden');
-        document.getElementById('modal-stats').classList.add('flex');
+        window.ScholarPeek.open(document.getElementById('modal-stats'));
       });
 
       // Modals Open/Close
       const openModal = (id) => {
         const m = document.getElementById(id);
-        m.classList.remove('hidden');
-        m.classList.add('flex');
+        window.ScholarPeek.open(m);
       };
       const closeModal = (id) => {
         const m = document.getElementById(id);
-        m.classList.add('hidden');
-        m.classList.remove('flex');
+        window.ScholarPeek.close(m);
       };
 
       document.getElementById('btn-lexicon').addEventListener('click', () => {
@@ -3030,7 +3029,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     const started = game === 'sudoku' ? sudoku && sudoku.values.some((v, i) => v !== sudoku.puzzle.givens[i]) && !sudoku.won : crossword && crossword.values.some(Boolean) && !crossword.won;
     const create = () => game === 'sudoku' ? newSudoku(kind) : newCrossword(kind);
     if (!started) return create();
-    confirmAction = create; by('scholar-new-dialog').showModal();
+    confirmAction = create; window.ScholarPeek.open(by('scholar-new-dialog'));
   }
   let studySection = 'review';
   function switchGame(game, updateURL = true) {
@@ -3159,11 +3158,11 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
       else if (key) crosswordInput(key.dataset.key);
       else if (action) crosswordAction(action.dataset.action);
     });
-    by('scholar-new-dialog').addEventListener('click', event => {
+    by('scholar-new-dialog').addEventListener('click', async event => {
       const action = event.target.closest('[data-action]');
       if (!action) return;
       const confirmed = action.dataset.action === 'confirm-dialog';
-      by('scholar-new-dialog').close();
+      if (!await window.ScholarPeek.close(by('scholar-new-dialog'))) return;
       if (confirmed && confirmAction) confirmAction(); confirmAction = null;
     });
     window.addEventListener('keydown', keyboard);

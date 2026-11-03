@@ -1,0 +1,53 @@
+/* Shared lightweight glass motion for existing non-AMA popups. */
+(() => {
+  'use strict';
+  const states=new WeakMap(),reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const frames=Array.from({length:37},(_,i)=>{
+    const t=i/36,p=(1-(1+9*t)*Math.exp(-9*t))/(1-10*Math.exp(-9));
+    const f=Math.min(1,t/.34);
+    return {offset:t,opacity:f*f*(3-2*f),transform:`translateY(${8*(1-p)}px) scale(${.9+.1*p})`};
+  });
+  function setup(el) {
+    if(states.has(el))return states.get(el);
+    const native=el instanceof HTMLDialogElement,state={native,motion:null,closing:false};
+    el.classList.add(native?'pg-dialog':'pg-overlay');states.set(el,state);
+    if(native) {
+      el.addEventListener('cancel',e=>{e.preventDefault();close(el);});
+      el.addEventListener('close',()=>{if(state.motion)state.motion.cancel();state.motion=null;state.closing=false;el.classList.remove('pg-closing','pg-moving');});
+    }
+    return state;
+  }
+  function open(el) {
+    const s=setup(el),visible=s.native?el.open:!el.classList.contains('hidden');
+    if(visible&&!s.closing)return;
+    s.closing=false;
+    if(s.motion)s.motion.cancel();
+    el.classList.remove('pg-closing');
+    if(s.native){if(!el.open)el.showModal();}
+    else{el.classList.remove('hidden');el.classList.add('flex');}
+    const card=s.native?el:el.firstElementChild;
+    if(reduced())return;
+    el.classList.add('pg-moving');
+    const motion=card.animate(frames,{duration:520,easing:'linear'});s.motion=motion;
+    motion.finished.then(()=>{if(s.motion===motion)el.classList.remove('pg-moving');},()=>{});
+  }
+  async function close(el) {
+    const s=setup(el);
+    if(s.closing||!(s.native?el.open:!el.classList.contains('hidden')))return false;
+    s.closing=true;
+    const card=s.native?el:el.firstElementChild,style=getComputedStyle(card);
+    const start={opacity:style.opacity,transform:style.transform};
+    const glass=getComputedStyle(el,s.native?'::backdrop':'::before');
+    el.style.setProperty('--pg-glass-opacity',glass.opacity);
+    if(s.motion)s.motion.cancel();
+    el.classList.add('pg-closing','pg-moving');
+    if(!reduced()) {
+      const motion=card.animate([start,{opacity:0,transform:'translateY(8px) scale(.985)'}],{duration:340,easing:'cubic-bezier(.25,.1,.25,1)',fill:'forwards'});s.motion=motion;
+      try{await motion.finished;}catch(_){return false;}
+    }
+    if(s.native)el.close();else{el.classList.add('hidden');el.classList.remove('flex');}
+    if(s.motion)s.motion.cancel();s.motion=null;s.closing=false;
+    el.classList.remove('pg-closing','pg-moving');return true;
+  }
+  window.ScholarPeek={open,close};
+})();

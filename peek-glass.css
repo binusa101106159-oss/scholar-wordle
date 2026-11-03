@@ -1,0 +1,25 @@
+/* Same glass and 6px background frost as the AMA previews. */
+.pg-dialog.pg-dialog,html.dark .pg-overlay > div {
+  border:1px solid rgba(220,235,255,.24)!important;
+  background:linear-gradient(145deg,rgba(205,225,255,.10),rgba(180,205,240,.025) 48%),rgba(24,33,47,.64)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  box-shadow:0 24px 80px #0005,inset 0 1px 0 #ffffff24,inset 0 -1px 0 #ffffff08!important;
+  transform-origin:center;animation:none!important;
+}
+.pg-dialog.pg-dialog::backdrop,.pg-overlay::before {
+  background:rgba(8,14,24,.14);
+  -webkit-backdrop-filter:blur(6px) saturate(1.1);backdrop-filter:blur(6px) saturate(1.1);
+  animation:pg-glass-in .52s cubic-bezier(.2,.7,.2,1) both;
+}
+html.dark .pg-overlay { background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important; }
+.pg-overlay::before { content:'';position:absolute;inset:0;pointer-events:none; }
+.pg-overlay > div { position:relative; }
+.pg-dialog.pg-closing::backdrop,.pg-overlay.pg-closing::before { animation:pg-glass-out .34s cubic-bezier(.25,.1,.25,1) forwards; }
+.pg-dialog.pg-moving,.pg-overlay.pg-moving > div { will-change:transform,opacity; }
+.pg-dialog :is(.lx-dialog-head,.gx-dialog-head),html.dark .pg-overlay > div > div:first-child { background:rgba(205,225,255,.035)!important; }
+.pg-dialog :is(.lx-table,.gx-table) { background:rgba(14,21,31,.24); }
+@keyframes pg-glass-in { from { opacity:0; } to { opacity:1; } }
+@keyframes pg-glass-out { from { opacity:var(--pg-glass-opacity,1); } to { opacity:0; } }
+@media(prefers-reduced-motion:reduce) {
+  .pg-dialog.pg-dialog::backdrop,.pg-overlay::before,.pg-dialog.pg-closing::backdrop,.pg-overlay.pg-closing::before { animation:none; }
+}

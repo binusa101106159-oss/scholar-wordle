@@ -365,7 +365,7 @@
     by('lx-scroll').addEventListener('scroll', () => { clearTimeout(saveTimer); saveTimer = setTimeout(rememberPosition, 250); }, { passive: true });
     const dlg = by('lx-annex');
     dlg.addEventListener('click', e => {
-      if (e.target === dlg) { closeAnnex(); return; }
+      if (e.target === dlg) { const r=dlg.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeAnnex();return; }
       if (e.target.closest('[data-close]')) closeAnnex();
       const step = e.target.closest('[data-step]');
       if (step) stepAnnex(Number(step.dataset.step));
@@ -669,7 +669,7 @@
     dlg.querySelector('[data-step="-1"]').disabled = pos <= 0;
     dlg.querySelector('[data-step="1"]').disabled = pos >= list.length - 1;
     by('lx-annex-body').innerHTML = '<p class="lx-loading">載入中…</p>';
-    if (!dlg.open) dlg.showModal();
+    window.ScholarPeek.open(dlg);
     await renderAnnexBody(id);
   }
   async function renderAnnexBody(id) {
@@ -685,10 +685,7 @@
   }
   function closeAnnex() {
     const dlg = by('lx-annex');
-    if (!dlg.open || dlg.classList.contains('lx-closing')) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { dlg.close(); return; }
-    dlg.classList.add('lx-closing');
-    setTimeout(() => { if (dlg.open) dlg.close(); }, 170);
+    window.ScholarPeek.close(dlg);
   }
   function stepAnnex(d) {
     if (!state.annexOpen) return;

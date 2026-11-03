@@ -314,7 +314,7 @@
     by('gx-scroll').addEventListener('scroll', () => { clearTimeout(saveTimer); saveTimer = setTimeout(rememberPosition, 250); }, { passive: true });
     const dlg = by('gx-att');
     dlg.addEventListener('click', e => {
-      if (e.target === dlg) { closeAtt(); return; }
+      if (e.target === dlg) { const r=dlg.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeAtt();return; }
       if (e.target.closest('[data-close]')) closeAtt();
       const step = e.target.closest('[data-step]');
       if (step) stepAtt(Number(step.dataset.step));
@@ -613,7 +613,7 @@
     dlg.querySelector('[data-step="-1"]').disabled = pos <= 0;
     dlg.querySelector('[data-step="1"]').disabled = pos >= list.length - 1;
     by('gx-att-body').innerHTML = '<p class="gx-loading">載入中…</p>';
-    if (!dlg.open) dlg.showModal();
+    window.ScholarPeek.open(dlg);
     await renderAttBody(id);
   }
   async function renderAttBody(id) {
@@ -631,10 +631,7 @@
   }
   function closeAtt() {
     const dlg = by('gx-att');
-    if (!dlg.open || dlg.classList.contains('gx-closing')) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { dlg.close(); return; }
-    dlg.classList.add('gx-closing');
-    setTimeout(() => { if (dlg.open) dlg.close(); }, 170);
+    window.ScholarPeek.close(dlg);
   }
   function stepAtt(d) {
     if (!state.attOpen) return;
