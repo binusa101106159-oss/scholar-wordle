@@ -261,3 +261,10 @@
 .ax-font-control { display:inline-flex; align-items:center; gap:6px; color:#cbd5e1; font-size:11px; }
 .ax-font-control select { flex:0 1 auto; width:150px; padding:6px 8px; font-size:11px; }
 #ama-panel[data-reading-font]:not([data-reading-font="default"]) .ax-page-content :is(p,h2,h3,li,blockquote):not(.ax-object *) { font-family:var(--ax-reading-font)!important; }
+
+/* Keep native selectable content; skip off-screen layout until it is needed. */
+@supports(content-visibility:auto) {
+  .ax-page { content-visibility:auto; contain-intrinsic-size:auto 1100px; }
+  .ax-eager-position .ax-page { content-visibility:visible; }
+}
+@media print { .ax-page { content-visibility:visible; } }

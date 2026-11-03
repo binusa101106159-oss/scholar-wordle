@@ -3,7 +3,8 @@
   'use strict';
   const STORE = 'scholar-ama-v1', MARKS = 'scholar-ama-marks-v1';
   const mobile = matchMedia('(max-width: 900px)'), by = id => document.getElementById(id), chapters = new Map();
-  const tableCaptions=new Map(), tableQueries=new Map();
+  const tableCaptions=new Map(), tableQueries=new Map(), objects=new Map();
+  let fastIndex, searchIndex, renderedChapter, objectRevision=0, anchorRevision=0;
   const readingFonts={default:'',georgia:"Georgia,'Times New Roman',serif",times:"'Times New Roman',Times,serif",arial:'Arial,Helvetica,sans-serif',system:"system-ui,'Noto Sans TC','Microsoft JhengHei',sans-serif"};
   let catalogue, loading, current, menuOpen = false, revision = 0, scrollTimer, searchRevision = 0;
   let saved = {}, highlights = {};
@@ -11,7 +12,7 @@
   try { highlights = JSON.parse(localStorage.getItem(MARKS) || '{}'); } catch (_) { /* Optional storage. */ }
   if (!saved || typeof saved !== 'object') saved = {};
   if (!highlights || typeof highlights !== 'object') highlights = {};
-  saved.positions ||= {};
+  saved.positions ||= {};saved.anchors ||= {};
 
   function persist() { try { localStorage.setItem(STORE,JSON.stringify(saved)); } catch (_) { /* Reading stays available. */ } }
   function measure() {
@@ -44,13 +45,64 @@
     menuOpen = Boolean(open);
     updateSidebar(); if (restoreFocus) by('ax-menu').focus({preventScroll:true}); revealSelection();
   }
+  async function packedJSON(file) {
+    const response=await fetch(file);
+    if(!response.ok)throw new Error('AMA content unavailable');
+    const bytes=new Uint8Array(await response.arrayBuffer());
+    if(bytes[0]===31 && bytes[1]===139) return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).json();
+    return new Response(bytes).json();
+  }
+  function fastManifest() {
+    if(!fastIndex)fastIndex=fetch('ama/fast/index.json').then(r=>{if(!r.ok)throw new Error('AMA manifest unavailable');return r.json();}).catch(e=>{fastIndex=null;throw e;});
+    return fastIndex;
+  }
+  async function legacyContent(id) {
+    const response=await fetch('ama/'+id+'.json');
+    if(!response.ok)throw new Error('AMA chapter unavailable');return response.json();
+  }
   async function content(id) {
-    if (!chapters.has(id)) chapters.set(id,(async () => {
-      const response = await fetch('ama/'+id+'.json');
-      if (!response.ok) throw new Error('AMA chapter unavailable');
-      return response.json();
-    })().catch(error => { chapters.delete(id); throw error; }));
+    if(!chapters.has(id))chapters.set(id,(async()=>{
+      if('DecompressionStream' in window) {
+        try {const index=await fastManifest();if(index.chapters[id])return await packedJSON(index.chapters[id].file);}catch(_){ /* Original source remains a fallback. */ }
+      }
+      return legacyContent(id);
+    })().catch(error=>{chapters.delete(id);throw error;}));
     return chapters.get(id);
+  }
+  async function objectContent(meta,chapter) {
+    if(meta.html!==undefined)return meta;
+    if(!objects.has(meta.id))objects.set(meta.id,packedJSON(meta.file).catch(async()=>{
+      const data=await legacyContent(chapter);return data.attachments.find(a=>a.id===meta.id);
+    }).catch(error=>{objects.delete(meta.id);throw error;}));
+    return objects.get(meta.id);
+  }
+  function rememberReaderPosition() {
+    if(!current||renderedChapter!==current)return;
+    const sc=by('ax-scroll'),top=sc.getBoundingClientRect().top;
+    saved.positions[current]=sc.scrollTop;
+    for(const page of by('ax-body').children) {
+      const rect=page.getBoundingClientRect();
+      if(rect.bottom>top){saved.anchors[current]={page:page.dataset.page,offset:top-rect.top};break;}
+    }
+  }
+  function alignReaderTarget(target,offset) {
+    const token=++anchorRevision,version=revision,sc=by('ax-scroll');
+    // Nearby skipped pages can acquire their measured height after the first scroll.
+    const align=remaining=>{
+      if(token!==anchorRevision||version!==revision||!target.isConnected)return;
+      sc.scrollTop+=target.getBoundingClientRect().top-sc.getBoundingClientRect().top-offset;
+      if(remaining)requestAnimationFrame(()=>align(remaining-1));
+    };
+    align(4);
+  }
+  function restoreReaderPosition(id,options) {
+    const sc=by('ax-scroll'),anchor=saved.anchors[id];
+    if(options.anchor){scrollToId(options.anchor);return;}
+    if(anchor) {
+      const page=by('ax-page-'+anchor.page);
+      if(page){alignReaderTarget(page,-anchor.offset);return;}
+    }
+    sc.scrollTop=saved.positions[id]||0;
   }
   function sourcePages(source) { return !source.kind && source.label ? source.label : (source.sourcePages || [source.page]).join('–'); }
   function chapterLabel(chapter) { return chapter.type==='supplement' ? '補充資料' : 'Chapter '+chapter.no; }
@@ -111,15 +163,11 @@
     try { localStorage.setItem(MARKS,JSON.stringify(highlights)); } catch (_) { /* Optional storage. */ }
     applyMarks(page,[{start,end}]); selection.removeAllRanges(); by('ax-status').textContent='已儲存標記。';
   }
-  function renderChapter(data) {
-    const fragment = document.createDocumentFragment();
-    for (const source of data.pages) {
-      const page = document.createElement('section'); page.className='ax-page'; page.id='ax-page-'+source.page; page.dataset.page=source.page;
-      const label = document.createElement('div'); label.className='ax-page-label'; label.textContent='原書第 '+sourcePages(source)+' 頁';
-      const body = document.createElement('div'); body.className='ax-page-content'; body.innerHTML=source.html;
-      page.append(label,body); fragment.append(page);
-    }
-    by('ax-body').replaceChildren(fragment);
+  async function renderChapter(data,version) {
+    const container=by('ax-body');container.replaceChildren();
+    // Older saved positions are pixels in the original fully laid-out document.
+    const legacyPosition=!saved.anchors[current] && (saved.positions[current]||0)>0;
+    container.classList.toggle('ax-eager-position',legacyPosition);
     const supplement=catalogue.chapters.find(chapter=>chapter.id===current)?.type==='supplement';
     const sections=supplement ? data.sections : data.sections.filter(section=>/^\d+\.\d+(?=\s|$)/.test(section.title));
     const choices = [{id:'',title:'本章小節'},...sections];
@@ -132,17 +180,31 @@
     by('ax-section').replaceChildren(...choices.map(section => {
       const option=document.createElement('option'); option.value=section.id; option.textContent=section.title; return option;
     }));
-    restoreMarks();
+    let fragment=document.createDocumentFragment(),started=performance.now();
+    for(let i=0;i<data.pages.length;i++) {
+      if(version!==revision)return false;
+      const source=data.pages[i],page=document.createElement('section');page.className='ax-page';page.id='ax-page-'+source.page;page.dataset.page=source.page;
+      const label=document.createElement('div');label.className='ax-page-label';label.textContent='原書第 '+sourcePages(source)+' 頁';
+      const body=document.createElement('div');body.className='ax-page-content';body.innerHTML=source.html;
+      page.append(label,body);fragment.append(page);
+      if(i===1 || performance.now()-started>12) {
+        container.append(fragment);fragment=document.createDocumentFragment();
+        await new Promise(resolve=>setTimeout(resolve,0));started=performance.now();
+      }
+    }
+    if(version!==revision)return false;
+    container.append(fragment);restoreMarks();renderedChapter=current;
+    return true;
   }
   function scrollToId(id) {
     const target=document.getElementById(id);
-    if (target && by('ax-body').contains(target)) by('ax-scroll').scrollTop+=target.getBoundingClientRect().top-by('ax-scroll').getBoundingClientRect().top-16;
+    if (target && by('ax-body').contains(target)) alignReaderTarget(target,16);
   }
   async function selectChapter(id,options={}) {
     const chapter=catalogue.chapters.find(c=>c.id===id);
     if (!chapter) return;
     clearTimeout(scrollTimer);
-    if (current) saved.positions[current]=by('ax-scroll').scrollTop;
+    rememberReaderPosition();renderedChapter=undefined;objectRevision++;
     current=id; const version=++revision;
     document.querySelectorAll('.ax-chapter').forEach(button => {
       const selected=button.dataset.chapter===id;
@@ -163,10 +225,14 @@
     try {
       const data=await content(id);
       if (version!==revision) return;
-      renderChapter(data);
+      if(!await renderChapter(data,version))return;
       requestAnimationFrame(() => {
         if (version!==revision) return;
-        if (options.anchor) scrollToId(options.anchor); else by('ax-scroll').scrollTop=saved.positions[id]||0;
+        restoreReaderPosition(id,options);
+        if(by('ax-body').classList.contains('ax-eager-position')) {
+          rememberReaderPosition();by('ax-body').classList.remove('ax-eager-position');
+          requestAnimationFrame(()=>{if(version===revision)restoreReaderPosition(id,options);});
+        }
       });
     } catch (_) { if (version===revision) by('ax-body').textContent='無法載入本章，請稍後再試。'; }
   }
@@ -194,7 +260,7 @@
   async function dismissPopup() {
     const dialog=by('ax-dialog');
     if (!dialog.open || popupClosing) return;
-    popupClosing=true;
+    popupClosing=true;objectRevision++;
     const style=getComputedStyle(dialog),start={opacity:style.opacity,transform:style.transform};
     if (popupMotion) {popupMotion.cancel();popupMotion=null;}
     if (!reducePopupMotion()) {
@@ -210,8 +276,12 @@
     popupClosing=false;
   }
   async function openObject(id,chapterId,options={}) {
-    const chapter=chapterId||current, data=await content(chapter), object=data.attachments.find(a=>a.id===id);
-    if (!object) return;
+    const request=++objectRevision;by('ax-status').textContent='載入圖表…';
+    try {
+    const chapter=chapterId||current,data=await content(chapter),meta=data.attachments.find(a=>a.id===id);
+    if(!meta||request!==objectRevision)return;
+    const object=await objectContent(meta,chapter);if(!object||request!==objectRevision)return;
+    by('ax-status').textContent='';
     const before=by('ax-dialog').open?by('ax-dialog').getBoundingClientRect():null;
     if (options.peek || (object.kind==='table' && !options.keepPreview)) {
       by('ax-dialog').classList.add('ax-peek');by('ax-dialog').classList.remove('ax-popped');by('ax-peek-expand').hidden=false;
@@ -231,8 +301,10 @@
     });
     presentPopup(before);
     body.scrollTop=0;
+    } catch(_){if(request===objectRevision)by('ax-status').textContent='無法載入圖表，請檢查連線後再試。';}
   }
   function tableCaption(object) {
+    if(object.caption!==undefined)return object.caption;
     if (!tableCaptions.has(object.id)) {
       const holder=document.createElement('div');holder.innerHTML=object.html;
       const table=holder.querySelector('table');let title='';
@@ -284,12 +356,17 @@
     if (!query) return;
     const needle=query.toLocaleLowerCase();let count=0;
     results.textContent='搜尋中…';const fragment=document.createDocumentFragment();
+    let indexed=null;
+    if('DecompressionStream' in window) {
+      try{if(!searchIndex)searchIndex=fastManifest().then(index=>packedJSON(index.search)).catch(e=>{searchIndex=null;throw e;});indexed=await searchIndex;}catch(_){ /* Search original source if the compact index is unavailable. */ }
+    }
     for (const chapter of catalogue.chapters.filter(c=>c.ready)) {
-      const data=await content(chapter.id);
+      const data=indexed?.find(c=>c.id===chapter.id)||await content(chapter.id);
       if (version!==searchRevision) return;
       for (const page of data.pages) {
-        const holder=document.createElement('div'); holder.innerHTML=page.html;
-        const text=chapterText(holder).replace(/\s+/g,' '),index=text.toLocaleLowerCase().indexOf(needle);
+        let text=page.text;
+        if(text===undefined){const holder=document.createElement('div');holder.innerHTML=page.html;text=chapterText(holder).replace(/\s+/g,' ');}
+        const index=text.toLocaleLowerCase().indexOf(needle);
         if (index<0) continue;
         const button=document.createElement('button');button.type='button';button.className='ax-result';
         const label=document.createElement('strong');label.textContent=chapterLabel(chapter)+' · 第 '+sourcePages(page)+' 頁';
@@ -473,7 +550,7 @@
       by('ax-body').querySelectorAll('mark.ax-highlight').forEach(mark=>mark.replaceWith(...mark.childNodes));by('ax-status').textContent='已清除本章標記。';
     });
     by('ax-scroll').addEventListener('scroll',()=>{
-      clearTimeout(scrollTimer);scrollTimer=setTimeout(()=>{if(current){saved.positions[current]=by('ax-scroll').scrollTop;persist();}},200);
+      clearTimeout(scrollTimer);scrollTimer=setTimeout(()=>{rememberReaderPosition();persist();},200);
     },{passive:true});
     panel.addEventListener('keydown',event=>{if(event.key==='Escape'&&menuOpen){menu(false);by('ax-menu').focus();}});
     readingFont();fontSize();await selectChapter(catalogue.chapters.some(c=>c.id===saved.chapter)?saved.chapter:catalogue.chapters[0].id);
