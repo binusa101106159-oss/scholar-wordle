@@ -214,3 +214,17 @@
 .ax-table-item span { font-size:14px; line-height:1.5; }
 .ax-table-item small { color:#a8b7ca; font-size:11px; }
 .ax-tables-button:focus-visible,.ax-table-item:focus-visible,.ax-table-nav button:focus-visible { outline:2px solid #93c5fd; outline-offset:2px; }
+
+.ax-table-shortcuts { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+.ax-table-shortcuts[hidden] { display:none; }
+.ax-table-shortcut { min-height:36px; padding:8px 12px; border:1px solid #93c5fd38; border-radius:10px; background:#8ebfff0b; color:#c4d9f5; font-size:12px; line-height:1.4; cursor:pointer; transition:background .15s,transform .15s; }
+.ax-table-shortcut:hover { background:#8ebfff20; border-color:#93c5fd80; transform:translateY(-1px); }
+.ax-table-shortcut:focus-visible { outline:2px solid #93c5fd; outline-offset:2px; }
+.ax-dialog.ax-peek { width:min(900px,90vw); max-height:75dvh; border-radius:22px; box-shadow:0 24px 90px #0009; animation:ax-peek-in .28s cubic-bezier(.2,.9,.25,1.15); transition:width .22s,max-height .22s; }
+.ax-dialog.ax-peek::backdrop { background:#0008; backdrop-filter:blur(8px); animation:ax-peek-dim .2s ease; }
+.ax-dialog.ax-peek.ax-popped { width:min(1120px,94vw); max-height:90dvh; }
+#ax-peek-expand { margin-left:auto; }
+@keyframes ax-peek-in { from { opacity:0; transform:translateY(14px) scale(.94); } to { opacity:1; transform:translateY(0) scale(1); } }
+@keyframes ax-peek-dim { from { opacity:0; } to { opacity:1; } }
+@media(max-width:600px) { .ax-table-shortcut { min-height:44px; padding:10px 12px; } }
+@media(prefers-reduced-motion:reduce) { .ax-dialog.ax-peek,.ax-dialog.ax-peek::backdrop { animation:none; transition:none; }.ax-table-shortcut { transition:none; } }
