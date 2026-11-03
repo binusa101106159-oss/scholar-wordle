@@ -232,9 +232,9 @@
 .ax-dialog.ax-peek { width:min(900px,90vw); max-height:75dvh; }
 .ax-dialog::backdrop,.ax-dialog.ax-peek::backdrop {
   background:rgba(8,14,24,.14);
-  -webkit-backdrop-filter:blur(6px) saturate(1.1);
-  backdrop-filter:blur(6px) saturate(1.1);
-  animation:ax-glass-in .52s cubic-bezier(.2,.7,.2,1) both;
+  -webkit-backdrop-filter:blur(3px);
+  backdrop-filter:blur(3px);
+  animation:ax-glass-in .18s cubic-bezier(.2,.7,.2,1) both;
 }
 .ax-dialog.ax-peek.ax-popped { width:min(1120px,94vw); max-height:90dvh; }
 .ax-dialog .ax-dialog-bar,.ax-dialog .ax-table-nav {
@@ -250,7 +250,7 @@
 .ax-dialog :is(.ax-dialog-bar,.ax-table-nav) button:hover { background:rgba(220,235,255,.14); }
 .ax-dialog .ax-table,.ax-dialog .ax-ca-sheet { background:rgba(14,21,31,.24); }
 #ax-peek-expand { margin-left:auto; }
-.ax-dialog.ax-closing::backdrop { animation:ax-glass-out .34s cubic-bezier(.25,.1,.25,1) forwards; }
+.ax-dialog.ax-closing::backdrop { animation:ax-glass-out .12s cubic-bezier(.25,.1,.25,1) forwards; }
 /* Only opacity animates: the fixed, lighter frost can stay composited. */
 .ax-dialog.ax-animating { will-change:transform,opacity; }
 @keyframes ax-glass-in { from { opacity:0; } to { opacity:1; } }

@@ -246,15 +246,11 @@
     if (opening) dialog.showModal();
     if (reducePopupMotion()) {dialog.classList.remove('ax-animating');return;}
     const after=dialog.getBoundingClientRect();
-    const initial=before ? `translate(${before.left+before.width/2-after.left-after.width/2}px,${before.top+before.height/2-after.top-after.height/2}px) scale(${before.width/after.width},${before.height/after.height})` : 'translateY(8px) scale(.9)';
-    const frames=opening ? Array.from({length:37},(_,i)=>{
-      const t=i/36,progress=(1-(1+9*t)*Math.exp(-9*t))/(1-10*Math.exp(-9));
-      const fade=Math.min(1,t/.34),opacity=fade*fade*(3-2*fade);
-      return {offset:t,opacity,transform:`translateY(${8*(1-progress)}px) scale(${.9+.1*progress})`};
-    }) : before ? [{transform:initial},{transform:'none'}] : null;
+    const initial=before ? `translate(${before.left+before.width/2-after.left-after.width/2}px,${before.top+before.height/2-after.top-after.height/2}px) scale(${before.width/after.width},${before.height/after.height})` : 'none';
+    const frames=opening ? [{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'none'}] : before ? [{transform:initial},{transform:'none'}] : null;
     if (!frames) return;
     dialog.classList.add('ax-animating');
-    const motion=dialog.animate(frames,{duration:opening?520:460,easing:opening?'linear':'cubic-bezier(.2,.7,.2,1)'});
+    const motion=dialog.animate(frames,{duration:180,easing:'cubic-bezier(.2,.65,.25,1)'});
     popupMotion=motion;
     motion.finished.then(()=>{if(popupMotion===motion)dialog.classList.remove('ax-animating');},()=>{});
   }
@@ -268,7 +264,7 @@
       const glass=getComputedStyle(dialog,'::backdrop');
       dialog.style.setProperty('--ax-glass-opacity',glass.opacity);
       dialog.classList.add('ax-closing');
-      const motion=dialog.animate([start,{opacity:0,transform:'translateY(8px) scale(.985)'}],{duration:340,easing:'cubic-bezier(.25,.1,.25,1)',fill:'forwards'});
+      const motion=dialog.animate([start,{opacity:0,transform:'translateY(2px)'}],{duration:120,easing:'cubic-bezier(.25,.1,.25,1)',fill:'forwards'});
       popupMotion=motion;
       try { await motion.finished; } catch (_) { return; }
     }

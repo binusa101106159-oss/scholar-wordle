@@ -2112,10 +2112,12 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     }
     window.addEventListener('resize', invalidateLeaves);
     window.addEventListener('scroll', invalidateLeaves, { passive: true });
-    new MutationObserver(invalidateLeaves).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    const leafObserver=new MutationObserver(invalidateLeaves);
+    for(const id of ['board-grid','keyboard-container'])leafObserver.observe(document.getElementById(id),{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+    leafObserver.observe(document.body,{attributes:true,attributeFilter:['data-game']});
 
     function blowWind(e) {
-      if (calmWater) return;
+      if (calmWater || document.hidden || document.body.dataset.game !== 'wordle' || document.querySelector('dialog[open],.pg-overlay:not(.hidden)')) { windLast=null;return; }
       const now = performance.now();
       if (!windLast || now - windLast.t > 150) { windLast = { x: e.clientX, y: e.clientY, t: now }; return; }
       const dx = e.clientX - windLast.x, dy = e.clientY - windLast.y;
@@ -2147,6 +2149,10 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     let pondLastT = 0;
     function driftLeaves(now) {
       pondFrame = null;
+      if(document.hidden || document.body.dataset.game !== 'wordle' || document.querySelector('dialog[open],.pg-overlay:not(.hidden)')) {
+        for(const el of driftingLeaves){el.style.translate='';el.style.rotate='';leafStates.delete(el);}
+        driftingLeaves.clear();pondLastT=0;return;
+      }
       // time-based so the motion is equally slow on 60Hz and 120Hz screens (constants are per 1/60 s)
       const frames = pondLastT ? Math.min(4, (now - pondLastT) / (1000 / 60)) : 1;
       pondLastT = now;
