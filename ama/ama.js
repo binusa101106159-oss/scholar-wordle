@@ -4,6 +4,7 @@
   const STORE = 'scholar-ama-v1', MARKS = 'scholar-ama-marks-v1';
   const mobile = matchMedia('(max-width: 900px)'), by = id => document.getElementById(id), chapters = new Map();
   const tableCaptions=new Map(), tableQueries=new Map();
+  const readingFonts={default:'',georgia:"Georgia,'Times New Roman',serif",times:"'Times New Roman',Times,serif",arial:'Arial,Helvetica,sans-serif',system:"system-ui,'Noto Sans TC','Microsoft JhengHei',sans-serif"};
   let catalogue, loading, current, menuOpen = false, revision = 0, scrollTimer, searchRevision = 0;
   let saved = {}, highlights = {};
   try { saved = JSON.parse(localStorage.getItem(STORE) || '{}'); } catch (_) { /* Optional storage. */ }
@@ -264,6 +265,12 @@
     saved.fontSize=Math.max(15,Math.min(24,(Number(saved.fontSize)||18)+delta));
     by('ama-panel').style.setProperty('--ax-font-size',saved.fontSize+'px');persist();
   }
+  function readingFont(value=saved.readingFont||'default') {
+    if (!Object.hasOwn(readingFonts,value)) value='default';
+    saved.readingFont=value;by('ama-panel').dataset.readingFont=value;
+    by('ama-panel').style.setProperty('--ax-reading-font',readingFonts[value]||readingFonts.georgia);
+    by('ax-font').value=value;persist();
+  }
 
   function copyText(node) {
     if (node.nodeType === Node.TEXT_NODE) return node.nodeValue;
@@ -371,7 +378,7 @@
       '<form id="ax-search" class="ax-search"><label class="ax-sr" for="ax-query">搜尋已匯入章節</label><input id="ax-query" type="search" placeholder="搜尋已匯入章節" autocomplete="off"><button type="submit" class="sg-btn">搜尋</button></form>'+
       '<div id="ax-results" class="ax-results" aria-live="polite" hidden></div><div id="ax-list" class="ax-list" role="tablist" aria-label="AMA 章節" aria-orientation="vertical"></div></div></aside>'+
       '<div class="ax-reader"><div class="ax-bar"><button id="ax-menu" class="ax-sidebar-toggle" type="button" aria-controls="ax-sidebar-content" aria-expanded="false" aria-label="展開側欄" title="展開側欄"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><span id="ax-location" class="ax-location"></span></div>'+
-      '<div id="ax-tools" class="ax-tools" hidden><label class="ax-sr" for="ax-section">本章小節</label><select id="ax-section"></select><div class="ax-reading-controls"><button id="ax-smaller" type="button" aria-label="縮小文字">A−</button><button id="ax-larger" type="button" aria-label="放大文字">A＋</button><button id="ax-mark" type="button">標記選取</button><button id="ax-copy-chapter" type="button">複製本章</button><button id="ax-copy-all" type="button">複製已匯入全文</button><button id="ax-clear-marks" type="button">清除本章標記</button></div></div><div id="ax-status" class="ax-status" role="status"></div>'+
+      '<div id="ax-tools" class="ax-tools" hidden><label class="ax-sr" for="ax-section">本章小節</label><select id="ax-section"></select><div class="ax-reading-controls"><label class="ax-font-control" for="ax-font">正文字型<select id="ax-font"><option value="default">預設</option><option value="georgia">Georgia</option><option value="times">Times New Roman</option><option value="arial">Arial</option><option value="system">系統字型</option></select></label><button id="ax-smaller" type="button" aria-label="縮小文字">A−</button><button id="ax-larger" type="button" aria-label="放大文字">A＋</button><button id="ax-mark" type="button">標記選取</button><button id="ax-copy-chapter" type="button">複製本章</button><button id="ax-copy-all" type="button">複製已匯入全文</button><button id="ax-clear-marks" type="button">清除本章標記</button></div></div><div id="ax-status" class="ax-status" role="status"></div>'+
       '<div id="ax-scroll" class="ax-scroll"><article id="ax-content" role="tabpanel" tabindex="0"><div class="ax-head sg-glass"><p id="ax-kicker" class="ax-kicker"></p><h1 id="ax-title" class="ax-title" tabindex="-1"></h1><nav id="ax-table-shortcuts" class="ax-table-shortcuts" aria-label="本章表格快覽" hidden></nav></div><div id="ax-body"></div></article></div></div></div>'+
       '<dialog id="ax-dialog" class="ax-dialog" aria-labelledby="ax-dialog-title"><div class="ax-dialog-bar"><h2 id="ax-dialog-title"></h2><button id="ax-peek-expand" type="button" hidden>展開</button><button id="ax-dialog-close" type="button" aria-label="關閉圖表">關閉</button></div><div id="ax-table-nav" class="ax-table-nav" hidden><button id="ax-table-prev" type="button">上一張</button><button id="ax-table-index" type="button">表格目錄</button><button id="ax-table-next" type="button">下一張</button><span id="ax-table-position" aria-live="polite"></span></div><div id="ax-dialog-body" class="ax-dialog-body"></div></dialog>';
     const supplements=catalogue.chapters.filter(c=>c.type==='supplement').length;
@@ -414,6 +421,7 @@
     by('ax-search').addEventListener('submit',event=>{event.preventDefault();search();});
     by('ax-query').addEventListener('input',()=>{if(!by('ax-query').value){searchRevision++;by('ax-results').hidden=true;}});
     by('ax-smaller').addEventListener('click',()=>fontSize(-1));by('ax-larger').addEventListener('click',()=>fontSize(1));
+    by('ax-font').addEventListener('change',()=>readingFont(by('ax-font').value));
     by('ax-mark').addEventListener('mousedown',event=>event.preventDefault());by('ax-mark').addEventListener('click',markSelection);
     by('ax-copy-chapter').addEventListener('click',()=>copyAMA(false));
     by('ax-copy-all').addEventListener('click',()=>copyAMA(true));
@@ -426,7 +434,7 @@
       clearTimeout(scrollTimer);scrollTimer=setTimeout(()=>{if(current){saved.positions[current]=by('ax-scroll').scrollTop;persist();}},200);
     },{passive:true});
     panel.addEventListener('keydown',event=>{if(event.key==='Escape'&&menuOpen){menu(false);by('ax-menu').focus();}});
-    fontSize();await selectChapter(catalogue.chapters.some(c=>c.id===saved.chapter)?saved.chapter:catalogue.chapters[0].id);
+    readingFont();fontSize();await selectChapter(catalogue.chapters.some(c=>c.id===saved.chapter)?saved.chapter:catalogue.chapters[0].id);
     menu(false);measure();
   }
   function show() {

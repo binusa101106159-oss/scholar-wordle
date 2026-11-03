@@ -213,6 +213,7 @@
           <div class="gx-bar">
             <button type="button" class="gx-sidebar-toggle gx-menu-btn" id="gx-menu" aria-label="展開側欄" title="展開側欄" aria-controls="gx-sidebar-content" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button>
             <select class="gx-select" id="gx-chapters" aria-label="跳到章節" hidden></select>
+            <button type="button" class="sg-btn gx-conclusion-btn" id="gx-conclusion" title="跳至結論" aria-label="跳至結論" hidden><span class="gx-wide-only">跳至</span>結論</button>
             <span class="gx-spacer"></span>
             <button type="button" class="sg-btn gx-tool-btn" id="gx-marks-btn" aria-haspopup="dialog" aria-controls="gx-panel" title="我的畫線">${icon.pen}<span>畫線</span></button>
             <button type="button" class="sg-btn gx-tool-btn" id="gx-style-btn" aria-haspopup="dialog" aria-controls="gx-panel" title="閱讀設定">${icon.aa}<span>閱讀設定</span></button>
@@ -304,6 +305,10 @@
     by('gx-chapters').addEventListener('change', e => {
       const el = by(e.target.value); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       e.target.value = '';
+    });
+    by('gx-conclusion').addEventListener('click', () => {
+      const block = by('gx-conclusion').dataset.block;
+      if (block != null) scrollToBlock(Number(block), true);
     });
     let saveTimer = 0;
     by('gx-scroll').addEventListener('scroll', () => { clearTimeout(saveTimer); saveTimer = setTimeout(rememberPosition, 250); }, { passive: true });
@@ -527,6 +532,8 @@
     if (!meta) return;
     if (!state.current || state.current.id !== id) {
       rememberPosition();
+      by('gx-conclusion').hidden = true;
+      delete by('gx-conclusion').dataset.block;
       by('gx-doc').innerHTML = '<p class="gx-loading">載入中…</p>';
       let data;
       try { data = await getText(id); }
@@ -575,6 +582,10 @@
     }
     html += '</div><div class="gx-body">' + blocksHTML(guide.blocks, terms, { anchor: guide.id }) + '</div>';
     by('gx-doc').innerHTML = html;
+    const conclusion = guide.blocks.findIndex(b => b.t === 'h' && /^(?:第?[一二三四五六七八九十百0-9]+(?:章|節)?[、.．:：)）]?)?結論/.test((b.text || '').normalize('NFKC').replace(/\s+/g, '')));
+    by('gx-conclusion').hidden = conclusion < 0;
+    if (conclusion >= 0) by('gx-conclusion').dataset.block = String(conclusion);
+    else delete by('gx-conclusion').dataset.block;
     const chapters = guide.blocks.map((b, k) => b.t === 'h' ? { id: 'gx-b-' + guide.id + '-' + k, text: b.text, lv: b.lv } : null).filter(Boolean);
     const sel = by('gx-chapters');
     sel.hidden = !chapters.length;

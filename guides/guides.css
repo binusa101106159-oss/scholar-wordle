@@ -52,6 +52,7 @@ mark.gx-mark, .gx-dialog mark.gx-mark { background: rgba(226,197,138,.32); color
 .gx-reader { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .gx-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 0 2px 12px; }
 .gx-bar .gx-spacer { flex: 1; }
+.gx-conclusion-btn { flex-shrink:0; white-space:nowrap; font-size:12px; }
 .gx-menu-btn { display: none !important; }
 .gx-select { height: 32px; max-width: 260px; padding: 0 30px 0 14px; border-radius: 999px; border: 1px solid var(--sg-edge); color: rgba(255,255,255,.8); font-size: 12px; appearance: none; -webkit-appearance: none; cursor: pointer; background: rgba(255,255,255,.05) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23ffffffaa' fill='none' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 12px center; }
 .gx-select option { background: #15171d; color: #f1f5f9; }

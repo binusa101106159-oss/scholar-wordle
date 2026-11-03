@@ -228,3 +228,7 @@
 @keyframes ax-peek-dim { from { opacity:0; } to { opacity:1; } }
 @media(max-width:600px) { .ax-table-shortcut { min-height:44px; padding:10px 12px; } }
 @media(prefers-reduced-motion:reduce) { .ax-dialog.ax-peek,.ax-dialog.ax-peek::backdrop { animation:none; transition:none; }.ax-table-shortcut { transition:none; } }
+
+.ax-font-control { display:inline-flex; align-items:center; gap:6px; color:#cbd5e1; font-size:11px; }
+.ax-font-control select { flex:0 1 auto; width:150px; padding:6px 8px; font-size:11px; }
+#ama-panel[data-reading-font]:not([data-reading-font="default"]) .ax-page-content :is(p,h2,h3,li,blockquote):not(.ax-object *) { font-family:var(--ax-reading-font)!important; }
