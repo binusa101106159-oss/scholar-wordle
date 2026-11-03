@@ -7,10 +7,37 @@
     const f=Math.min(1,t/.34);
     return {offset:t,opacity:f*f*(3-2*f),transform:`translateY(${8*(1-p)}px) scale(${.9+.1*p})`};
   });
+  const gleams=new WeakMap(),finePointer=matchMedia('(hover:hover) and (pointer:fine)');
+  let reflectionFrame=0,pointerSample=null;
+  function glass(card) {
+    if(gleams.has(card))return;
+    card.classList.add('lg-surface');
+    const gleam=document.createElement('span');gleam.className='lg-gleam';gleam.setAttribute('aria-hidden','true');card.append(gleam);gleams.set(card,gleam);
+  }
+  // Move one small, pre-painted reflection rather than repainting a gradient or
+  // propagating changing custom properties through thousands of table glyphs.
+  document.addEventListener('pointermove',event=>{
+    if(event.pointerType!=='mouse'||!finePointer.matches||reduced())return;
+    const card=event.target.closest?.('.lg-surface');
+    if(!card||!gleams.has(card))return;
+    pointerSample={card,x:event.clientX,y:event.clientY};
+    if(reflectionFrame)return;
+    reflectionFrame=requestAnimationFrame(()=>{
+      reflectionFrame=0;const sample=pointerSample;
+      if(!sample.card.isConnected)return;
+      const rect=sample.card.getBoundingClientRect(),gleam=gleams.get(sample.card);
+      gleam.style.transform=`translate3d(${Math.max(0,Math.min(rect.width,sample.x-rect.left))}px,${Math.max(0,Math.min(30,(sample.y-rect.top)*.08))}px,0)`;
+    });
+  },{passive:true});
+  document.addEventListener('pointerout',event=>{
+    const card=event.target.closest?.('.lg-surface');
+    if(!card||card.contains(event.relatedTarget)||!gleams.has(card))return;
+    gleams.get(card).style.transform='';
+  },{passive:true});
   function setup(el) {
     if(states.has(el))return states.get(el);
     const native=el instanceof HTMLDialogElement,state={native,motion:null,closing:false};
-    el.classList.add(native?'pg-dialog':'pg-overlay');states.set(el,state);
+    el.classList.add(native?'pg-dialog':'pg-overlay');glass(native?el:el.firstElementChild);states.set(el,state);
     if(native) {
       el.addEventListener('cancel',e=>{e.preventDefault();close(el);});
       el.addEventListener('close',()=>{if(state.motion)state.motion.cancel();state.motion=null;state.closing=false;el.classList.remove('pg-closing','pg-moving');});
@@ -49,5 +76,5 @@
     if(s.motion)s.motion.cancel();s.motion=null;s.closing=false;
     el.classList.remove('pg-closing','pg-moving');return true;
   }
-  window.ScholarPeek={open,close};
+  window.ScholarPeek={open,close,glass};
 })();

@@ -240,6 +240,7 @@
   const reducePopupMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
   function presentPopup(before) {
     const dialog=by('ax-dialog'),opening=!dialog.open;
+    window.ScholarPeek?.glass(dialog);
     popupClosing=false;dialog.classList.remove('ax-closing');
     if (popupMotion) { popupMotion.cancel();popupMotion=null; }
     if (opening) dialog.showModal();
