@@ -1,0 +1,21 @@
+.reader-top {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 30;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #64748b;
+  border-radius: 24px;
+  background: #182331;
+  color: #f1f5f9;
+  box-shadow: 0 4px 18px #0006;
+  font: 600 14px/1.4 system-ui, sans-serif;
+  cursor: pointer;
+}
+.reader-top:hover { background: #26394e; }
+.reader-top:focus-visible { outline: 2px solid #93c5fd; outline-offset: 3px; }
+.reader-top[hidden] { display: none; }
+@media (max-width: 600px) {
+  .reader-top { right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); }
+}
