@@ -35,6 +35,7 @@ async def main(args):
             if not await page.locator('#ax-tab-'+ident).is_visible(): await page.locator('#ax-menu').click()
             await page.locator('#ax-tab-'+ident).click()
         for ident in args.ids:
+            source_cache={}
             data=json.loads((ROOT/'ama'/(ident+'.json')).read_text(encoding='utf-8'))
             await select_chapter(ident)
             await page.locator(f'.ax-page[data-page="{data["pages"][-1]["page"]}"]').wait_for()
@@ -46,7 +47,9 @@ async def main(args):
                 assert await native.locator('img,iframe,object,embed,canvas').count()==0
                 # Character distribution is checked independently inside every
                 # physical grid cell, including merged footnote/header cells.
-                for original in originals: original.build()
+                for original in originals:
+                    original.build()
+                    source_cache[original.number]=original
                 bullets=await native.locator('p').evaluate_all("items=>items.filter(p=>!p.closest('.ax-object')&&p.textContent.trimStart().startsWith('•')).length")
                 expected_bullets=sum(c['text'].count('•') for original in originals for c in original.chars if original.owners[c['uid']] in ('body','sidebar'))
                 assert bullets==expected_bullets,f'p{number}: flattened body bullet paragraphs'
@@ -109,7 +112,7 @@ async def main(args):
                     raw=[]
                     for part in attachment.get('sourceParts',[dict(page=n,id=attachment['id']) for n in attachment.get('sourcePages',[attachment['page']])]):
                         n=part['page']
-                        original=Page(doc,n);original.build()
+                        original=source_cache[n]
                         raw.append(next(a['html'] for a in original.attachments
                                         if a['id']==part['id'] or a['id'].startswith(part['id']+'-p')))
                     checked=await page.locator('#ax-dialog-body').evaluate("""(el,{sources,spread})=>{
@@ -163,7 +166,7 @@ async def main(args):
                 if chapter.get('ready'):await page.locator('.ax-page[data-page="'+str(chapter['end'])+'"]').wait_for()
                 else:assert await page.locator('.ax-pending').is_visible()
             if not await page.locator('#ax-side').is_visible():await page.locator('#ax-menu').click()
-            await page.locator('#ax-tab-c17').focus();await page.keyboard.press('ArrowDown')
+            await page.locator('#ax-tab-'+catalogue[-1]['id']).focus();await page.keyboard.press('ArrowDown')
             await page.locator('.ax-page[data-page="18"]').wait_for()
             if width<=900:await page.keyboard.press('Escape')
             section=await page.locator('#ax-section option').nth(1).get_attribute('value')

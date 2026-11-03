@@ -224,6 +224,49 @@
     return copyChildren(node) + (/^(P|DIV|SECTION|ARTICLE|ASIDE|H[1-6])$/.test(node.tagName) ? '\n' : '');
   }
   function copyChildren(node) { return Array.from(node.childNodes, copyText).join(''); }
+  function prepareCopy(root) {
+    root.querySelectorAll('button,.ax-page-label').forEach(n=>n.remove());
+    root.querySelectorAll('svg').forEach(svg=>{
+      const labels=document.createElement('div');
+      for (const text of svg.querySelectorAll('text')) {const line=document.createElement('p');line.textContent=text.textContent;labels.append(line);}
+      svg.replaceWith(labels);
+    });
+    // Source glyphs stay positioned on screen; clipboard words use their text order.
+    root.querySelectorAll('.ax-source-run').forEach(run=>{
+      let text=document.createTextNode(run.textContent);
+      if (run.style.fontStyle==='italic') {const wrapper=document.createElement('em');wrapper.append(text);text=wrapper;}
+      if (run.style.fontWeight==='700') {const wrapper=document.createElement('strong');wrapper.append(text);text=wrapper;}
+      run.replaceWith(text);
+    });
+    root.querySelectorAll('a[data-open]').forEach(link=>link.replaceWith(...link.childNodes));
+    root.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+    root.querySelectorAll('[class]').forEach(n=>n.removeAttribute('class'));
+    root.querySelectorAll('[style]').forEach(n=>n.removeAttribute('style'));
+    root.querySelectorAll('table').forEach(table=>{table.style.borderCollapse='collapse';});
+    root.querySelectorAll('th,td').forEach(cell=>{cell.style.border='1px solid #888';cell.style.padding='4px 8px';});
+    return root;
+  }
+  function copySelection(event) {
+    const selection=getSelection();
+    if (!selection || selection.isCollapsed || !selection.rangeCount || !event.clipboardData) return;
+    const range=selection.getRangeAt(0), panel=by('ama-panel');
+    if (!panel.contains(range.startContainer) || !panel.contains(range.endContainer)) return;
+    const inReader=node=>(node.nodeType===Node.ELEMENT_NODE?node:node.parentElement).closest('#ax-content,#ax-dialog-body');
+    if (!inReader(range.startContainer) || !inReader(range.endContainer)) return;
+    const root=document.createElement('div');let fragment=range.cloneContents();
+    let ancestor=range.commonAncestorContainer;
+    if (ancestor.nodeType!==Node.ELEMENT_NODE) ancestor=ancestor.parentElement;
+    const table=ancestor.closest('table');
+    if (table) {
+      // A Range inside a table omits its enclosing table/row/cell elements.
+      for (;;) {const wrapper=ancestor.cloneNode(false);wrapper.append(fragment);fragment=wrapper;if(ancestor===table)break;ancestor=ancestor.parentElement;}
+    }
+    root.append(fragment);
+    prepareCopy(root);
+    event.clipboardData.setData('text/plain',copyChildren(root).replace(/\n{3,}/g,'\n\n').trim());
+    event.clipboardData.setData('text/html',root.innerHTML);
+    event.preventDefault();
+  }
   async function copyAMA(all) {
     const button=by(all?'ax-copy-all':'ax-copy-chapter'); button.disabled=true;
     try {
@@ -236,16 +279,7 @@
           const section=document.createElement('section'), label=document.createElement('p');
           label.textContent='原書第 '+sourcePages(page)+' 頁'; section.append(label);
           const body=document.createElement('div'); body.innerHTML=page.html;
-          body.querySelectorAll('button').forEach(n=>n.remove());
-          body.querySelectorAll('svg').forEach(svg=>{
-            const labels=document.createElement('div');
-            for (const text of svg.querySelectorAll('text')) {const line=document.createElement('p');line.textContent=text.textContent;labels.append(line);}
-            svg.replaceWith(labels);
-          });
-          body.querySelectorAll('a[data-open]').forEach(link=>link.replaceWith(...link.childNodes));
-          body.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
-          body.querySelectorAll('table').forEach(table=>{table.style.borderCollapse='collapse';});
-          body.querySelectorAll('th,td').forEach(cell=>{cell.style.border='1px solid #888';cell.style.padding='4px 8px';});
+          prepareCopy(body);
           section.append(body);root.append(section);
         }
       }
@@ -316,6 +350,7 @@
     by('ax-mark').addEventListener('mousedown',event=>event.preventDefault());by('ax-mark').addEventListener('click',markSelection);
     by('ax-copy-chapter').addEventListener('click',()=>copyAMA(false));
     by('ax-copy-all').addEventListener('click',()=>copyAMA(true));
+      by('ama-panel').addEventListener('copy',copySelection);
     by('ax-clear-marks').addEventListener('click',()=>{
       delete highlights[current];try{localStorage.setItem(MARKS,JSON.stringify(highlights));}catch(_){/* Optional storage. */}
       by('ax-body').querySelectorAll('mark.ax-highlight').forEach(mark=>mark.replaceWith(...mark.childNodes));by('ax-status').textContent='已清除本章標記。';
