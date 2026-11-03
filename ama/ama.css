@@ -191,3 +191,4 @@
 .ax-ca-sheet .ax-ca-serif,.ax-ca-sheet .ax-ca-serif > span { font-family:"Times New Roman",serif!important; }
 
 .ax-ca-grid .ax-table-wrap { margin:0; padding:0; }
+.ax-ca-sheet .ax-source-run a > span { position:absolute; top:0; }
