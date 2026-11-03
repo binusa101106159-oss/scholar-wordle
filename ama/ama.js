@@ -170,10 +170,47 @@
       });
     } catch (_) { if (version===revision) by('ax-body').textContent='無法載入本章，請稍後再試。'; }
   }
+  let popupMotion=null, popupClosing=false;
+  const reducePopupMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function presentPopup(before) {
+    const dialog=by('ax-dialog'),opening=!dialog.open;
+    popupClosing=false;dialog.classList.remove('ax-closing');
+    if (popupMotion) { popupMotion.cancel();popupMotion=null; }
+    if (opening) dialog.showModal();
+    if (reducePopupMotion()) return;
+    const after=dialog.getBoundingClientRect();
+    const frames=opening ? [
+      {opacity:0,transform:'translateY(20px) scale(.94)',offset:0},
+      {opacity:1,transform:'translateY(-1px) scale(1.006)',offset:.76},
+      {opacity:1,transform:'none',offset:1}
+    ] : before ? [
+      {transform:`translate(${before.left+before.width/2-after.left-after.width/2}px,${before.top+before.height/2-after.top-after.height/2}px) scale(${before.width/after.width},${before.height/after.height})`},
+      {transform:'none'}
+    ] : null;
+    if (!frames) return;
+    popupMotion=dialog.animate(frames,{duration:opening?440:380,easing:'cubic-bezier(.22,1,.36,1)'});
+  }
+  async function dismissPopup() {
+    const dialog=by('ax-dialog');
+    if (!dialog.open || popupClosing) return;
+    popupClosing=true;
+    const style=getComputedStyle(dialog),start={opacity:style.opacity,transform:style.transform};
+    if (popupMotion) {popupMotion.cancel();popupMotion=null;}
+    if (!reducePopupMotion()) {
+      dialog.classList.add('ax-closing');
+      const motion=dialog.animate([start,{opacity:0,transform:'translateY(16px) scale(.96)'}],{duration:210,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});
+      popupMotion=motion;
+      try { await motion.finished; } catch (_) { return; }
+    }
+    dialog.close();dialog.classList.remove('ax-closing');
+    if (popupMotion) {popupMotion.cancel();popupMotion=null;}
+    popupClosing=false;
+  }
   async function openObject(id,chapterId,options={}) {
     const chapter=chapterId||current, data=await content(chapter), object=data.attachments.find(a=>a.id===id);
     if (!object) return;
-    if (options.peek) {
+    const before=by('ax-dialog').open?by('ax-dialog').getBoundingClientRect():null;
+    if (options.peek || (object.kind==='table' && !options.keepPreview)) {
       by('ax-dialog').classList.add('ax-peek');by('ax-dialog').classList.remove('ax-popped');by('ax-peek-expand').hidden=false;
     } else if (!options.keepPreview) {
       by('ax-dialog').classList.remove('ax-peek','ax-popped');by('ax-peek-expand').hidden=true;
@@ -189,7 +226,7 @@
     body.querySelectorAll('[clip-path]').forEach(node=>{
       node.setAttribute('clip-path',node.getAttribute('clip-path').replace(/url\(#([^)]+)\)/g,(_,old)=>'url(#'+(ids.get(old)||old)+')'));
     });
-    if (!by('ax-dialog').open) by('ax-dialog').showModal();
+    presentPopup(before);
     body.scrollTop=0;
   }
   function tableCaption(object) {
@@ -213,6 +250,7 @@
   }
   async function openTableIndex(chapterId=current) {
     const data=await content(chapterId),tables=data.attachments.filter(object=>object.kind==='table');
+    const before=by('ax-dialog').open?by('ax-dialog').getBoundingClientRect():null;
     const chapter=catalogue.chapters.find(item=>item.id===chapterId),body=by('ax-dialog-body');
     by('ax-dialog').classList.remove('ax-peek','ax-popped');by('ax-peek-expand').hidden=true;
     by('ax-dialog-title').textContent=chapterLabel(chapter)+' · 本章表格';by('ax-table-nav').hidden=true;
@@ -230,7 +268,7 @@
     }
     const filter=()=>{const query=input.value.trim().toLocaleLowerCase();tableQueries.set(chapterId,input.value);let count=0;for(const button of list.children){button.hidden=!button.textContent.toLocaleLowerCase().includes(query);if(!button.hidden)count++;}empty.hidden=count>0;};
     input.addEventListener('input',filter);filter();body.append(intro,label,list,empty);
-    if (!by('ax-dialog').open) by('ax-dialog').showModal();body.scrollTop=0;input.focus({preventScroll:true});
+    presentPopup(before);body.scrollTop=0;input.focus({preventScroll:true});
   }
   async function moveTable(direction) {
     const body=by('ax-dialog-body'),data=await content(body.dataset.chapter),tables=data.attachments.filter(object=>object.kind==='table');
@@ -407,7 +445,7 @@
     });
     by('ax-section').addEventListener('change',()=>scrollToId(by('ax-section').value));
     by('ax-table-shortcuts').addEventListener('click',event=>{const button=event.target.closest('[data-table-open]');if(button)openObject(button.dataset.tableOpen,current,{peek:true});});
-    by('ax-peek-expand').addEventListener('click',()=>{by('ax-dialog').classList.add('ax-popped');by('ax-peek-expand').hidden=true;});
+    by('ax-peek-expand').addEventListener('click',()=>{const before=by('ax-dialog').getBoundingClientRect();by('ax-dialog').classList.add('ax-popped');by('ax-peek-expand').hidden=true;presentPopup(before);by('ax-dialog-close').focus({preventScroll:true});});
     by('ax-table-prev').addEventListener('click',()=>moveTable(-1));by('ax-table-next').addEventListener('click',()=>moveTable(1));
     by('ax-table-index').addEventListener('click',()=>openTableIndex(by('ax-dialog-body').dataset.chapter));
     by('ax-body').addEventListener('click',event=>{
@@ -416,8 +454,9 @@
     by('ax-dialog-body').addEventListener('click',event=>{
       const ref=event.target.closest('[data-open]');if(ref){event.preventDefault();openObject(ref.dataset.open,ref.dataset.chapter||by('ax-dialog-body').dataset.chapter);}
     });
-    by('ax-dialog-close').addEventListener('click',()=>by('ax-dialog').close());
-    by('ax-dialog').addEventListener('click',event=>{if(event.target===by('ax-dialog'))by('ax-dialog').close();});
+    by('ax-dialog-close').addEventListener('click',dismissPopup);
+    by('ax-dialog').addEventListener('cancel',event=>{event.preventDefault();dismissPopup();});
+    by('ax-dialog').addEventListener('click',event=>{if(event.target!==by('ax-dialog'))return;const r=by('ax-dialog').getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dismissPopup();});
     by('ax-search').addEventListener('submit',event=>{event.preventDefault();search();});
     by('ax-query').addEventListener('input',()=>{if(!by('ax-query').value){searchRevision++;by('ax-results').hidden=true;}});
     by('ax-smaller').addEventListener('click',()=>fontSize(-1));by('ax-larger').addEventListener('click',()=>fontSize(1));
