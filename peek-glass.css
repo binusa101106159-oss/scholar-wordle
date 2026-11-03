@@ -75,3 +75,30 @@ html.dark .lg-surface :is(.ax-dialog-bar,.ax-table-nav,.lx-dialog-tools,.gx-dial
   box-shadow:inset 0 1px 0 #ffffff50,0 3px 10px #0003;
 }
 @media(prefers-reduced-motion:reduce),(hover:none),(pointer:coarse) { .lg-gleam { transition:none; } }
+
+/* Thick-cut rim: broad optical bevel without changing the content box. */
+html.dark .lg-surface.lg-surface {
+  border-radius:30px!important;
+  box-shadow:0 38px 100px #0008,0 10px 28px #0004,0 0 0 1px #e1f1ff38,
+    inset 0 2px 2px #ffffffa0,inset 0 -3px 6px #b4dbff38,
+    inset 3px 0 4px #ffffff24,inset -3px 0 4px #bee5ff30!important;
+}
+.lg-surface::before { inset:1px;padding:4px; }
+.lg-surface::after {
+  box-shadow:inset 0 0 0 5px #d6efff0c,inset 0 0 0 6px #0005;
+  background:linear-gradient(90deg,#f0faff12,transparent 13px,transparent calc(100% - 13px),#c7e5ff16),linear-gradient(112deg,transparent 6%,#ffffff04 23%,#ffffff0e 24%,#ffffff03 25%,transparent 45%,#d2eaff03 75%,transparent 90%);
+}
+/* The lens stretches beneath stationary labels; only its transform animates. */
+.lg-tab-track { position:relative;isolation:isolate; }
+.lg-tab-track > [role="tab"] { position:relative;z-index:1; }
+.lg-tab-track > [role="tab"][aria-selected="true"] { background:transparent!important;border-color:transparent!important;box-shadow:none!important; }
+.lg-tab-lens {
+  position:absolute;left:0;top:0;z-index:0;pointer-events:none;box-sizing:border-box;border-radius:999px;
+  transform-origin:0 50%;
+  border:1px solid #e4f4ff60;
+  background:linear-gradient(155deg,#ffffff38,#d5eaff0d 46%,#bdd8ff20),rgba(140,170,200,.1);
+  box-shadow:inset 0 2px 1px #ffffff90,inset 0 -2px 2px #d0eaff30,inset 2px 0 2px #ffffff18,inset -2px 0 2px #ffffff28,0 2px 8px #0004;
+}
+.lg-tab-lens::before { content:'';position:absolute;inset:2px;border:1px solid #edf8ff15;border-radius:inherit;pointer-events:none; }
+.lg-tab-lens::after { content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,transparent 12%,#ffffff12 30%,transparent 55%);pointer-events:none; }
+.lg-tab-lens.lg-flowing { will-change:transform; }
