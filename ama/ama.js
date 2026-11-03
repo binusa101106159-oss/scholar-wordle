@@ -180,15 +180,15 @@
     if (reducePopupMotion()) return;
     const after=dialog.getBoundingClientRect();
     const frames=opening ? [
-      {opacity:0,transform:'translateY(20px) scale(.94)',offset:0},
-      {opacity:1,transform:'translateY(-1px) scale(1.006)',offset:.76},
+      {opacity:0,transform:'translateY(12px) scale(.975)',offset:0},
+      {opacity:.72,transform:'translateY(4px) scale(.992)',offset:.38},
       {opacity:1,transform:'none',offset:1}
     ] : before ? [
       {transform:`translate(${before.left+before.width/2-after.left-after.width/2}px,${before.top+before.height/2-after.top-after.height/2}px) scale(${before.width/after.width},${before.height/after.height})`},
       {transform:'none'}
     ] : null;
     if (!frames) return;
-    popupMotion=dialog.animate(frames,{duration:opening?440:380,easing:'cubic-bezier(.22,1,.36,1)'});
+    popupMotion=dialog.animate(frames,{duration:opening?680:560,easing:'cubic-bezier(.25,.55,.25,1)'});
   }
   async function dismissPopup() {
     const dialog=by('ax-dialog');
@@ -197,8 +197,11 @@
     const style=getComputedStyle(dialog),start={opacity:style.opacity,transform:style.transform};
     if (popupMotion) {popupMotion.cancel();popupMotion=null;}
     if (!reducePopupMotion()) {
+      const glass=getComputedStyle(dialog,'::backdrop');
+      dialog.style.setProperty('--ax-glass-from',glass.backdropFilter||glass.webkitBackdropFilter||'none');
+      dialog.style.setProperty('--ax-glass-color',glass.backgroundColor);
       dialog.classList.add('ax-closing');
-      const motion=dialog.animate([start,{opacity:0,transform:'translateY(16px) scale(.96)'}],{duration:210,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});
+      const motion=dialog.animate([start,{opacity:0,transform:'translateY(8px) scale(.985)'}],{duration:340,easing:'cubic-bezier(.25,.1,.25,1)',fill:'forwards'});
       popupMotion=motion;
       try { await motion.finished; } catch (_) { return; }
     }
