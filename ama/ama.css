@@ -226,16 +226,15 @@
   border:1px solid rgba(220,235,255,.24);
   border-radius:24px;
   background:linear-gradient(145deg,rgba(205,225,255,.10),rgba(180,205,240,.025) 48%),rgba(24,33,47,.64);
-  -webkit-backdrop-filter:blur(28px) saturate(1.35);
-  backdrop-filter:blur(28px) saturate(1.35);
+  /* Frost the background once; keep the moving card free of nested filters. */
   box-shadow:0 24px 80px #0005,inset 0 1px 0 #ffffff24,inset 0 -1px 0 #ffffff08;
 }
 .ax-dialog.ax-peek { width:min(900px,90vw); max-height:75dvh; }
 .ax-dialog::backdrop,.ax-dialog.ax-peek::backdrop {
   background:rgba(8,14,24,.14);
-  -webkit-backdrop-filter:blur(16px) saturate(1.15);
-  backdrop-filter:blur(16px) saturate(1.15);
-  animation:ax-glass-in .68s cubic-bezier(.25,.55,.25,1) both;
+  -webkit-backdrop-filter:blur(6px) saturate(1.1);
+  backdrop-filter:blur(6px) saturate(1.1);
+  animation:ax-glass-in .52s cubic-bezier(.2,.7,.2,1) both;
 }
 .ax-dialog.ax-peek.ax-popped { width:min(1120px,94vw); max-height:90dvh; }
 .ax-dialog .ax-dialog-bar,.ax-dialog .ax-table-nav {
@@ -252,14 +251,10 @@
 .ax-dialog .ax-table,.ax-dialog .ax-ca-sheet { background:rgba(14,21,31,.24); }
 #ax-peek-expand { margin-left:auto; }
 .ax-dialog.ax-closing::backdrop { animation:ax-glass-out .34s cubic-bezier(.25,.1,.25,1) forwards; }
-@keyframes ax-glass-in {
-  from { background-color:rgba(8,14,24,0); -webkit-backdrop-filter:blur(0px) saturate(1); backdrop-filter:blur(0px) saturate(1); }
-  to { background-color:rgba(8,14,24,.14); -webkit-backdrop-filter:blur(16px) saturate(1.15); backdrop-filter:blur(16px) saturate(1.15); }
-}
-@keyframes ax-glass-out {
-  from { background-color:var(--ax-glass-color,rgba(8,14,24,.14)); -webkit-backdrop-filter:var(--ax-glass-from,blur(16px) saturate(1.15)); backdrop-filter:var(--ax-glass-from,blur(16px) saturate(1.15)); }
-  to { background-color:rgba(8,14,24,0); -webkit-backdrop-filter:blur(0px) saturate(1); backdrop-filter:blur(0px) saturate(1); }
-}
+/* Only opacity animates: the fixed, lighter frost can stay composited. */
+.ax-dialog.ax-animating { will-change:transform,opacity; }
+@keyframes ax-glass-in { from { opacity:0; } to { opacity:1; } }
+@keyframes ax-glass-out { from { opacity:var(--ax-glass-opacity,1); } to { opacity:0; } }
 @media(max-width:600px) { .ax-table-shortcut { min-height:44px; padding:10px 12px; } }
 @media(prefers-reduced-motion:reduce) { .ax-dialog,.ax-dialog::backdrop,.ax-dialog.ax-peek::backdrop,.ax-dialog.ax-closing::backdrop { animation:none; transition:none; }.ax-table-shortcut { transition:none; } }
 
