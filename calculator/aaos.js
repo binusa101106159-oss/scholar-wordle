@@ -41,7 +41,11 @@
    error.textContent=invalid||'';
    const result=invalid?null:scoreAAOS(fields.map(f=>f.value),data);
    score.innerHTML=(result?.ready?result.displayScore:'—')+'<span>／100</span>';
-   severity.textContent=result?.ready?result.severity.label:'—';
+   severity.textContent=result?.ready?result.severity.original:'—';
+  }
+  function deleteBackward(i){
+   const target=fields[i].value===''&&i>0?fields[i-1]:fields[i];
+   target.value='';target.dispatchEvent(new Event('input',{bubbles:true}));target.focus();
   }
   fields.forEach((field,i)=>{
    let previous=field.value;
@@ -55,13 +59,16 @@
    field.addEventListener('compositionend',accept);
    field.addEventListener('focus',()=>field.select());field.addEventListener('click',()=>field.select());
    field.addEventListener('beforeinput',e=>{
-    if(e.isComposing||e.inputType!=='insertText')return;
+    if(e.isComposing)return;
+    if(e.inputType==='deleteContentBackward'){e.preventDefault();deleteBackward(i);return;}
+    if(e.inputType!=='insertText')return;
     e.preventDefault();const digit=(e.data||'').normalize('NFKC');
     if(/^[0-9]$/.test(digit)){field.value=digit;accept();}
    });
    field.addEventListener('paste',e=>{e.preventDefault();const digit=e.clipboardData.getData('text').trim().normalize('NFKC');if(/^[0-9]$/.test(digit)){field.value=digit;accept();}});
    field.addEventListener('keydown',e=>{
     if(e.isComposing||e.ctrlKey||e.metaKey||e.altKey)return;
+    if(e.key==='Backspace'){e.preventDefault();e.stopPropagation();deleteBackward(i);return;}
     const digit=e.key.normalize('NFKC');
     if(/^[0-9]$/.test(digit)){e.preventDefault();e.stopPropagation();field.value=digit;accept();}
     else if(e.key.length===1){e.preventDefault();}
