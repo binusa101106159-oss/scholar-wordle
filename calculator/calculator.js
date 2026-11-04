@@ -25,20 +25,16 @@
  if(typeof document==='undefined')return;
  let ready=false;
  function show(){
-  if(ready){if(!document.getElementById('cl-aaos').hidden)root.ScholarAAOS?.mount();return;}ready=true;
+  if(ready){root.ScholarAAOS?.mount();return;}ready=true;
   const panel=document.getElementById('calculator-panel');
-  panel.innerHTML='<nav class="cl-mode-nav" role="tablist" aria-label="計算工具"><button id="cl-tab-aaos" type="button" role="tab" data-calc-mode="aaos" aria-controls="cl-aaos" aria-selected="true">AAOS下肢</button><button id="cl-tab-basic" type="button" role="tab" data-calc-mode="basic" aria-controls="cl-basic" aria-selected="false" tabindex="-1">一般計算</button></nav><div id="cl-aaos" role="tabpanel" aria-labelledby="cl-tab-aaos"></div><div id="cl-basic" role="tabpanel" aria-labelledby="cl-tab-basic" hidden><section class="cl-card" aria-labelledby="cl-title"><div class="cl-heading"><h1 id="cl-title">計算機</h1><span>Calculator</span></div><div class="cl-display"><p id="cl-previous">基本運算</p><input id="cl-input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="0" maxlength="500" aria-label="算式" aria-describedby="cl-help"><p id="cl-status" role="status" aria-live="polite"></p></div><div class="cl-edit" role="group" aria-label="編輯算式"><button type="button" data-key="(">(</button><button type="button" data-key=")">)</button><button type="button" data-action="delete" aria-label="刪除一個字元">⌫</button><button type="button" id="cl-copy" disabled>複製結果</button></div><div class="cl-keys" role="group" aria-label="計算按鍵">'+[
+  panel.innerHTML='<div class="cl-calculators"><div id="cl-basic"><section class="cl-card" aria-labelledby="cl-title"><div class="cl-heading"><h1 id="cl-title">計算機</h1><span>Calculator</span></div><div class="cl-display"><p id="cl-previous">基本運算</p><input id="cl-input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="0" maxlength="500" aria-label="算式" aria-describedby="cl-help"><p id="cl-status" role="status" aria-live="polite"></p></div><div class="cl-edit" role="group" aria-label="編輯算式"><button type="button" data-key="(">(</button><button type="button" data-key=")">)</button><button type="button" data-action="delete" aria-label="刪除一個字元">⌫</button><button type="button" id="cl-copy" disabled>複製結果</button></div><div class="cl-keys" role="group" aria-label="計算按鍵">'+[
    ['AC','clear','function','清除'],['±','sign','function','整個算式變號'],['%','%','function','百分比'],['÷','÷','operator','除'],
    ['7','7'],['8','8'],['9','9'],['×','×','operator','乘'],
    ['4','4'],['5','5'],['6','6'],['−','−','operator','減'],
    ['1','1'],['2','2'],['3','3'],['+','+','operator','加'],
    ['0','0','zero'],['.','.'],['=','equals','equal','等於']
-  ].map(([label,key,kind,aria])=>'<button type="button" class="cl-key '+(kind?'cl-'+kind:'')+'" '+(['clear','sign','equals'].includes(key)?'data-action':'data-key')+'="'+key+'"'+(aria?' aria-label="'+aria+'"':'')+'>'+label+'</button>').join('')+'</div><p id="cl-help">支援鍵盤輸入、括號與乘除優先。Enter 計算 · Esc 清除<br>% 表示除以100。</p></section></div>';
-  const modes=[...panel.querySelectorAll('[data-calc-mode]')];
-  function setMode(mode){modes.forEach(b=>{const active=b.dataset.calcMode===mode;b.setAttribute('aria-selected',String(active));b.tabIndex=active?0:-1;document.getElementById(b.getAttribute('aria-controls')).hidden=!active;});if(mode==='aaos')root.ScholarAAOS?.mount();}
-  modes.forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.calcMode)));
-  panel.querySelector('.cl-mode-nav').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const i=modes.indexOf(e.target),next=e.key==='Home'?modes[0]:e.key==='End'?modes.at(-1):modes[(i+1)%2];next.click();next.focus();});
-  setMode('aaos');
+  ].map(([label,key,kind,aria])=>'<button type="button" class="cl-key '+(kind?'cl-'+kind:'')+'" '+(['clear','sign','equals'].includes(key)?'data-action':'data-key')+'="'+key+'"'+(aria?' aria-label="'+aria+'"':'')+'>'+label+'</button>').join('')+'</div><p id="cl-help">支援鍵盤輸入、括號與乘除優先。Enter 計算 · Esc 清除<br>% 表示除以100。</p></section></div><div id="cl-aaos"></div></div>';
+  root.ScholarAAOS?.mount();
   const input=document.getElementById('cl-input'),previous=document.getElementById('cl-previous'),status=document.getElementById('cl-status'),copy=document.getElementById('cl-copy');let evaluated=false,result='';
   function changed(){evaluated=false;result='';copy.disabled=true;status.textContent='';input.removeAttribute('aria-invalid');}
   function clear(){input.value='';previous.textContent='基本運算';changed();}

@@ -33,7 +33,7 @@
   if(first&&first.getClientRects().length&&!matchMedia('(pointer:coarse)').matches){first.focus({preventScroll:true});first.select();}
  }
  function render(host){
-  host.innerHTML='<section class="aa-compact" aria-label="AAOS下肢計算器"><form id="aa-form" autocomplete="off" novalidate><div class="aa-inputs">'+data.questions.map((q,i)=>'<label for="aa-'+q.id+'">Q'+(i+1)+'<input id="aa-'+q.id+'" name="'+q.id+'" type="text" inputmode="numeric" maxlength="1" pattern="[1-'+q.max+']" aria-label="Q'+(i+1)+'，1至'+q.max+'" placeholder="—" spellcheck="false"></label>').join('')+'</div></form><p id="aa-error" role="status"></p><div id="aa-result" role="status" aria-live="polite" aria-atomic="true"><p class="aa-score">—<span>／100</span></p><p class="aa-severity">—</p></div></section>';
+  host.innerHTML='<section class="aa-compact" aria-label="AAOS下肢計算器"><h2 class="aa-label">AAOS</h2><form id="aa-form" autocomplete="off" novalidate><div class="aa-inputs">'+data.questions.map((q,i)=>'<label for="aa-'+q.id+'">Q'+(i+1)+'<input id="aa-'+q.id+'" name="'+q.id+'" type="text" inputmode="numeric" maxlength="1" pattern="[1-'+q.max+']" aria-label="Q'+(i+1)+'，1至'+q.max+'" placeholder="—" spellcheck="false"></label>').join('')+'</div></form><p id="aa-error" role="status"></p><div id="aa-result" role="status" aria-live="polite" aria-atomic="true"><p class="aa-score">—<span>／100</span></p><p class="aa-severity">—</p></div></section>';
   const fields=[...host.querySelectorAll('input')],score=host.querySelector('.aa-score'),severity=host.querySelector('.aa-severity'),error=document.getElementById('aa-error');
   function update(){
    let invalid=null;
@@ -43,7 +43,22 @@
    score.innerHTML=(result?.ready?result.displayScore:'—')+'<span>／100</span>';
    severity.textContent=result?.ready?result.severity.label:'—';
   }
-  fields.forEach((field,i)=>{field.addEventListener('input',update);field.addEventListener('focus',()=>field.select());field.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fields[Math.min(i+1,6)].focus();}});});
+  fields.forEach((field,i)=>{
+   function accept(){
+    field.value=field.value.normalize('NFKC');update();
+    if(new RegExp('^[1-'+data.questions[i].max+']$').test(field.value)&&i<6)fields[i+1].focus();
+   }
+   field.addEventListener('input',e=>{if(!e.isComposing)accept();});
+   field.addEventListener('compositionend',accept);
+   field.addEventListener('focus',()=>field.select());field.addEventListener('click',()=>field.select());
+   field.addEventListener('beforeinput',e=>{const digit=(e.data||'').normalize('NFKC');if(!e.isComposing&&e.inputType==='insertText'&&/^[0-9]$/.test(digit)){e.preventDefault();field.value=digit;accept();}});
+   field.addEventListener('keydown',e=>{
+    if(e.isComposing||e.ctrlKey||e.metaKey||e.altKey)return;
+    const digit=e.key.normalize('NFKC');
+    if(/^[0-9]$/.test(digit)){e.preventDefault();e.stopPropagation();field.value=digit;accept();}
+    else if(e.key==='Enter'){e.preventDefault();fields[Math.min(i+1,6)].focus();}
+   });
+  });
   document.getElementById('aa-form').addEventListener('submit',e=>e.preventDefault());
   update();focusFirst();
  }
