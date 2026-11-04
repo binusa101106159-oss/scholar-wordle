@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const readers = ['lx-scroll', 'gx-scroll', 'ax-scroll', 'rv-scroll', 'nt-scroll'];
+  const readers = ['lx-scroll', 'gx-scroll', 'ax-scroll', 'rv-scroll', 'nt-scroll', 'il-scroll'];
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'reader-top';
@@ -11,6 +11,7 @@
   function update() {
     frame = 0;
     target = readers.map(id => document.getElementById(id)).find(el => el && el.getClientRects().length) || null;
+    if(target?.id==='il-scroll'&&matchMedia('(max-width:760px)').matches)target=document.scrollingElement;
     const hidden = !target || target.scrollTop < 300;
     if (button.hidden !== hidden) button.hidden = hidden;
   }
