@@ -171,29 +171,29 @@
         radial-gradient(35vmax 30vmax at 85% 75%, rgba(56,120,255,0.09), transparent 70%),
         radial-gradient(30vmax 25vmax at 60% 40%, rgba(29,78,216,0.06), transparent 70%);
     }
-    html.dark header {
+    html.dark header:where(#wordle-toolbar) {
       position: relative; background: rgba(255,255,255,0.04) !important;
       -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
       border-bottom: 1px solid var(--glass-edge) !important; box-shadow: inset 0 -1px 0 rgba(255,255,255,0.04), 0 10px 30px rgba(0,0,0,0.5) !important;
     }
-    html.dark header + div {
+    html.dark header:where(#wordle-toolbar) + div {
       position: relative; z-index: 10; background: rgba(255,255,255,0.025) !important;
       -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(255,255,255,0.08) !important;
     }
-    html.dark header button, html.dark header .inline-flex {
+    html.dark header:where(#wordle-toolbar) button, html.dark header:where(#wordle-toolbar) .inline-flex {
       background: var(--glass) !important; border: 1px solid var(--glass-edge) !important;
       -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.20) !important; border-radius: 999px !important;
     }
-    html.dark header .inline-flex button { border: 0 !important; box-shadow: none !important; background: transparent !important; }
-    html.dark header .inline-flex button.bg-oxford-gold,
+    html.dark header:where(#wordle-toolbar) .inline-flex button { border: 0 !important; box-shadow: none !important; background: transparent !important; }
+    html.dark header:where(#wordle-toolbar) .inline-flex button.bg-oxford-gold,
     html.dark #btn-new-game {
       background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.10)) !important;
       color: #fff !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 2px 10px rgba(0,0,0,0.4) !important;
     }
-    html.dark header button:hover { background: var(--glass-hi) !important; }
-    html.dark header .w-9.h-9 { background: var(--glass) !important; border-color: var(--glass-edge) !important; border-radius: 12px !important; }
+    html.dark header:where(#wordle-toolbar) button:hover { background: var(--glass-hi) !important; }
+    html.dark header:where(#wordle-toolbar) .w-9.h-9 { background: var(--glass) !important; border-color: var(--glass-edge) !important; border-radius: 12px !important; }
     html.dark main { position: relative; }
     html.dark #board-grid > div > div {
       background: rgba(255,255,255,0.035) !important; border: 1px solid rgba(255,255,255,0.13) !important;
@@ -322,7 +322,7 @@
     /* shared glass recipe: translucent fill, heavy blur + saturation, bright top rim, soft inner glow */
     html.dark #board-grid > div > div,
     html.dark #keyboard-container button,
-    html.dark header button, html.dark header .inline-flex, html.dark #wl-pill {
+    html.dark header:where(#wordle-toolbar) button, html.dark header:where(#wordle-toolbar) .inline-flex, html.dark #wl-pill {
       background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03)) !important;
       border: 1px solid rgba(255,255,255,0.16) !important;
       -webkit-backdrop-filter: blur(22px) saturate(200%) brightness(1.08) !important;
@@ -333,8 +333,8 @@
         inset 0 0 14px rgba(255,255,255,0.05),
         0 6px 18px rgba(0,0,0,0.55) !important;
     }
-    html.dark header .inline-flex button { background: transparent !important; border: 0 !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-    html.dark header .inline-flex button.bg-oxford-gold {
+    html.dark header:where(#wordle-toolbar) .inline-flex button { background: transparent !important; border: 0 !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    html.dark header:where(#wordle-toolbar) .inline-flex button.bg-oxford-gold {
       background: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0.10)) !important;
       box-shadow: inset 0 1px 0.5px rgba(255,255,255,0.6), 0 2px 8px rgba(0,0,0,0.4) !important;
     }
