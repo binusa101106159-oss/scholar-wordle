@@ -44,18 +44,27 @@
    severity.textContent=result?.ready?result.severity.label:'—';
   }
   fields.forEach((field,i)=>{
+   let previous=field.value;
    function accept(){
-    field.value=field.value.normalize('NFKC');update();
+    const normalized=field.value.normalize('NFKC');
+    if(normalized!==''&&!/^[0-9]$/.test(normalized)){field.value=previous;update();return;}
+    field.value=normalized;previous=normalized;update();
     if(new RegExp('^[1-'+data.questions[i].max+']$').test(field.value)&&i<6)fields[i+1].focus();
    }
    field.addEventListener('input',e=>{if(!e.isComposing)accept();});
    field.addEventListener('compositionend',accept);
    field.addEventListener('focus',()=>field.select());field.addEventListener('click',()=>field.select());
-   field.addEventListener('beforeinput',e=>{const digit=(e.data||'').normalize('NFKC');if(!e.isComposing&&e.inputType==='insertText'&&/^[0-9]$/.test(digit)){e.preventDefault();field.value=digit;accept();}});
+   field.addEventListener('beforeinput',e=>{
+    if(e.isComposing||e.inputType!=='insertText')return;
+    e.preventDefault();const digit=(e.data||'').normalize('NFKC');
+    if(/^[0-9]$/.test(digit)){field.value=digit;accept();}
+   });
+   field.addEventListener('paste',e=>{e.preventDefault();const digit=e.clipboardData.getData('text').trim().normalize('NFKC');if(/^[0-9]$/.test(digit)){field.value=digit;accept();}});
    field.addEventListener('keydown',e=>{
     if(e.isComposing||e.ctrlKey||e.metaKey||e.altKey)return;
     const digit=e.key.normalize('NFKC');
     if(/^[0-9]$/.test(digit)){e.preventDefault();e.stopPropagation();field.value=digit;accept();}
+    else if(e.key.length===1){e.preventDefault();}
     else if(e.key==='Enter'){e.preventDefault();fields[Math.min(i+1,6)].focus();}
    });
   });
