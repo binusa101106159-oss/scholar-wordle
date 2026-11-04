@@ -8,6 +8,7 @@
   const readingFonts={default:'',georgia:"Georgia,'Times New Roman',serif",times:"'Times New Roman',Times,serif",arial:'Arial,Helvetica,sans-serif',system:"system-ui,'Noto Sans TC','Microsoft JhengHei',sans-serif"};
   let catalogue, loading, current, menuOpen = false, revision = 0, scrollTimer, searchRevision = 0;
   let saved = {}, highlights = {};
+  const visiblePages=new Map();let pageObserver;
   try { saved = JSON.parse(window.ScholarStorage.getItem(STORE) || '{}'); } catch (_) { /* Optional storage. */ }
   try { highlights = JSON.parse(window.ScholarStorage.getItem(MARKS) || '{}'); } catch (_) { /* Optional storage. */ }
   if (!saved || typeof saved !== 'object') saved = {};
@@ -80,10 +81,10 @@
     if(!current||renderedChapter!==current)return;
     const sc=by('ax-scroll'),top=sc.getBoundingClientRect().top;
     saved.positions[current]=sc.scrollTop;
-    for(const page of by('ax-body').children) {
-      const rect=page.getBoundingClientRect();
-      if(rect.bottom>top){saved.anchors[current]={page:page.dataset.page,offset:top-rect.top};break;}
-    }
+    // Avoid a geometry scan across every preceding source page during scrolling.
+    // IntersectionObserver already knows which source page is on screen.
+    const page=[...visiblePages.keys()].filter(page=>page.isConnected).sort((a,b)=>Number(a.dataset.page)-Number(b.dataset.page))[0];
+    if(page){const rect=page.getBoundingClientRect();saved.anchors[current]={page:page.dataset.page,offset:top-rect.top};}
   }
   function alignReaderTarget(target,offset) {
     const token=++anchorRevision,version=revision,sc=by('ax-scroll');
@@ -136,8 +137,9 @@
     }
   }
   function restoreMarks() {
-    by('ax-body').querySelectorAll('mark.ax-highlight').forEach(mark=>mark.replaceWith(...mark.childNodes));
-    by('ax-body').normalize();
+    const previous=by('ax-body').querySelectorAll('mark.ax-highlight');
+    previous.forEach(mark=>mark.replaceWith(...mark.childNodes));
+    if(previous.length)by('ax-body').normalize();
     const entries = highlights[current] || {};
     by('ax-body').querySelectorAll('.ax-page').forEach(page => {
       const stored = entries[page.dataset.page];
@@ -166,6 +168,7 @@
     applyMarks(page,[{start,end}]); selection.removeAllRanges(); by('ax-status').textContent='已儲存標記。';
   }
   async function renderChapter(data,version) {
+    pageObserver?.disconnect();visiblePages.clear();
     const container=by('ax-body');container.replaceChildren();
     // Older saved positions are pixels in the original fully laid-out document.
     const legacyPosition=!saved.anchors[current] && (saved.positions[current]||0)>0;
@@ -196,6 +199,8 @@
     }
     if(version!==revision)return false;
     container.append(fragment);restoreMarks();renderedChapter=current;
+    pageObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting)visiblePages.set(entry.target,true);else visiblePages.delete(entry.target);}},{root:by('ax-scroll'),threshold:0});
+    for(const page of container.children)pageObserver.observe(page);
     return true;
   }
   function scrollToId(id) {

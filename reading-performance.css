@@ -1,0 +1,20 @@
+/* Static glass retains its tint, bevel and reflections without re-blurring scrolled content. */
+html body :is(.sg-glass,.sg-nav-shell,.lx-panel,.gx-panel,.hx-panel,#lx-menu,#gx-menu,#hx-menu,#ax-menu,#lx-sidebar,#gx-sidebar,#hx-sidebar,#ax-side,.reader-top) {
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+}
+/* Full-viewport blur is especially expensive while opening or scrolling large native tables. */
+html body :is(.pg-dialog,.ax-dialog,.lx-dialog,.gx-dialog,.hx-dialog,.sg-dialog)::backdrop,
+html.dark body .pg-overlay::before {
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  background:rgba(8,14,24,.24);
+}
+/* Without blur, an almost opaque inner sheet keeps underlying article text from showing through. */
+html.dark body .pg-dialog.pg-dialog,html.dark body .ax-dialog,
+html.dark body .pg-overlay > .lg-surface {
+  background:linear-gradient(145deg,#cde5ff12,transparent 48%),rgba(19,27,39,.97)!important;
+}
+/* Avoid reserving dozens of compositor layers for idle Wordle keys and tiles. */
+html.dark #board-grid > div > div,html.dark #keyboard-container button {will-change:auto;}
+@media(pointer:coarse) {
+  .lx-scroll,.gx-scroll,.hx-scroll,.ax-scroll {scroll-behavior:auto;}
+}

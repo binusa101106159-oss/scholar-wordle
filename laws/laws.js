@@ -1049,9 +1049,7 @@
         const last = prefs().law;
         await openLaw(state.byId.has(last) ? last : state.index.laws[0].id, { boot: true });
         if (prefs().view === 'checked' && !window.ScholarLawSearch?.active()) setCheckedView(true);
-        // warm the cache for offline use and instant search
-        const idle = window.requestIdleCallback || (fn => setTimeout(fn, 1500));
-        idle(() => loadCorpus().catch(() => {}));
+        // Full-library indexing starts only when the user searches, not during reading.
       })();
     } else if(window.ScholarLawSearch?.active()){
       window.ScholarLawSearch.show();

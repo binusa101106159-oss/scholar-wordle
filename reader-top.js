@@ -25,6 +25,7 @@
   });
   document.addEventListener('scroll', schedule, { capture: true, passive: true });
   window.addEventListener('resize', schedule, { passive: true });
-  new MutationObserver(schedule).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'data-game'] });
+  // Content insertion and table/highlight changes need no full-document observer.
+  new MutationObserver(schedule).observe(document.body, { attributes: true, attributeFilter: ['data-game'] });
   update();
 })();

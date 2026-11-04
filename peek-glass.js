@@ -70,7 +70,9 @@
         {offset:.65,transform:shape(oldX+distance*.8,oldWidth+(rect.width-oldWidth)*.8+stretch,.98)},
         {offset:1,transform:'none'}
       ];
-      lens.classList.add('lg-flowing');const flow=lens.animate(frames,{duration:220,easing:'cubic-bezier(.2,.65,.25,1)'});motion=flow;
+      const light=matchMedia('(pointer:coarse)').matches||CSS.supports('-moz-appearance','none');
+      const steps=light?[{opacity:.45,transform:'none'},{opacity:1,transform:'none'}]:frames;
+      lens.classList.add('lg-flowing');const flow=lens.animate(steps,{duration:light?120:220,easing:'cubic-bezier(.2,.65,.25,1)'});motion=flow;
       flow.finished.then(()=>{if(motion===flow){motion=null;lens.classList.remove('lg-flowing');}},()=>{});
     }
     const schedule=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;sync(true);});};
