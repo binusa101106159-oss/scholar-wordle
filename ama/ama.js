@@ -8,13 +8,13 @@
   const readingFonts={default:'',georgia:"Georgia,'Times New Roman',serif",times:"'Times New Roman',Times,serif",arial:'Arial,Helvetica,sans-serif',system:"system-ui,'Noto Sans TC','Microsoft JhengHei',sans-serif"};
   let catalogue, loading, current, menuOpen = false, revision = 0, scrollTimer, searchRevision = 0;
   let saved = {}, highlights = {};
-  try { saved = JSON.parse(localStorage.getItem(STORE) || '{}'); } catch (_) { /* Optional storage. */ }
-  try { highlights = JSON.parse(localStorage.getItem(MARKS) || '{}'); } catch (_) { /* Optional storage. */ }
+  try { saved = JSON.parse(window.ScholarStorage.getItem(STORE) || '{}'); } catch (_) { /* Optional storage. */ }
+  try { highlights = JSON.parse(window.ScholarStorage.getItem(MARKS) || '{}'); } catch (_) { /* Optional storage. */ }
   if (!saved || typeof saved !== 'object') saved = {};
   if (!highlights || typeof highlights !== 'object') highlights = {};
   saved.positions ||= {};saved.anchors ||= {};
 
-  function persist() { try { localStorage.setItem(STORE,JSON.stringify(saved)); } catch (_) { /* Reading stays available. */ } }
+  function persist() { try { window.ScholarStorage.setItem(STORE,JSON.stringify(saved)); } catch (_) { /* Reading stays available. */ } }
   function measure() {
     const panel = by('ama-panel');
     if (panel && !panel.hidden) panel.style.setProperty('--ax-top',Math.max(0,panel.getBoundingClientRect().top)+'px');
@@ -136,6 +136,8 @@
     }
   }
   function restoreMarks() {
+    by('ax-body').querySelectorAll('mark.ax-highlight').forEach(mark=>mark.replaceWith(...mark.childNodes));
+    by('ax-body').normalize();
     const entries = highlights[current] || {};
     by('ax-body').querySelectorAll('.ax-page').forEach(page => {
       const stored = entries[page.dataset.page];
@@ -159,8 +161,8 @@
     if (start<0 || end<=start) return;
     highlights[current] ||= {};
     const entry = highlights[current][page.dataset.page] ||= {length:offset,ranges:[]};
-    entry.ranges.push({start,end});
-    try { localStorage.setItem(MARKS,JSON.stringify(highlights)); } catch (_) { /* Optional storage. */ }
+    entry.ranges.push({id:crypto.randomUUID(),start,end});
+    try { window.ScholarStorage.setItem(MARKS,JSON.stringify(highlights)); } catch (_) { /* Optional storage. */ }
     applyMarks(page,[{start,end}]); selection.removeAllRanges(); by('ax-status').textContent='已儲存標記。';
   }
   async function renderChapter(data,version) {
@@ -566,7 +568,7 @@
     by('ax-copy-all').addEventListener('click',()=>copyAMA(true));
     by('ama-panel').addEventListener('copy',copySelection);
     by('ax-clear-marks').addEventListener('click',()=>{
-      delete highlights[current];try{localStorage.setItem(MARKS,JSON.stringify(highlights));}catch(_){/* Optional storage. */}
+      delete highlights[current];try{window.ScholarStorage.setItem(MARKS,JSON.stringify(highlights));}catch(_){/* Optional storage. */}
       by('ax-body').querySelectorAll('mark.ax-highlight').forEach(mark=>mark.replaceWith(...mark.childNodes));by('ax-status').textContent='已清除本章標記。';
     });
     by('ax-scroll').addEventListener('scroll',()=>{
@@ -584,5 +586,9 @@
   }
   mobile.addEventListener('change',()=>{if(catalogue)menu(!mobile.matches);});
   window.addEventListener('resize',measure);window.addEventListener('pagehide',persist);
+  window.ScholarSync.subscribe(key=>{
+    if(key===STORE){saved=JSON.parse(window.ScholarStorage.getItem(STORE)||'{}');saved.positions||={};saved.anchors||={};if(catalogue){fontSize();readingFont();}}
+    if(key===MARKS){highlights=JSON.parse(window.ScholarStorage.getItem(MARKS)||'{}');if(current)restoreMarks();}
+  });
   window.ScholarAMA={show};
 })();

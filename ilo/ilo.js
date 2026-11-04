@@ -7,11 +7,12 @@
  if(typeof document==='undefined')return;
  const STORE='scholar-ilo-v1',by=id=>document.getElementById(id),esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const SOURCE='https://www.ilo.org/resource/other/ilo-international-classification-radiographs-pneumoconioses';
- let pref={};try{pref=JSON.parse(localStorage.getItem(STORE))||{};}catch(_){}
+ let pref={};try{pref=JSON.parse(window.ScholarStorage.getItem(STORE))||{};}catch(_){}
  if(typeof pref!=='object'||Array.isArray(pref))pref={};
  const state={promise:null,ready:false,films:[],lessons:[],mode:'learn',lesson:'start',film:'normal-1',other:'pp-11',compare:false,sync:false,group:'all',query:'',quiz:null,score:{seen:0,correct:0}};
  let viewers=[];
- function save(){try{localStorage.setItem(STORE,JSON.stringify({film:state.film,other:state.other,lesson:state.lesson,mode:state.mode,score:state.score}));}catch(_){} }
+ function updateScore(){const results=Object.values(JSON.parse(window.ScholarStorage.getItem('scholar-ilo-results-v1')||'{}'));state.score={seen:results.length,correct:results.filter(r=>r.correct).length};}
+ function save(){try{window.ScholarStorage.setItem(STORE,JSON.stringify({film:state.film,other:state.other,lesson:state.lesson,mode:state.mode,score:state.score,quiz:state.quiz,compare:state.compare,sync:state.sync,group:state.group,query:state.query}));}catch(_){} }
  const film=id=>state.films.find(f=>f.id===id)||state.films[0];
  const source=pages=>'<span class="il-cite">2022指引，原書 p.'+esc(pages)+'</span>';
  const options=(items,current)=>items.map(f=>'<option value="'+esc(f.id)+'"'+(f.id===current?' selected':'')+'>'+esc(f.label)+'</option>').join('');
@@ -34,14 +35,31 @@
    for(const type of ['pointerup','pointercancel','lostpointercapture'])this.viewport.addEventListener(type,e=>this.points.delete(e.pointerId));
    this.viewport.addEventListener('dblclick',e=>{const r=this.viewport.getBoundingClientRect();if(this.p.s/this.fit>1.8){this.pristine=true;this.resize();}else this.zoom(e.clientX-r.left,e.clientY-r.top,this.fit*2);});
    this.viewport.addEventListener('keydown',e=>{if(e.key==='+'||e.key==='='){e.preventDefault();this.zoom(this.viewport.clientWidth/2,this.viewport.clientHeight/2,this.p.s*1.3);}else if(e.key==='-'){e.preventDefault();this.zoom(this.viewport.clientWidth/2,this.viewport.clientHeight/2,this.p.s/1.3);}else if(e.key==='0'){this.pristine=true;this.resize();}else if(e.key.startsWith('Arrow')){e.preventDefault();this.pristine=false;this.p.x+=e.key==='ArrowLeft'?24:e.key==='ArrowRight'?-24:0;this.p.y+=e.key==='ArrowUp'?24:e.key==='ArrowDown'?-24:0;this.schedule();this.propagate();}});
+   host.addEventListener('click',()=>this.rememberView());host.addEventListener('input',()=>this.rememberView());this.viewport.addEventListener('keydown',()=>this.rememberView());
    new ResizeObserver(()=>this.resize()).observe(this.viewport);
+  }
+  rememberView(){
+   if(!this.image?.naturalWidth||!this.film||!this.fit)return;
+   const id=this.film.id,view={scale:this.p.s/this.fit,cx:(this.viewport.clientWidth/2-this.p.x)/(this.film.width*this.p.s),cy:(this.viewport.clientHeight/2-this.p.y)/(this.film.height*this.p.s),brightness:this.brightness,contrast:this.contrast,pristine:this.pristine};
+   clearTimeout(this.persistTimer);this.persistTimer=setTimeout(()=>{
+    const all=JSON.parse(window.ScholarStorage.getItem('scholar-ilo-views-v1')||'{}');all[id]=view;
+    window.ScholarStorage.setItem('scholar-ilo-views-v1',JSON.stringify(all));
+   },250);
+  }
+  restoreView(){
+   const view=JSON.parse(window.ScholarStorage.getItem('scholar-ilo-views-v1')||'{}')[this.film?.id];
+   if(!view||!this.image?.naturalWidth||![view.scale,view.cx,view.cy,view.brightness,view.contrast].every(Number.isFinite))return;
+   const scale=this.limit(this.fit*view.scale);this.p={s:scale,x:this.viewport.clientWidth/2-view.cx*this.film.width*scale,y:this.viewport.clientHeight/2-view.cy*this.film.height*scale};
+   this.pristine=Boolean(view.pristine);this.brightness=view.brightness;this.contrast=view.contrast;
+   this.host.querySelectorAll('[data-adjust]').forEach(input=>input.value=this[input.dataset.adjust]*100);this.schedule();
   }
   limit(s){return Math.max(this.fit*.5,Math.min(Math.max(4,this.fit*12),s));}
   zoom(x,y,s){this.pristine=false;this.p=zoomPose(this.p,x,y,this.limit(s));this.schedule();this.propagate();}
   propagate(){
+   this.rememberView();
    if(!state.compare||!state.sync)return;const other=viewers[1-this.index];if(!this.film||!other?.film||!other.image?.naturalWidth)return;
    const cx=(this.viewport.clientWidth/2-this.p.x)/(this.film.width*this.p.s),cy=(this.viewport.clientHeight/2-this.p.y)/(this.film.height*this.p.s),s=other.limit(other.fit*this.p.s/this.fit);
-   other.pristine=false;other.p={s,x:other.viewport.clientWidth/2-cx*other.film.width*s,y:other.viewport.clientHeight/2-cy*other.film.height*s};other.schedule();
+   other.pristine=false;other.p={s,x:other.viewport.clientWidth/2-cx*other.film.width*s,y:other.viewport.clientHeight/2-cy*other.film.height*s};other.schedule();other.rememberView();
   }
   resize(){
    if(!this.film||!this.image?.naturalWidth||!this.viewport.clientWidth||!this.viewport.clientHeight)return;
@@ -55,7 +73,7 @@
    if(this.film?.id===data.id&&this.image?.getAttribute('src')){this.image.alt=masked?'ILO練習影像':data.label;return;}
    this.release();this.film=data;this.pristine=true;this.brightness=this.contrast=1;this.host.querySelectorAll('input').forEach(i=>i.value=100);this.status.hidden=false;this.status.textContent='載入原圖…';this.viewport.setAttribute('aria-busy','true');
    const seq=++this.seq,img=new Image();this.image=img;img.className='il-image';img.draggable=false;img.alt=masked?'ILO練習影像':data.label;img.decoding='async';img.style.visibility='hidden';img.style.width=data.width+'px';img.style.height=data.height+'px';
-   img.onload=async()=>{try{await img.decode();}catch(_){}if(seq!==this.seq)return;this.status.hidden=true;this.viewport.setAttribute('aria-busy','false');this.resize();};
+   img.onload=async()=>{try{await img.decode();}catch(_){}if(seq!==this.seq)return;this.status.hidden=true;this.viewport.setAttribute('aria-busy','false');this.resize();this.restoreView();};
    img.onerror=()=>{if(seq!==this.seq)return;this.status.hidden=false;this.status.textContent='影像載入失敗，請按重試。';this.viewport.setAttribute('aria-busy','false');const retry=document.createElement('button');retry.type='button';retry.textContent='重試';retry.onclick=()=>{this.release();this.show(data,masked);};this.status.append(retry);};
    this.viewport.append(img);img.src='ilo/images/'+encodeURIComponent(data.file);
   }
@@ -74,7 +92,8 @@
    const action=e.target.closest('[data-quiz]')?.dataset.quiz;if(action==='next'){nextQuiz(state.quiz?.group||'small');render();revealImage();}else if(action==='check')checkQuiz();
   });
   panel.addEventListener('change',e=>{if(e.target.id==='il-compare'){state.compare=e.target.checked;updateImages();}else if(e.target.id==='il-sync'){state.sync=e.target.checked;if(state.sync)viewers[0].propagate();}else if(e.target.id==='il-other'){state.other=e.target.value;updateImages();save();}else if(e.target.id==='il-filter'){state.group=e.target.value;renderSidebar();}else if(e.target.id==='il-quiz-group'){nextQuiz(e.target.value);render();}});
-  panel.addEventListener('input',e=>{if(e.target.id==='il-search'){state.query=e.target.value;renderGallery();}});
+  panel.addEventListener('input',e=>{if(e.target.id==='il-search'){state.query=e.target.value;renderGallery();save();}});
+  panel.addEventListener('change',e=>{if(e.target.id.startsWith('il-answer-')&&state.quiz){state.quiz.answer=state.quiz.group==='small'?[by('il-answer-prof').value,by('il-answer-shape').value]:[by('il-answer-large').value];}save();});
   panel.querySelector('.il-modes').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...panel.querySelectorAll('[data-mode]')],i=tabs.indexOf(e.target);const next=e.key==='Home'?tabs[0]:e.key==='End'?tabs.at(-1):tabs[(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length];next.click();next.focus();});
   by('il-fullscreen').addEventListener('click',async()=>{const area=panel.querySelector('.il-image-area');if(document.fullscreenElement){await document.exitFullscreen();return;}if(area.classList.contains('il-expanded')){area.classList.remove('il-expanded');by('il-fullscreen').textContent='放大工作區';return;}try{if(!area.requestFullscreen)throw Error();await area.requestFullscreen();}catch(_){area.classList.add('il-expanded');by('il-fullscreen').textContent='離開放大';}});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){panel.querySelector('.il-image-area').classList.remove('il-expanded');by('il-fullscreen').textContent='放大工作區';}});
@@ -95,19 +114,20 @@
  }
  function nextQuiz(group){
   const pool=state.films.filter(f=>f.group===group),old=state.quiz?.id;const choices=pool.filter(f=>f.id!==old);const target=choices[Math.floor(Math.random()*choices.length)]||pool[0];
-  state.quiz={group,id:target.id,revealed:false,correct:false};
+  state.quiz={group,id:target.id,attemptId:crypto.randomUUID(),revealed:false,correct:false};save();
  }
  function renderQuiz(){
   const q=state.quiz;if(!q){nextQuiz('small');return renderQuiz();}
   const target=film(q.id),small=q.group==='small';
   by('il-scroll').innerHTML='<h2>標準片辨識練習</h2><p class="il-muted">先觀察影像，再作答並對照附錄C。部分原圖本身印有分類標記；本練習保留完整原圖，屬引導式練習。</p><label class="il-field">練習主題<select id="il-quiz-group"><option value="small"'+(small?' selected':'')+'>小陰影：15張</option><option value="large"'+(!small?' selected':'')+'>大陰影：3張</option></select></label><p class="il-score">累計 '+state.score.correct+' / '+state.score.seen+' 題符合標準片記錄</p>'+(small?'<label class="il-field">密集度<select id="il-answer-prof"><option value="">請選擇</option>'+['1/1','2/2','3/3'].map(v=>'<option>'+v+'</option>').join('')+'</select></label><label class="il-field">主要／次要形狀大小<select id="il-answer-shape"><option value="">請選擇</option>'+['p/p','q/q','r/r','s/s','t/t','t/s'].map(v=>'<option>'+v+'</option>').join('')+'</select></label>':'<label class="il-field">大陰影類別<select id="il-answer-large"><option value="">請選擇</option>'+['A','B','C'].map(v=>'<option>'+v+'</option>').join('')+'</select></label>')+'<button type="button" class="il-action" data-quiz="check"'+(q.revealed?' disabled':'')+'>核對答案</button><div id="il-feedback" class="il-feedback" role="status">'+(q.revealed?'<strong>'+(q.correct?'與標準片記錄一致':'請對照標準片記錄')+'</strong><p>'+esc(target.label)+'</p>'+source(target.page):'')+'</div><button type="button" class="il-action il-secondary" data-quiz="next">下一題</button><p class="il-muted">練習使用已知標準片，不代表臨床分類能力認證。</p>';
+  if(q.answer){const ids=small?['il-answer-prof','il-answer-shape']:['il-answer-large'];ids.forEach((id,i)=>by(id).value=q.answer[i]||'');}
   if(q.revealed){const fields=small?['il-answer-prof','il-answer-shape']:['il-answer-large'];fields.forEach((id,i)=>{by(id).value=q.answer?.[i]||'';by(id).disabled=true;});}
  }
  function checkQuiz(){
   const q=state.quiz;if(!q||q.revealed)return;const f=film(q.id),small=q.group==='small';
   const answer=small?[by('il-answer-prof').value,by('il-answer-shape').value]:[by('il-answer-large').value];
   if(answer.some(v=>!v)){by('il-feedback').textContent='請先選擇所有欄位。';return;}
-  q.answer=answer;q.revealed=true;q.correct=small?answer[0]===f.profusion&&answer[1]===f.shape:answer[0]===f.large;state.score.seen++;if(q.correct)state.score.correct++;save();renderSidebar();updateImages();
+  q.answer=answer;q.revealed=true;q.correct=small?answer[0]===f.profusion&&answer[1]===f.shape:answer[0]===f.large;const results=JSON.parse(window.ScholarStorage.getItem('scholar-ilo-results-v1')||'{}');q.attemptId||=crypto.randomUUID();results[q.attemptId]||={id:q.attemptId,correct:q.correct};window.ScholarStorage.setItem('scholar-ilo-results-v1',JSON.stringify(results));updateScore();save();renderSidebar();updateImages();
  }
  function updateImages(){
   if(by('ilo-panel').hidden){viewers.forEach(v=>v.release());return;}
@@ -126,11 +146,14 @@
    const [a,b]=await Promise.all([fetch('ilo/films.json'),fetch('ilo/study.json')]);if(!a.ok||!b.ok)throw Error();const [images,study]=await Promise.all([a.json(),b.json()]);
    state.films=images.films;state.lessons=study.lessons;
    if(state.films.some(f=>f.id===pref.film))state.film=pref.film;if(state.films.some(f=>f.id===pref.other))state.other=pref.other;if(state.lessons.some(l=>l.id===pref.lesson))state.lesson=pref.lesson;
-   if(['learn','library'].includes(pref.mode))state.mode=pref.mode;
+   if(['learn','library','quiz'].includes(pref.mode))state.mode=pref.mode;
    if(Number.isSafeInteger(pref.score?.seen)&&Number.isSafeInteger(pref.score?.correct)&&pref.score.correct>=0&&pref.score.seen>=pref.score.correct)state.score=pref.score;
+   if(pref.quiz&&state.films.some(f=>f.id===pref.quiz.id))state.quiz=pref.quiz;
+   state.compare=Boolean(pref.compare);state.sync=Boolean(pref.sync);state.group=pref.group||'all';state.query=pref.query||'';updateScore();
    shell();state.ready=true;render();
   }catch(_){state.promise=null;by('ilo-panel').innerHTML='<p class="il-error">無法載入ILO教材。<button type="button" id="il-retry">重試</button></p>';by('il-retry').onclick=show;}})();return state.promise;
  }
  function hide(){viewers.forEach(v=>v.release());by('ilo-panel').querySelector('.il-image-area')?.classList.remove('il-expanded');}
+ window.ScholarSync.subscribe(key=>{if(key==='scholar-ilo-views-v1'){viewers.forEach(v=>v.restoreView());return;}if(key==='scholar-ilo-results-v1'){updateScore();if(state.ready)renderSidebar();return;}if(key!==STORE)return;pref=JSON.parse(window.ScholarStorage.getItem(STORE)||'{}');if(!state.ready)return;for(const k of ['film','other','lesson','mode','score','quiz','compare','sync','group','query'])if(k in pref)state[k]=pref[k];render();});
  root.ScholarILO={show,hide};
 })(typeof window==='undefined'?globalThis:window);

@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(uid) {
+      return request.auth != null
+        && request.auth.uid == uid
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == 'binusa101106159@gmail.com';
+    }
+    function validState() {
+      return request.resource.data.keys().hasAll(['value', 'revision', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['value', 'revision', 'updatedAt'])
+        && request.resource.data.value is string
+        && request.resource.data.value.size() <= 850000
+        && request.resource.data.revision is int
+        && request.resource.data.updatedAt == request.time;
+    }
+    match /users/{uid}/state/{item} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid) && validState()
+        && request.resource.data.revision == 1;
+      allow update: if isOwner(uid) && validState()
+        && request.resource.data.revision == resource.data.revision + 1;
+      // Logical deletions are revisioned values, to avoid stale-device resurrection.
+      allow delete: if false;
+    }
+  }
+}

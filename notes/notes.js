@@ -41,8 +41,8 @@
   const state = { items: [], byId: new Map(), visible: [], current: null, query: '', kind: 'main', order: 'source', sidebarCollapsed: false, promise: null, ready: false };
   const by = id => document.getElementById(id);
   const esc = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  function saved() { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (_) { return {}; } }
-  function remember() { try { localStorage.setItem(STORE, JSON.stringify({ current: state.current, kind: state.kind, order: state.order, sidebarCollapsed: state.sidebarCollapsed })); } catch (_) { /* Reading still works without storage. */ } }
+  function saved() { try { return JSON.parse(window.ScholarStorage.getItem(STORE)) || {}; } catch (_) { return {}; } }
+  function remember() { try { window.ScholarStorage.setItem(STORE, JSON.stringify({ current: state.current, kind: state.kind, order: state.order, sidebarCollapsed: state.sidebarCollapsed })); } catch (_) { /* Reading still works without storage. */ } }
   function updateSidebar() {
     by('nt-layout').dataset.sidebarCollapsed = String(state.sidebarCollapsed);
     const button = by('nt-sidebar-toggle');

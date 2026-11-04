@@ -36,7 +36,8 @@
   ].map(([label,key,kind,aria])=>'<button type="button" class="cl-key '+(kind?'cl-'+kind:'')+'" '+(['clear','sign','equals'].includes(key)?'data-action':'data-key')+'="'+key+'"'+(aria?' aria-label="'+aria+'"':'')+'>'+label+'</button>').join('')+'</div><p id="cl-help">支援鍵盤輸入、括號與乘除優先。Enter 計算 · Esc 清除<br>% 表示除以100。</p></section></div><div id="cl-aaos"></div></div>';
   root.ScholarAAOS?.mount();
   const input=document.getElementById('cl-input'),previous=document.getElementById('cl-previous'),status=document.getElementById('cl-status'),copy=document.getElementById('cl-copy');let evaluated=false,result='';
-  function changed(){evaluated=false;result='';copy.disabled=true;status.textContent='';input.removeAttribute('aria-invalid');}
+  function persist(){root.ScholarStorage.setItem('scholar-calculator-v1',JSON.stringify({input:input.value,previous:previous.textContent,result,evaluated}));}
+  function changed(){evaluated=false;result='';copy.disabled=true;status.textContent='';input.removeAttribute('aria-invalid');persist();}
   function clear(){input.value='';previous.textContent='基本運算';changed();}
   function insert(key){if(evaluated){if(/[0-9.(]/.test(key))input.value='';input.setSelectionRange(input.value.length,input.value.length);}const start=input.selectionStart??input.value.length,end=input.selectionEnd??start;input.setRangeText(key,start,end,'end');changed();}
   function action(name){
@@ -50,6 +51,10 @@
   input.addEventListener('focus',()=>{if(evaluated)input.select();});
   input.addEventListener('keydown',e=>{if(e.isComposing)return;if(e.key==='Enter'||e.key==='='){e.preventDefault();action('equals');}else if(e.key==='Escape'){e.preventDefault();clear();}else if(evaluated&&['+','-','*','/','%'].includes(e.key))input.setSelectionRange(input.value.length,input.value.length);});
   copy.addEventListener('click',async()=>{if(!result)return;try{await navigator.clipboard.writeText(result);status.textContent='已複製結果。';}catch(_){input.focus();input.select();status.textContent='請按 Ctrl+C 或長按複製結果。';}});
+  function hydrate(){const saved=JSON.parse(root.ScholarStorage.getItem('scholar-calculator-v1')||'{}');input.value=saved.input||'';previous.textContent=saved.previous||'基本運算';result=saved.result||'';evaluated=Boolean(saved.evaluated);copy.disabled=!result;}
+  panel.addEventListener('click',()=>queueMicrotask(persist));input.addEventListener('input',()=>queueMicrotask(persist));input.addEventListener('keydown',()=>queueMicrotask(persist));
+  root.ScholarSync.subscribe(key=>{if(key==='scholar-calculator-v1')hydrate();});hydrate();
+
  }
  root.ScholarCalculator={show};
 })(typeof window==='undefined'?globalThis:window);

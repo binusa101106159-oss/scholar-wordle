@@ -260,6 +260,9 @@ textarea[readonly],input[readonly]{opacity:1;cursor:default}
   .calc{grid-template-columns:auto auto;}
 }
 </style>
+<link rel="stylesheet" href="../sync/sync.css">
+<script src="../sync/state.js"></script><script src="../sync/store.js"></script>
+<script type="module" src="../sync/client.js"></script>
 </head>
 <body>
 <header>
@@ -1448,25 +1451,24 @@ textarea[readonly],input[readonly]{opacity:1;cursor:default}
 </main>
 <div class="saved" id="saved" role="status">已自動儲存</div>
 
-<script>
+<script type="text/scholar-app" data-cloud-inline data-cloud-seed>
 /* 批改快照：作答固定為 2026-10-27 匯出的版本，不會讀寫練習版的作答 */
 (function(){
   var SNAP = {"w5-2a": "假設有接觸這些異丙醇等清潔物質就有肝炎風險", "w5-1a": "工作內容、接觸之物質SDS、接觸多久/頻率、個人防護具、其他同仁之前有沒有發病、通風系統", "w7-5d2": "4", "w5-d": "1", "w4-1a-2": "(1979-1988)：60-69\n(1989-1998)：60-69\n(1999-2008)：70-79\n(2009-2018)：60-69", "w7-3d1": "2", "w5-s2b": "1", "w3-1b-2": "(1980-1989, 40-49)=4.49／十萬\n(1990-1999, 40-49)=0／十萬\n(2000-2009, 40-49)=15.9／十萬", "w7-6c1": "2/20", "w4-2q4a": "?", "w5-ci": "0.123-46.814", "w4-0-4": "如果是偏鄉地區，通報機制不完善，可能導致很多0病例數，這樣無法回推人年或計算發生率", "w7-b1g": "未移植", "w4-2q3c": "60歲", "w4-4-2": "沒有", "w2-1b-2": "工作年資，每日接觸時間來計算TWA", "w6-p5": "0", "w6-g3s": "30", "w7-6b1": "2/20", "w7-1p2": "24", "w4-0-1": "全國和當地地區", "w1-3": "可能會造成選擇性偏差，回憶偏差", "w3-ld": "45-55, 55-65趨勢下降，與其他不同", "w7-4n": "15", "w5-or2": "0.875", "w4-1b-3": "1979-1988, 30-39=2.03／十萬\n1989-1998, 40-49=10.59／十萬\n1999-2008, 50-59=38.09／十萬", "w4-3-2": "1949 CI開始變大", "w3-crr": "1970最高，1-11.339", "w3-3q4a": "比較不同年代或地區發生率", "w1-1": "先看是在哪裡發生，這群人有多少人、共同從事甚麼工作、做多久，這段期間這位置發生甚麼事件，因肺纖維化需要一段時間，非急性暴露，需要回溯到以前的工作及暴露型態，並且針對這群人及曾經於此工作的人做初步調查及追蹤及病況。", "w5-s1c": "1", "w3c-2a": "5", "w7-3p2": "24", "w4c-1l": "1979-1988, 30-39", "w4-5-1": "net drift上升且顯著", "w3-la": "各年齡層均有上升趨勢", "w6-w5-33": "0", "w7-2c": "不可能 因為死了就不會移植了", "w2-e2": "0.1", "w7-3mrr": "0.6", "w7-6q4": "時間相依分析", "w4-2q2a": "世代顯著，年代顯著", "w3-f4": "2", "w4-1a-1": "(2009-2018, 60-69), 14357", "w7-6c4": "1.0", "w3-2-2": "1985年停採又仍有上升趨勢，直到2010年", "w6-2b": "因為暴露後疾病仍有潛伏期", "w2-ce2": "0.4", "w3c-1b": "22287", "w4c-4a": "1767", "w4-w0": "395,1,0", "w7-b2e": "5", "w5-b": "1", "w3-5a": "是", "w6-w4-22": "10", "w4-2q3b": "3.201-6.304", "w3-3q3b": "否", "w4c-3b": "6584987", "w7-5d1": "2", "w3-prr": "1995年代以前發生率較低, 1995年以後發生率較高", "w4-3-4": "就可排除cohort不只有線性變化", "w6-4e": "1.2825e-5", "w4-4-4": "1980年代世代轉負，與1980年代開始施打b乾疫苗相符", "w4c-3a": "1477", "w4-1b-4": "不能", "w3-1b-1": "(1980-1989, 40-49)=4.49／十萬\n(1980-1989, 50-59)=19.29／十萬\n(1980-1989, 60-69)=78.39／十萬", "w4-0-3": "先看全國，再和地區相比，可能地區因為產業或環境因素導致會和全國有差", "w2-3b-1": "不可以", "w4-4-1": "1969，之後就開始有下降趨勢", "w7-6q3b": "因為不死時期讓分母膨脹，死亡率下降", "w6-w9-42": "10", "w2-p1": "0.8", "w6-g22": "30", "w7-6b4": "0.6", "w6-w7-13": "0", "w7-1p1": "36", "w2-2b-2": "否", "w6-p2": "20", "w3-5c": "因為不能獨自拆出period effect, cohort effect所各自貢獻程度", "w5-s1a": "5", "w6-w8-11": "0", "w4-3-1": "花蓮：2.55(1.825-3.279)，沒有0病例，最小人年98077\n全國：2.788(2.585-2.991)，沒有0病例，最小人年4209068", "w3-jp": "2010", "w4c-3l": "1979-1988, 50-59", "w6-smr": "5926", "w6-4py": "95", "w7-b1p": "2", "w4-5-3": "需要當地吸菸、通報率等資料", "w6-p10": "0", "w4-2q2b": "所有年齡一起動", "w4-1b-2": "1979-1988, 30-39=2.03／十萬\n1989-1998, 30-39=2.44／十萬\n1999-2008, 30-39=3.88／十萬", "w5-4a": "可能影響A->B之直接因果關係之因子", "w3-apc1": "6.78", "w4-prr": "1986.5年前後都又顯著上升趨勢", "w6-g43": "5", "w2-p3": "0.4", "w5-4b": "matched case control, 納入multivariate analysis、stratified analysis 等", "w7-5p2": "40", "w5-or0": "2.4", "w3-6b": "否，因為信賴區間大，僅能確定其上升趨勢最大論\n模型限制：僅看到發生率，不能下任何因果關係之結論\n年輕世代的追蹤時間：1980之世代只追蹤30年\n停採當時的年齡：1985停採後，1970世代為15歲，已經為最後可能接觸之世代\n以及信賴區間的寬度：新賴區間1-11，比較寬，雖然顯著但不可靠", "w7-2b": "移植組", "w7-3p1": "20", "w5-6c": "拿到職之體檢資料，確定到職前有沒有肝功能或b肝問題", "w7-6b3": "44", "w7-6q2b": "因為非移植不死時期被拿掉了", "w4-nd": "8.008", "w3-3q2c": "允許：此世代之肺癌發生率顯著上升\n不允許：是石綿或台灣玉開採造成的", "w6-g32": "5", "w2-e3": "0.02", "w6-g53": "15", "w3c-3b": "20412", "w6-p8": "0", "w4-4age": "36", "w3-3q1a": "帶表整理平均變化，信賴區間0.936-7.24代表有顯著變化", "w7-2d-2": "移植組：多了A-E之非死亡時間，會低估死亡率\n未移植組：少了A-E之非死亡時間，會高估死亡率", "w3-3q4b": "回推風險人年，計算實際發病人數", "w4-6c": "篩檢、診斷、通報、編碼", "w5-s2c": "4", "w7-6q3a": "比較好", "w7-2py": "16", "w6-4": "1÷1.2825e-5", "w4c-1b": "12850846", "w6-w3-22": "10", "w4-3-3": "花蓮cohort deviations不顯著，如果只看花蓮可能會以為cohort只有線性變化", "w4c-4l": "1979-1988, 60-69", "w7-b2p": "3", "w4-1b-1": "1979-1988, 30-39=2.03／十萬\n1979-1988, 40-49=7.84／十萬\n1979-1988, 50-59=42.99／十萬", "w2-3a-2": "否", "w4c-2b": "8544343", "w6-w2-43": "5", "w1-2": "偵測方法或儀器不同，可能會造成數值偏差。評估或比較暴露時需要用相同的測量方法才可以互相比較。因每種儀器對不同的物質偵測有其範圍及精準度，針對不同的暴露也須採用其適當之測量方式，才可以增加研究精準度。", "w3c-3l": "1980-1989, 60-69", "w2-p2": "1.0", "w1-2a": "偵測方法或儀器不同，可能會造成數值偏差。評估或比較暴露時需要用相同的測量方法才可以互相比較。因每種儀器對不同的物質偵測有其範圍及精準度，針對不同的暴露也須採用其適當之測量方式，才可以增加研究精準度。", "w4-2q1b": "?", "w3c-1l": "1980-1989, 40-49", "w7-6a2": "4/24", "w3c-2b": "25914", "w4c-2a": "670", "w2-1a-2": "單看油漆工的話可能會漏掉其噴砂工作內容", "w6-g4s": "20", "w6-w4-33": "5", "w7-5tot": "60", "w3-6a": "年齡：85\n出生世代：1970\n年代：2015", "w2-l3": "0.05", "w3-5b": "模型適配良好看能不能拿這些效應解釋數據趨勢，不能直接下定存在因果關係，還需要更多如吸菸年齡等等", "w6-w5-22": "0", "w7-5mrr": "1", "w3-wp": "年代效應顯著", "w6-w6-41": "0", "w5-5": "式", "w6-py": "5000", "w6-w3-33": "10", "w3-apc2": "-13.79", "w6-3": "工作暴露未滿5年不納入，暴露後未滿10年死亡不納入，非暴露者不納入", "w7-5p1": "20", "w3-d2": "8.6", "w2-3a-1": "甲>丙>乙", "w5-or": "2.4", "w2-ce3": "0.6", "w7-2a": "收案到移植時不會有死亡發生", "w7-3": "不可以完全消除 因為還沒把16年加回未移植組，死亡率仍會被高估", "w6-e": "0.000675", "w4-6b": "1960世代大幅上升，2005年代大幅上升，約45歲\n與已知的暴露途徑（職業、居住、飲食、母嬰）相容", "w6-w2-42": "5", "w6-w9-53": "10", "w4-crr": "1964最高(3.201-6.304)，1929年最低(0.172-0.284))", "w5-6b": "檢查有接觸個案之肝功能", "w6-p3": "20", "w7-6q2a": "60, 44, 60", "w5-s2a": "7", "w4-4-5": "C 型肝炎治療、飲酒、黃麴毒素管制、篩檢與診斷改變", "w4-la": "全年齡層均有上升趨勢", "w3-nd": "4.04", "w3-1b-4": "肺癌發生率降低可以由石綿或台灣玉停採後下降。", "w7-1mrr": "0.33", "w4-wc": "世代有非線性變化", "w3-d4": "6.69", "w2-l2": "0.1", "w6-p7": "0", "w6-p4": "15", "w3-3q1b": "APC為每年變化趨勢，net drift為整理平均變化", "w5-1b": "人：哪些職位會暴露，是否有群聚\n事：哪些作業會暴露\n時：每天接觸多久\n地：工作環境是否通風或密閉，是否只有特定地方接觸還\n物：接觸之物質毒性資料", "w5-s1d": "1", "w7-b2o": "死亡", "w3-d1": "23.69", "w3-1a-2": "因為要看分母人口數多寡，才能算出發生率才知道其風險", "w5-s1b": "0", "w6-p6": "0", "w6-p9": "20", "w4-5-0": "花蓮壽豐鄉豐田社區肺癌男女合計\n暴露假說：石綿開採造成肺癌上升", "w3-f2": "3", "w7-1d2": "4", "w3-3q2b": "1-11.339", "w7-6a1": "2/36", "w4-6d": "通報率 吸菸 診斷/塞檢方式變化\n可以從醫院取得", "w6-g5s": "15", "w6-2d": "是", "w7-6c2": "4/40", "w2-1a-1": "噴砂工：噴砂時直接接觸\n油漆工：先噴砂處理表面，再進行油漆，故噴砂時直接接觸\n監工：於監視時可能會接觸，暴露程度取決於監視時機是否於噴砂作業中，以及距離多遠監視等等", "w5-1c": "找出範例個案之職位或有相同作業作為高風險群", "w4-2q1a": "有顯著每年上升8.008%", "w5-or1": "10", "w3-2-3": "否", "w2-ce1": "1.6", "w7-4": "A: 0-2, 2-8\nC: 0-3, 3-8\nD: 0-4, 4-7\nE: 0-5, 5-8", "w3-3q2a": "1970", "w6-g2s": "30", "w4c-4b": "4110405", "w7-b2s": "2", "w7-6c3": "60", "w3-w0": "6.5668/1/0.0104", "w3-0a": "否", "w5-c": "5", "w7-2d-1": "未移植", "w3-2-1": "1980-2010：發生率有上升趨勢，且統計顯著\n2010-2018：發生率有下降趨勢，統計不顯著", "w7-b1o": "存活", "w6-w8-22": "0", "w7-3d2": "4", "w2-1a-3": "會偏低", "w4-2q4b": "可以推論女性肺癌可能有其他因素導致上升，不能推論是哪一個因素造成", "w4-0-2": "肺癌(舉例)，男性、女性以及不分性別", "w6-gs3": "45", "w5-2b": "cross-sectional", "w3-1a-1": "最多：(2000-2009, 70-79y)\n零： (1980-1989, 30-39y)", "w3-wc": "世代效應顯著", "w4-wp": "年代沒有非線性變化", "w3-0b": "疾病潛伏期、吸菸、年齡、台灣玉是否有至病物質等等", "w5-s2d": "0", "w3c-2l": "1980-1989, 50-59", "w7-6b2": "4/24", "w2-1b-1": "優先採取工作者呼吸帶的個人空氣採樣", "w4c-1a": "261", "w3-d3": "8.43", "w7-b1e": "2", "w3-f3": "2", "w3-1b-3": "(1980-1989, 40-49)=4.49／十萬\n(1990-1999, 50-59)=52.56／十萬\n(2000-2009, 60-69)=91.1／十萬", "w4c-2l": "1979-1988, 40-49", "w5-6a": "三氯乙烷SDS, 有接觸之每人身上需要放偵測器, ", "w6-gs2": "50", "w6-rate": "1.35e-7", "w6-w10-53": "0", "w3c-1a": "1", "w2-e1": "0.16", "w6-gss": "95", "w6-w2-53": "5", "w7-b1s": "0", "w4-5-2": "新賴區間過寬，世代效應不顯著", "w7-6a3": "60", "w6-2c": "是", "w7-b2g": "移植", "w2-1a": "噴砂工：噴砂時直接接觸\n油漆工：先噴砂處理表面，再進行油漆，故噴砂時直接接觸\n監工：於監視時可能會接觸，暴露程度取決於監視時機是否於噴砂作業中，以及距離多遠監視等等\n\n\n\n", "w7-5a": "是", "w4-6a": "兩者都有，左欄wald檢定All Period/Cohort RR顯著", "w7-1d1": "2", "w4-ld": "32.5-37.5, 47,5-52.5不同，為上升趨勢", "w3-f1": "1", "w7-6a4": "0.33", "w6-g42": "15", "w6-w2-32": "5", "w6-2a": "死亡、研究結束、發病", "w2-2b-1": "噴砂工", "w2-3b-2": "抽菸 年齡 基因 等等", "w3-3q3a": "一致：net drift 仍為上升趨勢，世代效應顯著\n改變：年代效應不顯著", "w7-5b": "不成立", "w4-2q3a": "1964", "w6-g33": "25", "w2-l1": "0.2", "w5-a": "12", "w6-4smr": "77973", "w3c-3a": "16", "w1-2b": "可能會造成選擇性偏差，回憶偏差"}, P = "epi-pbl-review:";
   try{
-    var del = []; for(var i=0;i<localStorage.length;i++){ var k = localStorage.key(i); if(k.indexOf(P)===0 && k.charAt(P.length)!=="_") del.push(k); }
-    del.forEach(function(k){ localStorage.removeItem(k); });
-    Object.keys(SNAP).forEach(function(k){ localStorage.setItem(P+k, SNAP[k]); });
+    var del = []; for(var i=0;i<window.ScholarStorage.length;i++){ var k = window.ScholarStorage.key(i); if(k.indexOf(P)===0 && k.charAt(P.length)!=="_") del.push(k); }
+    del.forEach(function(k){ window.ScholarStorage.removeItem(k); });
+    Object.keys(SNAP).forEach(function(k){ window.ScholarStorage.setItem(P+k, SNAP[k]); });
   }catch(e){}
   window.__SNAP = SNAP;
-})();
-</script>
-<script>
+})();</script>
+<script type="text/scholar-app" data-cloud-inline>
 (function(){
   "use strict";
   var PREFIX = "epi-pbl-review:";
-  function load(k){ try{ return localStorage.getItem(PREFIX+k); }catch(e){ return null; } }
-  function save(k,v){ try{ if(v===""){ localStorage.removeItem(PREFIX+k); } else { localStorage.setItem(PREFIX+k,v); } if(k.charAt(0)!=="_") localStorage.setItem(PREFIX+"_mod", String(Date.now())); flash(); }catch(e){} }
-  var t; function flash(msg, ms){ var s=document.getElementById("saved"); s.textContent = msg||"已自動儲存"; s.classList.add("show"); clearTimeout(t); t=setTimeout(function(){s.classList.remove("show");}, ms||900); }
+  function load(k){ try{ return window.ScholarStorage.getItem(PREFIX+k); }catch(e){ return null; } }
+  function save(k,v){ try{ if(v===""){ window.ScholarStorage.removeItem(PREFIX+k); } else { window.ScholarStorage.setItem(PREFIX+k,v); } if(k.charAt(0)!=="_") window.ScholarStorage.setItem(PREFIX+"_mod", String(Date.now())); flash(); }catch(e){} }
+  var t; function flash(msg, ms){ var s=document.getElementById("saved"); s.textContent = msg||"已更新；同步狀態見左下角"; s.classList.add("show"); clearTimeout(t); t=setTimeout(function(){s.classList.remove("show");}, ms||900); }
   window.__flash = flash;
 
   /* ---------- data tables ---------- */
@@ -1559,14 +1561,14 @@ textarea[readonly],input[readonly]{opacity:1;cursor:default}
   (function(){
     var MIG = {"w1-2": ["w1-2a", "w1-2b"], "w2-1a": ["w2-1a-1", "w2-1a-2", "w2-1a-3"], "w2-1b": ["w2-1b-1", "w2-1b-2"], "w2-2b": ["w2-2b-1", "w2-2b-2"], "w2-3a": ["w2-3a-1", "w2-3a-2"], "w2-3b": ["w2-3b-1", "w2-3b-2"], "w3-0": ["w3-0a", "w3-0b"], "w3-1a": ["w3-1a-1", "w3-1a-2"], "w3-1b": ["w3-1b-1", "w3-1b-2", "w3-1b-3", "w3-1b-4"], "w3-2": ["w3-2-1", "w3-2-2", "w3-2-3"], "w3-3q1": ["w3-3q1a", "w3-3q1b"], "w3-3q2": ["w3-3q2a", "w3-3q2b", "w3-3q2c"], "w3-3q3": ["w3-3q3a", "w3-3q3b"], "w3-3q4": ["w3-3q4a", "w3-3q4b"], "w3-5": ["w3-5a", "w3-5b", "w3-5c"], "w3-6": ["w3-6a", "w3-6b"], "w4-0": ["w4-0-1", "w4-0-2", "w4-0-3", "w4-0-4"], "w4-1a": ["w4-1a-1", "w4-1a-2"], "w4-1b": ["w4-1b-1", "w4-1b-2", "w4-1b-3", "w4-1b-4"], "w4-2q1": ["w4-2q1a", "w4-2q1b"], "w4-2q2": ["w4-2q2a", "w4-2q2b"], "w4-2q3": ["w4-2q3a", "w4-2q3b", "w4-2q3c"], "w4-2q4": ["w4-2q4a", "w4-2q4b"], "w4-3": ["w4-3-1", "w4-3-2", "w4-3-3", "w4-3-4"], "w4-4": ["w4-4-1", "w4-4-2", "w4-4-4", "w4-4-5"], "w4-5": ["w4-5-0", "w4-5-1", "w4-5-2", "w4-5-3"], "w5-cc2": ["w5-cc2a", "w5-cc2b", "w5-cc2c"], "w7-2d": ["w7-2d-1", "w7-2d-2"], "w7-5": ["w7-5a", "w7-5b"], "w7-6q2": ["w7-6q2a", "w7-6q2b"], "w7-6q3": ["w7-6q3a", "w7-6q3b"]};
     try{
-      if(localStorage.getItem(PREFIX+"_mig_split_v1")) return;
+      if(window.ScholarStorage.getItem(PREFIX+"_mig_split_v1")) return;
       Object.keys(MIG).forEach(function(oldK){
-        var v = localStorage.getItem(PREFIX+oldK); if(!v) return;
+        var v = window.ScholarStorage.getItem(PREFIX+oldK); if(!v) return;
         var targets = MIG[oldK];
-        var anyFilled = targets.some(function(t){ return localStorage.getItem(PREFIX+t); });
-        if(!anyFilled) localStorage.setItem(PREFIX+targets[0], v);   /* old value is kept too */
+        var anyFilled = targets.some(function(t){ return window.ScholarStorage.getItem(PREFIX+t); });
+        if(!anyFilled) window.ScholarStorage.setItem(PREFIX+targets[0], v);   /* old value is kept too */
       });
-      localStorage.setItem(PREFIX+"_mig_split_v1", "1");
+      window.ScholarStorage.setItem(PREFIX+"_mig_split_v1", "1");
     }catch(e){}
   })();
   var fields = document.querySelectorAll("[data-k]");
@@ -1621,10 +1623,10 @@ textarea[readonly],input[readonly]{opacity:1;cursor:default}
     if(!document.getElementById(id)) id = "w0";
     document.querySelectorAll("section.week").forEach(function(s){ s.classList.toggle("on", s.id===id); });
     tabs.forEach(function(a){ if(a.getAttribute("href")==="#"+id){ a.setAttribute("aria-current","page"); var nav=a.parentNode; nav.scrollLeft = a.offsetLeft - nav.offsetLeft - 16; } else a.removeAttribute("aria-current"); });
-    try{ localStorage.setItem(PREFIX+"_tab", id); }catch(e){}
+    try{ window.ScholarStorage.setItem(PREFIX+"_tab", id); }catch(e){}
   }
   window.addEventListener("hashchange", function(){ show(location.hash.slice(1)); window.scrollTo(0,0); });
-  var start = location.hash.slice(1); if(!start){ try{ start = localStorage.getItem(PREFIX+"_tab")||"w0"; }catch(e){ start="w0"; } }
+  var start = location.hash.slice(1); if(!start){ try{ start = window.ScholarStorage.getItem(PREFIX+"_tab")||"w0"; }catch(e){ start="w0"; } }
   show(start);
   tabs.forEach(function(a){ a.addEventListener("click", function(e){ e.preventDefault(); var id=a.getAttribute("href").slice(1);
     try{ history.replaceState(null,"","#"+id); }catch(err){} show(id); window.scrollTo(0,0); }); });
@@ -1633,7 +1635,7 @@ textarea[readonly],input[readonly]{opacity:1;cursor:default}
   /* ---------- export / import / clear ---------- */
   document.getElementById("exportBtn").addEventListener("click", function(){
     var out = {};
-    try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k.indexOf(PREFIX)===0 && k.charAt(PREFIX.length)!=="_") out[k.slice(PREFIX.length)] = localStorage.getItem(k); } }catch(e){}
+    try{ for(var i=0;i<window.ScholarStorage.length;i++){ var k=window.ScholarStorage.key(i); if(k.indexOf(PREFIX)===0 && k.charAt(PREFIX.length)!=="_") out[k.slice(PREFIX.length)] = window.ScholarStorage.getItem(k); } }catch(e){}
     var json = JSON.stringify(out,null,1), name = "epi-pbl-answers.json";
     var useDl = (window.claude && window.claude.use) ? window.claude.use("downloads") : Promise.resolve(null);
     useDl.then(function(dl){
@@ -1664,10 +1666,9 @@ textarea[readonly],input[readonly]{opacity:1;cursor:default}
     flash("已清除本週作答", 1500);
     document.querySelectorAll(".calc").forEach(function(b){ b._update && b._update(); });
   });
-})();
-</script>
+})();</script>
 
-<script>
+<script type="text/scholar-app" data-cloud-inline>
 (function(){
   "use strict";
   var dataBox = document.getElementById("rpData");
@@ -1793,23 +1794,22 @@ textarea[readonly],input[readonly]{opacity:1;cursor:default}
     insert(k);
   });
   window.__calcEval = evaluate;
-})();
-</script>
+})();</script>
 
-<script>
+<script type="text/scholar-app" data-cloud-inline>
 (function(){
   "use strict";
   var PREFIX = "epi-pbl-review:", GH_TOKEN = "epi-pbl-ghtoken", GH_GIST = "epi-pbl-gistid", BACKUP = "epi-pbl-backup";
   var FILE = "epi-pbl-answers.json";
   var $ = function(id){ return document.getElementById(id); };
   var bar = $("cloudBar"), btn = $("cloudBtn"), state = $("cloudState"), notice = $("cloudNotice");
-  function ls(k, v){ try{ if(v === undefined) return localStorage.getItem(k); if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }catch(e){ return null; } }
+  function ls(k, v){ try{ if(v === undefined) return window.ScholarStorage.getItem(k); if(v === null) window.ScholarStorage.removeItem(k); else window.ScholarStorage.setItem(k, v); }catch(e){ return null; } }
   function flash(m, ms){ if(window.__flash) window.__flash(m, ms || 2000); }
   function when(t){ if(!t) return "—"; var d = new Date(+t || t); return d.toLocaleString("zh-TW", { hour12:false, month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit" }); }
 
   function collect(){
     var items = {};
-    try{ for(var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if(k.indexOf(PREFIX) === 0 && k.charAt(PREFIX.length) !== "_") items[k.slice(PREFIX.length)] = localStorage.getItem(k); } }catch(e){}
+    try{ for(var i = 0; i < window.ScholarStorage.length; i++){ var k = window.ScholarStorage.key(i); if(k.indexOf(PREFIX) === 0 && k.charAt(PREFIX.length) !== "_") items[k.slice(PREFIX.length)] = window.ScholarStorage.getItem(k); } }catch(e){}
     return items;
   }
   function apply(items){
@@ -1941,9 +1941,9 @@ textarea[readonly],input[readonly]{opacity:1;cursor:default}
   });
 
   // undo the last cloud load
-  try{ if(localStorage.getItem(BACKUP)) $("cloudUndo").hidden = false; }catch(e){}
+  try{ if(window.ScholarStorage.getItem(BACKUP)) $("cloudUndo").hidden = false; }catch(e){}
   $("cloudUndo").addEventListener("click", function(){
-    var b; try{ b = JSON.parse(localStorage.getItem(BACKUP)); }catch(e){}
+    var b; try{ b = JSON.parse(window.ScholarStorage.getItem(BACKUP)); }catch(e){}
     if(!b || !b.items) return;
     var cur = collect();
     Object.keys(cur).forEach(function(k){ if(!(k in b.items)) ls(PREFIX + k, null); });
@@ -1978,10 +1978,9 @@ textarea[readonly],input[readonly]{opacity:1;cursor:default}
     }).catch(function(){});
   }
   setTimeout(checkNewer, 800);
-})();
-</script>
+})();</script>
 
-<script>
+<script type="text/scholar-app" data-cloud-inline>
 (function(){
   "use strict";
   var KEY_STORE = "epi-pbl-apikey";           /* kept apart from answers; never exported */
@@ -2232,10 +2231,9 @@ textarea[readonly],input[readonly]{opacity:1;cursor:default}
     });
     document.getElementById("keyClear").addEventListener("click", function(){ setKey(""); showKeyState(); if(window.__flash) window.__flash("已刪除 API key", 1500); });
   }
-})();
-</script>
+})();</script>
 
-<script>
+<script type="text/scholar-app" data-cloud-inline>
 (function(){
   function num(v){ v=(v||"").trim(); if(!v) return null; var x=Number(v); return isFinite(x)?x:NaN; }
   function fmt(x){ return isNaN(x)?"?":(Math.round(x*100)/100).toString(); }
@@ -2248,10 +2246,9 @@ textarea[readonly],input[readonly]{opacity:1;cursor:default}
   }
   var ts=document.querySelectorAll("table.pyg");
   ts.forEach(function(t){ t._update=function(){upd(t);}; t.addEventListener("input",function(){upd(t);}); upd(t); });
-})();
-</script>
+})();</script>
 
-<script>
+<script type="text/scholar-app" data-cloud-inline>
 /* ---------- 批改（2026-10-27）：綠＝正確、黃＝部分正確、紅＝錯誤；原答案保留不動 ---------- */
 (function(){
   var CORR = {"w1-2a": "關鍵是兩種方法看得到的纖維不同。PCM（光學相位差）只數長 ≥5 μm、寬 ＞0.25 μm 的纖維，看不到細纖維，也分不出礦物種類；TEM 解析度高，看得到細短纖維並能鑑定為透閃石、陽起石。所以 TEM 數值遠高於 PCM（切割：PCM 0.44 vs TEM 12.1 f/cm³）。", "w1-2b": "選擇性偏差、回憶偏差與這題無關（那是研究對象選取與問卷回憶的問題）。這題問測量方法的意義：只用 PCM 會低估暴露（漏掉細纖維），也無法確認是不是石綿 → 暴露分類錯誤；暴露評估要搭配 TEM 鑑定纖維種類，而且不同方法的數值不能直接比較或套用同一標準。", "w1-3": "回憶偏差不是通報資料的主要問題。講義列五項：低通報率（非強制，會低估）、差別通報（大醫院較常通報）、選擇性偏差（某些病如矽肺較易被通報）、時間延遲、資訊偏差（缺暴露史→暴露分類錯誤）。另外「上升」可能只是通報變積極或制度改變，且通報資料沒有分母（工作人口），本身算不出發生率。", "w2-1b-2": "要的是「每段工作的職務」和「每段工作的年數」（CE＝Σ E_j × D_j）。每日接觸時間不必另外記：濃度已是 8 小時 TWA，講義假設各年暴露相同，不再乘每日工時。", "w2-3b-2": "吸菸、年齡是干擾因子，對；但最先缺的是：① 肺癌結果資料（誰得病、何時診斷，例如連結癌症登記）；② 追蹤期間／人年，才能算發生率；③ 比較組（低或無暴露者）；並考慮潛伏期。", "w3-1a-1": "最多 ✓。零病例有 3 格：1980–89 年 30–39 歲、1990–99 年 40–49 歲、1980–89 年 80–89 歲。", "w3-ld": "沒有下降的年齡層，各年齡 local drift 都是正值：35 歲 3.1%（−4.2～11.1）、45 歲 4.7%（0.7～8.8）、55 歲 2.8%（0.7～5.0）、65 歲 0.5%（−1.2～2.3）、75 歲 3.4%（1.1～5.8）、85 歲 13.5%（−5.8～36.7）。65 歲（60–69）最低且 CI 含 0；35、85 歲病例少、CI 很寬。年齡標籤是組中點（35＝30–39 歲）。", "w3-la": "Long Age 是控制年代與世代後「率隨年齡的變化」，不是各年齡的時間趨勢；應寫：率隨年齡增加而上升。", "w3-3q1b": "兩者的資料、期間、模型都不同：Joinpoint 的 6.8% 用逐年年齡標準化率，只描述 1980–2010 那一段；net drift 由 APC 模型以年齡 × 年代的病例數與人口數估計，涵蓋整段 1980–2019（含 2010 後下降），並依各格病例數加權。所以 net drift（4.0%）比 6.8% 小。", "w3-3q2c": "CI 下限剛好 1.00，在顯著邊界，不能說「顯著上升」。只能說：1970 世代的率點估計約為參考世代（1940）的 3.4 倍，但真實倍數可能從 1 到 11 倍，量級很不確定。不允許：歸因石綿或臺灣玉，也不能確定它就是最高的世代。", "w3-3q4b": "重點是：只有率就不能跑 APC 模型（NCI 工具要病例數＋人口數），也算不出 CI 與 Wald 檢定，因為不知道每格有幾例、估計多精確。仍可做描述性比較（直向、橫向、對角線）、畫年齡別率曲線；有標準人口時可做直接年齡標準化。", "w3-5c": "原因是工具的輸出設計：NCI 網頁工具不輸出 deviance 次模型比較表，改以 Wald 檢定呈現；表 2-3 是用 R 的 Epi 套件配適。識別問題兩種軟體都有，不是跑不出這張表的理由。", "w4-0-4": "稀疏主要因為地區人口少、癌別罕見，很多格是 0 或個位數病例。0 病例仍可算率（＝0），人年來自人口資料，不必靠病例數回推；問題是估計不穩定、CI 很寬，APC 模型對零格很敏感。", "w4-1b-1": "50–59 歲應為 1,477 ÷ 6,584,987 × 10⁵＝22.43／十萬；42.99 是 60–69 歲那格（1,767 ÷ 4,110,405）。", "w4-1b-3": "前三格 ✓。題目的對角線有四格，補第 4 格：2009–18 年 60–69 歲＝14,357 ÷ 11,788,518 × 10⁵＝121.79／十萬。", "w4-nd": "Interval 設錯：表 3-1 是 10 歲 × 10 年，Interval 要填 10（設 5 會讓年變化率約變兩倍）。正確：3.93%／年（3.53～4.32）", "w4-ld": "（Interval 10，年齡 35、45、55、65、75）全部為正且顯著：3.9%、4.2%、3.6%、3.2%、5.0%；70–79 歲最高、60–69 歲最低", "w4-prr": "年代應為 1984、1994（參考）、2004、2014：RR 0.69、1、1.49、2.19，逐期上升，CI 都不含 1（1986.5 是 Interval 設 5 造成的錯誤標籤）", "w4-crr": "數值對、標籤錯位：最高是 1979 世代 4.49（3.20～6.30），最低是 1909 世代 0.22（0.17～0.28）", "w4-la": "Long Age 是「率隨年齡的變化」（控制年代與世代後），不是各年齡的時間趨勢；應寫：率隨年齡增加而上升", "w4-2q1a": "應為 3.93%／年（3.53～4.32）：點估計＝控制年齡後，女性肺癌率平均每年上升約 3.9%；CI 不含 0，上升趨勢顯著。8.008 是 Interval 設 5 的結果。", "w4-2q1b": "未作答 → 兩者都在描述整體率每年變化幾 %，net drift 約等於年齡標準化率（取 log）的斜率。不完全一樣，因為：① 加權不同：ASR 用標準人口權重，net drift 依各格病例數加權，病例多的高齡組影響大；② 年齡範圍與組距不同（工作台可含全年齡、逐年；這裡是 30–79 歲、10 年組距）；③ ASR 曲線若不是直線（Joinpoint 分段），net drift 只給整段一個平均。", "w4-2q2a": "應與你表格填的一致：Cohort deviations 顯著（X²＝28.2，df 6，p＜0.001）；Period deviations 不顯著（X²＝0.11，df 2，p＝0.95）。", "w4-2q2b": "應為「特定世代帶著動」：扣掉線性趨勢後，年代沒有額外起伏，世代卻有，代表變化主要沿出生世代走（線性部分屬於年代或世代則無法分辨）。", "w4-2q3a": "應為 1979 世代（約 1970–1988 年出生）；1964 是 Interval 設 5 造成的錯誤標籤。", "w4-2q3c": "1979 世代在 2023 年約 35–53 歲（中點約 44 歲）；矩陣中只由 1 格支持（2009–18 年 30–39 歲），是邊界世代，所以 CI 最寬。", "w4-2q4a": "未作答 →（全國男性 CRIS 資料，Interval 10）男性 net drift 2.28%／年（2.12～2.45），低於女性 3.93%；男性世代曲線較平：1979 世代 RR 2.65（女 4.49）、1909 世代 0.35（女 0.22）。男性 period deviations 顯著（X²＝22.7，p＜0.001），女性不顯著；兩性 cohort deviations 都顯著。→ 女性跨世代上升更陡。", "w4-3-2": "明顯不穩定的是最年輕的 1969、1979 世代（1979：1.26～6.22）和最老的 1909 世代；1949 世代 CI（0.95～1.32）還算窄。", "w4-3-3": "花蓮的 cohort deviations 其實顯著（X²＝26.9，df 6，p＜0.001）。只看點估計：花蓮 net drift 2.55% 低於全國 2.79%、1979 世代 RR 2.8 低於全國 3.3 → 可能誤以為花蓮上升較慢、世代效應較弱。", "w4-3-4": "加上 CI：花蓮 net drift 1.83～3.28 包含全國的 2.79，年輕世代 CI 很寬（1979：1.26～6.22），所以沒有證據顯示花蓮和全國不同，差異可能只是小樣本的隨機變動。", "w4-4-4": "表 3-3 只到 2009–18 年、30 歲以上，最年輕的 1979 世代（約 1970–1988 年出生）大多在 1984 年疫苗前出生，1984–86 年出生者在 2018 年才 32–34 歲，只佔一小部分；local drifts 也都是正的，沒有轉負。所以 1969→1979 世代 RR 下降（1.52→1.33）方向雖與疫苗假說相容，但主要不是疫苗世代造成；要看疫苗效果需要 2019–23 年資料與 5 歲組。", "w4-5-2": "「世代效應不顯著」不對：All Cohort RR＝1 的 Wald 檢定顯著（X²＝21.78，df 8，p＝0.005），只有 cohort deviations 不顯著（p＝0.083）。限制可寫：① 零病例格 3 格、病例少，CI 很寬；② 表列是人口數不是人年，且沒有吸菸、居住史資料。", "w4-6a": "All Period／Cohort RR＝1 都含 net drift，兩個都顯著只代表有趨勢；分辨年代或世代要看 deviations：period deviations X²＝6.18（df 2，p＝0.046）顯著，cohort deviations X²＝12.57（df 7，p＝0.083）不顯著。線性部分無法分給年代或世代。", "w4-6b": "高風險世代是 1960、1970（RR 2.6、3.4），不是 2005。1985 年停採時，1960 世代約 25 歲、1970 世代約 15 歲 → 暴露時多為兒童、青少年，較符合居住（環境）暴露而非職業暴露；但 1970 世代 CI 1.0～11.3，證據弱。", "w4-6d": "要寫出來源：① 個人暴露史（居住、職業史）→ 問卷、戶籍或勞保投保資料；② 吸菸 → 個人問卷或國健署吸菸調查；③ 病例確認與登記完整性 → 癌症登記、病歷與病理報告。", "w5-2a": "嫌疑物應是清洗管路用的那桶清潔劑（標示不全、拿不出 SDS），不是異丙醇：住院三人都是清洗管路的直接操作者，且每次用清潔劑後就有人肝炎住院。", "w5-2b": "設計 ✓，補原因：要馬上掌握全廠現況，同時抽血測肝功能（疾病）並依部門分組（暴露），快速、便宜，可算盛行率與 OR；全廠只有 19 人，病例對照或世代研究不實際。", "w5-4a": "要寫完整三條件：干擾因子 C ① 與暴露 A 相關；② 是疾病 B 的危險因子；③ 不在 A→B 的因果路徑上。", "w5-5": "應為「不是」：① 帶原與暴露幾乎無關（印刷 5/13≈38%、非印刷 2/6≈33%）；② 無帶原者也幾乎全部異常（12 人中 11 人），B 肝解釋不了這次爆發；③ 分層 OR 一個 10、一個 0.875，格子極小又用 0.5 校正，很不穩定。不支持老闆的說法。", "w5-6a": "SDS 工廠拿不出來，所以要把清潔劑本身採樣送驗（如 GC-MS）確認成分；再做使用清潔劑時的作業場所與個人空氣採樣，必要時做生物偵測。", "w5-6b": "測肝功能是確認疾病，不是生物合理性。生物合理性要查文獻與毒理資料：清潔劑成分是否有肝毒性（動物實驗、機轉、其他職業個案）。1,1,1-三氯乙烷本身肝毒性低，應確認是否含其他氯化溶劑（如四氯化碳、1,1,2-三氯乙烷）。", "w5-6c": "最直接的是比對使用清潔劑的日期與發病日期（先暴露、後發病，間隔合理）；過去每 1–2 個月清管後就有人發病；停止暴露後肝功能回復（第 10 天→第 20 天 ALT 下降）。"};
@@ -2285,12 +2282,11 @@ textarea[readonly],input[readonly]{opacity:1;cursor:default}
   });
   var btn = document.getElementById("fixBtn");
   function apply(off){ document.body.classList.toggle("nofix", off); if(btn) btn.textContent = off ? "批改：關" : "批改：開"; }
-  var off = false; try{ off = localStorage.getItem("epi-pbl:_nofix") === "1"; }catch(e){}
+  var off = false; try{ off = window.ScholarStorage.getItem("epi-pbl:_nofix") === "1"; }catch(e){}
   apply(off);
-  if(btn) btn.addEventListener("click", function(){ off = !off; apply(off); try{ localStorage.setItem("epi-pbl:_nofix", off ? "1" : "0"); }catch(e){} });
-})();
-</script>
-<script>
+  if(btn) btn.addEventListener("click", function(){ off = !off; apply(off); try{ window.ScholarStorage.setItem("epi-pbl:_nofix", off ? "1" : "0"); }catch(e){} });
+})();</script>
+<script type="text/scholar-app" data-cloud-inline>
 (function(){
   var SNAP = window.__SNAP || {};
   /* fields show the snapshot even if storage is blocked; read-only */
@@ -2305,7 +2301,12 @@ textarea[readonly],input[readonly]{opacity:1;cursor:default}
     d.innerHTML = "批改快照（唯讀）：作答為 2026-10-27 匯出的版本。綠＝正確、黃＝部分正確、紅＝錯誤。繼續作答請用 <a href=\"./\">練習版</a>。";
     h.insertAdjacentElement("afterend", d);
   });
-})();
+})();</script>
+<script type="text/scholar-app" data-cloud-inline>
+window.ScholarSync.subscribe(function(key,value){
+ if(!key.startsWith('epi-pbl:'))return;
+ document.querySelectorAll('[data-k]').forEach(function(el){if('epi-pbl:'+el.dataset.k===key&&el!==document.activeElement){el.value=value||'';if(el._update)el._update();}});
+});
 </script>
 </body>
 </html>

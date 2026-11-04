@@ -19,8 +19,8 @@
     trash: '<svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg>'
   };
 
-  function prefs() { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (_) { return {}; } }
-  function setPrefs(patch) { try { localStorage.setItem(STORE, JSON.stringify(Object.assign(prefs(), patch))); } catch (_) { /* private mode */ } }
+  function prefs() { try { return JSON.parse(window.ScholarStorage.getItem(STORE)) || {}; } catch (_) { return {}; } }
+  function setPrefs(patch) { try { window.ScholarStorage.setItem(STORE, JSON.stringify(Object.assign(prefs(), patch))); } catch (_) { /* private mode */ } }
 
   async function fetchJSON(path) {
     const res = await fetch(BASE + path);
@@ -670,8 +670,8 @@
   const DEFAULT_STYLE = { size: 15.5, lead: 1.95, font: 'sans', weight: 400, ink: '#f1f5f9', width: 860 };
   // shared by the 法規 and 特做 readers
   const READ_STORE = 'scholar-reading-v1';
-  function readPrefs() { try { return JSON.parse(localStorage.getItem(READ_STORE)) || {}; } catch (_) { return {}; } }
-  function setReadPrefs(patch) { try { localStorage.setItem(READ_STORE, JSON.stringify(Object.assign(readPrefs(), patch))); } catch (_) { /* private mode */ } }
+  function readPrefs() { try { return JSON.parse(window.ScholarStorage.getItem(READ_STORE)) || {}; } catch (_) { return {}; } }
+  function setReadPrefs(patch) { try { window.ScholarStorage.setItem(READ_STORE, JSON.stringify(Object.assign(readPrefs(), patch))); } catch (_) { /* private mode */ } }
   function style() { return Object.assign({}, DEFAULT_STYLE, prefs().style, readPrefs().style); }
   function applyStyle() {
     const st = style();
@@ -690,8 +690,8 @@
   const HL_STORE = 'scholar-health-hl-v1';
   const HL_COLORS = [['yellow', '黃'], ['green', '綠'], ['blue', '藍'], ['pink', '粉紅'], ['orange', '橘']];
   let panelTab = 'style';
-  function loadMarks() { try { return JSON.parse(localStorage.getItem(HL_STORE)) || {}; } catch (_) { return {}; } }
-  function saveMarks(all) { try { localStorage.setItem(HL_STORE, JSON.stringify(all)); return true; } catch (_) { return false; } }
+  function loadMarks() { try { return JSON.parse(window.ScholarStorage.getItem(HL_STORE)) || {}; } catch (_) { return {}; } }
+  function saveMarks(all) { try { window.ScholarStorage.setItem(HL_STORE, JSON.stringify(all)); return true; } catch (_) { return false; } }
   function marksOf(gid) { return loadMarks()[gid] || []; }
   function setMarks(gid, list) { const all = loadMarks(); if (list.length) all[gid] = list; else delete all[gid]; saveMarks(all); }
   const hlColor = () => readPrefs().hlColor || prefs().hlColor || 'yellow';
@@ -979,5 +979,6 @@
     }
     return booted;
   }
+  window.ScholarSync.subscribe(key=>{if(!state.current)return;if(key===READ_STORE||key===STORE)applyStyle();if(key===HL_STORE)paintMarks();});
   window.ScholarHealth = { show };
 })();

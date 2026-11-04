@@ -1,4 +1,4 @@
-/* Patient follow-up records stay in this browser's local storage. */
+/* Patient saves require an authenticated, server-confirmed Firestore write. */
 (() => {
   'use strict';
   const STORE = 'scholar-cases-v1';
@@ -34,8 +34,8 @@
   if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords };
   if (typeof document === 'undefined') return;
   const by = id => document.getElementById(id);
-  let booted = false, records = [], editing = null, deleting = null, saving = false, readable = true;
-  const read = () => parseRecords(localStorage.getItem(STORE));
+  let booted = false, records = [], editing = null, editingBase = null, deleting = null, saving = false, readable = true;
+  const read = () => parseRecords(window.ScholarStorage.getItem(STORE));
   const today = () => {
     const d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -45,18 +45,20 @@
     by('ct-status').classList.toggle('ct-error', error);
   }
   function refresh() {
+    if(!window.ScholarSync.status().user){records=[];readable=false;by('ct-add').disabled=true;announce('請先登入，才能讀取與儲存雲端個案。');render();return;}
     try {
       const recovered = !readable;
       records = read(); readable = true; by('ct-add').disabled = false;
-      if (recovered) announce('已重新讀取此瀏覽器的個案。');
+      if (recovered) announce('已重新讀取雲端個案。');
     } catch (_) {
       readable = false; by('ct-add').disabled = true;
       announce('無法讀取已儲存的個案。原有資料仍保留，已暫停修改以避免覆寫。', true);
     }
     render();
   }
-  function commit(next) {
-    localStorage.setItem(STORE, JSON.stringify({ version: 1, records: next }));
+  async function commit(next) {
+    window.ScholarSync.requireAccount();
+    await window.ScholarStorage.setConfirmed(STORE, JSON.stringify({ version: 1, records: next }));
     records = next; render();
   }
   function render() {
@@ -88,6 +90,7 @@
     const row = id ? records.find(item => item.id === id) : null;
     if (id && !row) return;
     editing = id;
+    editingBase = row ? structuredClone(row) : null;
     by('ct-form').reset(); by('ct-form-error').textContent = '';
     for (const [key] of fields) by('ct-' + key).value = row ? row[key] : key === 'date' ? today() : '';
     by('ct-editor-title').textContent = row ? '編輯個案' : '新增個案';
@@ -104,7 +107,7 @@
     const panel = by('cases-panel');
     panel.innerHTML = `
       <div class="ct-shell">
-        <header class="ct-head"><div><h1>個案追蹤</h1><p>資料僅儲存於目前裝置的瀏覽器，不會上傳網站；清除網站資料會一併刪除。</p></div>
+        <header class="ct-head"><div><h1>個案追蹤</h1><p>登入後儲存至私人雲端，其他裝置使用同一帳號即可接續。儲存成功前請勿關閉此頁。</p></div>
           <button class="sg-btn sg-primary" id="ct-add" type="button">＋ 新增個案</button></header>
         <div class="ct-tools"><input id="ct-search" type="search" aria-label="搜尋個案" placeholder="搜尋姓名、病歷號、目的、診斷或備註" autocomplete="off"><span id="ct-count"></span></div>
         <p id="ct-status" class="ct-status" role="status" aria-live="polite"></p>
@@ -146,24 +149,35 @@
       event.preventDefault(); if (saving || !readable) return;
       saving = true; by('ct-save').disabled = true;
       try {
-        const record = { id: editing || crypto.randomUUID() };
+        const record = { id: editing || crypto.randomUUID(), createdAt: editingBase?.createdAt || Date.now() };
         for (const [key] of fields) record[key] = by('ct-' + key).value.trim();
-        commit(upsert(read(), record)); editing = record.id;
-        announce('已儲存在此瀏覽器。');
+        const latest = read();
+        if (editing && editingBase) {
+          const current = latest.find(row => row.id === editing);
+          if (!current) throw Error('此個案已在其他裝置刪除，未重新建立。');
+          for (const [key] of fields) if (record[key] === editingBase[key]) record[key] = current[key];
+        }
+        await commit(upsert(latest, record)); editing = record.id;
+        announce('已儲存至雲端。');
         await window.ScholarPeek.close(by('ct-editor'));
-      } catch (_) {
-        by('ct-form-error').textContent = '無法儲存，請確認瀏覽器允許網站儲存資料。填寫內容仍保留。';
+      } catch (error) {
+        by('ct-form-error').textContent = '雲端儲存未確認，填寫內容仍保留。'+error.message;
       } finally { saving = false; by('ct-save').disabled = false; }
     });
     by('ct-delete-cancel').addEventListener('click', () => window.ScholarPeek.close(by('ct-delete')));
     by('ct-delete-confirm').addEventListener('click', async () => {
       if (!deleting || !readable) return;
       try {
-        commit(read().filter(row => row.id !== deleting)); deleting = null;
+        await commit(read().filter(row => row.id !== deleting)); deleting = null;
         announce('已刪除個案。'); await window.ScholarPeek.close(by('ct-delete'));
       } catch (_) { by('ct-delete-error').textContent = '無法儲存刪除結果，個案仍保留。'; }
     });
     window.addEventListener('storage', event => { if (event.key === STORE || event.key === null) refresh(); });
+    window.addEventListener('beforeunload', event => {
+      if (by('ct-editor').open && fields.some(([key])=>by('ct-'+key).value.trim() !== (editingBase?.[key] || (key === 'date' ? today() : '')))) {
+        event.preventDefault();event.returnValue='';
+      }
+    });
   }
   function show() {
     if (!booted) { shell(); booted = true; }
@@ -174,5 +188,6 @@
     for (const id of ['ct-editor', 'ct-delete']) if (by(id).open) by(id).close();
     deleting = null;
   }
+  window.addEventListener('scholar-sync-status',()=>{if(booted&&!by('cases-panel').hidden)refresh();});
   window.ScholarCases = { show, hide };
 })();
