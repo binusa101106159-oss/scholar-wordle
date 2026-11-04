@@ -579,7 +579,7 @@
 
   /* ── reader ── */
   async function openLaw(id, opts = {}) {
-    window.ScholarLawSearch?.close();
+    if(!opts.boot)window.ScholarLawSearch?.close();
     const meta = state.byId.get(id);
     if (!meta) return;
     if (state.checkedView) setCheckedView(false);
@@ -599,7 +599,7 @@
       const saved = (prefs().pos || {})[id];
       const sc = by('lx-scroll');
       sc.style.scrollBehavior = 'auto';
-      sc.scrollTop = opts.art ? 0 : (saved || 0);
+      if(!window.ScholarLawSearch?.active())sc.scrollTop = opts.art ? 0 : (saved || 0);
       sc.style.scrollBehavior = '';
     }
     if (opts.art) scrollToArticle(opts.art, opts.flash);
@@ -1041,7 +1041,7 @@
         renderSide();
         const last = prefs().law;
         await openLaw(state.byId.has(last) ? last : state.index.laws[0].id, { boot: true });
-        if (prefs().view === 'checked') setCheckedView(true);
+        if (prefs().view === 'checked' && !window.ScholarLawSearch?.active()) setCheckedView(true);
         // warm the cache for offline use and instant search
         const idle = window.requestIdleCallback || (fn => setTimeout(fn, 1500));
         idle(() => loadCorpus().catch(() => {}));

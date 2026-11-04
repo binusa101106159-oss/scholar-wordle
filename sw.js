@@ -1,4 +1,4 @@
-const CACHE_NAME = "scholar-games-v108";
+const CACHE_NAME = "scholar-games-v109";
 const AMA_DATA_CACHE = "scholar-ama-data-v1";
 const ASSETS = ["./laws/search.css", "./laws/search.js", "./calculator/aaos.css", "./calculator/aaos.js", "./calculator/aaos.json", "./calculator/calculator.css", "./calculator/calculator.js", "./ilo/ilo.css", "./ilo/ilo.js", "./ilo/films.json", "./ilo/study.json", "./ama/fast/index.json", "./peek-glass.css", "./peek-glass.js", "./reader-top.css", "./reader-top.js", "./", "./index.html", "./manifest.json", "./laws/laws.css", "./laws/laws.js", "./laws/index.json", "./guides/guides.css", "./guides/guides.js", "./guides/index.json", "./ama/ama.css", "./ama/ama.js", "./ama/index.json", "./review/review.css", "./review/review.js", "./notes/notes.css", "./notes/notes.js"];
 
