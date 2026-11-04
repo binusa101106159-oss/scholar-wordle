@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const readers = ['lx-scroll', 'gx-scroll', 'ax-scroll', 'rv-scroll', 'nt-scroll', 'il-scroll'];
+  const readers = ['lx-scroll', 'hx-scroll', 'gx-scroll', 'ax-scroll', 'rv-scroll', 'nt-scroll', 'il-scroll'];
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'reader-top';
