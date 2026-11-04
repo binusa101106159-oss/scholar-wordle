@@ -2,6 +2,7 @@ import {firebaseConfig} from './firebase-config.js';
 
 const sync = window.ScholarSync;
 let auth, db, A, F, stop, initialized = false, started = false;
+let preparedApps;
 const ownerEmail = 'binusa101106159@gmail.com';
 async function timed(promise) {
   let timer;
@@ -17,7 +18,7 @@ function mount() {
   const by = id => document.getElementById(id);
   const render = () => {
     const state = sync.status();bar.dataset.state = state.phase;
-    by('cloud-status').textContent = state.phase === 'loading' ? 'Connecting…' : state.phase === 'guest' ? 'Not signed in · not saved' : state.phase === 'error' ? 'Not synced · retry' : state.pending ? 'Syncing…' : 'Synced';
+    by('cloud-status').textContent = state.phase === 'loading' ? 'Connecting…' : state.phase === 'guest' ? 'Not signed in · not saved' : state.phase === 'error' ? 'Not synced · retry' : state.pending ? (state.background?'Saving position…':'Syncing…') : 'Synced';
     by('cloud-status').title = state.error || (state.user ? state.user.email : 'Sign in to save across devices. Guest changes last only for this visit.');
     by('cloud-signin').hidden = Boolean(state.user);by('cloud-account').hidden = !state.user;
     by('cloud-signout').disabled = state.pending > 0;
@@ -37,18 +38,21 @@ function mount() {
   };
   by('cloud-retry').onclick = () => sync.status().pending ? sync.flush().catch(() => {}) : location.reload();
 }
-async function startApps() {
-  if (started) return;started = true;
-  const nodes = [...document.querySelectorAll('script[data-cloud-src], script[data-cloud-inline]')]
-    .filter(node => !(node.hasAttribute('data-cloud-seed') && sync.status().user));
-  // Fetch independently; execute in document order, after initial account hydration.
-  const sources = await Promise.all(nodes.map(async node => {
+function prepareApps() {
+  const nodes = [...document.querySelectorAll('script[data-cloud-src], script[data-cloud-inline]')];
+  return Promise.all(nodes.map(async node => {
     if (!node.dataset.cloudSrc) return node.textContent;
     const response = await fetch(new URL(node.dataset.cloudSrc, location.href));
     if (!response.ok) throw Error('Could not load '+node.dataset.cloudSrc);
     return response.text();
-  }));
+  })).then(sources=>({nodes,sources}));
+}
+async function startApps() {
+  if (started) return;started = true;
+  // Files download alongside auth/cloud reads; execution still waits for hydration.
+  const {nodes,sources}=await preparedApps;
   for (let i=0;i<nodes.length;i++) {
+    if(nodes[i].hasAttribute('data-cloud-seed')&&sync.status().user)continue;
     const script = document.createElement('script');
     script.textContent = sources[i] + '\n//# sourceURL=' + (nodes[i].dataset.cloudSrc || 'scholar-inline-'+i+'.js');
     document.body.append(script);
@@ -80,22 +84,43 @@ async function accountChanged(user) {
     const snapshot = await timed(F.getDocsFromServer(state));
     const adapter = {
       async commit(op) {
-        const ref = F.doc(state, docID(op.id));
+        return (await this.commitMany([op]))[0];
+      },
+      async commitMany(ops) {
+        const refs=ops.map(op=>F.doc(state,docID(op.id)));
         return F.runTransaction(db, async transaction => {
-          const current = await transaction.get(ref), data = current.exists() ? current.data() : null;
-          const remote = data ? JSON.parse(data.value).data : null;
-          const merged = window.ScholarSyncState.reconcile(op.base, op.next, remote, op.id);
-          if (op.key === 'scholar-cases-v1' && op.next !== null && merged === null) throw Error('This patient was deleted on another device. Your draft has been retained.');
-          transaction.set(ref, {value: JSON.stringify({data: merged}), revision: (data?.revision || 0)+1, updatedAt: F.serverTimestamp()});
-          return merged;
+          const current=await Promise.all(refs.map(ref=>transaction.get(ref)));
+          const next=ops.map((op,i)=>{
+            const data=current[i].exists()?current[i].data():null,remote=data?JSON.parse(data.value).data:null;
+            const merged=window.ScholarSyncState.reconcile(op.base,op.next,remote,op.id);
+            if(op.key==='scholar-cases-v1'&&op.next!==null&&merged===null)throw Error('This patient was deleted on another device. Your draft has been retained.');
+            return {merged,data:{value:JSON.stringify({data:merged}),revision:(data?.revision||0)+1,updatedAt:F.serverTimestamp()}};
+          });
+          next.forEach((result,i)=>transaction.set(refs[i],result.data));
+          return next.map(result=>result.merged);
         });
       }
     };
+    const revisions=new Map(snapshot.docs.map(item=>[item.id,item.data().revision]));
     sync.connect({uid: user.uid, email: user.email}, adapter, readSnapshot(snapshot));initialized = true;
     stop = F.onSnapshot(state, {includeMetadataChanges: true}, next => {
       // Local optimistic snapshots are not server acknowledgements.
       if (!next.metadata.fromCache && !next.metadata.hasPendingWrites) {
-        try { sync.receive(readSnapshot(next)); } catch (error) { sync.error(error.message); }
+        try {
+          const delta=new Map(),changes=typeof next.docChanges==='function'?next.docChanges():next.docs.map(doc=>({type:'modified',doc}));
+          for(const change of changes){
+            const item=change.doc;
+            if(change.type==='removed'){
+              const id=decodeURIComponent(escape(atob(item.id.replaceAll('-','+').replaceAll('_','/'))));
+              delta.set(id,null);revisions.delete(item.id);
+            }else{
+              const revision=item.data().revision;if(revisions.get(item.id)===revision)continue;
+              for(const pair of readSnapshot({docs:[item]}))delta.set(...pair);
+              revisions.set(item.id,revision);
+            }
+          }
+          if(delta.size)sync.receiveChanges(delta);
+        } catch (error) { sync.error(error.message); }
       }
     }, error => sync.error(error.message));
     await startApps();
@@ -108,6 +133,7 @@ async function accountChanged(user) {
 }
 if (document.readyState === 'loading') await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve, {once:true}));
 mount();
+preparedApps=prepareApps();preparedApps.catch(()=>{});
 try {
   const base = 'https://www.gstatic.com/firebasejs/13.2.0/';
   const [app, authModule, firestoreModule] = await timed(Promise.all([

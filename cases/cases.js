@@ -188,6 +188,5 @@
     for (const id of ['ct-editor', 'ct-delete']) if (by(id).open) by(id).close();
     deleting = null;
   }
-  window.addEventListener('scholar-sync-status',()=>{if(booted&&!by('cases-panel').hidden)refresh();});
   window.ScholarCases = { show, hide };
 })();

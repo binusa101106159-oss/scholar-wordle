@@ -586,8 +586,9 @@
   }
   mobile.addEventListener('change',()=>{if(catalogue)menu(!mobile.matches);});
   window.addEventListener('resize',measure);window.addEventListener('pagehide',persist);
+  let cloudFont=JSON.stringify([saved.fontSize,saved.readingFont]);
   window.ScholarSync.subscribe(key=>{
-    if(key===STORE){saved=JSON.parse(window.ScholarStorage.getItem(STORE)||'{}');saved.positions||={};saved.anchors||={};if(catalogue){fontSize();readingFont();}}
+    if(key===STORE){saved=JSON.parse(window.ScholarStorage.getItem(STORE)||'{}');saved.positions||={};saved.anchors||={};const next=JSON.stringify([saved.fontSize,saved.readingFont]);if(catalogue&&next!==cloudFont){cloudFont=next;fontSize();readingFont();}}
     if(key===MARKS){highlights=JSON.parse(window.ScholarStorage.getItem(MARKS)||'{}');if(current)restoreMarks();}
   });
   window.ScholarAMA={show};

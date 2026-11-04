@@ -27,7 +27,7 @@ This is persistent app state, not hover animations or a historical log of every 
 
 Status distinguishes guest, connecting, pending, synced and error, with retry. Patient writes wait for acknowledgement and retain form drafts on rejection. Other failed changes remain in a memory queue, retry on reconnect/request and request a browser warning before leaving. Closing/killing a page before acknowledgement can lose unsynced memory state; it is never labelled synced. Public reading remains available if cloud initialization fails, without treating an empty failed read as writable authenticated state.
 
-Sign-out waits for pending saves and clears displayed state through a new page boot. Browser-history restoration checks auth again. Service worker v118 only handles public same-origin GET assets; Firebase auth/Firestore responses are not intercepted or cached. Access rules and Google-managed transport/storage protection are not end-to-end encryption; do not claim E2EE.
+Sign-out waits for pending saves and clears displayed state through a new page boot. Browser-history restoration checks auth again. Service worker v119 only handles public same-origin GET assets; Firebase auth/Firestore responses are not intercepted or cached. Access rules and Google-managed transport/storage protection are not end-to-end encryption; do not claim E2EE.
 
 ## Validation and remaining acceptance
 
@@ -36,3 +36,12 @@ Pure tests cover independent merges, splits, deletions, puzzle coherence, dedupl
 The actual official Firebase 13.2.0 SDK initializes with the supplied configuration, boots the anonymous site and locks private cases. Real anonymous Firestore REST reads return 403 PERMISSION_DENIED. Emulator rule execution and real owner-authenticated cross-device writes have not yet been verified. The user must sign in on the live site to complete that acceptance; simulated tests are not claimed as real Firestore end-to-end verification.
 
 Before publication: run the full site tests, preserve source content, check current main, bump the service worker cache, publish with an expected head and verify Pages/live guest boot.
+
+
+## Navigation performance update (v119)
+
+Unchanged writes are discarded; reversing a queued navigation change before it is sent also cancels the write. Reading a setting uses a per-key cached group rather than scanning the account. Serialization is deterministic, so document ordering changes do not trigger false UI refreshes. Firestore listeners apply changed document revisions only; metadata-only updates and the initial listener echo do not refresh readers.
+
+Independent pending items commit in bounded multi-document transactions (up to16 small items, with a payload cap), instead of one sequential transaction per field. Navigation/reading-position updates coalesce for1.6 seconds; marks, checks and gameplay retain the short450ms debounce. The status explicitly says Saving position for background navigation; this is not a fresh login or account reload. Patient saves still require acknowledgement and no longer wait behind unrelated navigation writes. App files prefetch alongside auth initialization, while execution still waits for cloud hydration.
+
+Added regression checks for zero status/redraw events on unchanged data, rapid navigation coalescing, batched writes, cached lookup scope, patient-save priority, incremental updates and cancelled navigation. Existing cross-device browser checks remain passing. Access rules and source content are unchanged.

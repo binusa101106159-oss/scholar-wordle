@@ -977,6 +977,7 @@
     }
     return booted;
   }
-  window.ScholarSync.subscribe(key=>{if(!state.current)return;if(key===READ_STORE||key===STORE)applyStyle();if(key===HL_STORE)paintMarks();});
+  let cloudStyle=JSON.stringify(style());
+  window.ScholarSync.subscribe(key=>{if(!state.current)return;if(key===READ_STORE||key===STORE){const next=JSON.stringify(style());if(next!==cloudStyle){cloudStyle=next;applyStyle();}}if(key===HL_STORE)paintMarks();});
   window.ScholarGuides = { show };
 })();

@@ -77,7 +77,7 @@
     if (key === 'scholar-cases-v1') return JSON.stringify({version: 1, records: pairs
       .filter(([id]) => JSON.parse(id)[1] === 'records').map(([, raw]) => JSON.parse(raw))
       .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)||b.id.localeCompare(a.id))});
-    return JSON.stringify(Object.fromEntries(pairs.map(([id, raw]) => [JSON.parse(id)[1], JSON.parse(raw)])));
+    return JSON.stringify(Object.fromEntries(pairs.sort(([a],[b])=>a.localeCompare(b)).map(([id, raw]) => [JSON.parse(id)[1], JSON.parse(raw)])));
   }
   function wordleStats(results, initial) {
     const stats = initial ? {...initial, dist: initial.dist.slice()} : {played: 0, wins: 0, streak: 0, maxStreak: 0, dist: Array(10).fill(0)};

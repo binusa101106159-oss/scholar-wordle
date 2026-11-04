@@ -38,9 +38,9 @@ test('explicitly imported Wordle totals remain a baseline for later cloud result
  const next=S.wordleStats({one:{id:'one',at:1,won:true,guesses:3}},initial);
  assert.equal(next.played,11);assert.equal(next.wins,9);assert.equal(next.streak,3);assert.equal(next.dist[2],3);assert.equal(initial.dist[2],2);
 });
-function harness(){
+function harness(state=S){
  const events=[],handlers={};class E{constructor(type,init={}){this.type=type;Object.assign(this,init)}}
- const window={ScholarSyncState:S,addEventListener(t,fn){(handlers[t]||=[]).push(fn)},dispatchEvent(e){events.push(e);for(const fn of handlers[e.type]||[])fn(e)}};
+ const window={ScholarSyncState:state,addEventListener(t,fn){(handlers[t]||=[]).push(fn)},dispatchEvent(e){events.push(e);for(const fn of handlers[e.type]||[])fn(e)}};
  const context={window,Symbol,Map,Set,Promise,Error,JSON,String,Number,Object,TextEncoder,CustomEvent:E,StorageEvent:E,setTimeout,clearTimeout};
  vm.runInNewContext(fs.readFileSync(require.resolve('../sync/store.js'),'utf8'),context);
  return {window,store:window.ScholarStorage,sync:window.ScholarSync,events};
@@ -74,4 +74,47 @@ test('edits made while a save is in flight are not dropped when the first acknow
  h.store.setItem('scholar-reading-v1','{"size":18}');const flushing=h.sync.flush();
  h.store.setItem('scholar-reading-v1','{"size":22}');release();await flushing;
  assert.deepEqual(sent,['18','22']);assert.equal(h.store.getItem('scholar-reading-v1'),'{"size":22}');assert.equal(h.sync.status().pending,0);
+});
+test('unchanged preferences and reordered server snapshots trigger neither sync nor UI redraw',async()=>{
+ const h=harness(),initial=S.split('scholar-laws-v1','{"law":"s01","pos":12}');
+ h.sync.connect({uid:'one'},{commit:async op=>op.next},initial);
+ const before=h.events.length;
+ h.store.setItem('scholar-laws-v1','{"pos":12,"law":"s01"}');
+ h.sync.receive(new Map([...initial].reverse()));
+ assert.equal(h.events.length,before);assert.equal(h.sync.status().pending,0);assert.equal(h.sync.status().phase,'synced');
+});
+test('rapid navigation coalesces and independent preference writes commit in one batch',async()=>{
+ const h=harness(),batches=[];h.sync.connect({uid:'one'},{commitMany:async ops=>{batches.push(ops);return ops.map(op=>op.next)}});
+ for(let i=0;i<100;i++)h.store.setItem('scholar-navigation-v1',str({hash:'#law-'+i}));
+ h.store.setItem('scholar-laws-v1',str({law:'s01',pos:20,open:{S:true}}));
+ await h.sync.flush();assert.equal(batches.length,1);assert.equal(batches[0].length,4);
+ assert.equal(h.store.getItem('scholar-navigation-v1'),'{"hash":"#law-99"}');
+});
+test('reading one setting uses its cached group instead of scanning the full account',()=>{
+ let joins=0,maxGroup=0;
+ const h=harness({...S,join(key,chunks){joins++;maxGroup=Math.max(maxGroup,chunks.size);return S.join(key,chunks)}}),entries=new Map();
+ for(let i=0;i<2000;i++)for(const pair of S.split('scholar-setting-'+i,'{"size":18}'))entries.set(...pair);
+ h.sync.connect({uid:'one'},{},entries);
+ for(let i=0;i<1000;i++)assert.equal(h.store.getItem('scholar-setting-1'),'{"size":18}');
+ assert.equal(joins,1);assert.equal(maxGroup,1);
+});
+test('patient acknowledgement does not wait behind an unrelated slow navigation save',async()=>{
+ const h=harness();let release;
+ h.sync.connect({uid:'one'},{commit:async op=>{if(op.key==='scholar-navigation-v1')await new Promise(r=>release=r);return op.next}});
+ h.store.setItem('scholar-navigation-v1','{"hash":"#cases"}');const slow=h.sync.flush();
+ await h.store.setConfirmed('scholar-cases-v1',str({version:1,records:[{id:'x',name:'fictional'}]}));
+ assert.equal(JSON.parse(h.store.getItem('scholar-cases-v1')).records.length,1);release();await slow;
+});
+test('incremental cloud updates notify only changed readers and preserve queued local edits',async()=>{
+ const h=harness();h.sync.connect({uid:'one'},{commit:async op=>op.next},new Map([...S.split('scholar-laws-v1','{"law":"s01"}'),...S.split('scholar-ama-v1','{"chapter":"c01"}') ]));
+ h.store.setItem('scholar-laws-v1','{"law":"s02"}');const at=h.events.length;
+ h.sync.receiveChanges(new Map([...S.split('scholar-laws-v1','{"law":"s01"}'),...S.split('scholar-ama-v1','{"chapter":"c02"}') ]));
+ assert.equal(h.store.getItem('scholar-laws-v1'),'{"law":"s02"}');
+ assert.equal(h.store.getItem('scholar-ama-v1'),'{"chapter":"c02"}');
+ assert.deepEqual(h.events.slice(at).filter(e=>e.type==='storage').map(e=>e.key),['scholar-ama-v1']);await h.sync.flush();
+});
+test('navigation changed back before debounce requires no network write',async()=>{
+ const h=harness();let writes=0;h.sync.connect({uid:'one'},{commit:async op=>{writes++;return op.next}},S.split('scholar-navigation-v1','{"hash":"#laws"}'));
+ h.store.setItem('scholar-navigation-v1','{"hash":"#ama"}');h.store.setItem('scholar-navigation-v1','{"hash":"#laws"}');
+ assert.equal(h.sync.status().pending,0);await h.sync.flush();assert.equal(writes,0);
 });
