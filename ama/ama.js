@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const STORE = 'scholar-ama-v1', MARKS = 'scholar-ama-marks-v1';
-  const mobile = matchMedia('(max-width: 900px)'), by = id => document.getElementById(id), chapters = new Map();
+  const mobile = matchMedia('(max-width:1099px), (orientation:portrait)'), by = id => document.getElementById(id), chapters = new Map();
   const tableCaptions=new Map(), tableQueries=new Map(), objects=new Map();
   let fastIndex, searchIndex, renderedChapter, objectRevision=0, anchorRevision=0;
   const readingFonts={default:'',georgia:"Georgia,'Times New Roman',serif",times:"'Times New Roman',Times,serif",arial:'Arial,Helvetica,sans-serif',system:"system-ui,'Noto Sans TC','Microsoft JhengHei',sans-serif"};
@@ -217,7 +217,7 @@
     by('ax-tools').hidden=!chapter.ready; by('ax-status').textContent=''; by('ax-section').replaceChildren();
     by('ax-body').innerHTML='<div class="ax-pending sg-glass"><p>'+(chapter.ready?'載入中…':'正文準備中。')+'</p>'+(chapter.ready?'':'<p>本章正文與圖表尚未匯入。</p>')+'</div>';
     saved.chapter=id; persist();
-    if (options.closeMenu!==false) menu(false); else revealSelection();
+    if (options.closeMenu!==false && mobile.matches) menu(false); else revealSelection();
     if (options.focusTab) by('ax-tab-'+id).focus();
     else if (options.focusHeading && mobile.matches) by('ax-title').focus({preventScroll:true});
     by('ax-scroll').scrollTop=0;
@@ -523,7 +523,7 @@
     by('ax-menu').addEventListener('click',event=>{menu(!menuOpen);if(menuOpen && event.detail===0)by('ax-query').focus({preventScroll:true});});
     by('ax-sidebar-toggle').addEventListener('click',()=>{menu(false);by('ax-menu').focus({preventScroll:true});});
     document.addEventListener('pointerdown',event=>{
-      if(menuOpen && !by('ax-side').contains(event.target) && !by('ax-menu').contains(event.target))menu(false);
+      if(mobile.matches && menuOpen && !by('ax-side').contains(event.target) && !by('ax-menu').contains(event.target))menu(false);
     });
     by('ax-section').addEventListener('change',()=>scrollToId(by('ax-section').value));
     let tableIntentTimer;
@@ -574,15 +574,15 @@
     },{passive:true});
     panel.addEventListener('keydown',event=>{if(event.key==='Escape'&&menuOpen){menu(false);by('ax-menu').focus();}});
     readingFont();fontSize();await selectChapter(catalogue.chapters.some(c=>c.id===saved.chapter)?saved.chapter:catalogue.chapters[0].id);
-    menu(false);measure();
+    menu(!mobile.matches);measure();
   }
   function show() {
     measure();
     if(!loading)loading=boot().catch(()=>{by('ama-panel').textContent='無法載入 AMA 章節目錄，請稍後再試。';loading=null;});
-    else if(catalogue)menu(false);
+    else if(catalogue)updateSidebar();
     return loading;
   }
-  mobile.addEventListener('change',()=>{if(catalogue)menu(false);});
+  mobile.addEventListener('change',()=>{if(catalogue)menu(!mobile.matches);});
   window.addEventListener('resize',measure);window.addEventListener('pagehide',persist);
   window.ScholarAMA={show};
 })();

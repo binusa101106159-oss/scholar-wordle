@@ -54,7 +54,7 @@
   function updateSidebar() {
     by('rv-layout').dataset.sidebarCollapsed = String(state.sidebarCollapsed);
     const button = by('rv-sidebar-toggle');
-    const expanded = window.matchMedia('(max-width:760px)').matches ? by('rv-layout').dataset.view === 'list' : !state.sidebarCollapsed;
+    const expanded = window.matchMedia('(max-width:1099px), (orientation:portrait)').matches ? by('rv-layout').dataset.view === 'list' : !state.sidebarCollapsed;
     button.setAttribute('aria-expanded', String(expanded));
     button.setAttribute('aria-label', expanded ? '收合側欄' : '展開側欄');
     button.title = expanded ? '收合側欄' : '展開側欄';
@@ -115,7 +115,7 @@
       const action = event.target.closest('[data-rv-action]')?.dataset.rvAction;
       if (action === 'list') { by('rv-layout').dataset.view = 'list'; updateSidebar(); by('rv-search').focus(); }
       if (action === 'sidebar') {
-        if (window.matchMedia('(max-width:760px)').matches) { by('rv-layout').dataset.view = 'reader'; by('rv-scroll').focus({ preventScroll: true }); }
+        if (window.matchMedia('(max-width:1099px), (orientation:portrait)').matches) { by('rv-layout').dataset.view = 'reader'; by('rv-scroll').focus({ preventScroll: true }); }
         else { state.sidebarCollapsed = !state.sidebarCollapsed; remember(); }
         updateSidebar();
       }
@@ -203,15 +203,20 @@
         const pref = saved();
         state.kind = ['all', 'letter', 'mail', 'document'].includes(pref.kind) ? pref.kind : 'all';
         state.order = savedOrder(pref);
-        state.sidebarCollapsed = pref.sidebarCollapsed === true;
+        state.sidebarCollapsed = false;
         state.items = data.items.map(item => ({ ...item, searchText: normalize([item.title, item.sourceTitle, item.text].join('\n')) }));
         state.byId = new Map(state.items.map(item => [item.id, item]));
         const requested = new URL(location.href).searchParams.get('letter');
         state.current = state.byId.has(requested) ? requested : state.byId.has(pref.current) ? pref.current : sort(state.items, state.order)[0].id;
         shell(data.snapshot); renderList(); renderArticle();
         if (requested && state.byId.has(requested)) by('rv-layout').dataset.view = 'reader';
-        updateSidebar();
-        window.matchMedia('(max-width:760px)').addEventListener('change', updateSidebar);
+        const responsiveSidebar = () => {
+          state.sidebarCollapsed = false;
+          by('rv-layout').dataset.view = 'reader';
+          updateSidebar();
+        };
+        responsiveSidebar();
+        window.matchMedia('(max-width:1099px), (orientation:portrait)').addEventListener('change', responsiveSidebar);
         state.ready = true;
       } catch (error) {
         state.promise = null;

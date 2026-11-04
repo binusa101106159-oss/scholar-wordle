@@ -5,6 +5,7 @@
   const STORE = 'scholar-guides-v1';
   const state = { index: null, byId: new Map(), texts: new Map(), atts: new Map(), current: null, query: '', terms: [],
     scope: 'all', field: null, corpus: null, corpusPromise: null, attOpen: null };
+  const compactLayout = matchMedia('(max-width:1099px), (orientation:portrait)');
   const by = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const icon = {
@@ -263,16 +264,16 @@
       }
       if (more) { state.expanded = state.expanded || new Set(); state.expanded.add(more.dataset.more); renderSide(); return; }
       if (!g) return;
-      if (g.dataset.openAtt) { state.closeDrawer(); openGuide(g.dataset.guide).then(() => openAtt(g.dataset.openAtt)); return; }
+      if (g.dataset.openAtt) { if (compactLayout.matches) state.closeDrawer(); openGuide(g.dataset.guide).then(() => openAtt(g.dataset.openAtt)); return; }
       openGuide(g.dataset.guide, { block: g.dataset.block, flash: Boolean(g.dataset.block) });
-      state.closeDrawer();
+      if (compactLayout.matches) state.closeDrawer();
     });
     // the drawer gets its own history entry, so the phone's back gesture closes it instead of leaving the page
     const drawerOpen = () => by('guides-panel').classList.contains('gx-drawer');
     const openDrawer = () => {
       if (drawerOpen()) return;
       by('guides-panel').classList.add('gx-drawer'); updateSidebar();
-      if (window.matchMedia('(max-width:900px)').matches) { try { history.pushState({ gxDrawer: true }, ''); } catch (_) { /* Optional navigation state. */ } }
+      if (compactLayout.matches) { try { history.pushState({ gxDrawer: true }, ''); } catch (_) { /* Optional navigation state. */ } }
     };
     const closeDrawer = (replaceHistory = false) => {
       if (!drawerOpen()) return;
@@ -285,7 +286,7 @@
       }
     };
     state.openDrawer = openDrawer; state.closeDrawer = closeDrawer;
-    window.addEventListener('popstate', () => { if (drawerOpen()) { by('guides-panel').classList.remove('gx-drawer'); updateSidebar(); } });
+    window.addEventListener('popstate', () => { if (compactLayout.matches && drawerOpen()) { by('guides-panel').classList.remove('gx-drawer'); updateSidebar(); } });
     by('gx-side-close').addEventListener('click', () => { closeDrawer(); by('gx-menu').focus({ preventScroll: true }); });
     by('gx-scrim').addEventListener('click', closeDrawer);
     by('gx-menu').addEventListener('click', event => {
@@ -293,7 +294,7 @@
       else { openDrawer(); if (event.detail === 0) q.focus({ preventScroll: true }); }
     });
     document.addEventListener('pointerdown', event => {
-      if (!drawerOpen() || by('gx-sidebar').contains(event.target) || by('gx-menu').contains(event.target)) return;
+      if (!compactLayout.matches || !drawerOpen() || by('gx-sidebar').contains(event.target) || by('gx-menu').contains(event.target)) return;
       closeDrawer(Boolean(event.target.closest('[data-game-tab]')));
     });
     by('gx-doc').addEventListener('click', e => {
@@ -353,7 +354,13 @@
         state.closeDrawer();
       }
     });
-    updateSidebar();
+    const responsiveSidebar = () => {
+      closeDrawer(true);
+      by('guides-panel').classList.toggle('gx-drawer', !compactLayout.matches);
+      updateSidebar();
+    };
+    responsiveSidebar();
+    compactLayout.addEventListener('change', responsiveSidebar);
     window.addEventListener('resize', () => { measure(); updateSidebar(); });
     window.addEventListener('load', measure);
     if (window.ResizeObserver) new ResizeObserver(measure).observe(document.querySelector('.sg-nav-shell') || document.body);

@@ -46,7 +46,7 @@
   function updateSidebar() {
     by('nt-layout').dataset.sidebarCollapsed = String(state.sidebarCollapsed);
     const button = by('nt-sidebar-toggle');
-    const expanded = window.matchMedia('(max-width:760px)').matches ? by('nt-layout').dataset.view === 'list' : !state.sidebarCollapsed;
+    const expanded = window.matchMedia('(max-width:1099px), (orientation:portrait)').matches ? by('nt-layout').dataset.view === 'list' : !state.sidebarCollapsed;
     button.setAttribute('aria-expanded', String(expanded));
     button.setAttribute('aria-label', expanded ? '收合側欄' : '展開側欄');
     button.title = expanded ? '收合側欄' : '展開側欄';
@@ -113,7 +113,7 @@
       const action = event.target.closest('[data-nt-action]')?.dataset.ntAction;
       if (action === 'list') { by('nt-layout').dataset.view = 'list'; updateSidebar(); by('nt-search').focus(); }
       if (action === 'sidebar') {
-        if (window.matchMedia('(max-width:760px)').matches) { by('nt-layout').dataset.view = 'reader'; by('nt-scroll').focus({ preventScroll: true }); }
+        if (window.matchMedia('(max-width:1099px), (orientation:portrait)').matches) { by('nt-layout').dataset.view = 'reader'; by('nt-scroll').focus({ preventScroll: true }); }
         else { state.sidebarCollapsed = !state.sidebarCollapsed; remember(); }
         updateSidebar();
       }
@@ -204,15 +204,20 @@
         const pref = saved();
         state.kind = ['all', 'main', 'note', 'database', 'row', 'child'].includes(pref.kind) ? pref.kind : 'main';
         state.order = ['source', 'title'].includes(pref.order) ? pref.order : 'source';
-        state.sidebarCollapsed = pref.sidebarCollapsed === true;
+        state.sidebarCollapsed = false;
         state.items = data.items.map(item => ({ ...item, searchText: normalize([item.title, item.sourceTitle, item.text].join('\n')) }));
         state.byId = new Map(state.items.map(item => [item.id, item]));
         const requested = new URL(location.href).searchParams.get('note');
         state.current = state.byId.has(requested) ? requested : state.byId.has(pref.current) ? pref.current : sort(state.items, 'source')[0].id;
         shell(data.snapshot); renderList(); renderArticle();
         if (requested && state.byId.has(requested)) by('nt-layout').dataset.view = 'reader';
-        updateSidebar();
-        window.matchMedia('(max-width:760px)').addEventListener('change', updateSidebar);
+        const responsiveSidebar = () => {
+          state.sidebarCollapsed = false;
+          by('nt-layout').dataset.view = 'reader';
+          updateSidebar();
+        };
+        responsiveSidebar();
+        window.matchMedia('(max-width:1099px), (orientation:portrait)').addEventListener('change', responsiveSidebar);
         state.ready = true;
       } catch (error) {
         state.promise = null;

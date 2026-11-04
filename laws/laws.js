@@ -7,6 +7,7 @@
   const TIER_NAMES = { S: '熟練應用', A: '常見個案與專題', B: '特定場景查用', C: '支付、歷史與過渡' };
   const state = { index: null, byId: new Map(), texts: new Map(), annexes: new Map(), current: null, query: '', terms: [],
     scope: 'all', field: null, corpus: null, corpusPromise: null, ready: false, annexOpen: null };
+  const compactLayout = matchMedia('(max-width:1099px), (orientation:portrait)');
   const by = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const icon = {
@@ -328,14 +329,14 @@
       const annex = law.dataset.openAnnex;
       if (annex) { openAnnex(annex); return; }
       openLaw(law.dataset.law, { art: law.dataset.art, flash: Boolean(law.dataset.art) });
-      state.closeDrawer();
+      if (compactLayout.matches) state.closeDrawer();
     });
     // the drawer gets its own history entry, so the phone's back gesture closes it instead of leaving the page
     const drawerOpen = () => by('laws-panel').classList.contains('lx-drawer');
     const openDrawer = () => {
       if (drawerOpen()) return;
       by('laws-panel').classList.add('lx-drawer'); updateSidebar();
-      if (window.matchMedia('(max-width:900px)').matches) { try { history.pushState({ lxDrawer: true }, ''); } catch (_) { /* Optional navigation state. */ } }
+      if (compactLayout.matches) { try { history.pushState({ lxDrawer: true }, ''); } catch (_) { /* Optional navigation state. */ } }
     };
     const closeDrawer = (replaceHistory = false) => {
       if (!drawerOpen()) return;
@@ -348,7 +349,7 @@
       }
     };
     state.openDrawer = openDrawer; state.closeDrawer = closeDrawer;
-    window.addEventListener('popstate', () => { if (drawerOpen()) { by('laws-panel').classList.remove('lx-drawer'); updateSidebar(); } });
+    window.addEventListener('popstate', () => { if (compactLayout.matches && drawerOpen()) { by('laws-panel').classList.remove('lx-drawer'); updateSidebar(); } });
     by('lx-side-close').addEventListener('click', () => { closeDrawer(); by('lx-menu').focus({ preventScroll: true }); });
     by('lx-scrim').addEventListener('click', closeDrawer);
     by('lx-menu').addEventListener('click', event => {
@@ -356,7 +357,7 @@
       else { openDrawer(); if (event.detail === 0) q.focus({ preventScroll: true }); }
     });
     document.addEventListener('pointerdown', event => {
-      if (!drawerOpen() || by('lx-sidebar').contains(event.target) || by('lx-menu').contains(event.target)) return;
+      if (!compactLayout.matches || !drawerOpen() || by('lx-sidebar').contains(event.target) || by('lx-menu').contains(event.target)) return;
       closeDrawer(Boolean(event.target.closest('[data-game-tab]')));
     });
     by('lx-doc').addEventListener('click', e => {
@@ -417,7 +418,13 @@
         state.closeDrawer();
       }
     });
-    updateSidebar();
+    const responsiveSidebar = () => {
+      closeDrawer(true);
+      by('laws-panel').classList.toggle('lx-drawer', !compactLayout.matches);
+      updateSidebar();
+    };
+    responsiveSidebar();
+    compactLayout.addEventListener('change', responsiveSidebar);
     window.addEventListener('resize', () => { measure(); updateSidebar(); });
     window.addEventListener('load', measure);
     if (window.ResizeObserver) new ResizeObserver(measure).observe(document.querySelector('.sg-nav-shell') || document.body);
