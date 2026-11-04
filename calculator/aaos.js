@@ -33,7 +33,7 @@
   if(first&&first.getClientRects().length&&!matchMedia('(pointer:coarse)').matches){first.focus({preventScroll:true});first.select();}
  }
  function render(host){
-  host.innerHTML='<section class="aa-compact" aria-label="AAOS下肢計算器"><h2 class="aa-label">AAOS</h2><form id="aa-form" autocomplete="off" novalidate><div class="aa-inputs">'+data.questions.map((q,i)=>'<label for="aa-'+q.id+'">Q'+(i+1)+'<input id="aa-'+q.id+'" name="'+q.id+'" type="text" inputmode="numeric" maxlength="1" pattern="[1-'+q.max+']" aria-label="Q'+(i+1)+'，1至'+q.max+'" placeholder="—" spellcheck="false"></label>').join('')+'</div></form><p id="aa-error" role="status"></p><div id="aa-result" role="status" aria-live="polite" aria-atomic="true"><p class="aa-score">—<span>／100</span></p><p class="aa-severity">—</p></div></section>';
+  host.innerHTML='<section class="aa-compact" aria-label="AAOS下肢計算器"><h2 class="aa-label">AAOS</h2><form id="aa-form" autocomplete="off" novalidate><div class="aa-inputs">'+data.questions.map((q,i)=>'<label for="aa-'+q.id+'"><input id="aa-'+q.id+'" name="'+q.id+'" type="text" inputmode="numeric" maxlength="1" pattern="[1-'+q.max+']" aria-label="Q'+(i+1)+'，1至'+q.max+'" placeholder="—" spellcheck="false"></label>').join('')+'</div></form><p id="aa-error" role="status"></p><div id="aa-result" role="status" aria-live="polite" aria-atomic="true"><p class="aa-score">—<span>／100</span></p><p class="aa-severity">—</p></div></section>';
   const fields=[...host.querySelectorAll('input')],score=host.querySelector('.aa-score'),severity=host.querySelector('.aa-severity'),error=document.getElementById('aa-error');
   function update(){
    let invalid=null;
