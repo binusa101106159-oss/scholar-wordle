@@ -25,7 +25,7 @@
  if(typeof document==='undefined')return;
  let ready=false;
  function show(){
-  if(ready)return;ready=true;
+  if(ready){if(!document.getElementById('cl-aaos').hidden)root.ScholarAAOS?.mount();return;}ready=true;
   const panel=document.getElementById('calculator-panel');
   panel.innerHTML='<nav class="cl-mode-nav" role="tablist" aria-label="計算工具"><button id="cl-tab-aaos" type="button" role="tab" data-calc-mode="aaos" aria-controls="cl-aaos" aria-selected="true">AAOS下肢</button><button id="cl-tab-basic" type="button" role="tab" data-calc-mode="basic" aria-controls="cl-basic" aria-selected="false" tabindex="-1">一般計算</button></nav><div id="cl-aaos" role="tabpanel" aria-labelledby="cl-tab-aaos"></div><div id="cl-basic" role="tabpanel" aria-labelledby="cl-tab-basic" hidden><section class="cl-card" aria-labelledby="cl-title"><div class="cl-heading"><h1 id="cl-title">計算機</h1><span>Calculator</span></div><div class="cl-display"><p id="cl-previous">基本運算</p><input id="cl-input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="0" maxlength="500" aria-label="算式" aria-describedby="cl-help"><p id="cl-status" role="status" aria-live="polite"></p></div><div class="cl-edit" role="group" aria-label="編輯算式"><button type="button" data-key="(">(</button><button type="button" data-key=")">)</button><button type="button" data-action="delete" aria-label="刪除一個字元">⌫</button><button type="button" id="cl-copy" disabled>複製結果</button></div><div class="cl-keys" role="group" aria-label="計算按鍵">'+[
    ['AC','clear','function','清除'],['±','sign','function','整個算式變號'],['%','%','function','百分比'],['÷','÷','operator','除'],

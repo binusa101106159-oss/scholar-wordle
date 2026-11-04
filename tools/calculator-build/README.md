@@ -2,7 +2,7 @@
 
 Source: user-provided `Copy of AAOS.xlsx`, Drive ID `17l4YMfNBw2HSiV0h_LH1e5wKs1LnkRlP`, modified2026-10-22. All three worksheets were inspected: Standardized & Normative Scores (503 populated rows), Instructions (44 populated rows throughB55/C48), Data Entry (510 populated rows;500 record slots). No embedded images. Q3-Q5 option cells D3:F9 are merged, not missing.
 
-The site entry is 計算機 → AAOS下肢. General arithmetic remains available under 一般計算. Seven dropdowns use the original response codes; English source wording can be expanded per question. Chinese labels are interface translations. Inputs and calculations remain in the page; responses are not persisted or sent to the source spreadsheet.
+The site entry is 計算機 → AAOS下肢. General arithmetic remains available under 一般計算. The interface intentionally contains only Q1-Q7 single-digit inputs, the standardized score and severity. Type a digit and Tab to the next field; focus selects an existing answer for quick replacement. Desktop activates Q1 automatically; touch devices do not autofocus/open a keyboard. Mobile fields request a numeric keyboard. Invalid codes clear stale results and show only the affected question and allowed range. Inputs and calculations remain in the page; responses are not persisted or sent to the source spreadsheet.
 
 ## Reproducible extraction
 
@@ -24,7 +24,7 @@ The standard-library extractor writes only `calculator/aaos.json`: question text
 - Standardized score `100-20*(sum(valid components)/valid item count)`; higher=better.
 - Normative score `50+10*(unrounded standardized-90.5138)/13.78281`; preserve negative results.
 - Instructions!A8/A48: display scores as nearest integers; do not round the standardized score before calculating the normative score. Half-ties round away fromzero.
-- Instructions!A51:B55: normal100; mild75-99; moderate50-74; severe25-49; near-total/total0-24. Since the supplied bands are integers, the UI explicitly applies them to the displayed rounded standardized score. These are the supplied workbook's categories, not a newly inferred AMA impairment class or WPI.
+- Instructions!A51:B55: normal100; mild75-99; moderate50-74; severe25-49; near-total/total0-24. Since the supplied bands are integers, the calculator applies them to the displayed rounded standardized score. These are the supplied workbook's categories, not a newly inferred AMA impairment class or WPI.
 - Preserve Q6's source ordering: wheelchair5, other supports/person6, unable to get around7. Do not reorder or recode.
 - The source calculation sheetN3/R3 explanatory prose contains repeated wording about a0/a5 that does not describe the raw-total range; the implementation follows the explicit Instructions formulas and actual cells. Its own misleading prose is not reproduced.
 
@@ -34,4 +34,4 @@ The standard-library extractor writes only `calculator/aaos.json`: question text
 
 Private local parity check against all500 workbook rows:35 scored records matched cached raw totals, item means, standardized and normative scores within1e-7;465 incomplete records matched missing output. No record fixtures are committed.
 
-Browser QA: all5 severity bands, blank/best/worst, Q3-Q5 code7 exclusions, threshold transitions, copy/reset, English/source explanations, arithmetic-mode regression, state on tabreturn, keyboard tab navigation,320/390px/landscape, result scrolling, noJSerrors/horizontal overflow orremote scoring calls.
+Browser QA: exact digit+Tab workflow across all7 inputs, Shift+Tab/replacement, automatic desktop focus, no touch autofocus, numeric keyboard, invalid-code recovery, missing/code7 handling, best/worst results, onlyrequested UI elements, arithmetic-mode regression, state on tabreturn,320/390px/landscape, noJSerrors/horizontal overflow. The full original source wording and provenance remain in aaos.json and this README rather than the minimal UI.
