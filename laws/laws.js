@@ -48,6 +48,7 @@
     if (state.checkedView) renderCheckedPage(true);
   }
   function setCheckedView(checked) {
+    window.ScholarLawSearch?.close();
     if (Boolean(state.checkedView) === checked) return;
     const sc = by('lx-scroll');
     if (checked) { rememberPosition(); state.checkedReturnTop = sc.scrollTop; }
@@ -68,7 +69,7 @@
       try { const law = await getText(meta.id);return { meta, law, items: law.items.filter(it => it.t === 'art' && checkedArticles.get(meta.id)?.has(it.no)) }; }
       catch (_) { return { meta, error: true }; }
     }));
-    if (!state.checkedView || revision !== checkedRevision) return;
+    if (!state.checkedView || revision !== checkedRevision || window.ScholarLawSearch?.active()) return;
     let html = '<div class="lx-head sg-glass"><h1 class="lx-title" tabindex="-1">已勾選條文</h1><p class="lx-meta">共 ' + checkedCount() + ' 條 · 勾選保存在這台裝置</p></div>';
     for (const group of groups) {
       if (group.error) { html += '<p class="lx-empty">' + esc(group.meta.name) + '暫時無法載入。<button type="button" class="sg-btn" data-checked-retry>重試</button></p>';continue; }
@@ -250,7 +251,14 @@
           </div>
         </aside>
         <section class="lx-reader">
+          <div class="lx-search-row">
           <div class="sg-segment lx-view-tabs" role="group" aria-label="法規閱讀頁面"><button type="button" class="sg-btn" id="lx-view-read" aria-pressed="true">法規全文</button><button type="button" class="sg-btn" id="lx-view-checked" aria-pressed="false">已勾選條文 <span id="lx-checked-count">0</span></button></div>
+            <form id="lx-global-form" class="lx-global-form" role="search" aria-label="全部法規搜尋">
+              <input id="lx-global-q" type="search" role="combobox" aria-label="搜尋全部法規、條文與附表" aria-autocomplete="list" aria-expanded="false" aria-controls="lx-global-popup" placeholder="搜尋全部法規、條文與附表" autocomplete="off" spellcheck="false" enterkeyhint="search">
+              <button type="button" id="lx-global-clear" aria-label="清除法規搜尋" hidden>${icon.x}</button><button type="submit" aria-label="搜尋">${icon.search}</button>
+              <div id="lx-global-popup" class="lx-global-popup" role="listbox" aria-label="法規搜尋預覽" hidden></div>
+            </form>
+          </div>
           <div class="lx-bar" id="lx-reader-tools">
             <button type="button" class="lx-sidebar-toggle lx-menu-btn" id="lx-menu" aria-label="展開側欄" title="展開側欄" aria-controls="lx-sidebar-content" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button>
             <label class="lx-jump">第<input id="lx-jump" inputmode="numeric" aria-label="跳到第幾條" placeholder="" autocomplete="off">條</label>
@@ -260,7 +268,7 @@
             <button type="button" class="sg-btn lx-tool-btn" id="lx-style-btn" aria-haspopup="dialog" aria-controls="lx-panel" title="閱讀設定">${icon.aa}<span>閱讀設定</span></button>
           </div>
           <div class="lx-panel" id="lx-panel" role="dialog" aria-label="閱讀設定與畫線" hidden></div>
-          <div class="lx-scroll" id="lx-scroll"><article class="lx-doc" id="lx-doc"></article><article class="lx-doc" id="lx-checked-doc" hidden></article></div>
+          <div class="lx-scroll" id="lx-scroll"><article class="lx-doc" id="lx-doc"></article><article class="lx-doc" id="lx-checked-doc" hidden></article><article class="lx-doc lx-results-page" id="lx-search-doc" hidden></article></div>
         </section>
       </div>
       <dialog class="lx-dialog" id="lx-annex" aria-labelledby="lx-annex-title">
@@ -278,6 +286,11 @@
   }
 
   function wire() {
+    window.ScholarLawSearch?.mount({
+      ready:()=>booted,catalog:()=>state.index?.laws||[],corpus:loadCorpus,rich,
+      remember:()=>{rememberPosition();closePanel();hideHlBar();},closed:()=>{if(state.checkedView)renderCheckedPage(true);else if(state.current)document.title=state.current.meta.name+' · Scholar';},
+      open:async(hit,terms)=>{await openLaw(hit.law,{art:hit.art,flash:Boolean(hit.art),searchTerms:terms});if(hit.annex)await openAnnex(hit.annex);else if(!hit.art)by('lx-scroll').scrollTop=0;}
+    });
     by('lx-view-read').addEventListener('click', () => setCheckedView(false));
     by('lx-view-checked').addEventListener('click', () => setCheckedView(true));
     by('laws-panel').addEventListener('change', e => { const input = e.target.closest('[data-check-law]');if (input) setArticleChecked(input.dataset.checkLaw, input.dataset.checkNo, input.checked); });
@@ -420,7 +433,7 @@
   }
 
   function rememberPosition() {
-    if (!state.current || state.checkedView) return;
+    if (!state.current || state.checkedView || window.ScholarLawSearch?.active()) return;
     const pos = Object.assign({}, prefs().pos);
     pos[state.current.id] = Math.round(by('lx-scroll').scrollTop);
     setPrefs({ law: state.current.id, pos });
@@ -514,12 +527,12 @@
         data.items.forEach(it => {
           if (it.t !== 'art') return;
           const text = it.paras.map(p => p.lines.map(lineText).join('\n')).join('\n');
-          docs.push({ law: law.id, art: it.no, where: '第 ' + it.no + ' 條', text, norm: normMap(text).s, order: docs.length });
+          docs.push({ law: law.id, art: it.no, where: '第 ' + it.no + ' 條', text, norm: text.normalize('NFKC').toLowerCase(), order: docs.length });
         });
         await Promise.all(law.annexes.map(async a => {
           const ad = await getAnnex(a.id);
           const text = annexText(ad.blocks);
-          docs.push({ law: law.id, annex: a.id, where: a.label, text, norm: normMap(text).s });
+          docs.push({ law: law.id, annex: a.id, where: a.label, text, norm: text.normalize('NFKC').toLowerCase() });
         }));
       }));
       state.corpus = docs;
@@ -554,6 +567,7 @@
     return { total, groups: out };
   }
   function setQuery(q) {
+    state.resultTerms = null;
     state.query = q.trim();
     state.terms = parseTerms(state.query);
     state.expanded = new Set();
@@ -565,9 +579,12 @@
 
   /* ── reader ── */
   async function openLaw(id, opts = {}) {
+    window.ScholarLawSearch?.close();
     const meta = state.byId.get(id);
     if (!meta) return;
     if (state.checkedView) setCheckedView(false);
+    const oldTerms=state.resultTerms;state.resultTerms=opts.searchTerms||null;
+    if(state.current?.id===id && JSON.stringify(oldTerms)!==JSON.stringify(state.resultTerms))renderDoc(state.current,true);
     if (!state.current || state.current.id !== id) {
       rememberPosition();
       by('lx-doc').innerHTML = '<p class="lx-loading">載入中…</p>';
@@ -614,7 +631,7 @@
     return html;
   }
   function renderDoc(law, keepScroll) {
-    const terms = state.terms, meta = law.meta;
+    const terms = state.resultTerms || state.terms, meta = law.meta;
     const sc = by('lx-scroll'), top = sc.scrollTop;
     const tierLaws = state.index.laws.filter(l => l.tier === meta.tier);
     const tierInfo = state.index.tiers.find(t => t.id === meta.tier) || {};
@@ -668,7 +685,7 @@
     by('lx-annex-title').innerHTML = '<b>' + esc(a.label) + '</b>' + esc(a.title || '');
     dlg.querySelector('[data-step="-1"]').disabled = pos <= 0;
     dlg.querySelector('[data-step="1"]').disabled = pos >= list.length - 1;
-    const body=by('lx-annex-body'),key=id+'|'+JSON.stringify(state.terms);
+    const body=by('lx-annex-body'),key=id+'|'+JSON.stringify(state.resultTerms || state.terms);
     if(body.dataset.renderKey===key) {
       window.ScholarPeek.open(dlg);body.scrollTop=0;
       const mark=body.querySelector('mark.lx-mark');if(mark)mark.scrollIntoView({block:'center'});
@@ -686,8 +703,8 @@
     catch (_) { by('lx-annex-body').innerHTML = '<p class="lx-loading">無法載入這個附表。請確認網路連線後再試一次。</p>'; return; }
     if (state.annexOpen !== id) return;
     const body = by('lx-annex-body');
-    body.innerHTML = blocksHTML(data.blocks, state.terms, false);
-    body.dataset.renderKey=id+'|'+JSON.stringify(state.terms);
+    body.innerHTML = blocksHTML(data.blocks, state.resultTerms || state.terms, false);
+    body.dataset.renderKey=id+'|'+JSON.stringify(state.resultTerms || state.terms);
     body.scrollTop = 0;
     const m = body.querySelector('mark.lx-mark');
     if (m) m.scrollIntoView({ block: 'center' });
@@ -1029,6 +1046,8 @@
         const idle = window.requestIdleCallback || (fn => setTimeout(fn, 1500));
         idle(() => loadCorpus().catch(() => {}));
       })();
+    } else if(window.ScholarLawSearch?.active()){
+      window.ScholarLawSearch.show();
     } else if (state.current) {
       document.title = state.checkedView ? '已勾選條文 · Scholar' : state.current.meta.name + ' · Scholar';
     }
