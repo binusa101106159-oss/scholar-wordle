@@ -16,7 +16,7 @@ converter.printed=visible_page
 # The audiograms include rotated axis labels; retain the complete graph region.
 converter.FIGURE_REGIONS[('full02',16)]=[(100,585,530,748)]
 SRC=Path(os.environ.get('HEALTH_SRC',r'C:/Users/binus/.codex/attachments/b0888249-b90e-4dbb-8e7a-76ae4fa5d3df'))
-CATALOG=[('01','高溫作業',(6,22),(7,8)),('02','噪音作業',(23,47),(9,11)),('03','游離輻射作業',(48,84),(12,13)),('04','異常氣壓作業',(85,110),(14,15))]
+CATALOG=[('01','高溫作業',(6,22),(7,8)),('02','噪音作業',(23,47),(9,11)),('03','游離輻射作業',(48,84),(12,13)),('04','異常氣壓作業',(85,110),(14,15)),('05','鉛作業',(111,144),(16,17)),('06','四烷基鉛作業',(145,159),(18,19)),('07','1,1,2,2-四氯乙烷作業',(160,178),(20,21)),('08','四氯化碳作業',(179,197),(22,23))]
 OUT=ROOT/'health';TMP=ROOT/'.local/health-source'
 def main():
  for p in [OUT/'text',OUT/'attach/img',TMP]:p.mkdir(parents=True,exist_ok=True)
@@ -29,7 +29,7 @@ def main():
    d=converter.document(str(path),gid,name,str(OUT/'attach/img'),with_cover=False)
    reports[gid]={k:d[k] for k in ['ok','running','dropped','page_map','missing','extra']}
    reports[gid]['source_pages']=rng
-   # The four chapter title ornaments are lettering in vector outlines, not figures.
+   # The chapter title ornaments are lettering in vector outlines, not figures.
    # Render their visually verified wording as selectable text instead of a page crop.
    native_cover=any(b['t']=='table' and d['page_map'][i][0]==0 and converter.visible([b]).replace(' ','')==name+'健康管理分級建議指引' for i,b in enumerate(d['blocks']))
    for i,block in enumerate(d['blocks']):
