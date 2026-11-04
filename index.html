@@ -451,6 +451,8 @@
 <link rel="stylesheet" href="reader-layout.css">
 <script type="text/scholar-app" data-cloud-src="reader-top.js"></script>
 <link rel="stylesheet" href="peek-glass.css">
+<link rel="stylesheet" href="navigation.css">
+<script type="text/scholar-app" data-cloud-src="navigation.js"></script>
 <script type="text/scholar-app" data-cloud-src="peek-glass.js"></script>
 <style id="scholar-games-style">
 /* Shared additions to the original OLED / liquid-glass interface. */
@@ -611,7 +613,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
 
   <div class="sg-nav-shell">
     <div class="sg-nav-inner">
-      <nav id="scholar-game-tabs" class="sg-tabs" role="tablist" aria-label="Games">
+      <nav id="scholar-game-tabs" class="sg-tabs" role="tablist" aria-label="主要功能">
         <button id="game-tab-calculator" class="sg-tab" type="button" role="tab" data-game-tab="calculator" aria-controls="calculator-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M8 7h8M8 11h1M12 11h1M16 11h.1M8 15h1M12 15h1M16 15v3M8 18h5"/></svg>計算機</button>
         <button id="game-tab-wordle" class="sg-tab" type="button" role="tab" data-game-tab="wordle" aria-controls="game-main" aria-selected="true" tabindex="0"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5"/><path d="m8 8 2 8 2-5 2 5 2-8"/></svg>Wordle</button>
         <button id="game-tab-crossword" class="sg-tab" type="button" role="tab" data-game-tab="crossword" aria-controls="crossword-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16"/><path d="M9.5 9.5h5v5h-5z" fill="currentColor" stroke="none"/></svg>Crossword</button>
@@ -3164,8 +3166,6 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     if (game === 'review' && window.ScholarReview) window.ScholarReview.show();
     by('game-main').setAttribute('aria-hidden', String(game !== 'wordle'));
     document.querySelectorAll('[data-game-tab]').forEach(tab => { const active = tab.dataset.gameTab === (isStudy ? 'study' : game); tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; });
-    const activeTab=by('game-tab-' + (isStudy ? 'study' : game)),track=by('scholar-game-tabs'),tabRect=activeTab.getBoundingClientRect(),trackRect=track.getBoundingClientRect();
-    if(tabRect.left<trackRect.left)track.scrollLeft+=tabRect.left-trackRect.left;else if(tabRect.right>trackRect.right)track.scrollLeft+=tabRect.right-trackRect.right;
     document.querySelectorAll('[id^="modal-"]').forEach(modal => { if (game !== 'wordle') { modal.classList.add('hidden'); modal.classList.remove('flex'); } });
     if (game === 'sudoku') {
       if (!sudoku) newSudoku('easy');
@@ -3253,9 +3253,9 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
       tab.addEventListener('keydown', event => {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
         event.preventDefault(); event.stopPropagation();
-        const tabs = [...document.querySelectorAll('[data-game-tab]')], index = tabs.indexOf(tab);
+        const tabs = [...document.querySelectorAll('[data-game-tab],[data-game-group]')].filter(item=>!item.hidden), index = tabs.indexOf(tab);
         const next = event.key === 'Home' ? tabs[0] : event.key === 'End' ? tabs[tabs.length - 1] : tabs[(index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length];
-        switchGame(next.dataset.gameTab); next.focus();
+        if(next.dataset.gameTab)switchGame(next.dataset.gameTab); next.focus();
       });
     });
     by('sudoku-panel').addEventListener('click', event => {

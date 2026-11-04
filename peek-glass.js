@@ -52,7 +52,7 @@
     const lens=document.createElement('span');lens.className='lg-tab-lens';lens.setAttribute('aria-hidden','true');nav.append(lens);
     let selected=null,motion=null,ready=false,frame=0;
     function sync(animate) {
-      const next=nav.querySelector('[role="tab"][aria-selected="true"]');
+      const next=nav.querySelector('[data-game-group][data-active="true"]')||nav.querySelector('[role="tab"][aria-selected="true"]');
       if(!next||!nav.getClientRects().length){if(!lens.hidden)lens.hidden=true;return;}
       if(animate&&next===selected&&!lens.hidden)return;
       const track=nav.getBoundingClientRect(),rect=next.getBoundingClientRect(),base=track.left+nav.clientLeft;
@@ -76,8 +76,8 @@
       flow.finished.then(()=>{if(motion===flow){motion=null;lens.classList.remove('lg-flowing');}},()=>{});
     }
     const schedule=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;sync(true);});};
-    new MutationObserver(schedule).observe(nav,{subtree:true,attributes:true,attributeFilter:['aria-selected','hidden']});
-    const resize=new ResizeObserver(()=>sync(false));resize.observe(nav);nav.querySelectorAll('[role="tab"]').forEach(tab=>resize.observe(tab));
+    new MutationObserver(schedule).observe(nav,{subtree:true,attributes:true,attributeFilter:['aria-selected','hidden','data-active']});
+    const resize=new ResizeObserver(()=>sync(false));resize.observe(nav);nav.querySelectorAll('[role="tab"],[data-game-group]').forEach(tab=>resize.observe(tab));
     reducedMotion.addEventListener('change',()=>sync(false));
     sync(false);requestAnimationFrame(()=>{sync(false);ready=true;});
   }
