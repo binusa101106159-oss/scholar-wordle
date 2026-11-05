@@ -67,7 +67,7 @@
 .ol-app .ol-compact-header{padding:0 0 10px;gap:12px}.ol-compact-header h2{font-size:20px;margin:0}
 .ol-compact-header .ol-actions button{min-height:32px;padding:6px 10px}
 .cl-specialty #cl-overload{margin-top:12px}
-.ol-app .ol-layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:12px 18px}
+.ol-app .ol-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:12px 18px}
 .ol-layout>#ol-form{display:contents}
 .ol-app .ol-two{grid-column:1/-1;display:flex;flex-direction:row;flex-wrap:nowrap;gap:10px;margin:0;padding:2px;overflow-x:auto}
 .ol-two>.ol-burnout{flex:1 0 340px;width:0}
@@ -79,8 +79,8 @@
 .ol-app .ol-risk-bar .ol-field input{width:40px;max-width:40px;height:32px;min-height:32px;padding:2px 0;border-radius:7px;text-align:center;font:400 18px/1.3 ui-monospace,monospace;background:#1a2635}
 .ol-risk-bar input::placeholder{color:#64758c}
 .ol-risk-bar .ol-burnout-result{min-width:64px;align-items:flex-end}
-.ol-app .ol-workload-card{grid-column:1;grid-row:3;margin:0}
-.ol-app .ol-results{grid-column:2;grid-row:3}
+.ol-app .ol-workload-card{grid-column:1/-1;grid-row:3;margin:0}
+.ol-app .ol-results{grid-column:1/-1;grid-row:4;position:static}
 @media(max-width:900px){.ol-app .ol-layout{grid-template-columns:minmax(0,1fr)}.ol-app .ol-results{grid-column:1;grid-row:4;width:100%}.ol-app .ol-workload-card{width:100%}.ol-compact-header h2{font-size:18px}.ol-compact-header .ol-actions{gap:4px}}
 
 /* Settings stay visible above either horizontally scrolling input row. */
@@ -95,3 +95,6 @@
 .ol-workload-header .ol-workload-row>.ol-field{grid-column:2;flex-direction:row;align-items:center;gap:8px;width:auto;max-width:none;white-space:nowrap}
 .ol-workload-header .ol-pattern-count{grid-column:3;justify-self:end;padding:0;white-space:nowrap}
 @container (max-width:430px){.ol-workload-header{grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}.ol-workload-header .ol-pattern-count{grid-column:1/-1}}
+
+/* The workload inputs and results each fill a separate horizontal section. */
+.ol-results dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));column-gap:18px}
