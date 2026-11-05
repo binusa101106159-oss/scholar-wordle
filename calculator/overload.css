@@ -1,6 +1,6 @@
 #cl-overload{width:100%;max-width:1180px;margin:28px auto 0;color:#edf3fb}
 .cl-calculators:has(.cl-specialty){grid-template-columns:minmax(0,320px) minmax(0,850px);align-items:start;max-width:1200px}.cl-specialty{min-width:0}#cl-aaos{max-width:500px}
-.ol-app{font:400 14px/1.65 'Roboto','Noto Sans TC',system-ui,sans-serif;text-align:left}
+.ol-app{box-sizing:border-box;min-width:0;border:1px solid #d8eaff2b;border-radius:20px;background:#101925;padding:14px 16px;box-shadow:inset 0 1px 0 #e4efff16;font:400 14px/1.65 'Roboto','Noto Sans TC',system-ui,sans-serif;text-align:left}
 .ol-header{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:8px 0 22px}.ol-header p{margin:0;color:#bca77f;font-size:11px;letter-spacing:.12em}.ol-header h2{font-size:26px;margin:3px 0}.ol-header span{font-size:12px;color:#a6b5c9}
 .ol-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.ol-actions button{white-space:nowrap}#ol-results{scroll-margin-top:20px}
 .ol-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}.ol-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
@@ -101,3 +101,4 @@
 
 /* Compact workload choices into two rows and keep both result actions together. */
 .ol-result-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ol-result-actions #ol-reset-results{margin:0}.ol-result-actions button{white-space:nowrap}
+@media(max-width:600px){.ol-app{padding:12px}}

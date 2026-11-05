@@ -148,7 +148,8 @@
      let el=cache.get(item.id);if(!el){el=document.createElement('button');el.type='button';el.className='ca-option';el.setAttribute('role','option');el.tabIndex=-1;el.textContent=item.label;el.dataset.value=item.value;el.dataset.item=item.id;cache.set(item.id,el);}
      el.id=list.id+'-'+i;el.setAttribute('aria-selected','false');return el;
     }));
-    status.textContent=matches.length>40?`共 ${matches.length} 項，繼續輸入可縮小範圍。`:matches.length?`${matches.length} 項符合`:(empty||'沒有符合項目。');
+    status.hidden=matches.length>0;
+    status.textContent=matches.length?'':(empty||'沒有符合項目。');
     input.removeAttribute('aria-activedescendant');list.scrollTop=0;
    }
    position();
