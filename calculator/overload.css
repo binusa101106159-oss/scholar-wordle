@@ -49,3 +49,5 @@
 .ol-app .ol-pattern-check input{appearance:auto;-webkit-appearance:checkbox;flex:none;width:16px;height:16px;min-height:16px;padding:0;margin:0;accent-color:#cbb58c}
 .ol-app #ol-pattern-none{margin-top:8px;min-height:28px;font-size:11px;padding:4px 8px;background:transparent}
 @media(max-width:740px){.ol-fields{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}.ol-pattern-checks{column-gap:8px}.ol-card{padding:14px}}
+
+#ol-reset-results{width:100%;margin-top:8px;background:transparent;color:#c4d3e5}
