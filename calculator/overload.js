@@ -92,7 +92,7 @@
    const kind=key==='sex'?'sex':'boolean';
    const hint=kind==='sex'?'M/F':'0/1';
    const help=kind==='sex'?'M = Male, F = Female':'0 = No, 1 = Yes';
-   return `<label class="ol-field">${label}<input type="text" name="${key}" data-ol-enum="${kind}" inputmode="${kind==='sex'?'text':'numeric'}" maxlength="${kind==='sex'?2:1}" autocomplete="off" placeholder="${hint}" aria-label="${label}: ${help}" title="${help}" ${extra}></label>`;
+   return `<label class="ol-field">${label}<input type="text" name="${key}" data-ol-enum="${kind}" inputmode="${kind==='sex'?'text':'numeric'}" maxlength="1" ${kind==='sex'?'pattern="[MmFf]" autocapitalize="characters"':''} autocomplete="off" placeholder="${hint}" aria-label="${label}: ${help}" title="${help}" ${extra}></label>`;
   };
   const numeric=(key,label,min,max,extra='')=>`<label class="ol-field">${label}<input name="${key}" type="number" inputmode="decimal" min="${min}" max="${max}" step="any" ${extra}></label>`;
   const yn=[['','請選擇'],['no','無'],['yes','有']];
@@ -102,6 +102,25 @@
   const form=document.getElementById('ol-form'),fields=[...form.querySelectorAll('[name]')],by=id=>document.getElementById(id);
   let data={},copyText='',rendered=null,persistedJson=null,warningKey='';
   const resultCells=[],answerFields=[...form.querySelectorAll('.ol-answer')];
+  const riskFields=[...form.querySelectorAll('.ol-risk-inputs input')];let riskTimer=0;
+  function cancelRiskAdvance(){clearTimeout(riskTimer);riskTimer=0;}
+  function validRiskField(field){
+   if(field.dataset.olEnum==='sex')return /^[MF]$/i.test(field.value);
+   if(field.dataset.olEnum==='boolean')return /^[01]$/.test(field.value);
+   return field.validity.valid&&number(field.value,Number(field.min),Number(field.max),field.step==='1')!==null;
+  }
+  function nextRiskField(field){
+   const next=riskFields[riskFields.indexOf(field)+1]||form.elements.namedItem('overtimeMean');
+   next?.focus();next?.select();
+  }
+  function advanceRisk(field,event){
+   cancelRiskAdvance();if(!riskFields.includes(field)||document.activeElement!==field||!validRiskField(field)||event.isComposing||event.inputType?.startsWith('delete')||event.data==='.')return;
+   if(field.dataset.olEnum){nextRiskField(field);return;}
+   // Wait for a pause rather than guessing how many digits a measurement has.
+   riskTimer=setTimeout(()=>{riskTimer=0;if(document.activeElement===field&&validRiskField(field))nextRiskField(field);},700);
+  }
+  riskFields.forEach(field=>{field.addEventListener('blur',cancelRiskAdvance);field.addEventListener('focus',()=>field.select());field.addEventListener('click',()=>field.select());});
+  root.addEventListener('hashchange',cancelRiskAdvance);
   const showFields=[...target.querySelectorAll('[data-ol-show]')],modeButtons=[...target.querySelectorAll('[data-ol-mode]')];
   const text=(el,value)=>{if(el.textContent!==value)el.textContent=value;};
   const attr=(el,key,value)=>{if(el.getAttribute(key)!==value)el.setAttribute(key,value);};
@@ -129,6 +148,7 @@
   }
   function save(){const value=JSON.stringify(data);if(value===persistedJson)return;root.ScholarStorage.setItem(KEY,value);persistedJson=value;}
   function hydrate(){
+   cancelRiskAdvance();
    let saved={};try{saved=JSON.parse(root.ScholarStorage.getItem(KEY)||'{}')||{};}catch(_){}
    if(saved.overtimeMode==='months'){
     const months=Array.from({length:6},(_,i)=>number(saved['ot'+(i+1)],0,744));
@@ -155,13 +175,22 @@
   root.addEventListener('resize',()=>{for(const menu of target.querySelectorAll('.ol-score-options[open]'))positionOptions(menu);});
   root.addEventListener('scroll',e=>{for(const menu of target.querySelectorAll('.ol-score-options[open]'))if(!menu.contains(e.target))positionOptions(menu);},true);
   for(const type of ['pointerdown','focusin'])target.addEventListener(type,e=>{for(const menu of target.querySelectorAll('.ol-score-options[open]'))if(!menu.contains(e.target))menu.open=false;});
-  form.addEventListener('input',e=>{const f=e.target;if(f.classList.contains('ol-answer')){f.value=f.value.replace(/[^1-5]/g,'').slice(-1);if(f.value){const a=answerFields,next=a[a.indexOf(f)+1];if(next&&!next.closest('[hidden]')){next.focus();next.select();}}}render();save();});
+  form.addEventListener('input',e=>{const f=e.target;
+   if(e.isComposing){cancelRiskAdvance();return;}
+   if(f.dataset.olEnum==='sex')f.value=f.value.normalize('NFKC').replace(/[^mf]/gi,'').slice(0,1).toUpperCase();
+   if(f.dataset.olEnum==='boolean')f.value=f.value.normalize('NFKC').replace(/[^01]/g,'').slice(0,1);
+   if(f.classList.contains('ol-answer')){f.value=f.value.replace(/[^1-5]/g,'').slice(-1);if(f.value){const a=answerFields,next=a[a.indexOf(f)+1];if(next&&!next.closest('[hidden]')){next.focus();next.select();}}}
+   render();save();advanceRisk(f,e);
+  });
+  form.addEventListener('compositionend',e=>{if(riskFields.includes(e.target))e.target.dispatchEvent(new Event('input',{bubbles:true}));});
+  form.addEventListener('keydown',e=>{if(!e.isComposing&&riskFields.includes(e.target)&&e.key==='Enter'){e.preventDefault();cancelRiskAdvance();if(validRiskField(e.target))nextRiskField(e.target);}});
   form.addEventListener('change',()=>{render();save();});
   form.addEventListener('keydown',e=>{const f=e.target;if(f.classList.contains('ol-answer')&&e.key==='Backspace'&&!f.value){const a=answerFields,previous=a[a.indexOf(f)-1];if(previous&&!previous.closest('[hidden]')){e.preventDefault();previous.focus();previous.value='';render();save();}}});
   target.addEventListener('click',e=>{const button=e.target.closest('[data-ol-mode]');if(!button)return;form.elements.namedItem(button.dataset.olMode).value=button.dataset.value;render();save();});
   by('ol-pattern-none').addEventListener('click',()=>{for(const [id] of patterns)form.elements.namedItem(id).checked=false;render();save();});
   by('ol-jump').addEventListener('click',()=>{by('ol-results').scrollIntoView({block:'start',behavior:'smooth'});});
   for(const button of target.querySelectorAll('[data-ol-reset]'))button.addEventListener('click',()=>{
+   cancelRiskAdvance();
    form.reset();
    for(const mode of form.querySelectorAll('input[data-default]'))mode.value=mode.dataset.default;
    for(const menu of target.querySelectorAll('.ol-score-options[open]'))menu.open=false;

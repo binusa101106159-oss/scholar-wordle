@@ -27,6 +27,14 @@ test('California combination agrees with all 4950 printed official chart cells',
  for(const [values,result] of [[[17,14,34],53],[[3,13],16],[[3,10],13],[[5,5,5],15],[[10,5],15],[[10,30,20],50],[[0,0],0],[[100,45],100]])assert.equal(C.combine(values).total,result);
  assert.deepEqual(C.combine('17，14、34').values,[34,17,14]);
 });
+test('California combination follows the official multi-rating example in every input order',()=>{
+ // PDRS 2005 physical p.85 example; p.14 and p.86 specify sorting and per-step rounding.
+ const permutations=values=>values.length===1?[values]:values.flatMap((value,i)=>permutations(values.filter((_,at)=>at!==i)).map(rest=>[value,...rest]));
+ for(const values of permutations([50,32,13,4]))assert.deepEqual(C.combine(values),{
+  values:[50,32,13,4],steps:[{left:50,right:32,result:66},{left:66,right:13,result:70},{left:70,right:4,result:71}],total:71
+ });
+});
+
 test('California uses complete capped lookup tables, including the rank-3 rounding boundary',()=>{
  assert.equal(engine.rate({mode:'manual',wpi:35,rank:3,variant:'F',age:39}).fec,42);
  for(let rank=1;rank<=8;rank++)for(const variant of 'CDEFGHIJ'){

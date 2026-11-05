@@ -15,3 +15,4 @@
 .ca-app .ca-option{display:block;width:100%;min-height:34px;text-align:left;white-space:normal;border:0;border-radius:6px;background:transparent;color:#dce7f6;font-size:12px;line-height:1.45;padding:7px 9px}
 .ca-app .ca-option:hover,.ca-app .ca-option[aria-selected=true]{background:#30455e;color:#fff}.ca-combo-count{font-size:10px;color:#a4b7ce;margin:4px 7px}
 .ca-primary .ca-job-input{display:flex;flex-direction:column;gap:3px;flex:none;width:190px;min-width:0}.ca-primary .ca-job-input>label{width:auto}.ca-primary .ca-job-input .ca-combo input{width:100%;text-align:left}
+.ca-combine-entry{flex:1;min-width:0}.ca-rating-slots{display:flex;gap:5px;overflow-x:auto;padding:3px;margin-top:3px}.ca-app .ca-rating-slots input{flex:1 0 40px;width:40px;min-width:40px;height:34px;padding:2px 0;text-align:center;font-size:18px}.ca-app .ca-rating-slots input[aria-invalid=true]{border-color:#e0a18f!important}
