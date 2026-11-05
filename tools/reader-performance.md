@@ -1,5 +1,9 @@
 # Reader rendering performance — v120
 
+## v124 glass interaction correction
+
+The v123 adaptive blur switch caused a visible transparency flash on pointer-down, selection and scrolling. It has been removed: the separate glass plane now stays mounted and blurred throughout interaction. The v123 Firefox timing below describes the superseded adaptive strategy, not v124. Persistent reader surfaces still use the earlier performance settings; physical Mac Safari performance remains unmeasured.
+
 ## v123 popup glass update
 
 Popups now have transparent shells with bright rims and local dark contrast behind text and tables. Blur comes from one childless plane behind the popup, rather than a full-screen backdrop or scrolling sheet. It pauses during scrolling, typing, dragging and content replacement, then returns after 320ms without interaction. Reduced-transparency and increased-contrast preferences disable blur. Persistent reader surfaces retain the earlier performance settings.

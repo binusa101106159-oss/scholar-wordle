@@ -16,7 +16,7 @@
   }
   function open(el) {
     const s=setup(el),visible=s.native?el.open:!el.classList.contains('hidden');
-    if(visible&&!s.closing){window.ScholarGlass.busy(s.native?el:el.firstElementChild);return;}
+    if(visible&&!s.closing)return;
     s.closing=false;
     if(s.motion)s.motion.cancel();
     el.classList.remove('pg-closing');
@@ -39,7 +39,6 @@
     el.style.setProperty('--pg-glass-opacity',glass.opacity);
     if(s.motion)s.motion.cancel();
     el.classList.add('pg-closing','pg-moving');
-    window.ScholarGlass.busy(card);
     if(!reduced()) {
       const motion=card.animate([start,{opacity:0,transform:'translateY(2px)'}],{duration:120,easing:'cubic-bezier(.25,.1,.25,1)',fill:'forwards'});s.motion=motion;
       try{await motion.finished;}catch(_){return false;}
