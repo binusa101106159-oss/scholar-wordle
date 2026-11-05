@@ -90,11 +90,11 @@
 /* Use the workload card's upper middle space for its monthly overtime input. */
 .ol-workload-card{container-type:inline-size}
 .ol-workload-header{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;margin-bottom:12px}
-.ol-workload-header>h3{margin:0;white-space:nowrap}
+.ol-workload-title{display:flex;align-items:center;gap:8px;white-space:nowrap}.ol-workload-title>h3{margin:0}.ol-app .ol-workload-title>#ol-pattern-none{margin:0;white-space:nowrap}
 .ol-workload-header>.ol-workload-row{display:contents}
-.ol-workload-header .ol-workload-row>.ol-field{grid-column:2;flex-direction:row;align-items:center;gap:8px;width:auto;max-width:none;white-space:nowrap}
-.ol-workload-header .ol-pattern-count{grid-column:3;justify-self:end;padding:0;white-space:nowrap}
-@container (max-width:430px){.ol-workload-header{grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}.ol-workload-header .ol-pattern-count{grid-column:1/-1}}
+.ol-workload-header .ol-workload-row>.ol-field{grid-column:3;justify-self:end;flex-direction:row;align-items:center;gap:8px;width:auto;max-width:none;white-space:nowrap}
+.ol-workload-header .ol-pattern-count{grid-column:2;justify-self:center;padding:0;white-space:nowrap}
+@container (max-width:430px){.ol-workload-header{grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}.ol-workload-header .ol-pattern-count{grid-column:2}.ol-workload-header .ol-workload-row>.ol-field{grid-column:1/-1}}
 
 /* The workload inputs and results each fill a separate horizontal section. */
 .ol-results dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));column-gap:18px}
