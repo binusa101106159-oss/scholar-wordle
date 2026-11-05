@@ -58,3 +58,6 @@
 .ol-fields{grid-template-columns:repeat(auto-fit,minmax(90px,96px))}
 .ol-app .ol-fields input:not([name=manualSource]),.ol-app .ol-card>.ol-field input,.ol-app .ol-workload-row>.ol-field input{width:50px;max-width:50px;padding-inline:6px}
 @media(max-width:740px){.ol-fields{grid-template-columns:repeat(auto-fit,minmax(90px,96px))}}
+
+/* Keep all eight Framingham inputs on one row, scrolling within the card when needed. */
+.ol-app [data-ol-show="risk:calculate"]>.ol-fields{grid-template-columns:repeat(8,minmax(56px,1fr));overflow-x:auto;padding:2px 2px 8px}
