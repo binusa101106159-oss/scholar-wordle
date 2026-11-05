@@ -3,4 +3,15 @@
 
 .ca-primary .ca-age-input,.ca-primary .ca-injury-input{width:130px}.ca-primary .ca-age-input input,.ca-primary .ca-injury-input input{width:100%}.ca-number input{width:100%}#ca-description{overflow-wrap:anywhere}
 
-.ca-number{min-width:0;display:flex;flex-direction:column;gap:3px}.ca-number-entry{display:flex;gap:6px;min-width:0}.ca-number-entry input{flex:1;min-width:0}.ca-number-entry select{flex:none;width:112px}
+.ca-number{min-width:0;display:flex;flex-direction:column;gap:3px}
+
+.ca-app{color-scheme:dark}.ca-app select,.ca-app option{background-color:#1a2635;color:#f0f5fc;color-scheme:dark}
+.ca-combo{display:flex;position:relative;box-sizing:border-box;width:100%;height:32px;min-width:0;border:1px solid #ccdfff35;border-radius:7px;background:#1a2635}
+#calculator-panel .ca-combo input{flex:1;min-width:0;width:100%;height:30px;min-height:30px;border:0!important;border-radius:7px 0 0 7px!important;background:transparent!important;text-align:left}
+.ca-app .ca-combo-toggle{flex:none;width:28px;min-height:30px;padding:0;border:0;border-radius:0 7px 7px 0;background:transparent;color:#bccce0;font-size:14px}
+.ca-combo:focus-within{outline:2px solid #a9ccfa;outline-offset:2px}#calculator-panel .ca-combo :is(input,button):focus-visible{outline:none}
+.ca-combo-popup{position:fixed;z-index:1500;box-sizing:border-box;padding:4px;border:1px solid #b9d1ed55;border-radius:10px;background:#101925;color:#edf3fb;box-shadow:0 12px 32px #0008}
+.ca-combo-list{overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
+.ca-app .ca-option{display:block;width:100%;min-height:34px;text-align:left;white-space:normal;border:0;border-radius:6px;background:transparent;color:#dce7f6;font-size:12px;line-height:1.45;padding:7px 9px}
+.ca-app .ca-option:hover,.ca-app .ca-option[aria-selected=true]{background:#30455e;color:#fff}.ca-combo-count{font-size:10px;color:#a4b7ce;margin:4px 7px}
+.ca-primary .ca-job-input{display:flex;flex-direction:column;gap:3px;flex:none;width:190px;min-width:0}.ca-primary .ca-job-input>label{width:auto}.ca-primary .ca-job-input .ca-combo input{width:100%;text-align:left}

@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const data=require('../calculator/california.json');
 const chart=require('./fixtures/california-cvc.json');
 const C=require('../calculator/california.js'),engine=C.createEngine(data);
+const occupations=require('../calculator/california-occupations.json'),search=C.createSearch(data,occupations);
 
 test('California reproduces the 17 previously verified adjustment examples',()=>{
  const examples=[
@@ -97,4 +98,44 @@ test('California accepts typed dotted or compact impairment codes and typed occu
  assert.equal(C.normalizeNumber('17041000'),'17.04.10.00');
  assert.equal(engine.record('17041000')[0],'17.04.10.00');
  assert.throws(()=>engine.rate({wpi:10,number:'17999999',group:'470',age:39}),/Impairment No/);
+});
+
+test('California impairment search progressively narrows codes and descriptions',()=>{
+ const queries=['','16','16.06','16.06.04','16.06.04.02'];
+ const counts=queries.map(query=>search.numbers(query).length);
+ assert.equal(counts[0],216);assert.equal(counts.at(-1),1);
+ assert.ok(counts.every((n,i)=>i===0||n<=counts[i-1]));
+ assert.equal(search.numbers('１６０６０４０２')[0].value,'16.06.04.02');
+ assert.ok(search.numbers('FEMUR fracture').some(row=>row.value==='17.04.10.00'));
+ assert.equal(search.numbers('not-an-impairment').length,0);
+});
+test('California occupation search retains all 1812 source rows and their exact group numbers',()=>{
+ assert.equal(occupations.jobs.length,1812);
+ assert.equal(occupations.pdfSha256,data.sources.pdfSha256);
+ for(const [group,title,industry,page] of occupations.jobs){assert.ok(data.groups.includes(group));assert.ok(title);assert.equal(typeof industry,'string');assert.ok(page>=29&&page<=53);}
+ const find=title=>occupations.jobs.find(row=>row[1]===title);
+ assert.equal(find('PHYSICIAN, GENERAL PRACTITIONER')[0],'220');
+ assert.equal(find('NURSE, GENERAL DUTY')[0],'311');
+ assert.equal(find('INSTRUCTOR, DRIVING')[0],'251');
+ assert.equal(find('INSTRUCTOR, PHYSICAL EDUCATION')[0],'390');
+});
+test('California job-name search supports English, Chinese search synonyms, and code prefixes',()=>{
+ const english=search.jobs('mechanical engineer'),chinese=search.jobs('機械工程師');
+ assert.ok(english.some(row=>row.title==='ENGINEER, MECHANICAL'&&row.group==='212'));
+ assert.ok(chinese.some(row=>row.title==='ENGINEER, MECHANICAL'&&row.group==='212'));
+ assert.ok(search.jobs('醫師').some(row=>row.title==='PHYSICIAN, GENERAL PRACTITIONER'&&row.group==='220'));
+ assert.ok(search.jobs('護理師').some(row=>row.title==='NURSE, GENERAL DUTY'&&row.group==='311'));
+ assert.ok(!search.jobs('護理師').some(row=>row.title==='MANAGER, NURSERY'));
+ assert.ok(search.jobs('470').some(row=>row.kind==='group'&&row.value==='470'));
+ assert.ok(search.jobs('470').every(row=>row.group==='470'));
+ assert.equal(search.jobs('unrecognized occupation xyz').length,0);
+ assert.ok(search.jobs('engineer').every(row=>data.groups.includes(row.group)));
+});
+test('California search never rates a job-name string as an inferred occupational group',()=>{
+ assert.throws(()=>engine.rate({wpi:10,number:'17.04.10.00',group:'engineer',age:39}),/職業組別/);
+ const choice=search.jobs('mechanical engineer').find(row=>row.title==='ENGINEER, MECHANICAL');
+ assert.equal(search.job(choice.id).group,'212');
+ const result={...engine.rate({wpi:10,number:'17.04.10.00',group:choice.group,age:39}),occupationTitle:choice.title,occupationIndustry:choice.industry};
+ assert.match(C.summary(result),/職業: ENGINEER, MECHANICAL/);
+ assert.throws(()=>C.createSearch(data,{...occupations,pdfSha256:'different'}),/版本/);
 });

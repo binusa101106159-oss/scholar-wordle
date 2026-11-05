@@ -25,4 +25,14 @@ The interface identifies this as PDRS 2005. California rules for other injury da
 
 Age entry accepts completed years or a complete birthday plus an explicitly entered injury date. The calculator never substitutes today's date. Dates are parsed as year/month/day; four-digit years are Gregorian, while two- or three-digit years are ROC years. Explicit 民國/ROC prefixes are also accepted. Calendar dates and the injury/birthday order are validated without timezone conversion. Copied results include canonical dates and the derived injury age.
 
-Impairment-number entry supports the suggestion list and direct dotted or eight-digit codes. Occupational groups remain directly typeable with a 45-group suggestion list. The product's source-details panel is removed; provenance and rebuild instructions remain here.
+Impairment-number entry supports searchable suggestions and direct dotted or eight-digit codes. Occupation entry supports searchable official job titles and direct valid three-digit groups. The product's source-details panel is removed; provenance and rebuild instructions remain here.
+
+## Searchable occupation index
+
+```sh
+python tools/california-build/occupations.py --pdf /path/PDR.pdf
+```
+
+This produces `calculator/california-occupations.json` from Part A, physical pages 29–53: 1812 official occupation rows. The extractor independently separates the two printed columns and preserves wrapped titles and industries. Numeric row anchors are collected before validating their group, including one shifted code in the instructor rows, so adjacent jobs cannot be accidentally merged. Empty columns, page-bottom text, record counts, group membership, and the PDF checksum are checked.
+
+Both code and occupation entry use a single dark searchable combobox. The occupation list shows original English job titles, industries and official group numbers. Common Chinese terms expand search synonyms only; they do not assign a group. A job's group is used after an explicit selection, or after entering a valid three-digit code. Changing an unselected job query clears the previous group; saved older numeric groups remain valid. Copied results include the selected official job title and industry.
