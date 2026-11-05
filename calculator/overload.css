@@ -61,3 +61,27 @@
 
 /* Keep all eight Framingham inputs on one row, scrolling within the card when needed. */
 .ol-app [data-ol-show="risk:calculate"]>.ol-fields{grid-template-columns:repeat(8,minmax(56px,1fr));overflow-x:auto;padding:2px 2px 8px}
+
+
+/* Place the compact assessment rows across the upper right calculator area. */
+.ol-app .ol-compact-header{padding:0 0 10px;gap:12px}.ol-compact-header h2{font-size:20px;margin:0}
+.ol-compact-header .ol-actions button{min-height:32px;padding:6px 10px}
+.cl-specialty #cl-overload{margin-top:12px}
+.ol-app .ol-layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:12px 18px}
+.ol-layout>#ol-form{display:contents}
+.ol-app .ol-two{grid-column:1/-1;display:flex;flex-direction:row;flex-wrap:nowrap;gap:10px;margin:0;padding:2px;overflow-x:auto}
+.ol-two>.ol-burnout{flex:1 0 340px;width:0}
+.ol-framingham{grid-column:1/-1;min-width:0;overflow-x:auto;padding:2px}
+.ol-framingham .ol-risk-bar{min-width:720px;box-sizing:border-box}
+.ol-risk-inputs{flex:1;min-width:0}
+.ol-app .ol-risk-inputs>.ol-fields{grid-template-columns:repeat(8,minmax(56px,1fr));gap:6px;margin:0;padding:0;overflow:visible}
+.ol-risk-bar .ol-field{font-size:9px;white-space:nowrap;align-items:center;gap:3px}
+.ol-app .ol-risk-bar .ol-field input{width:40px;max-width:40px;height:32px;min-height:32px;padding:2px 0;border-radius:7px;text-align:center;font:400 18px/1.3 ui-monospace,monospace;background:#1a2635}
+.ol-risk-bar input::placeholder{color:#64758c}
+.ol-risk-bar .ol-burnout-result{min-width:64px;align-items:flex-end}
+.ol-app .ol-workload-card{grid-column:1;grid-row:3;margin:0}
+.ol-app .ol-results{grid-column:2;grid-row:3}
+@media(max-width:900px){.ol-app .ol-layout{grid-template-columns:minmax(0,1fr)}.ol-app .ol-results{grid-column:1;grid-row:4;width:100%}.ol-app .ol-workload-card{width:100%}.ol-compact-header h2{font-size:18px}.ol-compact-header .ol-actions{gap:4px}}
+
+/* Settings stay visible above either horizontally scrolling input row. */
+.ol-app .ol-score-options>div{position:fixed;left:var(--ol-menu-left,8px);top:var(--ol-menu-top,8px);right:auto}
