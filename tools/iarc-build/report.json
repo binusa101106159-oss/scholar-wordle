@@ -1,0 +1,38 @@
+[
+  {
+    "group": "1",
+    "pages": 6,
+    "entries": 132,
+    "nested": 0,
+    "characters": 4304,
+    "characterCheck": true,
+    "markerCheck": true
+  },
+  {
+    "group": "2A",
+    "pages": 4,
+    "entries": 96,
+    "nested": 0,
+    "characters": 2402,
+    "characterCheck": true,
+    "markerCheck": true
+  },
+  {
+    "group": "2B",
+    "pages": 11,
+    "entries": 322,
+    "nested": 0,
+    "characters": 7502,
+    "characterCheck": true,
+    "markerCheck": true
+  },
+  {
+    "group": "3",
+    "pages": 14,
+    "entries": 499,
+    "nested": 6,
+    "characters": 9412,
+    "characterCheck": true,
+    "markerCheck": true
+  }
+]

@@ -422,6 +422,8 @@
 <script type="text/scholar-app" data-cloud-src="calculator/calculator.js"></script>
 <link rel="stylesheet" href="ilo/ilo.css">
 <script type="text/scholar-app" data-cloud-src="ilo/ilo.js"></script>
+<link rel="stylesheet" href="iarc/iarc.css">
+<script type="text/scholar-app" data-cloud-src="iarc/iarc.js"></script>
 <link rel="stylesheet" href="health/health.css">
 <script type="text/scholar-app" data-cloud-src="health/health.js"></script>
 <link rel="stylesheet" href="cases/cases.css">
@@ -604,6 +606,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
         <button id="game-tab-guides" class="sg-tab" type="button" role="tab" data-game-tab="guides" aria-controls="guides-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5C7.5 4.5 10 4.5 12 6c2-1.5 4.5-1.5 7-.5V19c-2.5-1-5-1-7 .5-2-1.5-4.5-1.5-7-.5z"/><path d="M12 6v13.5"/></svg>指引</button>
         <button id="game-tab-ama" class="sg-tab" type="button" role="tab" data-game-tab="ama" aria-controls="ama-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM16 4v3h3M8 11h8M8 15h8M12 8v10"/></svg>AMA</button>
         <button id="game-tab-health" class="sg-tab" type="button" role="tab" data-game-tab="health" aria-controls="health-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H6a2 2 0 0 0-2 2v14h16V6a2 2 0 0 0-2-2h-2M9 3h6v4H9zM8 13h8M12 9v8"/></svg>特做</button>
+        <button id="game-tab-iarc" class="sg-tab" type="button" role="tab" data-game-tab="iarc" aria-controls="iarc-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5M7 10h6M10 7v6"/></svg>IARC</button>
         <button id="game-tab-study" class="sg-tab" type="button" role="tab" data-game-tab="study" aria-controls="review-panel notes-panel ilo-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM16 4v3h3M8 11h8M8 15h8"/></svg>職專</button>
         <button id="game-tab-cases" class="sg-tab" type="button" role="tab" data-game-tab="cases" aria-controls="cases-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H5v16h14V4h-4M9 3h6v4H9zM8 11h8M8 15h4"/><path d="m13 17 2 2 4-4"/></svg>個案追蹤</button>
       </nav>
@@ -728,6 +731,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     <button id="study-section-ilo" type="button" role="tab" data-study-section="ilo" aria-controls="ilo-panel" aria-selected="false" tabindex="-1">ILO</button>
   </div>
   <main id="cases-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-cases" hidden></main>
+  <main id="iarc-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-iarc" hidden></main>
   <main id="health-panel" class="sg-app hx-app" role="tabpanel" aria-labelledby="game-tab-health" hidden></main>
   <main id="calculator-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-calculator" hidden></main>
   <main id="ilo-panel" class="sg-app" role="tabpanel" aria-labelledby="study-section-ilo" hidden><p>正在載入ILO教材…</p></main>
@@ -3115,7 +3119,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
   let studySection = 'review';
   function switchGame(game, updateURL = true) {
     if (game === 'study') game = studySection;
-    if (!['calculator', 'wordle', 'crossword', 'sudoku', 'laws', 'guides', 'ama', 'health', 'cases', 'review', 'notes', 'ilo'].includes(game)) game = 'wordle';
+    if (!['calculator', 'wordle', 'crossword', 'sudoku', 'laws', 'guides', 'ama', 'health', 'iarc', 'cases', 'review', 'notes', 'ilo'].includes(game)) game = 'wordle';
     activeGame = game; document.body.dataset.game = game;
     if(updateURL)window.ScholarStorage.setItem('scholar-navigation-v1',JSON.stringify({hash:'#'+game}));
     const isStudy = game === 'review' || game === 'notes' || game === 'ilo';
@@ -3135,6 +3139,8 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     by('cases-panel').hidden = game !== 'cases';
     if (game === 'cases' && window.ScholarCases) window.ScholarCases.show();
     else if (window.ScholarCases) window.ScholarCases.hide();
+    by('iarc-panel').hidden = game !== 'iarc';
+    if (game === 'iarc' && window.ScholarIARC) window.ScholarIARC.show();
     by('health-panel').hidden = game !== 'health';
     if (game === 'health' && window.ScholarHealth) window.ScholarHealth.show();
     by('calculator-panel').hidden = game !== 'calculator';
@@ -3159,6 +3165,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     }
     if (game === 'cases') document.title = '個案追蹤 · Scholar';
     else if (game === 'health') document.title = '特做 · Scholar';
+    else if (game === 'iarc') document.title = 'IARC · Scholar';
     else if (game === 'calculator') document.title = '計算機 · Scholar';
     else if (game === 'ilo') document.title = 'ILO塵肺影像學習 · Scholar';
     else if (game === 'notes') document.title = '職專共筆 · Scholar';
@@ -3198,7 +3205,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     focusSelected(activeGame); save();
   }
   function keyboard(event) {
-    if (activeGame === 'cases' || activeGame === 'health' || activeGame === 'calculator' || activeGame === 'wordle' || activeGame === 'laws' || activeGame === 'guides' || activeGame === 'ama' || activeGame === 'review' || activeGame === 'notes' || activeGame === 'ilo' || by('scholar-new-dialog').open || event.altKey) return;
+    if (activeGame === 'iarc' || activeGame === 'cases' || activeGame === 'health' || activeGame === 'calculator' || activeGame === 'wordle' || activeGame === 'laws' || activeGame === 'guides' || activeGame === 'ama' || activeGame === 'review' || activeGame === 'notes' || activeGame === 'ilo' || by('scholar-new-dialog').open || event.altKey) return;
     const target = event.target;
     if (target && target.closest && target.closest('input,select,textarea,[contenteditable="true"]')) return;
     if (event.key === 'Escape') { event.preventDefault(); by('game-tab-' + activeGame).focus(); return; }
@@ -3271,9 +3278,9 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
       data.seconds++; by(activeGame + '-clock').textContent = time(data.seconds);
       if (data.seconds % 5 === 0) save();
     }, 1000);
-    if(!location.hash){const nav=JSON.parse(window.ScholarStorage.getItem('scholar-navigation-v1')||'{}');if(/^#(calculator|wordle|crossword|sudoku|laws|guides|ama|health|cases|review|notes|ilo)$/.test(nav.hash||''))history.replaceState(null,'',nav.hash);}
+    if(!location.hash){const nav=JSON.parse(window.ScholarStorage.getItem('scholar-navigation-v1')||'{}');if(/^#(calculator|wordle|crossword|sudoku|laws|guides|ama|health|iarc|cases|review|notes|ilo)$/.test(nav.hash||''))history.replaceState(null,'',nav.hash);}
     window.addEventListener('hashchange',()=>window.ScholarStorage.setItem('scholar-navigation-v1',JSON.stringify({hash:location.hash})));
-    switchGame(location.hash === '#cases' ? 'cases' : location.hash === '#health' ? 'health' : location.hash === '#calculator' ? 'calculator' : location.hash === '#study' ? 'study' : location.hash === '#sudoku' ? 'sudoku' : location.hash === '#crossword' ? 'crossword' : location.hash === '#laws' ? 'laws' : location.hash === '#guides' ? 'guides' : location.hash === '#ama' ? 'ama' : location.hash === '#review' ? 'review' : location.hash === '#notes' ? 'notes' : location.hash === '#ilo' ? 'ilo' : 'wordle', false);
+    switchGame(location.hash === '#iarc' ? 'iarc' : location.hash === '#cases' ? 'cases' : location.hash === '#health' ? 'health' : location.hash === '#calculator' ? 'calculator' : location.hash === '#study' ? 'study' : location.hash === '#sudoku' ? 'sudoku' : location.hash === '#crossword' ? 'crossword' : location.hash === '#laws' ? 'laws' : location.hash === '#guides' ? 'guides' : location.hash === '#ama' ? 'ama' : location.hash === '#review' ? 'review' : location.hash === '#notes' ? 'notes' : location.hash === '#ilo' ? 'ilo' : 'wordle', false);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
