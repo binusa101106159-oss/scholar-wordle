@@ -74,12 +74,12 @@
  }
  const fmt=n=>n===null?'待填':n.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:2});
  function summary(d,r=evaluate(d)){
-  const lines=[`個人相關過勞分數：${fmt(r.scores.personal)}${r.levels.personal===null?'':`（${loadNames[r.levels.personal]}）`}`,`工作相關過勞分數：${fmt(r.scores.work)}${r.levels.work===null?'':`（${loadNames[r.levels.work]}）`}`,`近 6 個月平均每月加班：${fmt(r.overtime)} 小時`, `工作型態：${r.levels.pattern===null?'待填':`${r.patternCount} 項（${loadNames[r.levels.pattern]}）`}`,`工作負荷等級：${r.workload===null?'待填':`${r.workload} · ${loadNames[r.workload]}`}`,`10 年心血管疾病風險：${r.risk===null?'未估算':fmt(r.risk)+'%'}${r.riskLevel===null?'':`（${riskNames[r.riskLevel]}）`}`,`風險來源：${d.riskMode==='manual'?'已知風險（'+(d.manualSource||'來源未填')+'）':'臺大 Framingham 計算公式（2008 General CVD 血脂模型）'}`];
+  const lines=[`個人相關過勞分數：${fmt(r.scores.personal)}${r.levels.personal===null?'':`（${loadNames[r.levels.personal]}）`}`,`工作相關過勞分數：${fmt(r.scores.work)}${r.levels.work===null?'':`（${loadNames[r.levels.work]}）`}`,`近 6 個月平均每月加班：${fmt(r.overtime)} 小時`, `工作型態：${r.levels.pattern===null?'待填':`${r.patternCount} 項（${loadNames[r.levels.pattern]}）`}`,`工作負荷等級：${r.workload===null?'待填':`${r.workload} · ${loadNames[r.workload]}`}`,`10 年心血管疾病風險：${r.risk===null?'未估算':fmt(r.risk)+'%'}${r.riskLevel===null?'':`（${riskNames[r.riskLevel]}）`}`];
   lines.push(`職業促發腦心血管疾病風險分級：${r.combined===null?'待填':`${r.combined} · ${riskNames[r.combinedLevel]}`}`,`異常工作負荷促發疾病風險／面談建議：${r.interview||'待填'}`);
   if(r.management)lines.push(`健康管理措施：${r.management}`);
   if(d.previousPersonal||d.previousWork)lines.push(`上次個人／工作過勞分數：${d.previousPersonal||'未填'}／${d.previousWork||'未填'}`);
   if(r.missing.length)lines.push('待填：'+r.missing.join('、'));
-  lines.push(...r.warnings,'依據：異常工作負荷促發疾病預防指引第二版（108 年 4 月），表二至表六、附錄二。');return lines.join('\n');
+  lines.push(...r.warnings);return lines.join('\n');
  }
  const api={number,burnout,loadLevel,cardiovascularLevel,framingham,evaluate,summary,personalQuestions,workQuestions,patterns};
  if(typeof module==='object'&&module.exports)module.exports=api;
