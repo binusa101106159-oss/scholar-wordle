@@ -57,3 +57,10 @@ python3 review.py farm-e farm-c farm-p farm-b plans           # serve the site o
 - In an appendix that captions its own 表1 …, mentions of 表1 inside that appendix do not link to the body's 表1.
 - `review.py`: DOM text of every block, every 表/圖 popup and appendix jump clicked, and one PDF-vs-app image per PDF
   page in `review/` (local QA only, not shipped).
+
+## Table-grid regression checks
+
+- Cell shading and text highlights are excluded from ruled-grid detection. Real borderless tables whose only grid is shading retain that source grid.
+- Horizontal-rule tables treat repeated underlined codes as alignment hints, rather than inventing a column at each underline endpoint. Empty padding strips do not become columns merely because a heading spans them.
+- `guides/table-layout.js` preserves sparse column coordinates and keeps connected header rowspans in one HTML row group. `tests/guide-table-layout.cjs` checks all published native grids and the source hearing-table/ICD regressions.
+- When building into a staging folder, run `python reuse_images.py <staged-guides> <previous-guides>` before installing it. Pixel-identical PNGs reuse published filenames, preserving image quality while avoiding platform-dependent PNG encoding duplicates.

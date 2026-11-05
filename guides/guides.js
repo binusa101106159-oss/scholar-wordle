@@ -113,13 +113,14 @@
   function tableHTML(t, terms, nested) {
     const total = t.widths.reduce((a, b) => a + b, 0) || 1;
     const cols = t.widths.map(w => '<col style="width:' + (w / total * 100).toFixed(2) + '%">').join('');
-    const minW = t.widths.length > 4 ? Math.round(total * (nested ? 1.1 : 1.3)) : 0;
-    let head = Math.min(t.head || 0, t.rows.length - 1);
-    if (head > 0) head = Math.min(t.rows.length - 1, Math.max(head, ...t.rows[0].map(c => c.rs || 1)));
+    // Keep narrow source columns usable on phones; compressing a 2–4 column
+    // form can leave less than one glyph after its cell padding.
+    const minW = t.widths.length > 1 ? Math.round(total * (nested ? 1.1 : 1.3)) : 0;
+    const {rows,head}=window.ScholarGuideTables.layout(t);
     const rowsHTML = (rows, tag) => rows.map(r => '<tr>' + r.map(c => cellHTML(c, terms, tag, t)).join('') + '</tr>').join('');
     return '<div class="gx-twrap' + (nested ? ' gx-nested' : '') + '"><table class="gx-table" style="min-width:' + minW + 'px"><colgroup>' + cols + '</colgroup>' +
-      (head > 0 ? '<thead>' + rowsHTML(t.rows.slice(0, head), 'th') + '</thead>' : '') +
-      '<tbody>' + rowsHTML(t.rows.slice(head), 'td') + '</tbody></table></div>';
+      (head > 0 ? '<thead>' + rowsHTML(rows.slice(0, head), 'th') + '</thead>' : '') +
+      '<tbody>' + rowsHTML(rows.slice(head), 'td') + '</tbody></table></div>';
   }
   function paraStyle(b) {
     const s = [];

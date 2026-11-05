@@ -3,7 +3,7 @@
   'use strict';
   const states=new WeakMap(),reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
   const frames=[{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'none'}];
-  function glass(card) {if(!card.classList.contains('lg-surface'))card.classList.add('lg-surface');}
+  function glass(card) {if(!card.classList.contains('lg-surface'))card.classList.add('lg-surface');window.ScholarGlass.watch(card);}
   function setup(el) {
     if(states.has(el))return states.get(el);
     const native=el instanceof HTMLDialogElement,state={native,motion:null,closing:false};
@@ -16,13 +16,14 @@
   }
   function open(el) {
     const s=setup(el),visible=s.native?el.open:!el.classList.contains('hidden');
-    if(visible&&!s.closing)return;
+    if(visible&&!s.closing){window.ScholarGlass.busy(s.native?el:el.firstElementChild);return;}
     s.closing=false;
     if(s.motion)s.motion.cancel();
     el.classList.remove('pg-closing');
     if(s.native){if(!el.open)el.showModal();}
     else{el.classList.remove('hidden');el.classList.add('flex');}
     const card=s.native?el:el.firstElementChild;
+    window.ScholarGlass.show(card);
     if(reduced())return;
     el.classList.add('pg-moving');
     const motion=card.animate(frames,{duration:180,easing:'cubic-bezier(.2,.65,.25,1)'});s.motion=motion;
@@ -38,11 +39,13 @@
     el.style.setProperty('--pg-glass-opacity',glass.opacity);
     if(s.motion)s.motion.cancel();
     el.classList.add('pg-closing','pg-moving');
+    window.ScholarGlass.busy(card);
     if(!reduced()) {
       const motion=card.animate([start,{opacity:0,transform:'translateY(2px)'}],{duration:120,easing:'cubic-bezier(.25,.1,.25,1)',fill:'forwards'});s.motion=motion;
       try{await motion.finished;}catch(_){return false;}
     }
     if(s.native)el.close();else{el.classList.add('hidden');el.classList.remove('flex');}
+    window.ScholarGlass.hide(card);
     if(s.motion)s.motion.cancel();s.motion=null;s.closing=false;
     el.classList.remove('pg-closing','pg-moving');return true;
   }

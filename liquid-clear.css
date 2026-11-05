@@ -1,0 +1,54 @@
+/* Clear shell, bright rims, and local contrast under the reading plane.
+   One stationary backdrop filter; no animated filters or scrolling blur
+   layers. The scrolling content remains a separate paint layer. */
+html.dark body .pg-dialog.pg-dialog,
+html.dark body .ax-dialog,
+html.dark body .pg-overlay > .lg-surface {
+ background:radial-gradient(ellipse at 0 0,#e5f4ff20,transparent 42%),linear-gradient(135deg,#deefff12,transparent 38%,#a8d1ff08 80%,#edfbff1a),rgba(17,27,42,.16)!important;
+ border:1px solid #e1f1ff75!important;
+ -webkit-backdrop-filter:none!important;
+ backdrop-filter:none!important;
+ box-shadow:0 24px 80px #0006,inset 0 2px 1px #ffffff70,inset 1px 0 0 #e7f5ff30,inset 0 -2px 1px #bedbff30!important;
+ color:#f4f7fc;
+}
+html.dark body :is(.pg-dialog,.ax-dialog)::backdrop,
+html.dark body .pg-overlay::before {background:rgba(4,9,17,.16);-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.pg-glass-plane {position:fixed;pointer-events:none;background:rgba(200,225,255,.015);-webkit-backdrop-filter:blur(12px) saturate(135%);backdrop-filter:blur(12px) saturate(135%);will-change:transform}
+/* Clear during motion; restore the refracted backdrop only after interaction
+   settles. Text contrast is independent from this optical layer. */
+.pg-glass-plane.pg-glass-busy {display:none;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.dark body .pg-dialog :is(.lx-dialog-head,.gx-dialog-head),
+html.dark body .ax-dialog .ax-dialog-bar,
+html.dark body .pg-overlay > .lg-surface > div:first-child {
+ background:linear-gradient(180deg,#eef8ff0e,transparent),rgba(7,14,25,.64)!important;
+ text-shadow:0 1px 3px #000b;
+ border-bottom-color:#d7ebff2a;
+}
+html.dark body .pg-dialog :is(.lx-dialog-head,.gx-dialog-head) .sg-eyebrow {color:#e1ebf9}
+html.dark body .pg-dialog :is(.gx-dialog-body,.lx-dialog-body),
+html.dark body .ax-dialog .ax-dialog-body {
+ background:rgba(5,12,22,.28);
+ color:#f4f7fc;
+ text-shadow:0 1px 2px #0007;
+}
+html.dark body .pg-dialog :is(.gx-dialog-body,.lx-dialog-body) > :is(p,h3,h4,.gx-cols),
+html.dark body .ax-dialog .ax-dialog-body > :is(p,h3,h4) {
+ background:rgba(5,12,22,.58);border-radius:10px;padding:6px 8px;
+}
+html.dark body .pg-dialog :is(.gx-table,.lx-table),
+html.dark body .ax-dialog .ax-table {
+ background:rgba(5,12,22,.58)!important;
+ color:#f4f7fc!important;
+}
+html.dark body .pg-dialog :is(.gx-table,.lx-table) th,
+html.dark body .ax-dialog .ax-table th {background:rgba(16,27,43,.76);color:#fff}
+html.dark body .pg-dialog :is(.gx-table,.lx-table) :is(th,td),
+html.dark body .ax-dialog .ax-table td {border-color:#e0efff35}
+@media(max-width:640px){
+ .pg-glass-plane {-webkit-backdrop-filter:blur(6px) saturate(135%);backdrop-filter:blur(6px) saturate(135%)}
+}
+@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){
+ html.dark body .pg-dialog.pg-dialog,html.dark body .ax-dialog,html.dark body .pg-overlay > .lg-surface {background:#131d2b!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+ html.dark body :is(.pg-dialog,.ax-dialog)::backdrop,html.dark body .pg-overlay::before {-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+ .pg-glass-plane {-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+}

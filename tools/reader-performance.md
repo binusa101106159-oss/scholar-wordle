@@ -1,5 +1,11 @@
 # Reader rendering performance — v120
 
+## v123 popup glass update
+
+Popups now have transparent shells with bright rims and local dark contrast behind text and tables. Blur comes from one childless plane behind the popup, rather than a full-screen backdrop or scrolling sheet. It pauses during scrolling, typing, dragging and content replacement, then returns after 320ms without interaction. Reduced-transparency and increased-contrast preferences disable blur. Persistent reader surfaces retain the earlier performance settings.
+
+Firefox's isolated popup scrolling sample measured approximately 13ms at the 95th percentile. Windows WebKit remained slow with all visible filters disabled; no physical Mac Safari performance claim is made. See `guides-build/QA-table-grid-2026-11-05.md` for the accompanying table audit and boundaries. Cache v123 includes the shared glass plane and guide grid helper.
+
 The user reports choppiness on mobile Chrome, Mac Safari and desktop Firefox. This change addresses client-side work without changing hosting, database rules or source content.
 
 ## Changes

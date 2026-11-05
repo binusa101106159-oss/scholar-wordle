@@ -127,6 +127,13 @@ def rule_tables(page, words, taken, keep=()):
     """Tables drawn with horizontal rules only (Word tables with hidden side borders, booktabs style).
     Each rule's segment ends mark the columns; each printed line between two rules is a row; a cell that the
     rule above does not close off continues the cell above it (row span)."""
+    def text_underline(e):
+        # Word underlines can sit just over one point inside the font's full
+        # descent box. Require endpoints to follow the glyph run exactly, so
+        # padded table rules and partial heading rules remain real rules.
+        if e['orientation'] != 'h':return False
+        chars=[c for c in page.chars if c['text'].strip() and e['x0']-1<=(c['x0']+c['x1'])/2<=e['x1']+1 and -2.5<=e['top']-c['bottom']<=1.5]
+        return bool(chars) and abs(min(c['x0'] for c in chars)-e['x0'])<1.5 and abs(max(c['x1'] for c in chars)-e['x1'])<1.5 and sum(c['x1']-c['x0'] for c in chars)>.7*(e['x1']-e['x0'])
     segs = [e for e in visible_edges(page) if e['orientation'] == 'h' and e['x1'] - e['x0'] > 8
             and 50 < e['top'] < page.height - 80
             and (any(abs(e['top'] - y) <= 1 and abs(e['x0'] - a) <= 1.5 and abs(e['x1'] - b) <= 1.5 for y, a, b in keep)   # a dark rule stays a rule on a shaded row's edge
@@ -162,6 +169,26 @@ def rule_tables(page, words, taken, keep=()):
         arrows = [c for c in page.curves if c.get('fill') and not is_white(c.get('non_stroking_color'))
                   and x0 - 3 <= c['x0'] and c['x1'] <= x1 + 3 and g[0]['y'] - 3 <= c['top'] and c['bottom'] <= g[-1]['y'] + 3]
         if len(arrows) >= 2: continue
+        # Repeated underlined codes in one open column are row-position hints,
+        # not new column widths. Keep their Y coordinates (the body may run
+        # off the physical page), but use the shared text start and the real
+        # right frame instead of a different underline end for every code.
+        under=[]
+        for e in segs:
+            if not(g[0]['y']-2<=e['top']<=g[-1]['y']+2 and text_underline(e)):continue
+            word=next((w for w in words if w['x0']-1<=e['x0']<=w['x1']+1 and -3<=e['top']-w['bottom']<=2),None)
+            if word:under.append((e,word['x0']))
+        padding=[w['x0']-x0 for w in words if g[0]['y']<w['top']<g[-1]['y'] and 1<w['x0']-x0<12]
+        pad=statistics.median(padding) if padding else 0
+        for anchor in cluster([a for _,a in under],2.5):
+            aligned=[e for e,a in under if abs(a-anchor)<=2.5]
+            if len(aligned)<3 or not x0+20<anchor<x1-20:continue
+            for r in g:
+                replacements=[]
+                for a,b in r['segs']:
+                    if any(abs(e['top']-r['y'])<=1.5 and abs(e['x0']-a)<=1 and abs(e['x1']-b)<=1 for e in aligned):replacements.append((anchor-pad,x1))
+                    else:replacements.append((a,b))
+                r['segs']=sorted(set(replacements))
         marks = cluster([v for r in g for s in r['segs'] for v in s] + [x0, x1], 2.5)
         def ends(r):          # column marks this rule draws
             return {k for k, m in enumerate(marks) if any(abs(m - v) <= 2.5 for s in r['segs'] for v in s)}
@@ -277,11 +304,19 @@ def rule_tables(page, words, taken, keep=()):
                 prev_row = row; nrow += 1
             if bi < len(g) - 2: head = nrow
         if not any(c['text'] for c in cells): continue
-        # columns that never hold text are spacing: fold them into their left neighbour
-        used = sorted({k for c in cells for k in range(c['c'], c['c'] + c['cs']) if c['text']})
-        keep = [k for k in range(len(marks) - 1) if any(c['c'] <= k < c['c'] + c['cs'] and c['text'] for c in cells)]
-        newx = [marks[k] for k in keep] + [marks[-1]]
-        def remap(k): return max(i for i, kk in enumerate(keep) if kk <= k) if any(kk <= k for kk in keep) else 0
+        # In a booktabs table, underlines and indentation can introduce extra
+        # horizontal segment endpoints. A spanning heading does not turn those
+        # empty strips into real columns. Prefer columns with their own text;
+        # retain a heading-only region when it has no populated child column.
+        keep = {c['c'] for c in cells if c['text'] and c['cs'] == 1}
+        for c in cells:
+            if c['text'] and not any(k in keep for k in range(c['c'],c['c']+c['cs'])):keep.add(c['c'])
+        keep = sorted(keep)
+        # Leading spacers belong to the following content column; trailing
+        # spacers belong to the final one. Keep the original outer frame.
+        starts = [0] + [k + 1 for k in keep[:-1]]
+        newx = [marks[k] for k in starts] + [marks[-1]]
+        def remap(k): return next((i for i,kk in enumerate(keep) if kk >= k),len(keep)-1)
         for c in cells:
             a = remap(c['c']); b = remap(c['c'] + c['cs'] - 1) + 1
             c['c'], c['cs'] = a, max(1, b - a)
@@ -385,7 +420,27 @@ def read_pages(path, imgdir, prefix):
                         images.remove(b); joined = True; break
                     if joined: break
 
-            found = [t for t in find_tables(page, ink) if len(t.cells) >= 2]
+            # Filled text backgrounds have four PDF edges but do not draw a
+            # cell outline. Dark/medium fills need the same treatment as the
+            # light highlights above. Use a geometry-only page so illustrations,
+            # printed text and the original rendering remain untouched; thin
+            # filled rectangles (Word's actual rules) and stroked boxes stay.
+            grid_page = page.filter(lambda obj: not (
+                obj.get('object_type') == 'rect' and obj.get('fill') and not obj.get('stroke')
+                and min(obj['x1'] - obj['x0'], obj['bottom'] - obj['top']) > 1.5))
+            found = [t for t in find_tables(grid_page, ink) if len(t.cells) >= 2]
+            # Some genuinely borderless tables use adjacent shaded cell fills
+            # as their only grid. Retain those grids when removing fills would
+            # erase a multi-column table, rather than flattening it to prose.
+            for original in find_tables(page, ink):
+                x0,y0,x1,y1=original.bbox
+                area=max(1,(x1-x0)*(y1-y0))
+                covered=lambda candidate: max(0,min(x1,candidate.bbox[2])-max(x0,candidate.bbox[0]))*max(0,min(y1,candidate.bbox[3])-max(y0,candidate.bbox[1]))/area
+                xs=cluster([c[0] for c in original.cells]+[c[2] for c in original.cells])
+                if len(xs)<3 or len(original.cells)<4 or any(covered(candidate)>.95 for candidate in found):continue
+                found=[candidate for candidate in found if not (x0-1<=candidate.bbox[0] and candidate.bbox[2]<=x1+1 and y0-1<=candidate.bbox[1] and candidate.bbox[3]<=y1+1)]
+                found.append(original)
+            found.sort(key=lambda t:(t.bbox[1],t.bbox[0]))
             # a ruled area with no words in it is a shape (a flowchart arrow), not a table
             def has_words(t):
                 return any(t.bbox[0] <= (w['x0'] + w['x1']) / 2 <= t.bbox[2] and t.bbox[1] <= (w['top'] + w['bottom']) / 2 <= t.bbox[3] for w in words)

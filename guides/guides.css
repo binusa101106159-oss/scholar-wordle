@@ -77,8 +77,9 @@ mark.gx-mark, .gx-dialog mark.gx-mark { background: rgba(226,197,138,.32); color
 
 /* tables (inline in the text and in the 表/圖 window) */
 .gx-twrap { overflow-x: auto; margin: 10px 0 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.02); scrollbar-width: thin; }
-.gx-table { width: 100%; border-collapse: collapse; font-size: 13.5px; line-height: 1.7; color: var(--gx-text); }
-.gx-table th, .gx-table td { border: 1px solid rgba(255,255,255,.12); padding: 7px 10px; vertical-align: top; text-align: left; white-space: pre-line; text-indent: 0; }
+.gx-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 13.5px; line-height: 1.7; color: var(--gx-text); }
+.gx-table th, .gx-table td { border: 1px solid rgba(255,255,255,.12); padding: 7px 10px; vertical-align: top; text-align: left; white-space: pre-line; overflow-wrap: anywhere; text-indent: 0; }
+.gx-table :is(th,td):empty { padding-inline: 0; }
 .gx-table tr > :first-child { border-left: 0; }
 .gx-table tr > :last-child { border-right: 0; }
 .gx-table tr:first-child > * { border-top: 0; }
@@ -129,7 +130,8 @@ mark.gx-mark, .gx-dialog mark.gx-mark { background: rgba(226,197,138,.32); color
 .gx-icon-btn { width: 34px; height: 34px; padding: 0; }
 .gx-dialog-body { flex: 1; min-height: 0; overflow: auto; padding: 18px 26px 40px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.2) transparent; }
 .gx-dialog .gx-twrap { margin: 12px 0 16px; overflow: visible; }
-.gx-dialog .gx-table thead th { position: sticky; top: -18px; z-index: 1; background: #2a2d35; }
+.gx-dialog .gx-table thead { position: sticky; top: -18px; z-index: 1; }
+.gx-dialog .gx-table thead th { position: static; background: #2a2d35; }
 .gx-loading { color: var(--sg-muted); font-size: 13px; padding: 30px 6px; }
 
 /* ── small screens: list becomes a drawer ── */
