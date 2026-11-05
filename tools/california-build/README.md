@@ -22,3 +22,7 @@ The two column-continuation pages print `17.01.02.XX` versus `17.01.02.00` for t
 After adjustment, ratings are combined largest first, rounding **each step** to a whole percent. FEC adjustment is looked up in the printed table, retaining its rounding and 100% cap. Blank inputs do not become zero; valid zero ratings remain zero.
 
 The interface identifies this as PDRS 2005. California rules for other injury dates and the later 1.4 modifier are not silently substituted. See https://www.dir.ca.gov/dwc/ClaimsAdministrators.htm for version applicability.
+
+Age entry accepts completed years or a complete birthday plus an explicitly entered injury date. The calculator never substitutes today's date. Dates are parsed as year/month/day; four-digit years are Gregorian, while two- or three-digit years are ROC years. Explicit 民國/ROC prefixes are also accepted. Calendar dates and the injury/birthday order are validated without timezone conversion. Copied results include canonical dates and the derived injury age.
+
+Impairment-number entry supports the suggestion list and direct dotted or eight-digit codes. Occupational groups remain directly typeable with a 45-group suggestion list. The product's source-details panel is removed; provenance and rebuild instructions remain here.

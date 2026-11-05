@@ -61,3 +61,40 @@ test('California rejects incomplete or invalid entries instead of estimating mis
  const r=engine.rate({mode:'manual',wpi:10,age:39,rank:5,variant:'h'});
  assert.equal(r.final,17);assert.match(C.summary(r),/FEC \(5\): 13%/);
 });
+
+test('California accepts complete Gregorian and ROC birthday formats with calendar validation',()=>{
+ for(const raw of ['1986/5/6','1986-05-06','1986.05.06','1986年5月6日','19860506','民國75年5月6日','民國075/05/06','75/5/6','0750506','750506','１９８６／０５／０６'])assert.equal(C.parseDate(raw).iso,'1986-05-06',raw);
+ for(const raw of ['1986/2/29','1900/2/29','2100/2/29','2026/4/31','2026/13/1','2026/0/1','0000/1/1','民國0/1/1','2026','5/6/1986','bad'])assert.equal(C.parseDate(raw),null,raw);
+ assert.equal(C.parseDate('2000/2/29').iso,'2000-02-29');
+});
+test('California birthday age is completed years on the explicitly entered injury date',()=>{
+ assert.deepEqual(C.resolveAge('39'),{age:39});
+ assert.deepEqual(C.resolveAge('０'),{age:0});
+ assert.equal(C.needsInjuryDate('39'),false);assert.equal(C.needsInjuryDate('1986/5/6'),true);
+ assert.equal(C.resolveAge('1986/5/6','2026/5/5').age,39);
+ assert.equal(C.resolveAge('1986/5/6','2026/5/6').age,40);
+ assert.equal(C.resolveAge('1986/5/6','2026/5/7').age,40);
+ assert.equal(C.resolveAge('2000/2/29','2023/2/28').age,22);
+ assert.equal(C.resolveAge('2000/2/29','2023/3/1').age,23);
+ assert.equal(C.resolveAge('2000/2/29','2024/2/29').age,24);
+ assert.equal(C.resolveAge('2000/12/31','2000/12/31').age,0);
+});
+test('California never substitutes today for a missing injury date',()=>{
+ for(const date of ['',undefined,'2026/2/30'])assert.throws(()=>C.resolveAge('1986/5/6',date),/受傷日期/);
+ assert.throws(()=>C.resolveAge('1986/5/6','1986/5/5'),/早於生日/);
+ assert.throws(()=>C.resolveAge('1986'),/生日/);
+ assert.throws(()=>C.resolveAge(''),/年齡/);
+});
+test('California birthday and ROC injury dates produce the same rating and auditable clipboard dates',()=>{
+ const r=engine.rate({wpi:20,number:'16.01.03.00',group:'240',age:'65/5/6',injuryDate:'115/5/6'});
+ assert.equal(r.age,50);assert.equal(r.final,26);assert.equal(r.band,6);
+ assert.equal(r.birthDate,'1976-05-06');assert.equal(r.injuryDate,'2026-05-06');
+ assert.match(C.summary(r),/生日: 1976-05-06/);assert.match(C.summary(r),/受傷日期: 2026-05-06/);assert.match(C.summary(r),/Age \(50\): 26%/);
+});
+test('California accepts typed dotted or compact impairment codes and typed occupational groups',()=>{
+ const expected=engine.rate({wpi:10,number:'17.04.10.00',group:'470',age:39});
+ for(const number of ['17041000','１７０４１０００',' 17.04.10.00 '])assert.deepEqual(engine.rate({wpi:10,number,group:'４７０',age:39}),expected);
+ assert.equal(C.normalizeNumber('17041000'),'17.04.10.00');
+ assert.equal(engine.record('17041000')[0],'17.04.10.00');
+ assert.throws(()=>engine.rate({wpi:10,number:'17999999',group:'470',age:39}),/Impairment No/);
+});
