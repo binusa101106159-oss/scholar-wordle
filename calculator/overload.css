@@ -53,3 +53,8 @@
 #ol-reset-results{width:100%;margin-top:8px;background:transparent;color:#c4d3e5}
 
 .ol-workload-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:8px}.ol-workload-row>.ol-field{width:112px;max-width:112px;margin:0}.ol-pattern-count{font-size:12px;color:#b7c5d7;padding-bottom:6px}.ol-pattern-count output{font-size:16px;margin-left:8px}
+
+/* Keep labels readable while short clinical answers occupy only 50px. */
+.ol-fields{grid-template-columns:repeat(auto-fit,minmax(90px,96px))}
+.ol-app .ol-fields input:not([name=manualSource]),.ol-app .ol-card>.ol-field input,.ol-app .ol-workload-row>.ol-field input{width:50px;max-width:50px;padding-inline:6px}
+@media(max-width:740px){.ol-fields{grid-template-columns:repeat(auto-fit,minmax(90px,96px))}}

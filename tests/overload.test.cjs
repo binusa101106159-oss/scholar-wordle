@@ -61,13 +61,15 @@ test('six-month overtime requires six explicit values and includes real zero mon
  assert.equal(C.evaluate({...d,ot6:745}).overtime,null);
 });
 
-test('known disease requires an explicit clinician tier and never becomes low by formula',()=>{
- const d={...complete,history:'yes',riskMode:'calculate'};
- assert.equal(C.evaluate(d).risk,null);assert.equal(C.evaluate(d).combined,null);
- assert.equal(C.evaluate({...d,clinicalRisk:'1'}).combined,1);
- assert.equal(C.evaluate({...d,clinicalRisk:'2'}).combined,2);
- assert.equal(C.evaluate({...complete,history:''}).combined,null);
- assert.equal(C.evaluate({...complete,history:'yes',clinicalRisk:'1',manualRisk:25}).cardiovascular,2);
+test('removed history fields cannot block or override the NTUH assessment',()=>{
+ const d={...complete,riskMode:'calculate'};
+ const expected=C.evaluate(d);
+ assert.ok(expected.risk>0);assert.notEqual(expected.combined,null);
+ for(const legacy of [{history:''},{history:'yes'},{history:'yes',clinicalRisk:'2'}]){
+  const r=C.evaluate({...d,...legacy});assert.equal(r.risk,expected.risk);assert.equal(r.combined,expected.combined);
+  assert.ok(!r.missing.some(x=>x.includes('病史')||x.includes('醫師')));
+ }
+ assert.doesNotMatch(C.summary({...d,history:'yes',clinicalRisk:'2'}),/既有腦心血管疾病/);
 });
 
 test('inactive score modes do not override active data and previous visits are not summed',()=>{
