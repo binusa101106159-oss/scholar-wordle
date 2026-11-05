@@ -4,21 +4,21 @@
 .ol-header{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:8px 0 22px}.ol-header p{margin:0;color:#bca77f;font-size:11px;letter-spacing:.12em}.ol-header h2{font-size:26px;margin:3px 0}.ol-header span{font-size:12px;color:#a6b5c9}
 .ol-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.ol-actions button{white-space:nowrap}#ol-results{scroll-margin-top:20px}
 .ol-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}.ol-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.ol-card{min-width:0;border:1px solid #d8eaff2b;border-radius:20px;background:linear-gradient(145deg,#c1ddff08,transparent 55%),#101925;padding:20px;margin:0 0 16px;box-shadow:inset 0 1px 0 #e4efff16}
-.ol-card h3{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;font-size:16px;font-weight:500;margin:0 0 14px}.ol-card output{font-variant-numeric:tabular-nums;color:#e9cc92;font-size:20px}
-.ol-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px}.ol-field{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:12px;color:#b7c5d7;margin:0 0 12px}
-.ol-app :is(input,select,textarea){box-sizing:border-box;min-width:0;width:100%;min-height:42px;border:1px solid #ccdfff35;border-radius:9px;background:#182435;color:#f0f5fc;font:inherit;font-size:16px;line-height:1.4;padding:8px 10px}.ol-app select{font-size:14px}.ol-app [aria-invalid=true]{border-color:#edaf94}.ol-app input:focus-visible,.ol-app select:focus-visible{outline:2px solid #a9ccfa;outline-offset:2px}
+.ol-card{min-width:0;border:1px solid #d8eaff2b;border-radius:20px;background:linear-gradient(145deg,#c1ddff08,transparent 55%),#101925;padding:16px;margin:0 0 12px;box-shadow:inset 0 1px 0 #e4efff16}
+.ol-card h3{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;font-size:16px;font-weight:500;margin:0 0 10px}.ol-card output{font-variant-numeric:tabular-nums;color:#e9cc92;font-size:20px}
+.ol-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,112px));gap:8px 10px;align-items:end;margin-bottom:10px}.ol-field{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:11px;color:#b7c5d7;margin:0 0 10px}
+.ol-app :is(input,select,textarea){box-sizing:border-box;min-width:0;width:100%;height:34px;min-height:34px;appearance:none;-webkit-appearance:none;border:1px solid #ccdfff35;border-radius:7px;background:#182435;color:#f0f5fc;font:inherit;font-size:16px;line-height:1.25;padding:5px 8px}.ol-app select{font-size:14px}.ol-app [aria-invalid=true]{border-color:#edaf94}.ol-app input:focus-visible,.ol-app select:focus-visible{outline:2px solid #a9ccfa;outline-offset:2px}
 .ol-app button{border:1px solid #cfddf745;border-radius:10px;background:#253349;color:#e6eefb;padding:10px 14px;min-height:42px;font-size:12px}.ol-app button:hover{background:#30435d}.ol-app button:focus-visible{outline:2px solid #a9ccfa;outline-offset:3px}
 .ol-hint{font-size:11px;color:#a8b7ca;line-height:1.8;margin:8px 0 14px}
 .ol-app details{font-size:12px;color:#b7c5d7}.ol-app details:not(.ol-card){margin-top:14px}.ol-app summary{cursor:pointer;color:#d4e2f2}.ol-app details[open]>summary{margin-bottom:12px}.ol-app a{color:#bdcff0;text-decoration:underline;text-underline-offset:3px}
-.ol-months{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.ol-pattern-row{display:grid;grid-template-columns:1fr 84px;align-items:center;gap:20px;border-bottom:1px solid #d1e3fa16;padding:12px 0}.ol-pattern-row strong{font-size:13px;font-weight:500}.ol-pattern-row p{font-size:11px;color:#a6b6c9;margin:3px 0}.ol-pattern-row .ol-field{font-size:0;margin:0}.ol-pattern-row select{font-size:13px}#ol-pattern-none{margin-top:16px}
+
 .ol-results{position:sticky;top:16px;min-width:0}.ol-results dl{margin:0}.ol-results dl>div{border-bottom:1px solid #d5e5ff1b;padding:11px 0}.ol-results dt{font-size:11px;color:#a8bbd0}.ol-results dd{margin:5px 0 0;font-size:18px;line-height:1.5;font-variant-numeric:tabular-nums}.ol-results [data-level="0"]{color:#b4d6c7}.ol-results [data-level="1"]{color:#ead4a5}.ol-results [data-level="2"],.ol-results [data-level="3"]{color:#f0b3a0}.ol-warning{padding:10px 12px;border-left:2px solid #d3b380;background:#d3b3800b;color:#e5ceb0;font-size:12px}#ol-management{font-size:12px;color:#d0dced}#ol-copy{width:100%;background:#c8b187;color:#152032}#ol-copy-status{font-size:11px;color:#b8d4c7;min-height:1em}.ol-app [hidden]{display:none!important}
 @media(max-width:1000px){.ol-layout{grid-template-columns:minmax(0,1fr) 290px}.ol-two{grid-template-columns:1fr}}
 @media(min-width:1101px){.cl-specialty .ol-layout{grid-template-columns:minmax(0,1fr) 260px}.cl-specialty .ol-two{grid-template-columns:minmax(0,1fr)}}
 @media(min-width:901px) and (max-width:1100px){.cl-specialty .ol-layout{grid-template-columns:minmax(0,1fr)}.cl-specialty .ol-results{position:static}}
 @media(max-width:1100px) and (min-width:901px){.cl-specialty .ol-two{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:900px){.cl-calculators:has(.cl-specialty){grid-template-columns:minmax(0,1fr);max-width:740px}.cl-specialty{grid-row:1}.ol-layout{grid-template-columns:minmax(0,1fr)}.ol-results{position:static}}
-@media(max-width:740px){#cl-overload{margin-top:18px}.ol-layout{display:flex;flex-direction:column}.ol-layout>form,.ol-results{width:100%}.ol-results{position:static}.ol-card{padding:16px}.ol-header{gap:10px}.ol-header h2{font-size:23px}.ol-header span{font-size:11px}.ol-fields{gap:8px 12px}.ol-app .ol-card{box-sizing:border-box}.ol-months{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:740px){#cl-overload{margin-top:18px}.ol-layout{display:flex;flex-direction:column}.ol-layout>form,.ol-results{width:100%}.ol-results{position:static}.ol-card{padding:16px}.ol-header{gap:10px}.ol-header h2{font-size:23px}.ol-header span{font-size:11px}.ol-fields{gap:8px 10px}.ol-app .ol-card{box-sizing:border-box}}
 
 /* Answer-entry bars mirror AAOS; no patient-facing questionnaire content. */
 .ol-app .ol-two{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
@@ -38,3 +38,14 @@
 .ol-score-options .ol-field:last-child{margin-bottom:0}
 .ol-direct-score{flex:1;min-width:0}.ol-direct-score .ol-field{margin:0;font-size:0}.ol-direct-score input{height:32px;min-height:32px;text-align:center;padding:2px 8px}
 @media(max-width:600px){.ol-burnout-bar{gap:6px;padding:7px 9px}.ol-burnout-bar h3{font-size:10px}.ol-answer-bar{gap:3px}.ol-burnout-result{min-width:34px}.ol-burnout-result output{font-size:17px}.ol-burnout-result span{font-size:9px}.ol-app .ol-score-options>summary{padding:3px;font-size:16px}.ol-app .ol-answer-bar input{font-size:17px}}
+
+/* Short clinical answers use one uniform control size; modes are buttons. */
+.ol-fields .ol-field{margin:0;align-self:end}.ol-card>.ol-field,.ol-card>div:not(.ol-fields)>.ol-field{max-width:112px}
+.ol-app input[type=number]{-moz-appearance:textfield}.ol-app input::-webkit-inner-spin-button,.ol-app input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.ol-app textarea{height:110px;min-height:110px}
+.ol-mode{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin-bottom:10px;color:#a8b8cc;font-size:11px}.ol-mode>div{display:flex;flex-wrap:wrap;gap:4px}
+.ol-app .ol-mode button{min-height:28px;padding:4px 9px;font-size:11px;border-radius:7px;background:#172233;border-color:#d1e2fa24}.ol-app .ol-mode button[aria-pressed=true]{background:#344961;border-color:#abc7ec70;color:#fff}
+.ol-pattern-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px}.ol-pattern-check{display:flex;align-items:center;gap:8px;min-height:32px;font-size:12px;line-height:1.4;cursor:pointer}
+.ol-app .ol-pattern-check input{appearance:auto;-webkit-appearance:checkbox;flex:none;width:16px;height:16px;min-height:16px;padding:0;margin:0;accent-color:#cbb58c}
+.ol-app #ol-pattern-none{margin-top:8px;min-height:28px;font-size:11px;padding:4px 8px;background:transparent}
+@media(max-width:740px){.ol-fields{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}.ol-pattern-checks{column-gap:8px}.ol-card{padding:14px}}
