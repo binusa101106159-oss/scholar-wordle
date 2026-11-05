@@ -35,6 +35,8 @@
  function render(host){
   host.innerHTML='<section class="aa-compact" aria-label="AAOS下肢計算器"><h2 class="aa-label">AAOS</h2><form id="aa-form" autocomplete="off" novalidate><div class="aa-inputs">'+data.questions.map((q,i)=>'<label for="aa-'+q.id+'"><input id="aa-'+q.id+'" name="'+q.id+'" type="text" inputmode="numeric" maxlength="1" pattern="[1-'+q.max+']" aria-label="Q'+(i+1)+'，1至'+q.max+'" placeholder="—" spellcheck="false"></label>').join('')+'</div></form><p id="aa-error" role="status"></p><div id="aa-result" role="status" aria-live="polite" aria-atomic="true"><p class="aa-score">—<span>／100</span></p><p class="aa-severity">—</p></div></section>';
   const fields=[...host.querySelectorAll('input')],score=host.querySelector('.aa-score'),severity=host.querySelector('.aa-severity'),error=document.getElementById('aa-error');
+  const previousValues=fields.map(()=> '');
+  const reset=document.createElement('button');reset.type='button';reset.id='aa-reset';reset.textContent='↺';reset.title='重設 AAOS';reset.setAttribute('aria-label','重設 AAOS');host.querySelector('.aa-compact').append(reset);
   function update(persist=true){
    let invalid=null;
    fields.forEach((field,i)=>{const bad=field.value!==''&&!new RegExp('^[1-'+data.questions[i].max+']$').test(field.value);field.setAttribute('aria-invalid',String(bad));if(bad&&!invalid)invalid='Q'+(i+1)+'：1–'+data.questions[i].max;});
@@ -49,11 +51,10 @@
    target.value='';target.dispatchEvent(new Event('input',{bubbles:true}));target.focus();
   }
   fields.forEach((field,i)=>{
-   let previous=field.value;
    function accept(){
     const normalized=field.value.normalize('NFKC');
-    if(normalized!==''&&!/^[0-9]$/.test(normalized)){field.value=previous;update();return;}
-    field.value=normalized;previous=normalized;update();
+    if(normalized!==''&&!/^[0-9]$/.test(normalized)){field.value=previousValues[i];update();return;}
+    field.value=normalized;previousValues[i]=normalized;update();
     if(new RegExp('^[1-'+data.questions[i].max+']$').test(field.value)&&i<6)fields[i+1].focus();
    }
    field.addEventListener('input',e=>{if(!e.isComposing)accept();});
@@ -77,7 +78,8 @@
    });
   });
   document.getElementById('aa-form').addEventListener('submit',e=>e.preventDefault());
-  function hydrate(){const saved=JSON.parse(root.ScholarStorage.getItem('scholar-aaos-v1')||'{}');if(Array.isArray(saved.answers))fields.forEach((f,i)=>f.value=String(saved.answers[i]||''));update(false);}
+  reset.addEventListener('click',()=>{fields.forEach(f=>f.value='');previousValues.fill('');update();focusFirst();});
+  function hydrate(){const saved=JSON.parse(root.ScholarStorage.getItem('scholar-aaos-v1')||'{}');fields.forEach((f,i)=>{f.value=String(saved.answers?.[i]||'');previousValues[i]=f.value;});update(false);}
   root.ScholarSync.subscribe(key=>{if(key==='scholar-aaos-v1')hydrate();});
   hydrate();focusFirst();
  }
