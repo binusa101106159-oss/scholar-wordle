@@ -25,7 +25,7 @@
  if(typeof document==='undefined')return;
  let ready=false;
  function show(){
-  if(ready){root.ScholarAAOS?.mount();return;}ready=true;
+  if(ready){root.ScholarAAOS?.mount();root.ScholarOverload?.mount();return;}ready=true;
   const panel=document.getElementById('calculator-panel');
   panel.innerHTML='<div class="cl-calculators"><div id="cl-basic"><section class="cl-card" aria-labelledby="cl-title"><div class="cl-heading"><h1 id="cl-title">計算機</h1><span>Calculator</span></div><div class="cl-display"><p id="cl-previous">基本運算</p><input id="cl-input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="0" maxlength="500" aria-label="算式" aria-describedby="cl-help"><p id="cl-status" role="status" aria-live="polite"></p></div><div class="cl-edit" role="group" aria-label="編輯算式"><button type="button" data-key="(">(</button><button type="button" data-key=")">)</button><button type="button" data-action="delete" aria-label="刪除一個字元">⌫</button><button type="button" id="cl-copy" disabled>複製結果</button></div><div class="cl-keys" role="group" aria-label="計算按鍵">'+[
    ['AC','clear','function','清除'],['±','sign','function','整個算式變號'],['%','%','function','百分比'],['÷','÷','operator','除'],
@@ -35,6 +35,9 @@
    ['0','0','zero'],['.','.'],['=','equals','equal','等於']
   ].map(([label,key,kind,aria])=>'<button type="button" class="cl-key '+(kind?'cl-'+kind:'')+'" '+(['clear','sign','equals'].includes(key)?'data-action':'data-key')+'="'+key+'"'+(aria?' aria-label="'+aria+'"':'')+'>'+label+'</button>').join('')+'</div><p id="cl-help">支援鍵盤輸入、括號與乘除優先。Enter 計算 · Esc 清除<br>% 表示除以100。</p></section></div><div id="cl-aaos"></div></div>';
   root.ScholarAAOS?.mount();
+  const specialty=document.createElement('div');specialty.className='cl-specialty';
+  const aaos=document.getElementById('cl-aaos');aaos.before(specialty);specialty.append(aaos);
+  const overload=document.createElement('div');overload.id='cl-overload';specialty.append(overload);root.ScholarOverload?.mount();
   const input=document.getElementById('cl-input'),previous=document.getElementById('cl-previous'),status=document.getElementById('cl-status'),copy=document.getElementById('cl-copy');let evaluated=false,result='';
   function persist(){root.ScholarStorage.setItem('scholar-calculator-v1',JSON.stringify({input:input.value,previous:previous.textContent,result,evaluated}));}
   function changed(){evaluated=false;result='';copy.disabled=true;status.textContent='';input.removeAttribute('aria-invalid');persist();}
