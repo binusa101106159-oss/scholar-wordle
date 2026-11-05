@@ -1,0 +1,11 @@
+{
+  "name": "scholar-wordle",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -c tailwind.config.cjs -i tools/styles/input.css -o assets/tailwind.css --minify",
+    "test": "node tools/run-tests.cjs"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}

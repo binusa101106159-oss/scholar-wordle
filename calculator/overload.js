@@ -100,7 +100,11 @@
   const burnoutSection=(kind,title,questions,prefix)=>`<section class="ol-burnout" aria-label="${title}"><div class="ol-burnout-bar"><h3>${kind==='personal'?'個人':'工作'}</h3><div class="ol-answer-bar" style="--ol-count:${questions.length}" data-ol-show="${kind}:questionnaire">${answerRows(prefix,questions)}</div><div class="ol-direct-score" data-ol-show="${kind}:score" hidden>${numeric(kind+'Score','分數（0–100）',0,100)}</div><div class="ol-burnout-result"><output id="ol-${kind}-score">—</output><span id="ol-${kind}-level"></span></div><details class="ol-score-options"><summary aria-label="${title}輸入設定">⋯</summary><div>${select(kind+'Mode','輸入方式',[['questionnaire','輸入各題答案'],['score','輸入已有分數']])}${numeric(kind==='personal'?'previousPersonal':'previousWork','上次分數（選填，不納入本次計算）',0,100)}</div></details></div></section>`;
   target.innerHTML=`<section class="ol-app" aria-labelledby="ol-title"><header class="ol-header ol-compact-header"><h2 id="ol-title">過負荷計算機</h2><div class="ol-actions"><button type="button" id="ol-jump">查看結果</button><button type="button" id="ol-reset" data-ol-reset>重設過負荷</button></div></header><div class="ol-layout"><form id="ol-form" autocomplete="off" novalidate><div class="ol-two">${burnoutSection('personal','個人相關過勞',personalQuestions,'p')}${burnoutSection('work','工作相關過勞',workQuestions,'w')}</div><section class="ol-framingham" aria-label="Framingham risk"><div class="ol-burnout-bar ol-risk-bar"><h3>Framingham risk</h3><input type="hidden" name="riskMode" value="calculate" data-default="calculate"><div class="ol-risk-inputs" data-ol-show="risk:calculate"><div class="ol-fields">${select('sex','Sex',[['','Select'],['m','M'],['f','F']])}${numeric('age','Age (y)',30,74,'step="1"')}${numeric('sbp','SBP (mmHg)',1,1000)}${numeric('tc','TC (mg/dL)',1,2000)}${numeric('hdl','HDL (mg/dL)',1,1000)}${select('treated','BP meds',yn)}${select('smoker','Smoker',yn)}${select('diabetes','Diabetes',yn)}</div></div><div class="ol-burnout-result"><output id="ol-frs">—</output></div></div></section><section class="ol-card ol-workload-card"><div class="ol-workload-header"><div class="ol-workload-title"><h3>工作負荷資料</h3><button type="button" id="ol-pattern-none">清除勾選</button></div><div class="ol-workload-row"><div class="ol-pattern-count">工作型態 <output id="ol-pattern">待填</output></div><input type="hidden" name="overtimeMode" value="mean" data-default="mean">${numeric('overtimeMean','加班（小時／月）',0,744,'aria-label="平均月加班（小時）"')}<output id="ol-ot" hidden>待填</output></div></div><div class="ol-pattern-checks">${patterns.map(([id,title])=>`<label class="ol-pattern-check"><input type="checkbox" name="${id}"><span>${title}</span></label>`).join('')}</div></section></form><aside class="ol-results" aria-label="評估結果"><section class="ol-card"><dl id="ol-results"></dl><div id="ol-warnings"></div><p id="ol-management"></p><div class="ol-result-actions"><button type="button" id="ol-copy">複製完整結果</button><button type="button" id="ol-reset-results" data-ol-reset>重設過負荷</button></div><p id="ol-copy-status" role="status"></p></section><details class="ol-card"><summary>計分與來源</summary><p>個人：6 題平均。工作：7 題平均，第 7 題反向。選項 1–5 對應 100、75、50、25、0 分。</p><p>個人過勞：&lt;50 低、50–70 中、&gt;70 高。工作過勞：&lt;45 低、45–60 中、&gt;60 高。</p><p>加班：&lt;45 小時低、45–80 中、&gt;80 高。工作型態：0–1 項低、2–3 項中、4 項以上高。取四項最嚴重者為工作負荷；四項未完整時不顯示最終等級。</p><p>表四心血管評分：&lt;10%=0、10–20%=1、&gt;20%=2，加上工作負荷 0–2，得到總分 0–4。0 低度、1–2 中度、3–4 高度。表五面談建議另行查表，不等同表四分數。</p><p>表一的 20% 分界有重疊；本工具以表四明確的 &gt;20% 為高風險，20% 歸中度。過勞臨界值依表二，使用未四捨五入的分數判定。</p><p><a href="${SOURCE}" target="_blank" rel="noopener">職安署指引第二版（108 年 4 月）</a>：第 7–8 頁表一至四、第 10 頁表五、第 15 頁表六、第 20–21 頁附錄二。</p><p><a href="${NTUH}" target="_blank" rel="noopener">臺大 Framingham 計算器（公式來源）</a> · <a href="${FHS}" target="_blank" rel="noopener">2008 原模型與適用範圍</a></p><p>心血管風險顯示至小數點後兩位；分級使用未四捨五入值。適用範圍請參考臺大計算器與原始模型說明。表六為健康管理參考，不自動開立工作限制。</p></details></aside></div></section>`;
   const form=document.getElementById('ol-form'),fields=[...form.querySelectorAll('[name]')],by=id=>document.getElementById(id);
-  let data={},copyText='';
+  let data={},copyText='',rendered=null,persistedJson=null,warningKey='';
+  const resultCells=[],answerFields=[...form.querySelectorAll('.ol-answer')];
+  const showFields=[...target.querySelectorAll('[data-ol-show]')],modeButtons=[...target.querySelectorAll('[data-ol-mode]')];
+  const text=(el,value)=>{if(el.textContent!==value)el.textContent=value;};
+  const attr=(el,key,value)=>{if(el.getAttribute(key)!==value)el.setAttribute(key,value);};
   function fieldValue(f){
    if(f.type==='checkbox')return f.checked?'yes':'no';
    const value=f.value.trim().toLowerCase();
@@ -110,19 +114,20 @@
   }
   function read(){return Object.fromEntries(fields.map(f=>[f.name,fieldValue(f)]));}
   function render(){
-   data=read();const r=evaluate(data);
-   for(const el of target.querySelectorAll('[data-ol-show]')){const [type,mode]=el.dataset.olShow.split(':');const selected=data[type==='risk'?'riskMode':type+'Mode'];el.hidden=selected!==mode;}
-   for(const button of target.querySelectorAll('[data-ol-mode]'))button.setAttribute('aria-pressed',String(data[button.dataset.olMode]===button.dataset.value));
-   for(const kind of ['personal','work']){by('ol-'+kind+'-score').textContent=r.scores[kind]===null?'—':fmt(r.scores[kind]);by('ol-'+kind+'-level').textContent=r.levels[kind]===null?'':loadNames[r.levels[kind]];}
-   by('ol-frs').textContent=r.risk===null?'—':fmt(r.risk)+'%';by('ol-ot').textContent=r.overtime===null?'待填':fmt(r.overtime)+' 小時';by('ol-pattern').textContent=r.levels.pattern===null?'待填':r.patternCount+' 項';
+   data=read();const signature=JSON.stringify(data);if(signature===rendered)return;rendered=signature;const r=evaluate(data);
+   for(const el of showFields){const [type,mode]=el.dataset.olShow.split(':');const selected=data[type==='risk'?'riskMode':type+'Mode'];const hidden=selected!==mode;if(el.hidden!==hidden)el.hidden=hidden;}
+   for(const button of modeButtons)attr(button,'aria-pressed',String(data[button.dataset.olMode]===button.dataset.value));
+   for(const kind of ['personal','work']){text(by('ol-'+kind+'-score'),r.scores[kind]===null?'—':fmt(r.scores[kind]));text(by('ol-'+kind+'-level'),r.levels[kind]===null?'':loadNames[r.levels[kind]]);}
+   text(by('ol-frs'),r.risk===null?'—':fmt(r.risk)+'%');text(by('ol-ot'),r.overtime===null?'待填':fmt(r.overtime)+' 小時');text(by('ol-pattern'),r.levels.pattern===null?'待填':r.patternCount+' 項');
    const rows=[['個人相關過勞',r.levels.personal===null?'待填':`${fmt(r.scores.personal)} · ${loadNames[r.levels.personal]}`,r.levels.personal],['工作相關過勞',r.levels.work===null?'待填':`${fmt(r.scores.work)} · ${loadNames[r.levels.work]}`,r.levels.work],['月加班負荷',r.levels.overtime===null?'待填':loadNames[r.levels.overtime],r.levels.overtime],['工作型態負荷',r.levels.pattern===null?'待填':loadNames[r.levels.pattern],r.levels.pattern],['工作負荷等級',r.workload===null?'待填':`${r.workload} · ${loadNames[r.workload]}`,r.workload],['10 年心血管疾病風險',r.riskLevel===null?'未估算':`${fmt(r.risk)}% · ${riskNames[r.riskLevel]}`,r.riskLevel],['職業促發腦心血管疾病風險分級',r.combined===null?'待填':`${r.combined} · ${riskNames[r.combinedLevel]}`,r.combinedLevel],['異常工作負荷促發疾病風險／面談建議',r.interview||'待填',r.interview===null?null:r.interview==='需要面談'?2:r.interview==='建議面談'?1:0]];
-   by('ol-results').replaceChildren(...rows.map(([label,value,level])=>{const row=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;dd.dataset.level=level??'';row.append(dt,dd);return row;}));
-   by('ol-warnings').replaceChildren(...r.warnings.map(message=>{const p=document.createElement('p');p.className='ol-warning';p.textContent=message;return p;}));
-   by('ol-management').textContent=r.management?'表六健康管理措施：'+r.management:'';
+   if(!resultCells.length){const fragment=document.createDocumentFragment();for(const [label] of rows){const row=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;row.append(dt,dd);resultCells.push(dd);fragment.append(row);}by('ol-results').append(fragment);}
+   rows.forEach(([,value,level],i)=>{const cell=resultCells[i];text(cell,value);attr(cell,'data-level',String(level??''));});
+   const warnings=JSON.stringify(r.warnings);if(warnings!==warningKey){warningKey=warnings;by('ol-warnings').replaceChildren(...r.warnings.map(message=>{const p=document.createElement('p');p.className='ol-warning';p.textContent=message;return p;}));}
+   text(by('ol-management'),r.management?'表六健康管理措施：'+r.management:'');
    copyText=summary(data,r);
-   for(const f of fields){if(f.type==='number')f.setAttribute('aria-invalid',String(f.value!==''&&!f.validity.valid));if(f.classList.contains('ol-answer'))f.setAttribute('aria-invalid',String(f.value!==''&&number(f.value,1,5,true)===null));}
+   for(const f of fields){if(f.type==='number')attr(f,'aria-invalid',String(f.value!==''&&!f.validity.valid));if(f.classList.contains('ol-answer'))attr(f,'aria-invalid',String(f.value!==''&&number(f.value,1,5,true)===null));}
   }
-  function save(){root.ScholarStorage.setItem(KEY,JSON.stringify(read()));}
+  function save(){const value=JSON.stringify(data);if(value===persistedJson)return;root.ScholarStorage.setItem(KEY,value);persistedJson=value;}
   function hydrate(){
    let saved={};try{saved=JSON.parse(root.ScholarStorage.getItem(KEY)||'{}')||{};}catch(_){}
    if(saved.overtimeMode==='months'){
@@ -136,7 +141,7 @@
     if(f.type==='checkbox'){f.checked=value==='yes';continue;}
     if(fieldValue(f)!==value){f.value=f.dataset.olEnum==='sex'?({m:'M',f:'F'}[value]??value):f.dataset.olEnum==='boolean'?({yes:'1',no:'0'}[value]??value):value;}
    }
-   render();
+   render();persistedJson=JSON.stringify(data);
   }
   form.addEventListener('submit',e=>e.preventDefault());
   function positionOptions(menu){
@@ -150,9 +155,9 @@
   root.addEventListener('resize',()=>{for(const menu of target.querySelectorAll('.ol-score-options[open]'))positionOptions(menu);});
   root.addEventListener('scroll',e=>{for(const menu of target.querySelectorAll('.ol-score-options[open]'))if(!menu.contains(e.target))positionOptions(menu);},true);
   for(const type of ['pointerdown','focusin'])target.addEventListener(type,e=>{for(const menu of target.querySelectorAll('.ol-score-options[open]'))if(!menu.contains(e.target))menu.open=false;});
-  form.addEventListener('input',e=>{const f=e.target;if(f.classList.contains('ol-answer')){f.value=f.value.replace(/[^1-5]/g,'').slice(-1);if(f.value){const a=[...form.querySelectorAll('.ol-answer')],next=a[a.indexOf(f)+1];if(next&&!next.closest('[hidden]')){next.focus();next.select();}}}render();save();});
+  form.addEventListener('input',e=>{const f=e.target;if(f.classList.contains('ol-answer')){f.value=f.value.replace(/[^1-5]/g,'').slice(-1);if(f.value){const a=answerFields,next=a[a.indexOf(f)+1];if(next&&!next.closest('[hidden]')){next.focus();next.select();}}}render();save();});
   form.addEventListener('change',()=>{render();save();});
-  form.addEventListener('keydown',e=>{const f=e.target;if(f.classList.contains('ol-answer')&&e.key==='Backspace'&&!f.value){const a=[...form.querySelectorAll('.ol-answer')],previous=a[a.indexOf(f)-1];if(previous&&!previous.closest('[hidden]')){e.preventDefault();previous.focus();previous.value='';render();save();}}});
+  form.addEventListener('keydown',e=>{const f=e.target;if(f.classList.contains('ol-answer')&&e.key==='Backspace'&&!f.value){const a=answerFields,previous=a[a.indexOf(f)-1];if(previous&&!previous.closest('[hidden]')){e.preventDefault();previous.focus();previous.value='';render();save();}}});
   target.addEventListener('click',e=>{const button=e.target.closest('[data-ol-mode]');if(!button)return;form.elements.namedItem(button.dataset.olMode).value=button.dataset.value;render();save();});
   by('ol-pattern-none').addEventListener('click',()=>{for(const [id] of patterns)form.elements.namedItem(id).checked=false;render();save();});
   by('ol-jump').addEventListener('click',()=>{by('ol-results').scrollIntoView({block:'start',behavior:'smooth'});});

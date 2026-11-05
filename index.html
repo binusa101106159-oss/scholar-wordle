@@ -16,35 +16,9 @@
   <script src="sync/state.js"></script>
   <script src="sync/store.js"></script>
   <script type="module" src="sync/client.js"></script>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
-  <script>
-    if (typeof tailwind !== 'undefined') {
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Roboto', 'system-ui', '-apple-system', 'sans-serif'],
-              serif: ['Roboto', 'system-ui', 'sans-serif'],
-            },
-            colors: {
-              oxford: {
-                navy: '#002147',
-                deep: '#00152e',
-                gold: '#c5a059',
-                goldlight: '#e2c58a',
-                cream: '#f9f6f0',
-                parchment: '#efe9dd'
-              }
-            }
-          }
-        }
-      };
-    }
-  </script>
   <style>
     :root {
       --color-correct: #1d4ed8;
@@ -605,6 +579,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
 </style>
   <link rel="stylesheet" href="reading-performance.css">
   <link rel="stylesheet" href="liquid-clear.css">
+  <link rel="stylesheet" href="assets/tailwind.css">
 </head>
 <body data-game="wordle" class="bg-oxford-cream dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200 overflow-x-hidden">
 
