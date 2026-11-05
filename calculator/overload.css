@@ -45,7 +45,7 @@
 .ol-app textarea{height:110px;min-height:110px}
 .ol-mode{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin-bottom:10px;color:#a8b8cc;font-size:11px}.ol-mode>div{display:flex;flex-wrap:wrap;gap:4px}
 .ol-app .ol-mode button{min-height:28px;padding:4px 9px;font-size:11px;border-radius:7px;background:#172233;border-color:#d1e2fa24}.ol-app .ol-mode button[aria-pressed=true]{background:#344961;border-color:#abc7ec70;color:#fff}
-.ol-pattern-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px}.ol-pattern-check{display:flex;align-items:center;gap:8px;min-height:32px;font-size:12px;line-height:1.4;cursor:pointer}
+.ol-pattern-checks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 12px}.ol-pattern-check{display:flex;align-items:center;gap:8px;min-height:32px;font-size:12px;line-height:1.4;cursor:pointer}
 .ol-app .ol-pattern-check input{appearance:auto;-webkit-appearance:checkbox;flex:none;width:16px;height:16px;min-height:16px;padding:0;margin:0;accent-color:#cbb58c}
 .ol-app #ol-pattern-none{margin-top:8px;min-height:28px;font-size:11px;padding:4px 8px;background:transparent}
 @media(max-width:740px){.ol-fields{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}.ol-pattern-checks{column-gap:8px}.ol-card{padding:14px}}
@@ -98,3 +98,6 @@
 
 /* The workload inputs and results each fill a separate horizontal section. */
 .ol-results dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));column-gap:18px}
+
+/* Compact workload choices into two rows and keep both result actions together. */
+.ol-result-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ol-result-actions #ol-reset-results{margin:0}.ol-result-actions button{white-space:nowrap}
