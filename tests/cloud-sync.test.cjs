@@ -38,10 +38,10 @@ test('explicitly imported Wordle totals remain a baseline for later cloud result
  const next=S.wordleStats({one:{id:'one',at:1,won:true,guesses:3}},initial);
  assert.equal(next.played,11);assert.equal(next.wins,9);assert.equal(next.streak,3);assert.equal(next.dist[2],3);assert.equal(initial.dist[2],2);
 });
-function harness(state=S){
+function harness(state=S,timers={}){
  const events=[],handlers={};class E{constructor(type,init={}){this.type=type;Object.assign(this,init)}}
  const window={ScholarSyncState:state,addEventListener(t,fn){(handlers[t]||=[]).push(fn)},dispatchEvent(e){events.push(e);for(const fn of handlers[e.type]||[])fn(e)}};
- const context={window,Symbol,Map,Set,Promise,Error,JSON,String,Number,Object,TextEncoder,CustomEvent:E,StorageEvent:E,setTimeout,clearTimeout};
+ const context={window,Symbol,Map,Set,Promise,Error,JSON,String,Number,Object,TextEncoder,CustomEvent:E,StorageEvent:E,setTimeout:timers.setTimeout||setTimeout,clearTimeout:timers.clearTimeout||clearTimeout};
  vm.runInNewContext(fs.readFileSync(require.resolve('../sync/store.js'),'utf8'),context);
  return {window,store:window.ScholarStorage,sync:window.ScholarSync,events};
 }
@@ -117,4 +117,29 @@ test('navigation changed back before debounce requires no network write',async()
  const h=harness();let writes=0;h.sync.connect({uid:'one'},{commit:async op=>{writes++;return op.next}},S.split('scholar-navigation-v1','{"hash":"#laws"}'));
  h.store.setItem('scholar-navigation-v1','{"hash":"#ama"}');h.store.setItem('scholar-navigation-v1','{"hash":"#laws"}');
  assert.equal(h.sync.status().pending,0);await h.sync.flush();assert.equal(writes,0);
+});
+
+
+test('stalled saves retain edits, report delay, and never start duplicate transactions',async()=>{
+ let watchdog,release,calls=0;
+ const h=harness(S,{setTimeout(fn,ms){if(ms===15000){watchdog=fn;return -1;}return setTimeout(fn,ms)},clearTimeout(id){if(id!==-1)clearTimeout(id)}});
+ h.sync.connect({uid:'one'},{commit:async op=>{calls++;await new Promise(r=>release=r);return op.next}});
+ h.store.setItem('scholar-reading-v1','{"size":20}');const pending=h.sync.flush();watchdog();
+ assert.equal(h.sync.status().phase,'error');assert.equal(h.sync.status().pending,1);assert.equal(h.store.getItem('scholar-reading-v1'),'{"size":20}');
+ const retry=h.sync.flush();assert.equal(calls,1);release();await Promise.all([pending,retry]);assert.equal(h.sync.status().phase,'synced');assert.equal(h.sync.status().error,null);
+});
+test('large sync queues yield to user-input tasks between batches',async()=>{
+ const h=harness();let batches=0,inputHandled=false;
+ h.sync.connect({uid:'one'},{commitMany:async ops=>{batches++;if(batches===1)setTimeout(()=>inputHandled=true,0);else assert.equal(inputHandled,true);return ops.map(op=>op.next)}});
+ for(let i=0;i<40;i++)h.store.setItem('scholar-setting-'+i,'{"value":1}');
+ await h.sync.flush();assert.equal(batches,3);assert.equal(h.sync.status().pending,0);
+});
+
+test('an empty flush cannot trap subsequent edits in a resolved in-flight promise',async()=>{
+ const h=harness();let calls=0;h.sync.connect({uid:'one'},{commit:async op=>{calls++;return op.next}});
+ await h.sync.flush();h.store.setItem('scholar-reading-v1','{"size":21}');await h.sync.flush();assert.equal(calls,1);assert.equal(h.sync.status().pending,0);
+});
+test('synchronous transport failure releases the flush lock for a safe retry',async()=>{
+ const h=harness();let fail=true;h.sync.connect({uid:'one'},{commit(op){if(fail)throw Error('connection failed');return Promise.resolve(op.next)}});
+ h.store.setItem('scholar-reading-v1','{"size":21}');await assert.rejects(h.sync.flush());fail=false;await h.sync.flush();assert.equal(h.sync.status().pending,0);
 });

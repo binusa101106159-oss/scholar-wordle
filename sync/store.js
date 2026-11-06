@@ -57,10 +57,17 @@
   async function flush() {
     clearTimeout(timer);
     if (!user || !transport) throw Error('Sign in to save to the cloud.');
-    if (flushing) { await flushing; return queue.size ? flush() : undefined; }
+    if (flushing) return flushing;
+    if(!queue.size)return;
     const identity = user.uid;
-    flushing = (async () => {
+    let resolveFlush,rejectFlush;
+    const run=new Promise((resolve,reject)=>{resolveFlush=resolve;rejectFlush=reject;});
+    flushing=run;
+    (async () => {
       failure = null;
+      const watchdog=setTimeout(()=>{
+        if(user?.uid===identity){failure='Cloud save is taking too long. Your pending changes are retained.';phase='error';notify();}
+      },15000);
       try {
         while (queue.size) {
           const ops=[];let bytes=0;
@@ -78,12 +85,14 @@
             else if (current) current.base = result;
           });
           for(const [key,raw]of previous)emit(key,raw);
+          // Allow input, painting and network events between acknowledged batches.
+          if(queue.size)await new Promise(resolve=>setTimeout(resolve,0));
         }
-        phase = 'synced';
+        failure = null;phase = 'synced';
       } catch (error) { failure = error.message || String(error); phase = 'error'; throw error; }
-      finally { flushing = null; notify(); }
-    })();
-    return flushing;
+      finally { clearTimeout(watchdog);flushing = null; notify(); }
+    })().then(resolveFlush,rejectFlush);
+    return run;
   }
   function receive(entries) {
     const next=new Map(entries);
