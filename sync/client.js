@@ -2,7 +2,7 @@ import {firebaseConfig} from './firebase-config.js';
 
 const sync = window.ScholarSync;
 let auth, db, A, F, stop, initialized = false, started = false;
-let preparedApps;
+let preparedApps, signingIn = false;
 const ownerEmail = 'binusa101106159@gmail.com';
 async function timed(promise) {
   let timer;
@@ -13,7 +13,7 @@ const docID = id => btoa(unescape(encodeURIComponent(id))).replaceAll('+', '-').
 function mount() {
   const bar = document.createElement('aside');
   bar.id = 'cloud-bar'; bar.setAttribute('aria-label', 'Cloud sync');
-  bar.innerHTML = '<span id="cloud-status" role="status" aria-live="polite">Connecting…</span><button id="cloud-signin" type="button">Sign in</button><button id="cloud-retry" type="button" hidden>Retry</button><details id="cloud-account" hidden><summary>Account</summary><div id="cloud-account-menu"><p id="cloud-email"></p><button id="cloud-signout" type="button">Sign out</button></div></details>';
+  bar.innerHTML = '<span id="cloud-status" role="status" aria-live="polite">Connecting…</span><button id="cloud-signin" type="button">Sign in</button><button id="cloud-retry" type="button" hidden>Retry</button><p id="cloud-error" role="alert" hidden></p><details id="cloud-account" hidden><summary>Account</summary><div id="cloud-account-menu"><p id="cloud-email"></p><button id="cloud-signout" type="button">Sign out</button></div></details>';
   document.body.append(bar);
   const by = id => document.getElementById(id);
   const render = () => {
@@ -21,16 +21,33 @@ function mount() {
     by('cloud-status').textContent = state.phase === 'loading' ? 'Connecting…' : state.phase === 'guest' ? 'Not signed in · not saved' : state.phase === 'error' ? 'Not synced · retry' : state.pending ? (state.background?'Saving position…':'Syncing…') : 'Synced';
     by('cloud-status').title = state.error || (state.user ? state.user.email : 'Sign in to save across devices. Guest changes last only for this visit.');
     by('cloud-signin').hidden = Boolean(state.user);by('cloud-account').hidden = !state.user;
+    by('cloud-signin').disabled = signingIn;
+    by('cloud-signin').textContent = signingIn ? 'Signing in…' : 'Sign in';
+    if (signingIn) by('cloud-status').textContent = 'Continue in the Google sign-in window';
+    by('cloud-error').hidden = !state.error || signingIn;
+    by('cloud-error').textContent = state.error || '';
     by('cloud-signout').disabled = state.pending > 0;
     by('cloud-email').textContent = state.user?.email || '';
     by('cloud-retry').hidden = state.phase !== 'error';
   };
   window.addEventListener('scholar-sync-status', render); render();
   by('cloud-signin').onclick = async () => {
+    if (signingIn) return;
+    signingIn = true; render();
     try {
-      if (!auth) throw Error('Firebase could not load. Check the network and reload.');
+      if (!auth) throw Error('Google sign-in has not loaded. Wait a moment, then retry. If this continues, reload and check your connection.');
+      // Call directly from the click handler to preserve Safari's user gesture.
       await A.signInWithPopup(auth, new A.GoogleAuthProvider());
-    } catch (error) { sync.error(error.message); }
+    } catch (error) {
+      const messages = {
+        'auth/popup-blocked': 'The sign-in window was blocked. In Safari: Settings → Websites → Pop-up Windows → Allow for this site. Then press Sign in again.',
+        'auth/popup-closed-by-user': 'The Google sign-in window closed before sign-in finished. Press Sign in to try again.',
+        'auth/cancelled-popup-request': 'Another sign-in window is already open. Complete sign-in there, or close it and retry.',
+        'auth/network-request-failed': 'Google sign-in could not connect. Check your connection and retry.',
+        'auth/unauthorized-domain': 'This website address is not authorized for Google sign-in. Please report this message.'
+      };
+      sync.error(messages[error.code] || error.message || 'Google sign-in failed. Please retry.');
+    } finally { signingIn = false; render(); }
   };
   by('cloud-signout').onclick = async () => {
     try { if (sync.status().pending) await sync.flush();await A.signOut(auth); }
