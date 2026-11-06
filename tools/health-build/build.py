@@ -1,5 +1,5 @@
 """Convert supplied special-health PDFs independently of published guides data."""
-import sys, json, os, collections
+import sys, json, os, collections, argparse
 from pathlib import Path
 import pymupdf
 ROOT=Path(__file__).resolve().parents[2]
@@ -16,14 +16,25 @@ converter.printed=visible_page
 # The audiograms include rotated axis labels; retain the complete graph region.
 converter.FIGURE_REGIONS[('full02',16)]=[(100,585,530,748)]
 SRC=Path(os.environ.get('HEALTH_SRC',r'C:/Users/binus/.codex/attachments/b0888249-b90e-4dbb-8e7a-76ae4fa5d3df'))
-CATALOG=[('01','高溫作業',(6,22),(7,8)),('02','噪音作業',(23,47),(9,11)),('03','游離輻射作業',(48,84),(12,13)),('04','異常氣壓作業',(85,110),(14,15)),('05','鉛作業',(111,144),(16,17)),('06','四烷基鉛作業',(145,159),(18,19)),('07','1,1,2,2-四氯乙烷作業',(160,178),(20,21)),('08','四氯化碳作業',(179,197),(22,23))]
+CATALOG=[('01','高溫作業',(6,22),(7,8)),('02','噪音作業',(23,47),(9,11)),('03','游離輻射作業',(48,84),(12,13)),('04','異常氣壓作業',(85,110),(14,15)),('05','鉛作業',(111,144),(16,17)),('06','四烷基鉛作業',(145,159),(18,19)),('07','1,1,2,2-四氯乙烷作業',(160,178),(20,21)),('08','四氯化碳作業',(179,197),(22,23)),('09','二硫化碳作業',(198,243),(24,25)),('10','三氯乙烯、四氯乙烯作業',(244,260),(26,28)),('11','二甲基甲醯胺作業',(261,279),(29,30)),('12','正己烷作業',(280,297),(31,32))]
 OUT=ROOT/'health';TMP=ROOT/'.local/health-source'
 def main():
+ global OUT
+ parser=argparse.ArgumentParser(description=__doc__)
+ parser.add_argument('ids',nargs='*',help='Only rebuild these fullXX/briefXX documents; keep all other published documents.')
+ parser.add_argument('--output',type=Path,default=OUT,help='Stage output independently before installing it.')
+ parser.add_argument('--report',type=Path,default=Path(__file__).parent/'report.json')
+ args=parser.parse_args();OUT=args.output.resolve();wanted=set(args.ids)
+ valid={kind+no for no,*_ in CATALOG for kind in ['full','brief']}
+ if wanted-valid:parser.error('Unknown document ids: '+', '.join(sorted(wanted-valid)))
  for p in [OUT/'text',OUT/'attach/img',TMP]:p.mkdir(parents=True,exist_ok=True)
- index=[];reports={}
+ index=json.loads((OUT/'index.json').read_text(encoding='utf-8'))['guides'] if wanted and (OUT/'index.json').exists() else []
+ reports=json.loads(args.report.read_text(encoding='utf-8')) if wanted and args.report.exists() else {}
  for no,name,full,brief in CATALOG:
   for kind,rng,filename in [('full',full,'完整版.pdf'),('brief',brief,'簡明版.pdf')]:
-   gid=f'{kind}{no}';path=TMP/(gid+'.pdf')
+   gid=f'{kind}{no}'
+   if wanted and gid not in wanted:continue
+   path=TMP/(gid+'.pdf')
    with pymupdf.open(SRC/filename) as original,pymupdf.open() as part:
     part.insert_pdf(original,from_page=rng[0]-1,to_page=rng[1]-1);part.save(path)
    d=converter.document(str(path),gid,name,str(OUT/'attach/img'),with_cover=False)
@@ -57,6 +68,7 @@ def main():
     atts.append({k:a[k] for k in ['id','label','title']})
    credit=f'資料來源：使用者提供之「{filename}」，PDF第{rng[0]}–{rng[1]}頁（原書第{rng[0]-(5 if kind=="full" else 6)}–{rng[1]-(5 if kind=="full" else 6)}頁）。民國111年11月版本。'
    (OUT/'text'/(gid+'.json')).write_text(json.dumps(dict(id=gid,name=name,cover=[],credit=credit,blocks=d['blocks']),ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+   index=[g for g in index if g['id']!=gid]
    index.append(dict(id=gid,cat=kind,name=name,official=name,no=int(no),pages=d['pages'],attach=atts))
  (OUT/'index.json').write_text(json.dumps(dict(cats=[dict(id='full',name='完整版',total=32),dict(id='brief',name='簡明版速查',total=32)],guides=sorted(index,key=lambda x:(x['cat']!='full',x['no']))),ensure_ascii=False,separators=(',',':')),encoding='utf-8')
  live_attachments={a['id'] for g in index for a in g['attach']}
@@ -72,7 +84,8 @@ def main():
  for file in (OUT/'text').glob('*.json'):images(json.loads(file.read_text(encoding='utf-8')))
  for file in (OUT/'attach/img').glob('*.png'):
   if file.name not in used:file.unlink()
- (Path(__file__).parent/'report.json').write_text(json.dumps(reports,ensure_ascii=False,indent=1),encoding='utf-8')
+ args.report.parent.mkdir(parents=True,exist_ok=True)
+ args.report.write_text(json.dumps(reports,ensure_ascii=False,indent=1),encoding='utf-8')
  if not all(d['ok'] for d in reports.values()):sys.exit(1)
 
 if __name__=='__main__':main()

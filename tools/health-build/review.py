@@ -50,6 +50,11 @@ def main(want):
             while chain[-1].get('parent'):
                 chain.append(next(c for c in index['cats'] if c['id'] == chain[-1]['parent']))
             if page.locator('#hx-menu').get_attribute('aria-expanded') != 'true': page.locator('#hx-menu').click()
+            # Collapse the other version first, as a reader would, so its long
+            # expanded chapter list does not push the target under Account.
+            target_categories = {c['id'] for c in chain}
+            for other in page.locator('#hx-list [data-cat][aria-expanded="true"]').all():
+                if other.get_attribute('data-cat') not in target_categories: other.click()
             for c in reversed(chain):
                 button = page.locator(f'[data-cat="{c["id"]}"]')
                 if button.get_attribute('aria-expanded') == 'false': button.click()
