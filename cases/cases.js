@@ -201,7 +201,7 @@
           <label>病歷號<input id="ct-mrn" name="mrn" maxlength="80" autocomplete="off" spellcheck="false"></label>
           <label>VS<input id="ct-vs" name="vs" maxlength="120" autocomplete="off"></label>
           <label>回診時間<input id="ct-followup" name="followup" placeholder="例如 2026/11/18 上午" maxlength="120" autocomplete="off"></label>
-          <label class="ct-full">回診目的<input id="ct-purpose" name="purpose" maxlength="500" autocomplete="off"></label>
+          <label class="ct-full">回診目的<textarea id="ct-purpose" name="purpose" rows="2" maxlength="500"></textarea></label>
           <label class="ct-full">診斷<textarea id="ct-diagnosis" name="diagnosis" rows="2" maxlength="4000"></textarea></label>
           <label class="ct-full">備註<textarea id="ct-notes" name="notes" rows="3" maxlength="8000"></textarea></label>
         </div><p id="ct-form-error" class="ct-error" role="alert"></p>
