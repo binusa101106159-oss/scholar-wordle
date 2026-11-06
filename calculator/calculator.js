@@ -28,6 +28,13 @@
   first.setUTCFullYear(year,month,1);last.setUTCFullYear(year,month+1,0);
   return {year,month,days:Array.from({length:42},(_,i)=>{const day=i-first.getUTCDay()+1;return day>0&&day<=last.getUTCDate()?day:null;})};
  }
+ function weekDates(start){
+  return Array.from({length:7},(_,i)=>{const date=new Date((start+i)*86400000);return {year:date.getUTCFullYear(),month:date.getUTCMonth(),day:date.getUTCDate()};});
+ }
+ function monthWeek(index){
+  const {year,month,days}=monthGrid(index),date=new Date(0);date.setUTCFullYear(year,month,1);
+  return date.getTime()/86400000-days.indexOf(1);
+ }
  function mountCalendar(host){
   const KEY='scholar-calendar-v1', current=()=>{const d=new Date();return d.getFullYear()*12+d.getMonth();};
   let visible=current(),frame=0,timer=0,pending=null;
@@ -35,28 +42,33 @@
   host.insertAdjacentHTML('beforeend','<section class="cl-calendar" aria-labelledby="cl-calendar-title"><div class="cl-calendar-head"><h2 id="cl-calendar-title">月曆</h2><div><button type="button" data-month-shift="-1" aria-label="上一個月">‹</button><button type="button" id="cl-calendar-today">本月</button><button type="button" data-month-shift="1" aria-label="下一個月">›</button></div></div><div class="cl-calendar-week" aria-hidden="true">'+['日','一','二','三','四','五','六'].map(day=>'<span>'+day+'</span>').join('')+'</div><div id="cl-calendar-scroll" tabindex="0" role="region" aria-label="月曆，上下捲動瀏覽月份"></div></section>');
   const viewport=host.querySelector('#cl-calendar-scroll'),card=host.querySelector('.cl-calendar');
   function refresh(){
-   if(pending!==null&&viewport.clientHeight){const found=[...viewport.children].find(el=>Number(el.dataset.month)===pending);if(found)viewport.scrollTop=found.offsetTop;pending=null;}
+   if(viewport.clientHeight)card.style.setProperty('--calendar-gutter',(viewport.offsetWidth-viewport.clientWidth)+'px');
+   if(pending!==null&&viewport.clientHeight){const found=[...viewport.children].find(el=>Number(el.dataset.start)===monthWeek(pending));if(found)viewport.scrollTop=found.offsetTop;pending=null;}
    const d=new Date(),today=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
    viewport.querySelectorAll('[data-date]').forEach(el=>{
     const match=el.dataset.date===today;el.classList.toggle('is-today',match);
     if(match)el.setAttribute('aria-current','date');else el.removeAttribute('aria-current');
    });
   }
-  function month(index){
-   const data=monthGrid(index),el=document.createElement('section');el.className='cl-calendar-month';el.dataset.month=index;
-   el.setAttribute('aria-label',data.year+'年'+(data.month+1)+'月');
-   const title=document.createElement('h3');title.textContent=data.year+'年 '+(data.month+1)+'月';el.append(title);
+  function week(start){
+   const dates=weekDates(start),first=dates.find(date=>date.day===1),context=first||dates[0];
+   const el=document.createElement('div');el.className='cl-calendar-weekrow';el.dataset.start=start;el.dataset.month=context.year*12+context.month;
+   const label=document.createElement('div');label.className='cl-calendar-label';label.setAttribute('aria-hidden','true');
+   if(first){const year=document.createElement('span'),month=document.createElement('strong');year.textContent=first.year;month.textContent=(first.month+1)+'月';label.append(year,month);}
+   el.append(label);
    const grid=document.createElement('div');grid.className='cl-calendar-days';
-   data.days.forEach((day,i)=>{
-    const cell=document.createElement('span');cell.className=i%7===0||i%7===6?'is-weekend':'';
-    if(day){cell.textContent=day;cell.dataset.date=data.year+'-'+(data.month+1)+'-'+day;cell.setAttribute('aria-label',data.year+'年'+(data.month+1)+'月'+day+'日');}
-    else cell.setAttribute('aria-hidden','true');
+   dates.forEach((date,i)=>{
+    const cell=document.createElement('span');cell.className=i===0||i===6?'is-weekend':'';
+    cell.textContent=date.day;cell.dataset.date=date.year+'-'+(date.month+1)+'-'+date.day;
+    cell.setAttribute('aria-label',date.year+'年'+(date.month+1)+'月'+date.day+'日');
+    if(date.day===1)cell.classList.add('is-month-start');
     grid.append(cell);
    });el.append(grid);return el;
   }
   function reset(index){
    if(index<15||index>119984)return;
-   viewport.replaceChildren(...Array.from({length:7},(_,i)=>month(index+i-3)));
+   const first=monthWeek(index)-84;
+   viewport.replaceChildren(...Array.from({length:32},(_,i)=>week(first+i*7)));
    visible=index;pending=index;refresh();
   }
   function persist(){
@@ -66,7 +78,7 @@
   }
   function jump(index){
    clearTimeout(timer);cancelAnimationFrame(frame);
-   const found=[...viewport.children].find(el=>Number(el.dataset.month)===index);
+   const found=[...viewport.children].find(el=>Number(el.dataset.start)===monthWeek(index));
    if(found)viewport.scrollTo({top:found.offsetTop,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
    else reset(index);
    visible=index;persist();
@@ -77,14 +89,14 @@
     const children=[...viewport.children];
     const active=children.find(el=>el.offsetTop+el.offsetHeight>viewport.scrollTop+50)||children[children.length-1];
     visible=Number(active.dataset.month);
-    // Add months only at the edges and retain a bounded window of rendered months.
-    if(viewport.scrollTop<120&&Number(children[0].dataset.month)>15){
-     const anchor=children[0],top=anchor.offsetTop,index=Number(anchor.dataset.month);
-     viewport.prepend(...[3,2,1].map(n=>month(index-n)));viewport.scrollTop+=anchor.offsetTop-top;
-     while(viewport.children.length>13)viewport.lastElementChild.remove();refresh();
-    }else if(viewport.scrollHeight-viewport.scrollTop-viewport.clientHeight<120&&Number(children[children.length-1].dataset.month)<119984){
-     const index=Number(children[children.length-1].dataset.month);viewport.append(...[1,2,3].map(n=>month(index+n)));
-     if(viewport.children.length>13){const removed=children.slice(0,3).reduce((sum,el)=>sum+el.offsetHeight,0);for(let i=0;i<3;i++)viewport.firstElementChild.remove();viewport.scrollTop-=removed;}
+    // Whole weeks keep month boundaries continuous, with no duplicate or empty dates.
+    if(viewport.scrollTop<120&&Number(children[0].dataset.start)>monthWeek(15)){
+     const anchor=children[0],top=anchor.offsetTop,start=Number(anchor.dataset.start);
+     viewport.prepend(...Array.from({length:12},(_,i)=>week(start-(12-i)*7)));viewport.scrollTop+=anchor.offsetTop-top;
+     while(viewport.children.length>68)viewport.lastElementChild.remove();refresh();
+    }else if(viewport.scrollHeight-viewport.scrollTop-viewport.clientHeight<120&&Number(children[children.length-1].dataset.start)<monthWeek(119984)){
+     const start=Number(children[children.length-1].dataset.start);viewport.append(...Array.from({length:12},(_,i)=>week(start+(i+1)*7)));
+     if(viewport.children.length>68){const removed=children.slice(0,12).reduce((sum,el)=>sum+el.offsetHeight,0);for(let i=0;i<12;i++)viewport.firstElementChild.remove();viewport.scrollTop-=removed;}
      refresh();
     }
     persist();
@@ -104,7 +116,7 @@
   root.ScholarSync.subscribe(key=>{if(key===KEY&&saved()!==visible){clearTimeout(timer);reset(saved());}});
   reset(saved());return {refresh};
  }
- if(typeof module!=='undefined'&&module.exports)module.exports={calculate,monthGrid};
+ if(typeof module!=='undefined'&&module.exports)module.exports={calculate,monthGrid,weekDates,monthWeek};
  if(typeof document==='undefined')return;
  let ready=false,calendar;
  function show(){
