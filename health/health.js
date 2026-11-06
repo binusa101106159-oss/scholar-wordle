@@ -85,6 +85,16 @@
   }
 
   /* ── tables, pictures, column lists ── */
+  function scientific(text, sup, terms, sub) {
+    const spans = (sup || []).map(([s, e]) => [s, e, 'sup']).concat((sub || []).map(([s, e]) => [s, e, 'sub'])).sort((a, b) => a[0] - b[0]);
+    if (!spans.length) return rich(text, null, terms);
+    let out = '', at = 0;
+    for (const [s, e, tag] of spans) {
+      out += rich(text.slice(at, s), null, terms) + '<' + tag + '>' + rich(text.slice(s, e), null, terms) + '</' + tag + '>';
+      at = e;
+    }
+    return out + rich(text.slice(at), null, terms);
+  }
   function cellHTML(c, terms, tag, t) {
     if (c.diag) {
       const d = c.diag;
@@ -99,7 +109,7 @@
       return '<' + tag + span + ' class="hx-diag' + (d.n === 1 ? ' hx-diag-1' : '') + '"><svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 100 100">' + lines + '</svg>' +
         label('tr') + label('mid') + label('bl') + '</' + tag + '>';
     }
-    let inner = rich(c.text || '', null, terms);
+    let inner = scientific(c.text || '', c.sup, terms, c.sub);
     if (c.fraction && c.fraction.join('') === c.text) {
       const formula = text => text.split(/(m3|SiO2)/).map(part => part === 'm3' ? 'm<sup>3</sup>' : part === 'SiO2' ? 'SiO<sub>2</sub>' : rich(part, null, terms)).join('');
       inner = '<span class="hx-fraction"><span>' + formula(c.fraction[0]) + '</span><span>' + formula(c.fraction[1]) + '</span></span>';
