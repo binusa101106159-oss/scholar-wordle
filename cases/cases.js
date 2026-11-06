@@ -16,13 +16,25 @@
           fields.some(([key]) => typeof row[key] !== 'string' && !(key === 'vs' && row[key] === undefined))) throw new Error('Invalid record');
       ids.add(row.id);
     }
-    return data.records.map(row => row.vs === undefined ? { ...row, vs: '' } : row);
+    const rows = data.records.map(row => row.vs === undefined ? { ...row, vs: '' } : row);
+    return rows.some(row => Number.isFinite(row.sortOrder)) ? rows.sort((a,b)=>(a.sortOrder ?? -(a.createdAt||0))-(b.sortOrder ?? -(b.createdAt||0)) || b.id.localeCompare(a.id)) : rows;
   }
   function upsert(records, record) {
     if (!record.name.trim()) throw new Error('請填寫姓名。');
     const next = records.slice(), at = next.findIndex(row => row.id === record.id);
-    if (at < 0) next.unshift(record); else next[at] = { ...next[at], ...record };
+    if (at < 0) {
+      const ordered = records.filter(row => Number.isFinite(row.sortOrder));
+      next.unshift(ordered.length ? { ...record, sortOrder: Math.min(...ordered.map(row=>row.sortOrder))-1 } : record);
+    } else next[at] = { ...next[at], ...record };
     return next;
+  }
+  function moveRecord(records, id, target, after = false) {
+    if (id === target) return records;
+    const row = records.find(item=>item.id===id);
+    if (!row || !records.some(item=>item.id===target)) return records;
+    const next = records.filter(item=>item.id!==id), at = next.findIndex(item=>item.id===target);
+    next.splice(at + (after ? 1 : 0), 0, row);
+    return next.map((item, sortOrder)=>({ ...item, sortOrder }));
   }
   function filterRecords(records, query) {
     const terms = query.normalize('NFKC').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
@@ -31,10 +43,10 @@
       return terms.every(term => haystack.includes(term));
     });
   }
-  if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords };
+  if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords, moveRecord };
   if (typeof document === 'undefined') return;
   const by = id => document.getElementById(id);
-  let booted = false, records = [], editing = null, editingBase = null, deleting = null, saving = false, readable = true;
+  let booted = false, records = [], editing = null, editingBase = null, deleting = null, saving = false, readable = true, sorting = false, drag = null;
   const read = () => parseRecords(window.ScholarStorage.getItem(STORE));
   function announce(message, error = false) {
     by('ct-status').textContent = message;
@@ -65,7 +77,12 @@
     by('ct-empty').hidden = Boolean(shown.length);
     by('ct-empty').textContent = readable ? (records.length ? '找不到符合的個案。' : '尚無個案，按「新增個案」開始。') : '';
     for (const row of shown) {
-      const tr = document.createElement('tr');
+      const tr = document.createElement('tr'); tr.dataset.id = row.id;
+      const gripCell = document.createElement('td'); gripCell.className = 'ct-grip-cell';
+      const grip = document.createElement('button'); grip.type = 'button'; grip.className = 'ct-grip';
+      grip.dataset.id = row.id; grip.textContent = '⠿'; grip.disabled = !readable || sorting;
+      grip.title = '拖曳調整順序，或按上下方向鍵'; grip.setAttribute('aria-label', '調整' + row.name + '的順序');
+      gripCell.append(grip); tr.append(gripCell);
       for (const [key, label] of fields) {
         const td = document.createElement('td');
         td.dataset.label = label; td.className = 'ct-' + key;
@@ -85,6 +102,66 @@
       }
       tr.append(actions); body.append(tr);
     }
+  }
+  async function saveOrder(id, target, after) {
+    if (sorting || !readable) return;
+    const latest = read(), next = moveRecord(latest, id, target, after);
+    if (next === latest || next.every((row,i)=>row.id===latest[i].id)) { render(); return; }
+    sorting = true;
+    try { await commit(next); announce('順序已儲存至雲端。'); }
+    catch (_) { records = read(); render(); announce('排序未儲存成功，請重試。', true); }
+    finally { sorting = false; render(); }
+  }
+  function setupReorder() {
+    const body = by('ct-rows');
+    body.addEventListener('keydown', event => {
+      const grip = event.target.closest('.ct-grip');
+      if (!grip || !['ArrowUp','ArrowDown'].includes(event.key) || sorting) return;
+      event.preventDefault();
+      const shown = filterRecords(records, by('ct-search').value), at = shown.findIndex(row=>row.id===grip.dataset.id);
+      const target = shown[at + (event.key === 'ArrowUp' ? -1 : 1)];
+      if (target) saveOrder(grip.dataset.id, target.id, event.key==='ArrowDown').then(()=>{
+        [...body.querySelectorAll('.ct-grip')].find(el=>el.dataset.id===grip.dataset.id)?.focus();
+      });
+    });
+    body.addEventListener('pointerdown', event => {
+      const grip = event.target.closest('.ct-grip');
+      if (!grip || !readable || sorting || drag || event.button!==0) return;
+      grip.setPointerCapture(event.pointerId);
+      drag = {grip, pointer:event.pointerId, id:grip.dataset.id, startY:event.clientY, x:event.clientX, y:event.clientY, active:false};
+    });
+    function preview() {
+      if (!drag?.active) return;
+      const rows = [...body.querySelectorAll('tr')];
+      const target = rows.find(row=>{const r=row.getBoundingClientRect();return drag.y>=r.top&&drag.y<=r.bottom;});
+      body.querySelectorAll('.ct-drop-before,.ct-drop-after').forEach(row=>row.classList.remove('ct-drop-before','ct-drop-after'));
+      if (target && target.dataset.id!==drag.id) {
+        drag.target = target.dataset.id; drag.after = drag.y > target.getBoundingClientRect().top + target.getBoundingClientRect().height/2;
+        target.classList.add(drag.after ? 'ct-drop-after' : 'ct-drop-before');
+      } else drag.target = null;
+    }
+    function scroll() {
+      if (!drag?.active) return;
+      const speed = drag.y < 75 ? -12 : drag.y > innerHeight-75 ? 12 : 0;
+      if (speed) { window.scrollBy(0,speed); preview(); }
+      drag.frame = requestAnimationFrame(scroll);
+    }
+    body.addEventListener('pointermove', event => {
+      if (!drag || event.pointerId!==drag.pointer) return;
+      drag.y=event.clientY;
+      if (!drag.active && Math.abs(drag.y-drag.startY)>5) {
+        drag.active=true; drag.grip.closest('tr').classList.add('ct-dragging'); drag.frame=requestAnimationFrame(scroll);
+      }
+      preview();
+    });
+    function end(event) {
+      if (!drag || event.pointerId!==drag.pointer) return;
+      const done=drag; drag=null; cancelAnimationFrame(done.frame);
+      body.querySelectorAll('.ct-dragging,.ct-drop-before,.ct-drop-after').forEach(row=>row.classList.remove('ct-dragging','ct-drop-before','ct-drop-after'));
+      if (done.grip.hasPointerCapture(done.pointer)) done.grip.releasePointerCapture(done.pointer);
+      if (event.type==='pointerup' && done.active && done.target) saveOrder(done.id,done.target,done.after);
+    }
+    body.addEventListener('pointerup',end); body.addEventListener('pointercancel',end); body.addEventListener('lostpointercapture',end);
   }
   function edit(id = null) {
     if (!readable) return;
@@ -114,7 +191,7 @@
         <p id="ct-status" class="ct-status" role="status" aria-live="polite"></p>
         <p id="ct-empty" class="ct-empty"></p>
         <div class="ct-table-wrap" id="ct-table-wrap" hidden><table class="ct-table"><caption class="ct-sr">個案追蹤清單</caption><thead><tr>
-          ${fields.map(([, label]) => '<th scope="col">' + label + '</th>').join('')}<th scope="col">操作</th>
+          <th scope="col"><span class="ct-sr">排序</span></th>${fields.map(([, label]) => '<th scope="col">' + label + '</th>').join('')}<th scope="col">操作</th>
         </tr></thead><tbody id="ct-rows"></tbody></table></div>
       </div>
       <dialog id="ct-editor" class="ct-dialog" aria-labelledby="ct-editor-title">
@@ -132,6 +209,7 @@
       </dialog>
       <dialog id="ct-delete" class="ct-dialog ct-confirm" aria-labelledby="ct-delete-title"><h2 id="ct-delete-title">刪除此個案？</h2><p>刪除後無法復原。</p>
         <p id="ct-delete-error" class="ct-error" role="alert"></p><div class="ct-form-actions"><button class="sg-btn" type="button" id="ct-delete-cancel">取消</button><button class="sg-btn ct-danger" type="button" id="ct-delete-confirm">刪除</button></div></dialog>`;
+    setupReorder();
     by('ct-add').addEventListener('click', () => edit());
     by('ct-search').addEventListener('input', render);
     by('ct-editor-close').addEventListener('click', closeEditor); by('ct-cancel').addEventListener('click', closeEditor);

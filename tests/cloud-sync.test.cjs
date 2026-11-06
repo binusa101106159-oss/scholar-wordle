@@ -143,3 +143,11 @@ test('synchronous transport failure releases the flush lock for a safe retry',as
  const h=harness();let fail=true;h.sync.connect({uid:'one'},{commit(op){if(fail)throw Error('connection failed');return Promise.resolve(op.next)}});
  h.store.setItem('scholar-reading-v1','{"size":21}');await assert.rejects(h.sync.flush());fail=false;await h.sync.flush();assert.equal(h.sync.status().pending,0);
 });
+
+test('case manual order survives cloud hydration and merges with concurrent notes',()=>{
+ const records=[{id:'a',createdAt:20,sortOrder:1,notes:'old'},{id:'b',createdAt:10,sortOrder:0,notes:''}];
+ const chunks=S.split('scholar-cases-v1',str({version:1,records}));
+ assert.deepEqual(JSON.parse(S.join('scholar-cases-v1',chunks)).records.map(r=>r.id),['b','a']);
+ const base=records[0],local={...base,sortOrder:2},remote={...base,notes:'other device'};
+ assert.deepEqual(JSON.parse(S.reconcile(str(base),str(local),str(remote),'scholar-cases-v1')),{...local,notes:'other device'});
+});

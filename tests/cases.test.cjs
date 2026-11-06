@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const {fields,parseRecords,upsert,filterRecords}=require('../cases/cases.js');
+const {fields,parseRecords,upsert,filterRecords,moveRecord}=require('../cases/cases.js');
 const row=(id,extra={})=>Object.assign(Object.fromEntries(fields.map(([key])=>[key,''])),{id,name:'測試個案',mrn:'00001234'},extra);
 test('case records preserve the seven fields, leading zeroes and multiline notes',()=>{
   assert.deepEqual(fields.map(([,label])=>label),['姓名','病歷號','VS','回診目的','診斷','回診時間','備註']);
@@ -41,4 +41,15 @@ test('older cases without VS stay readable and new VS is searchable',()=>{
  const parsed=parseRecords(JSON.stringify({version:1,records:[old]}));assert.equal(parsed[0].vs,'');
  const updated=upsert(parsed,row('one',{vs:'測試醫師'}));assert.deepEqual(filterRecords(updated,'測試醫師'),updated);
  assert.throws(()=>parseRecords(JSON.stringify({version:1,records:[row('x',{vs:123})]})));
+});
+
+test('case reorder preserves fields, supports both drop edges, and new cases stay first',()=>{
+ const rows=[row('a',{createdAt:3}),row('b',{createdAt:2}),row('c',{createdAt:1})];
+ const moved=moveRecord(rows,'c','a');assert.deepEqual(moved.map(r=>r.id),['c','a','b']);
+ assert.deepEqual(moved.map(r=>r.sortOrder),[0,1,2]);assert.equal(moved[0].mrn,'00001234');
+ assert.deepEqual(parseRecords(JSON.stringify({version:1,records:moved.slice().reverse()})).map(r=>r.id),['c','a','b']);
+ assert.deepEqual(moveRecord(moved,'c','b',true).map(r=>r.id),['a','b','c']);
+ assert.equal(moveRecord(rows,'missing','a'),rows);
+ const added=upsert(moved,row('new'));assert.equal(added[0].sortOrder,-1);
+ assert.equal(upsert(moved,row('c',{notes:'updated'}))[0].sortOrder,0);
 });
