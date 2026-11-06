@@ -100,6 +100,10 @@
         label('tr') + label('mid') + label('bl') + '</' + tag + '>';
     }
     let inner = rich(c.text || '', null, terms);
+    if (c.fraction && c.fraction.join('') === c.text) {
+      const formula = text => text.split(/(m3|SiO2)/).map(part => part === 'm3' ? 'm<sup>3</sup>' : part === 'SiO2' ? 'SiO<sub>2</sub>' : rich(part, null, terms)).join('');
+      inner = '<span class="hx-fraction"><span>' + formula(c.fraction[0]) + '</span><span>' + formula(c.fraction[1]) + '</span></span>';
+    }
     (c.img || []).forEach(im => { inner += '<img src="' + BASE + 'attach/img/' + im.src + '" width="' + Math.round(im.w * 1.25) + '" height="' + Math.round(im.h * 1.25) + '" alt="" loading="lazy">'; });
     if (c.blocks) inner += blocksHTML(c.blocks, terms, { inCell: true });
     const span = (c.rs > 1 ? ' rowspan="' + c.rs + '"' : '') + (c.cs > 1 ? ' colspan="' + c.cs + '"' : '');

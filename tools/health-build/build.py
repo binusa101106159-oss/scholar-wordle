@@ -1,5 +1,5 @@
 """Convert supplied special-health PDFs independently of published guides data."""
-import sys, json, os, collections, argparse
+import sys, json, os, collections, argparse, re
 from pathlib import Path
 import pymupdf
 from health_manual import apply as apply_manual
@@ -17,8 +17,20 @@ converter.printed=visible_page
 # The audiograms include rotated axis labels; retain the complete graph region.
 converter.FIGURE_REGIONS[('full02',16)]=[(100,585,530,748)]
 SRC=Path(os.environ.get('HEALTH_SRC',r'C:/Users/binus/.codex/attachments/b0888249-b90e-4dbb-8e7a-76ae4fa5d3df'))
-CATALOG=[('01','高溫作業',(6,22),(7,8)),('02','噪音作業',(23,47),(9,11)),('03','游離輻射作業',(48,84),(12,13)),('04','異常氣壓作業',(85,110),(14,15)),('05','鉛作業',(111,144),(16,17)),('06','四烷基鉛作業',(145,159),(18,19)),('07','1,1,2,2-四氯乙烷作業',(160,178),(20,21)),('08','四氯化碳作業',(179,197),(22,23)),('09','二硫化碳作業',(198,243),(24,25)),('10','三氯乙烯、四氯乙烯作業',(244,260),(26,28)),('11','二甲基甲醯胺作業',(261,279),(29,30)),('12','正己烷作業',(280,297),(31,32)),('13','聯苯胺及其鹽類、4-胺基聯苯及其鹽類、4-硝基聯苯及其鹽類、β-萘胺及其鹽類、二氯聯苯胺及其鹽類，與α-萘胺及其鹽類作業',(298,320),(33,35)),('14','鈹及其化合物作業',(321,346),(36,37)),('15','氯乙烯作業',(347,380),(38,39)),('16','苯作業',(381,402),(40,41)),('17','二異氰酸甲苯、二異氰酸二苯甲烷、二異氰酸異佛爾酮作業',(403,424),(42,44)),('18','石綿作業',(425,442),(45,46)),('19','砷及其化合物作業',(443,473),(47,49)),('20','錳及其化合物作業',(474,494),(50,51))]
+CATALOG=[('01','高溫作業',(6,22),(7,8)),('02','噪音作業',(23,47),(9,11)),('03','游離輻射作業',(48,84),(12,13)),('04','異常氣壓作業',(85,110),(14,15)),('05','鉛作業',(111,144),(16,17)),('06','四烷基鉛作業',(145,159),(18,19)),('07','1,1,2,2-四氯乙烷作業',(160,178),(20,21)),('08','四氯化碳作業',(179,197),(22,23)),('09','二硫化碳作業',(198,243),(24,25)),('10','三氯乙烯、四氯乙烯作業',(244,260),(26,28)),('11','二甲基甲醯胺作業',(261,279),(29,30)),('12','正己烷作業',(280,297),(31,32)),('13','聯苯胺及其鹽類、4-胺基聯苯及其鹽類、4-硝基聯苯及其鹽類、β-萘胺及其鹽類、二氯聯苯胺及其鹽類，與α-萘胺及其鹽類作業',(298,320),(33,35)),('14','鈹及其化合物作業',(321,346),(36,37)),('15','氯乙烯作業',(347,380),(38,39)),('16','苯作業',(381,402),(40,41)),('17','二異氰酸甲苯、二異氰酸二苯甲烷、二異氰酸異佛爾酮作業',(403,424),(42,44)),('18','石綿作業',(425,442),(45,46)),('19','砷及其化合物作業',(443,473),(47,49)),('20','錳及其化合物作業',(474,494),(50,51)),('21','黃磷作業',(495,516),(52,53)),('22','聯吡啶或巴拉刈作業',(517,535),(54,55)),('23','粉塵作業',(536,559),(56,57)),('24','鉻酸及其鹽類作業',(560,581),(58,59))]
 OUT=ROOT/'health';TMP=ROOT/'.local/health-source'
+
+def mark_fractions(blocks):
+ # Retain the exact extracted text; only annotate its numerator/denominator
+ # boundary. These silica-limit cells have a fraction bar in the source PDFs.
+ for b in blocks:
+  if b['t']!='table':continue
+  for row in b['rows']:
+   for cell in row:
+    match=re.fullmatch(r'(\d+\s*mg/m3)(%SiO2\s*\+\s*\d+)',cell['text'])
+    if match:cell['fraction']=list(match.groups())
+    mark_fractions(cell.get('blocks',[]))
+
 def main():
  global OUT
  parser=argparse.ArgumentParser(description=__doc__)
@@ -43,13 +55,15 @@ def main():
    reports[gid]['source_pages']=rng
    manual_check=apply_manual(d,gid,OUT/'attach/img')
    if manual_check:reports[gid]['manual_tables']=[manual_check]
+   mark_fractions(d['blocks'])
    # The chapter title ornaments are lettering in vector outlines, not figures.
    # Render their visually verified wording as selectable text instead of a page crop.
-   native_cover=any(b['t']=='table' and d['page_map'][i][0]==0 and converter.visible([b]).replace(' ','')==name+'健康管理分級建議指引' for i,b in enumerate(d['blocks']))
+   cover_titles={name+suffix for suffix in ('健康管理分級建議指引','健康檢查指引')}
+   native_cover=any(b['t']=='table' and d['page_map'][i][0]==0 and converter.visible([b]).replace(' ','') in cover_titles for i,b in enumerate(d['blocks']))
    for i,block in enumerate(d['blocks']):
     if block['t']=='img' and d['page_map'][i][0]==0:
      d['blocks'][i]=dict(t='p',text='' if native_cover else name+'健康管理分級建議指引')
-    elif block['t']=='table' and d['page_map'][i][0]==0 and converter.visible([block]).replace(' ','')==name+'健康管理分級建議指引':
+    elif block['t']=='table' and d['page_map'][i][0]==0 and converter.visible([block]).replace(' ','') in cover_titles:
      d['blocks'][i]=dict(t='p',text=converter.visible([block]))
     d['blocks'][i]['pdf_page']=rng[0]+d['page_map'][i][0]
     d['blocks'][i]['pdf_last']=rng[0]+d['page_map'][i][1]

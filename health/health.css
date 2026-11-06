@@ -324,3 +324,8 @@ mark.hx-hl mark.hx-mark { background: transparent; box-shadow: 0 0 0 1px rgba(22
 @media(max-width:600px){.hx-bar{flex-wrap:wrap;row-gap:8px}.hx-bar .hx-select{flex:1 1 100px;min-width:80px}.hx-bar .sg-btn{flex-shrink:0}}
 
 #hx-doc .hx-body > .hx-p:first-child{padding-left:0!important;text-indent:0!important;text-align:center}
+
+/* Native stacked fractions retain selectable source text and chemical indices. */
+.hx-fraction {display:inline-flex;flex-direction:column;align-items:stretch;vertical-align:middle;text-align:center;line-height:1.45;white-space:nowrap;}
+.hx-fraction > span:first-child {border-bottom:1px solid currentColor;padding:0 .25em .1em;}
+.hx-fraction > span:last-child {padding:.1em .25em 0;}
