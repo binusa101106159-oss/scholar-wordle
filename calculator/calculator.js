@@ -35,20 +35,79 @@
   const {year,month,days}=monthGrid(index),date=new Date(0);date.setUTCFullYear(year,month,1);
   return date.getTime()/86400000-days.indexOf(1);
  }
+ function dateKey(year,month,day){return year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');}
+ function followupDate(raw){
+  const text=String(raw||'').normalize('NFKC').trim();
+  const match=text.match(/^(民國\s*)?(\d{3,4})\s*(?:年|[./-])\s*(\d{1,2})\s*(?:月|[./-])\s*(\d{1,2})(?:日|號)?(.*)$/);
+  if(!match)return null;
+  let year=Number(match[2]);const month=Number(match[3]),day=Number(match[4]),rest=match[5];
+  if(/^\d/.test(rest)||/(?:取消|改|或|待定|未定|\d+[./-]\d+)/.test(rest))return null;
+  if(match[1]||match[2].length===3){if(year<1||year>999)return null;year+=1911;}
+  if(year<1900||year>9999)return null;
+  const date=new Date(Date.UTC(year,month-1,day));
+  return date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day?dateKey(year,month,day):null;
+ }
+ function dayInfo(key,data){
+  const [year,month,day]=key.split('-').map(Number),weekday=new Date(Date.UTC(year,month-1,day)).getUTCDay(),weekend=weekday===0||weekday===6;
+  const known=Boolean(data?.years.includes(year)),exception=known?data.dates[key]:null;
+  const off=exception?exception[0]:weekend;
+  return {known,off,makeup:known&&weekend&&!off,label:exception?.[1]||(off?'週末':'')};
+ }
  function mountCalendar(host){
   const KEY='scholar-calendar-v1', current=()=>{const d=new Date();return d.getFullYear()*12+d.getMonth();};
-  let visible=current(),frame=0,timer=0,pending=null;
+  let visible=current(),frame=0,timer=0,pending=null,holidays=null,holidayError=false,selected=null,appointments=new Map(),missingDates=0,caseError=false;
+  let identity=root.ScholarSync.status?.()?.user?.uid;
   const saved=()=>{try{const value=JSON.parse(root.ScholarStorage.getItem(KEY)||'{}')?.month;return Number.isInteger(value)&&value>=15&&value<=119984?value:current();}catch(_){return current();}};
-  host.insertAdjacentHTML('beforeend','<section class="cl-calendar" aria-labelledby="cl-calendar-title"><div class="cl-calendar-head"><h2 id="cl-calendar-title">月曆</h2><div><button type="button" data-month-shift="-1" aria-label="上一個月">‹</button><button type="button" id="cl-calendar-today">本月</button><button type="button" data-month-shift="1" aria-label="下一個月">›</button></div></div><div class="cl-calendar-week" aria-hidden="true">'+['日','一','二','三','四','五','六'].map(day=>'<span>'+day+'</span>').join('')+'</div><div id="cl-calendar-scroll" tabindex="0" role="region" aria-label="月曆，上下捲動瀏覽月份"></div></section>');
+  host.insertAdjacentHTML('beforeend','<section class="cl-calendar" aria-labelledby="cl-calendar-title"><div class="cl-calendar-head"><h2 id="cl-calendar-title">月曆</h2><div><button type="button" data-month-shift="-1" aria-label="上一個月">‹</button><button type="button" id="cl-calendar-today">本月</button><button type="button" data-month-shift="1" aria-label="下一個月">›</button></div></div><div class="cl-calendar-week" aria-hidden="true">'+['日','一','二','三','四','五','六'].map(day=>'<span>'+day+'</span>').join('')+'</div><div id="cl-calendar-scroll" tabindex="0" role="region" aria-label="月曆，上下捲動瀏覽月份"></div><div class="cl-calendar-meta"><a href="https://data.gov.tw/dataset/14718" target="_blank" rel="noopener noreferrer" id="cl-calendar-source">假日資料載入中…</a><span>藍點：回診</span></div><p id="cl-calendar-warning" hidden></p><section id="cl-calendar-details" class="cl-calendar-details" aria-live="polite" hidden><div><strong id="cl-calendar-detail-date"></strong><button type="button" id="cl-calendar-close" aria-label="關閉日期詳情">×</button></div><p id="cl-calendar-detail-holiday"></p><ul id="cl-calendar-patients"></ul><p id="cl-calendar-detail-status" role="status"></p><a href="#cases">個案追蹤</a></section></section>');
   const viewport=host.querySelector('#cl-calendar-scroll'),card=host.querySelector('.cl-calendar');
   function refresh(){
    if(viewport.clientHeight)card.style.setProperty('--calendar-gutter',(viewport.offsetWidth-viewport.clientWidth)+'px');
    if(pending!==null&&viewport.clientHeight){const found=[...viewport.children].find(el=>Number(el.dataset.start)===monthWeek(pending));if(found)viewport.scrollTop=found.offsetTop;pending=null;}
-   const d=new Date(),today=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+   const d=new Date(),today=dateKey(d.getFullYear(),d.getMonth()+1,d.getDate());
    viewport.querySelectorAll('[data-date]').forEach(el=>{
-    const match=el.dataset.date===today;el.classList.toggle('is-today',match);
+    const key=el.dataset.date,match=key===today,info=dayInfo(key,holidays),patients=appointments.get(key)||[];
+    el.classList.toggle('is-today',match);el.classList.toggle('is-holiday',info.known&&info.off);el.classList.toggle('is-makeup',info.makeup);
+    el.classList.toggle('has-appointments',patients.length>0);
+    el.classList.toggle('is-selected',selected===key);el.setAttribute('aria-expanded',String(selected===key));
+    if(info.known)el.classList.toggle('is-weekend',info.off);
+    const label=key.replaceAll('-','/')+(info.label?' · '+info.label:'')+(patients.length?' · '+patients.length+'筆回診':'');
+    el.title=label;el.setAttribute('aria-label',label);
     if(match)el.setAttribute('aria-current','date');else el.removeAttribute('aria-current');
    });
+   const source=card.querySelector('#cl-calendar-source');source.textContent=holidays?'臺灣辦公日曆 '+holidays.years[0]+'–'+holidays.years[holidays.years.length-1]:holidayError?'假日資料暫無法載入':'假日資料載入中…';
+   source.title='行政院人事行政總處政府行政機關辦公日曆表';
+   const warning=card.querySelector('#cl-calendar-warning');warning.replaceChildren();
+   if(caseError)warning.textContent='無法讀取回診資料。';
+   else if(missingDates){const link=document.createElement('a');link.href='#cases';link.textContent=missingDates+'筆回診時間需確認完整日期';warning.append(link);}
+   warning.hidden=!warning.textContent;
+   renderDetails();
+  }
+  function readAppointments(){
+   appointments=new Map();missingDates=0;caseError=false;
+   if(!root.ScholarSync.status?.()?.user)return;
+   try{
+    const data=JSON.parse(root.ScholarStorage.getItem('scholar-cases-v1')||'{"version":1,"records":[]}');
+    if(data.version!==1||!Array.isArray(data.records))throw Error('Invalid cases');
+    for(const row of data.records){
+     if(!row.followup?.trim())continue;
+     const key=followupDate(row.followup);if(!key){missingDates++;continue;}
+     if(!appointments.has(key))appointments.set(key,[]);appointments.get(key).push(row);
+    }
+   }catch(_){appointments.clear();caseError=true;}
+  }
+  function renderDetails(){
+   const details=card.querySelector('#cl-calendar-details');details.hidden=!selected;if(!selected)return;
+   const patients=root.ScholarSync.status?.()?.user?(appointments.get(selected)||[]):[],info=dayInfo(selected,holidays);
+   card.querySelector('#cl-calendar-detail-date').textContent=selected.replaceAll('-','/');
+   card.querySelector('#cl-calendar-detail-holiday').textContent=!holidays?(holidayError?'假日資料暫無法載入':'假日資料載入中…'):info.known?(info.label||'上班日'):info.label?info.label+' · 此年份尚無官方假日資料':'此年份尚無官方假日資料';
+   const list=card.querySelector('#cl-calendar-patients');list.replaceChildren();
+   for(const row of patients){
+    const li=document.createElement('li'),name=document.createElement('strong'),time=document.createElement('span');
+    name.textContent=row.name||'未填姓名';li.append(name);
+    if(row.mrn){const copy=document.createElement('button');copy.type='button';copy.className='cl-calendar-mrn';copy.dataset.mrn=row.mrn;copy.textContent=row.mrn;copy.title='複製病歷號';li.append(copy);}
+    time.textContent=(row.vs?'VS '+row.vs+' · ':'')+row.followup;li.append(time);list.append(li);
+   }
+   if(!patients.length){const li=document.createElement('li');li.textContent=caseError?'回診資料暫無法讀取。':root.ScholarSync.status?.()?.user?'當天沒有已標示的回診個案。':'登入後可查看回診個案。';list.append(li);}
   }
   function week(start){
    const dates=weekDates(start),first=dates.find(date=>date.day===1),context=first||dates[0];
@@ -58,8 +117,8 @@
    el.append(label);
    const grid=document.createElement('div');grid.className='cl-calendar-days';
    dates.forEach((date,i)=>{
-    const cell=document.createElement('span');cell.className=i===0||i===6?'is-weekend':'';
-    cell.textContent=date.day;cell.dataset.date=date.year+'-'+(date.month+1)+'-'+date.day;
+    const cell=document.createElement('button');cell.type='button';cell.className=i===0||i===6?'is-weekend':'';cell.setAttribute('aria-controls','cl-calendar-details');
+    cell.textContent=date.day;cell.dataset.date=dateKey(date.year,date.month+1,date.day);
     cell.setAttribute('aria-label',date.year+'年'+(date.month+1)+'月'+date.day+'日');
     if(date.day===1)cell.classList.add('is-month-start');
     grid.append(cell);
@@ -102,8 +161,11 @@
     persist();
    });
   },{passive:true});
-  card.addEventListener('click',event=>{
+  card.addEventListener('click',async event=>{
    const button=event.target.closest('button');if(!button)return;
+   if(button.dataset.date){selected=selected===button.dataset.date?null:button.dataset.date;card.querySelector('#cl-calendar-detail-status').textContent='';refresh();return;}
+   if(button.id==='cl-calendar-close'){selected=null;refresh();return;}
+   if(button.dataset.mrn){try{await navigator.clipboard.writeText(button.dataset.mrn);card.querySelector('#cl-calendar-detail-status').textContent='病歷號已複製。';}catch(_){card.querySelector('#cl-calendar-detail-status').textContent='無法複製，請允許剪貼簿存取後再試。';}return;}
    if(button.id==='cl-calendar-today')jump(current());
    else if(button.dataset.monthShift)jump(visible+Number(button.dataset.monthShift));
   });
@@ -113,10 +175,16 @@
     event.preventDefault();jump(event.key==='Home'?current():visible+(['ArrowLeft','PageUp'].includes(event.key)?-1:1));
    }
   });
-  root.ScholarSync.subscribe(key=>{if(key===KEY&&saved()!==visible){clearTimeout(timer);reset(saved());}});
-  reset(saved());return {refresh};
+  root.ScholarSync.subscribe(key=>{
+   if(key===KEY&&saved()!==visible){clearTimeout(timer);reset(saved());}
+   if(key==='scholar-cases-v1'){readAppointments();refresh();}
+  });
+  window.addEventListener('scholar-sync-status',()=>{const next=root.ScholarSync.status?.()?.user?.uid;if(next!==identity){identity=next;readAppointments();refresh();}});
+  readAppointments();reset(saved());
+  fetch('calculator/taiwan-calendar.json').then(response=>{if(!response.ok)throw Error('Calendar unavailable');return response.json();}).then(data=>{holidays=data;refresh();}).catch(()=>{holidayError=true;refresh();});
+  return {refresh(){readAppointments();refresh();}};
  }
- if(typeof module!=='undefined'&&module.exports)module.exports={calculate,monthGrid,weekDates,monthWeek};
+ if(typeof module!=='undefined'&&module.exports)module.exports={calculate,monthGrid,weekDates,monthWeek,followupDate,dayInfo};
  if(typeof document==='undefined')return;
  let ready=false,calendar;
  function show(){
