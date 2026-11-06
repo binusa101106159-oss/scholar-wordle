@@ -3,7 +3,7 @@
   'use strict';
   const STORE = 'scholar-cases-v1';
   const fields = [
-    ['name', '姓名'], ['mrn', '病歷號'], ['date', '日期'], ['purpose', '目的'],
+    ['name', '姓名'], ['mrn', '病歷號'], ['vs', 'VS'], ['purpose', '回診目的'],
     ['diagnosis', '診斷'], ['followup', '回診時間'], ['notes', '備註']
   ];
   function parseRecords(raw) {
@@ -13,15 +13,15 @@
     const ids = new Set();
     for (const row of data.records) {
       if (!row || typeof row.id !== 'string' || !row.id || ids.has(row.id) ||
-          fields.some(([key]) => typeof row[key] !== 'string')) throw new Error('Invalid record');
+          fields.some(([key]) => typeof row[key] !== 'string' && !(key === 'vs' && row[key] === undefined))) throw new Error('Invalid record');
       ids.add(row.id);
     }
-    return data.records;
+    return data.records.map(row => row.vs === undefined ? { ...row, vs: '' } : row);
   }
   function upsert(records, record) {
     if (!record.name.trim()) throw new Error('請填寫姓名。');
     const next = records.slice(), at = next.findIndex(row => row.id === record.id);
-    if (at < 0) next.unshift(record); else next[at] = record;
+    if (at < 0) next.unshift(record); else next[at] = { ...next[at], ...record };
     return next;
   }
   function filterRecords(records, query) {
@@ -36,10 +36,6 @@
   const by = id => document.getElementById(id);
   let booted = false, records = [], editing = null, editingBase = null, deleting = null, saving = false, readable = true;
   const read = () => parseRecords(window.ScholarStorage.getItem(STORE));
-  const today = () => {
-    const d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  };
   function announce(message, error = false) {
     by('ct-status').textContent = message;
     by('ct-status').classList.toggle('ct-error', error);
@@ -73,7 +69,12 @@
       for (const [key, label] of fields) {
         const td = document.createElement('td');
         td.dataset.label = label; td.className = 'ct-' + key;
-        td.textContent = row[key] || '—'; tr.append(td);
+        if (key === 'mrn' && row[key]) {
+          const copy = document.createElement('button');
+          copy.type = 'button'; copy.className = 'ct-copy-mrn'; copy.dataset.action = 'copy-mrn'; copy.dataset.id = row.id;
+          copy.textContent = row[key]; copy.title = '點擊複製病歷號'; copy.setAttribute('aria-label', '複製病歷號 ' + row[key]); td.append(copy);
+        } else td.textContent = row[key] || '—';
+        tr.append(td);
       }
       const actions = document.createElement('td'); actions.className = 'ct-actions'; actions.dataset.label = '操作';
       for (const [action, label] of [['edit', '編輯'], ['delete', '刪除']]) {
@@ -92,7 +93,7 @@
     editing = id;
     editingBase = row ? structuredClone(row) : null;
     by('ct-form').reset(); by('ct-form-error').textContent = '';
-    for (const [key] of fields) by('ct-' + key).value = row ? row[key] : key === 'date' ? today() : '';
+    for (const [key] of fields) by('ct-' + key).value = row ? row[key] : '';
     by('ct-editor-title').textContent = row ? '編輯個案' : '新增個案';
     window.ScholarPeek.open(by('ct-editor'));
     by('ct-name').focus({ preventScroll: true });
@@ -109,7 +110,7 @@
       <div class="ct-shell">
         <header class="ct-head"><div><h1>個案追蹤</h1><p>登入後儲存至私人雲端，其他裝置使用同一帳號即可接續。儲存成功前請勿關閉此頁。</p></div>
           <button class="sg-btn sg-primary" id="ct-add" type="button">＋ 新增個案</button></header>
-        <div class="ct-tools"><input id="ct-search" type="search" aria-label="搜尋個案" placeholder="搜尋姓名、病歷號、目的、診斷或備註" autocomplete="off"><span id="ct-count"></span></div>
+        <div class="ct-tools"><input id="ct-search" type="search" aria-label="搜尋個案" placeholder="搜尋姓名、病歷號、VS、回診目的、診斷或備註" autocomplete="off"><span id="ct-count"></span></div>
         <p id="ct-status" class="ct-status" role="status" aria-live="polite"></p>
         <p id="ct-empty" class="ct-empty"></p>
         <div class="ct-table-wrap" id="ct-table-wrap" hidden><table class="ct-table"><caption class="ct-sr">個案追蹤清單</caption><thead><tr>
@@ -121,9 +122,9 @@
         <form id="ct-form" autocomplete="off"><div class="ct-fields">
           <label>姓名 <span class="ct-required">*</span><input id="ct-name" name="name" required maxlength="120" autocomplete="off"></label>
           <label>病歷號<input id="ct-mrn" name="mrn" maxlength="80" autocomplete="off" spellcheck="false"></label>
-          <label>日期<input id="ct-date" name="date" type="date"></label>
+          <label>VS<input id="ct-vs" name="vs" maxlength="120" autocomplete="off"></label>
           <label>回診時間<input id="ct-followup" name="followup" placeholder="例如 2026/11/18 上午" maxlength="120" autocomplete="off"></label>
-          <label class="ct-full">目的<input id="ct-purpose" name="purpose" maxlength="500" autocomplete="off"></label>
+          <label class="ct-full">回診目的<input id="ct-purpose" name="purpose" maxlength="500" autocomplete="off"></label>
           <label class="ct-full">診斷<textarea id="ct-diagnosis" name="diagnosis" rows="2" maxlength="4000"></textarea></label>
           <label class="ct-full">備註<textarea id="ct-notes" name="notes" rows="3" maxlength="8000"></textarea></label>
         </div><p id="ct-form-error" class="ct-error" role="alert"></p>
@@ -135,9 +136,14 @@
     by('ct-search').addEventListener('input', render);
     by('ct-editor-close').addEventListener('click', closeEditor); by('ct-cancel').addEventListener('click', closeEditor);
     by('ct-editor').addEventListener('close', () => { by('ct-form').reset(); editing = null; });
-    by('ct-rows').addEventListener('click', event => {
+    by('ct-rows').addEventListener('click', async event => {
       const button = event.target.closest('[data-action]'); if (!button || !readable) return;
-      if (button.dataset.action === 'edit') edit(button.dataset.id);
+      if (button.dataset.action === 'copy-mrn') {
+        const row = records.find(item => item.id === button.dataset.id);
+        if (!row?.mrn) return;
+        try { await navigator.clipboard.writeText(row.mrn); announce('病歷號已複製。'); }
+        catch (_) { announce('無法複製病歷號，請允許剪貼簿存取後再試。', true); }
+      } else if (button.dataset.action === 'edit') edit(button.dataset.id);
       else {
         deleting = button.dataset.id; by('ct-delete-error').textContent = '';
         const row = records.find(item => item.id === deleting);
@@ -174,7 +180,7 @@
     });
     window.addEventListener('storage', event => { if (event.key === STORE || event.key === null) refresh(); });
     window.addEventListener('beforeunload', event => {
-      if (by('ct-editor').open && fields.some(([key])=>by('ct-'+key).value.trim() !== (editingBase?.[key] || (key === 'date' ? today() : '')))) {
+      if (by('ct-editor').open && fields.some(([key])=>by('ct-'+key).value.trim() !== (editingBase?.[key] || ''))) {
         event.preventDefault();event.returnValue='';
       }
     });
