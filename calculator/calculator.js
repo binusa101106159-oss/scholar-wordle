@@ -21,11 +21,94 @@
   const result=sum();if(at!==text.length)throw Error('請檢查算式。');
   return Number(result.toPrecision(15)).toString();
  }
- if(typeof module!=='undefined'&&module.exports)module.exports={calculate};
+ // UTC arithmetic keeps calendar dates stable across daylight-saving changes.
+ function monthGrid(index){
+  if(!Number.isInteger(index)||index<12||index>119987)throw Error('月份超出範圍。');
+  const year=Math.floor(index/12),month=index%12,first=new Date(0),last=new Date(0);
+  first.setUTCFullYear(year,month,1);last.setUTCFullYear(year,month+1,0);
+  return {year,month,days:Array.from({length:42},(_,i)=>{const day=i-first.getUTCDay()+1;return day>0&&day<=last.getUTCDate()?day:null;})};
+ }
+ function mountCalendar(host){
+  const KEY='scholar-calendar-v1', current=()=>{const d=new Date();return d.getFullYear()*12+d.getMonth();};
+  let visible=current(),frame=0,timer=0,pending=null;
+  const saved=()=>{try{const value=JSON.parse(root.ScholarStorage.getItem(KEY)||'{}')?.month;return Number.isInteger(value)&&value>=15&&value<=119984?value:current();}catch(_){return current();}};
+  host.insertAdjacentHTML('beforeend','<section class="cl-calendar" aria-labelledby="cl-calendar-title"><div class="cl-calendar-head"><h2 id="cl-calendar-title">月曆</h2><div><button type="button" data-month-shift="-1" aria-label="上一個月">‹</button><button type="button" id="cl-calendar-today">本月</button><button type="button" data-month-shift="1" aria-label="下一個月">›</button></div></div><div class="cl-calendar-week" aria-hidden="true">'+['日','一','二','三','四','五','六'].map(day=>'<span>'+day+'</span>').join('')+'</div><div id="cl-calendar-scroll" tabindex="0" role="region" aria-label="月曆，上下捲動瀏覽月份"></div></section>');
+  const viewport=host.querySelector('#cl-calendar-scroll'),card=host.querySelector('.cl-calendar');
+  function refresh(){
+   if(pending!==null&&viewport.clientHeight){const found=[...viewport.children].find(el=>Number(el.dataset.month)===pending);if(found)viewport.scrollTop=found.offsetTop;pending=null;}
+   const d=new Date(),today=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+   viewport.querySelectorAll('[data-date]').forEach(el=>{
+    const match=el.dataset.date===today;el.classList.toggle('is-today',match);
+    if(match)el.setAttribute('aria-current','date');else el.removeAttribute('aria-current');
+   });
+  }
+  function month(index){
+   const data=monthGrid(index),el=document.createElement('section');el.className='cl-calendar-month';el.dataset.month=index;
+   el.setAttribute('aria-label',data.year+'年'+(data.month+1)+'月');
+   const title=document.createElement('h3');title.textContent=data.year+'年 '+(data.month+1)+'月';el.append(title);
+   const grid=document.createElement('div');grid.className='cl-calendar-days';
+   data.days.forEach((day,i)=>{
+    const cell=document.createElement('span');cell.className=i%7===0||i%7===6?'is-weekend':'';
+    if(day){cell.textContent=day;cell.dataset.date=data.year+'-'+(data.month+1)+'-'+day;cell.setAttribute('aria-label',data.year+'年'+(data.month+1)+'月'+day+'日');}
+    else cell.setAttribute('aria-hidden','true');
+    grid.append(cell);
+   });el.append(grid);return el;
+  }
+  function reset(index){
+   if(index<15||index>119984)return;
+   viewport.replaceChildren(...Array.from({length:7},(_,i)=>month(index+i-3)));
+   visible=index;pending=index;refresh();
+  }
+  function persist(){
+   clearTimeout(timer);timer=setTimeout(()=>{
+    if(saved()!==visible)root.ScholarStorage.setItem(KEY,JSON.stringify({month:visible}));
+   },300);
+  }
+  function jump(index){
+   clearTimeout(timer);cancelAnimationFrame(frame);
+   const found=[...viewport.children].find(el=>Number(el.dataset.month)===index);
+   if(found)viewport.scrollTo({top:found.offsetTop,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+   else reset(index);
+   visible=index;persist();
+  }
+  viewport.addEventListener('scroll',()=>{
+   cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{
+    if(!viewport.clientHeight){pending=visible;return;}
+    const children=[...viewport.children];
+    const active=children.find(el=>el.offsetTop+el.offsetHeight>viewport.scrollTop+50)||children[children.length-1];
+    visible=Number(active.dataset.month);
+    // Add months only at the edges and retain a bounded window of rendered months.
+    if(viewport.scrollTop<120&&Number(children[0].dataset.month)>15){
+     const anchor=children[0],top=anchor.offsetTop,index=Number(anchor.dataset.month);
+     viewport.prepend(...[3,2,1].map(n=>month(index-n)));viewport.scrollTop+=anchor.offsetTop-top;
+     while(viewport.children.length>13)viewport.lastElementChild.remove();refresh();
+    }else if(viewport.scrollHeight-viewport.scrollTop-viewport.clientHeight<120&&Number(children[children.length-1].dataset.month)<119984){
+     const index=Number(children[children.length-1].dataset.month);viewport.append(...[1,2,3].map(n=>month(index+n)));
+     if(viewport.children.length>13){const removed=children.slice(0,3).reduce((sum,el)=>sum+el.offsetHeight,0);for(let i=0;i<3;i++)viewport.firstElementChild.remove();viewport.scrollTop-=removed;}
+     refresh();
+    }
+    persist();
+   });
+  },{passive:true});
+  card.addEventListener('click',event=>{
+   const button=event.target.closest('button');if(!button)return;
+   if(button.id==='cl-calendar-today')jump(current());
+   else if(button.dataset.monthShift)jump(visible+Number(button.dataset.monthShift));
+  });
+  viewport.addEventListener('keydown',event=>{
+   if(event.target!==viewport)return;
+   if(['ArrowLeft','ArrowRight','PageUp','PageDown','Home'].includes(event.key)){
+    event.preventDefault();jump(event.key==='Home'?current():visible+(['ArrowLeft','PageUp'].includes(event.key)?-1:1));
+   }
+  });
+  root.ScholarSync.subscribe(key=>{if(key===KEY&&saved()!==visible){clearTimeout(timer);reset(saved());}});
+  reset(saved());return {refresh};
+ }
+ if(typeof module!=='undefined'&&module.exports)module.exports={calculate,monthGrid};
  if(typeof document==='undefined')return;
- let ready=false;
+ let ready=false,calendar;
  function show(){
-  if(ready){root.ScholarQuickDASH?.mount();root.ScholarAAOS?.mount();root.ScholarCalifornia?.mount();root.ScholarOverload?.mount();return;}ready=true;
+  if(ready){calendar?.refresh();root.ScholarQuickDASH?.mount();root.ScholarAAOS?.mount();root.ScholarCalifornia?.mount();root.ScholarOverload?.mount();return;}ready=true;
   const panel=document.getElementById('calculator-panel');
   panel.innerHTML='<div class="cl-calculators"><div id="cl-basic"><section class="cl-card" aria-labelledby="cl-title"><div class="cl-heading"><h1 id="cl-title">計算機</h1><span>Calculator</span></div><div class="cl-display"><p id="cl-previous">基本運算</p><input id="cl-input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="0" maxlength="500" aria-label="算式" aria-describedby="cl-help"><p id="cl-status" role="status" aria-live="polite"></p></div><div class="cl-edit" role="group" aria-label="編輯算式"><button type="button" data-key="(">(</button><button type="button" data-key=")">)</button><button type="button" data-action="delete" aria-label="刪除一個字元">⌫</button><button type="button" id="cl-copy" disabled>複製結果</button></div><div class="cl-keys" role="group" aria-label="計算按鍵">'+[
    ['AC','clear','function','清除'],['±','sign','function','整個算式變號'],['%','%','function','百分比'],['÷','÷','operator','除'],
@@ -34,6 +117,7 @@
    ['1','1'],['2','2'],['3','3'],['+','+','operator','加'],
    ['0','0','zero'],['.','.'],['=','equals','equal','等於']
   ].map(([label,key,kind,aria])=>'<button type="button" class="cl-key '+(kind?'cl-'+kind:'')+'" '+(['clear','sign','equals'].includes(key)?'data-action':'data-key')+'="'+key+'"'+(aria?' aria-label="'+aria+'"':'')+'>'+label+'</button>').join('')+'</div><p id="cl-help">支援鍵盤輸入、括號與乘除優先。Enter 計算 · Esc 清除<br>% 表示除以100。</p></section></div><div id="cl-aaos"></div></div>';
+  calendar=mountCalendar(document.getElementById('cl-basic'));
   root.ScholarAAOS?.mount();
   const specialty=document.createElement('div');specialty.className='cl-specialty';
   const aaos=document.getElementById('cl-aaos');aaos.before(specialty);

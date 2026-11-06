@@ -8,7 +8,7 @@
   let resolveReady;
   const ready = new Promise(resolve => { resolveReady = resolve; });
   const allowed = key => /^(?:scholar[-_]|oxford_wordle_v1$|epi-pbl:)/.test(key) && !/(?:api.?key|token|secret|credential)/i.test(key);
-  const quiet = key => /^scholar-(?:navigation|laws|guides|health|ama|notes|review|ilo-views)-v1$/.test(key);
+  const quiet = key => /^scholar-(?:navigation|calendar|laws|guides|health|ama|notes|review|ilo-views)-v1$/.test(key);
   const status = () => ({user, phase, pending: queue.size + Number(confirming), background: !confirming && queue.size > 0 && [...queue.values()].every(op=>quiet(op.key)), error: failure});
   let previousStatus;
   const notify = () => {
