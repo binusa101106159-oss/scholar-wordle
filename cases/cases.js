@@ -113,10 +113,12 @@
     finally { sorting = false; render(); }
   }
   function setupReorder() {
-    const body = by('ct-rows');
+    const body = by('ct-rows'), reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    let landing = false;
+    const duration = () => reduced.matches ? 0 : 240;
     body.addEventListener('keydown', event => {
       const grip = event.target.closest('.ct-grip');
-      if (!grip || !['ArrowUp','ArrowDown'].includes(event.key) || sorting) return;
+      if (!grip || !['ArrowUp','ArrowDown'].includes(event.key) || sorting || landing || drag) return;
       event.preventDefault();
       const shown = filterRecords(records, by('ct-search').value), at = shown.findIndex(row=>row.id===grip.dataset.id);
       const target = shown[at + (event.key === 'ArrowUp' ? -1 : 1)];
@@ -126,42 +128,88 @@
     });
     body.addEventListener('pointerdown', event => {
       const grip = event.target.closest('.ct-grip');
-      if (!grip || !readable || sorting || drag || event.button!==0) return;
+      if (!grip || !readable || sorting || landing || drag || event.button!==0) return;
+      event.preventDefault();
+      grip.focus({preventScroll:true});
       grip.setPointerCapture(event.pointerId);
-      drag = {grip, pointer:event.pointerId, id:grip.dataset.id, startY:event.clientY, x:event.clientX, y:event.clientY, active:false};
+      drag = {grip, pointer:event.pointerId, id:grip.dataset.id, startY:event.clientY, startX:event.clientX,
+        x:event.clientX, y:event.clientY, active:false, index:-1};
     });
-    function preview() {
-      if (!drag?.active) return;
-      const rows = [...body.querySelectorAll('tr')];
-      const target = rows.find(row=>{const r=row.getBoundingClientRect();return drag.y>=r.top&&drag.y<=r.bottom;});
-      body.querySelectorAll('.ct-drop-before,.ct-drop-after').forEach(row=>row.classList.remove('ct-drop-before','ct-drop-after'));
-      if (target && target.dataset.id!==drag.id) {
-        drag.target = target.dataset.id; drag.after = drag.y > target.getBoundingClientRect().top + target.getBoundingClientRect().height/2;
-        target.classList.add(drag.after ? 'ct-drop-after' : 'ct-drop-before');
-      } else drag.target = null;
+    function lift() {
+      const d=drag, row=d.grip.closest('tr'), rect=row.getBoundingClientRect();
+      d.rows=[...body.rows].map(el=>{const r=el.getBoundingClientRect();return {el,id:el.dataset.id,top:r.top+scrollY,height:r.height};});
+      d.source=d.rows.find(item=>item.id===d.id); d.offset=d.startY-rect.top;
+      d.gap=d.rows.length>1 ? Math.max(0,d.rows[1].top-d.rows[0].top-d.rows[0].height) : 0;
+      const ghost=document.createElement('div'); ghost.className='ct-drag-preview'; ghost.setAttribute('aria-hidden','true'); ghost.inert=true;
+      const left=Math.max(8,rect.left), width=Math.min(rect.width,innerWidth-left-8);
+      Object.assign(ghost.style,{left:left+'px',top:'0',width:width+'px',height:rect.height+'px'});
+      const table=document.createElement('table'); table.className='ct-table'; table.style.width=rect.width+'px'; table.style.minWidth=rect.width+'px';
+      const clone=row.cloneNode(true); clone.removeAttribute('data-id');
+      clone.querySelectorAll('[data-id]').forEach(el=>el.removeAttribute('data-id'));
+      if (innerWidth>900) {
+        table.style.tableLayout='fixed';
+        const cols=document.createElement('colgroup');
+        [...row.cells].forEach(cell=>{const col=document.createElement('col');col.style.width=cell.getBoundingClientRect().width+'px';cols.append(col);}); table.append(cols);
+      }
+      const tbody=document.createElement('tbody');tbody.append(clone);table.append(tbody);ghost.append(table);document.body.append(ghost);
+      d.ghost=ghost; d.active=true; row.classList.add('ct-dragging'); body.classList.add('ct-reordering');
+      ghost.animate([{opacity:.4},{opacity:1}],{duration:reduced.matches?0:140});
+      preview(); d.frame=requestAnimationFrame(tick);
     }
-    function scroll() {
+    function preview() {
+      const d=drag, others=d.rows.filter(row=>row.id!==d.id);
+      const index=others.filter(row=>d.y+scrollY>row.top+row.height/2).length;
+      d.ghost.style.transform='translate3d('+((d.x-d.startX)*.06)+'px,'+(d.y-d.offset)+'px,0) scale(1.012)';
+      if (index===d.index) return;
+      d.index=index;
+      const ordered=others.slice();ordered.splice(index,0,d.source);
+      let top=d.rows[0].top;
+      for (const row of ordered) {
+        if (row===d.source) d.dropTop=top;
+        else row.el.style.transform='translate3d(0,'+(top-row.top)+'px,0)';
+        top+=row.height+d.gap;
+      }
+      d.target=others[index]?.id || others[others.length-1]?.id; d.after=index===others.length;
+    }
+    function tick() {
       if (!drag?.active) return;
-      const speed = drag.y < 75 ? -12 : drag.y > innerHeight-75 ? 12 : 0;
-      if (speed) { window.scrollBy(0,speed); preview(); }
-      drag.frame = requestAnimationFrame(scroll);
+      const edge=75, distance=drag.y<edge ? drag.y-edge : drag.y>innerHeight-edge ? drag.y-(innerHeight-edge) : 0;
+      const now=performance.now(), dt=drag.lastTime?Math.min(32,now-drag.lastTime):16;drag.lastTime=now;
+      if (distance) window.scrollBy(0,Math.sign(distance)*Math.min(14,Math.abs(distance)*.2)*dt/16);
+      preview(); drag.frame=requestAnimationFrame(tick);
     }
     body.addEventListener('pointermove', event => {
       if (!drag || event.pointerId!==drag.pointer) return;
-      drag.y=event.clientY;
-      if (!drag.active && Math.abs(drag.y-drag.startY)>5) {
-        drag.active=true; drag.grip.closest('tr').classList.add('ct-dragging'); drag.frame=requestAnimationFrame(scroll);
-      }
-      preview();
+      drag.y=event.clientY; drag.x=event.clientX;
+      if (!drag.active && Math.abs(drag.y-drag.startY)>5) lift();
     });
-    function end(event) {
+    async function end(event) {
       if (!drag || event.pointerId!==drag.pointer) return;
+      if (drag.active) preview();
       const done=drag; drag=null; cancelAnimationFrame(done.frame);
-      body.querySelectorAll('.ct-dragging,.ct-drop-before,.ct-drop-after').forEach(row=>row.classList.remove('ct-dragging','ct-drop-before','ct-drop-after'));
       if (done.grip.hasPointerCapture(done.pointer)) done.grip.releasePointerCapture(done.pointer);
-      if (event.type==='pointerup' && done.active && done.target) saveOrder(done.id,done.target,done.after);
+      if (!done.active) return;
+      landing=true;
+      const dropped=event.type==='pointerup' && done.target;
+      const top=(dropped?done.dropTop:done.source.top)-scrollY;
+      if (!dropped) done.rows.forEach(row=>row.el.style.transform='');
+      const animation=done.ghost.animate([
+        {transform:done.ghost.style.transform,opacity:1},
+        {transform:'translate3d(0,'+top+'px,0) scale(1)',opacity:1}
+      ],{duration:duration(),easing:'cubic-bezier(.22,.8,.25,1)',fill:'forwards'});
+      try { await animation.finished; } catch (_) { /* Interrupted animation still cleans up. */ }
+      done.ghost.remove(); body.classList.remove('ct-reordering');
+      done.rows.forEach(row=>{row.el.classList.remove('ct-dragging');row.el.style.transform='';});
+      if (dropped) {
+        // Keep the landed arrangement visible while the server confirms the save.
+        records=moveRecord(records,done.id,done.target,done.after);render();
+        await saveOrder(done.id,done.target,done.after);
+      }
+      landing=false;
     }
-    body.addEventListener('pointerup',end); body.addEventListener('pointercancel',end); body.addEventListener('lostpointercapture',end);
+    body.addEventListener('pointerup',end);body.addEventListener('pointercancel',end);body.addEventListener('lostpointercapture',end);
+    window.addEventListener('blur',()=>{if(drag)end({type:'pointercancel',pointerId:drag.pointer});});
+    window.addEventListener('keydown',event=>{if(event.key==='Escape'&&drag){event.preventDefault();end({type:'pointercancel',pointerId:drag.pointer});}});
   }
   function edit(id = null) {
     if (!readable) return;
