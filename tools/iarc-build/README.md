@@ -1,12 +1,11 @@
-# IARC supplied-PDF import
+# IARC official classification snapshot
 
-Run `python tools/iarc-build/build.py --src /path/to/IARC` with PyMuPDF installed.
-Input files are IARC_group_1.pdf, IARC_group_2A.pdf, IARC_group_2B.pdf and IARC_group_3.pdf.
+The website now uses the dataset embedded in the official classification application:
+https://webapi.iarc.who.int/loc/loc.app.js
+linked directly by https://monographs.iarc.who.int/list-of-classifications/ .
 
-These are the user's Wikipedia-print PDF snapshots, not a current official IARC dataset. The importer preserves each PDF's grouping, spelling, duplicates, reference markers and original page text. It does not correct or merge conflicting classifications. The application links to the official classifications page separately.
+Official update: 2026-07-23 14:08 (CET), volumes through 142.
+All raw official records and metadata are retained in iarc/data.json under official.
+Every displayed entry uses its official group and CAS values. Records without one of the four requested group values remain in the raw data; no group is inferred for cross-reference records. HTML formatting tags in agent names are decoded to native text only.
 
-Square path markers identify list entries independently of text extraction. Continuations and nested lists retain their source hierarchy. All non-whitespace characters in the agent sections must match the reconstructed entries in order. An independent marker scan checks that no entry was skipped. Full text for every page, including introduction, notes, references and external links, is retained for the native source dialog. No PDFs or screenshots are shipped.
-
-Current import: 35 pages; Group 1:132, 2A:96, 2B:322, 3:499 list entries. Six nested entries in Group 3 are retained under their original parent. Printed oddities such as Aralditeâ, sulfde, Perfuorooctanesulfonic, Merphalan, Medphalan and CI DIrect Blue 218 remain unchanged. See report.json and data.json source SHA256 values for validation.
-
-The main IARC tab is immediately left of 職專. Search and group filtering operate on a prebuilt normalized index. Rendering starts with 60 rows and loads further rows on demand; there are no result-count summaries. Source dialogs show native text from the cited PDF page. A source query never changes a PDF classification.
+The older build.py/report.json describe the superseded PDF import and must not be used to update the live dataset. Original PDFs are historical inputs only. The current UI has two columns (classification and agent), with CAS search; the source column, page buttons and PDF source viewer have been removed.
