@@ -1,0 +1,45 @@
+# 行事曆與其家班表
+
+自 2026-11 起，來源為「每日人力配置」試算表：
+https://docs.google.com/spreadsheets/d/1h9E8meiqYRY_9Ux03lE2J6FDCuOH4zE7cqDEb2aL_M8/edit
+
+`calendar/roster.json` 只含其家的事件，不含其他同事班表。
+姓名須為獨立名單項目「其家」；事件名稱含「門診」者排除。
+法鑑即使位於原表的門診區塊仍保留。照會列的人名在日期欄本身。
+AM/PM 保留原時段，不推定鐘點；原文明列時間才填入開始／結束時間。
+跨月週只收指定月份的日期。明確的月份職務（如法鑑）以整月範圍表示，
+待排業務摘要不假造日期、不與已排入每日格的事件重複。
+暫定分頁的全部事件保留 `provisional: true`。
+
+## 每月更新
+
+排程於 Asia/Taipei 每月最後一天 18:00 讀取下月分頁。
+用 Google Drive/Sheets 連接器先取得 metadata，再讀取該分頁的有限範圍，
+涵蓋全部五／六週以及月份職務。若下月尚無分頁，保留資料並回報缺少班表。
+不要假設下月日期、承接舊月事件或自行更動來源表。
+
+將連接器結果暫存於儲存庫外的 `work/`：
+
+```json
+[{"month":"2026-11","sheet":"202611","provisional":false,"values":[["日期",null,"11/2"],["照會",null,"其家"]]}]
+```
+
+```sh
+python3 tools/calendar-build/import_roster.py ../work/roster.json
+python3 -m unittest discover -s tests -p 'test_calendar_roster.py'
+node --test tests/calendar.test.cjs
+```
+
+只替換輸入月份的來源事件，保留其他月份。相同事件的 ID 穩定，重複執行不新增副本。
+更新後核對原始格位、人名、日期、來源時段、排除門診以及暫定標示。
+原始班表不得提交到 Git。發布仍遵守使用者當次授權，不自動發布。
+
+## 個人事件
+
+`#calendar` 支援日期、結束日期、起迄時間、未定時段、備註，以及新增、編輯與刪除。
+延用現有登入帳號與 `ScholarStorage.setConfirmed`，資料 key 為
+`scholar-calendar-events-v1`，每個事件一個物件欄位，讓既有同步機制逐事件處理。
+未登入仍可閱讀來源班表；寫入須登入。確認雲端寫入成功後才關閉表單；失敗保留草稿。
+個人事件不寫入來源 JSON，也不隨網站部署公開。
+編輯來源事件建立個人覆寫；刪除建立個人隱藏標記，來源更新不清除這些個人設定。
+來源已撤銷的事件不因舊覆寫而重現。
