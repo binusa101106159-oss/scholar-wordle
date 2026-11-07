@@ -21,12 +21,43 @@
     return [...result.values()].sort((a,b) => a.date.localeCompare(b.date) || (a.startTime || (a.period === 'PM' ? '13:00' : '')).localeCompare(b.startTime || (b.period === 'PM' ? '13:00' : '')) || a.title.localeCompare(b.title));
   }
   const covers = (event, date) => event.date <= date && event.endDate >= date;
-  if (typeof module === 'object' && module.exports) module.exports = {validate, combine, covers};
+  function dayParts(event, date) {
+    if (!event.startTime) return ['AM', 'PM'].includes(event.period) ? [event.period] : [];
+    const start = date === event.date ? event.startTime : '00:00';
+    const end = date === event.endDate ? event.endTime || (event.date === event.endDate ? start : '23:59') : '23:59';
+    return [start < '12:00' ? 'AM' : null, end > '12:00' || start >= '12:00' ? 'PM' : null].filter(Boolean);
+  }
+  if (typeof module === 'object' && module.exports) module.exports = {validate, combine, covers, dayParts};
   if (typeof document === 'undefined') return;
   const by = id => document.getElementById(id);
   const localDate = () => { const now = new Date(); return [now.getFullYear(), String(now.getMonth()+1).padStart(2,'0'), String(now.getDate()).padStart(2,'0')].join('-'); };
   let feed = null, loading = null, mounted = false, selected = localDate() < FIRST + '-01' ? FIRST + '-01' : localDate();
   let month = selected.slice(0,7), editing = null, saving = false, readable = true;
+  let holidays = null, holidayLoading = null, holidayError = false;
+  function readAppointments() {
+    const result = {dates: new Map(), missing: 0, error: false};
+    if (!window.ScholarSync.status().user) return result;
+    try {
+      const data = JSON.parse(window.ScholarStorage.getItem('scholar-cases-v1') || '{"version":1,"records":[]}');
+      if (data.version !== 1 || !Array.isArray(data.records)) throw Error('Invalid cases');
+      for (const row of data.records) {
+        if (!row.followup?.trim()) continue;
+        const date = window.ScholarCalculator.followupDate(row.followup);
+        if (!date) { result.missing++; continue; }
+        if (!result.dates.has(date)) result.dates.set(date, []);
+        result.dates.get(date).push(row);
+      }
+    } catch (_) { result.dates.clear(); result.error = true; }
+    return result;
+  }
+  function loadHolidays() {
+    if (holidays || holidayLoading) return;
+    holidayLoading = fetch('calculator/taiwan-calendar.json').then(response => {
+      if (!response.ok) throw Error('Holiday data unavailable'); return response.json();
+    }).then(data => { holidays = data; holidayError = false; render(); }).catch(() => {
+      holidayError = true; render();
+    }).finally(() => { holidayLoading = null; });
+  }
   function read() {
     const raw = window.ScholarStorage.getItem(KEY), data = raw === null ? {} : JSON.parse(raw);
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw Error('無法讀取事件。原資料已保留，暫停儲存。');
@@ -39,7 +70,7 @@
   function events() { return combine(feed?.events || [], read()); }
   function say(message) { by('cal-status').textContent = message; }
   function timing(event) {
-    return event.startTime ? event.startTime + (event.endTime ? '–' + event.endTime : '') : event.period === 'AM' ? '上午（時間未定）' : event.period === 'PM' ? '下午（時間未定）' : '全天／時間未指定';
+    return event.startTime ? event.startTime + (event.endTime ? '–' + event.endTime : '') : event.period ? '時間未定' : '全天／時間未指定';
   }
   function element(tag, text, className) {
     const node = document.createElement(tag); node.textContent = text;
@@ -59,6 +90,14 @@
     catch (error) { readable = false; say(error.message); all = feed?.events || []; }
     by('cal-month').value = month; by('cal-prev').disabled = month === FIRST;
     by('cal-add').disabled = !readable;
+    const appointments = readAppointments();
+    const warning = by('cal-cases-warning'); warning.replaceChildren();
+    if (appointments.error) warning.textContent = '無法讀取回診資料，原有個案資料仍保留。';
+    else if (appointments.missing) {
+      const link = element('a', appointments.missing + ' 筆回診時間需確認完整日期'); link.href = '#cases'; warning.append(link);
+    }
+    warning.hidden = !warning.textContent;
+    by('cal-holiday-source').textContent = holidays ? `臺灣辦公日曆 ${holidays.years[0]}–${holidays.years.at(-1)}` : holidayError ? '假日資料暫無法載入' : '假日資料載入中…';
     const info = feed?.months?.[month];
     by('cal-source-state').textContent = info ? `其家 · ${info.provisional ? '暫定班表' : '班表'} · ${info.sheet} · 已排除門診` : '此月尚無匯入班表，可自行新增事件。';
     const [y,m] = month.split('-').map(Number), offset = new Date(y,m-1,1).getDay(), count = new Date(y,m,0).getDate();
@@ -66,15 +105,51 @@
     for (let blank=0;blank<offset;blank++) { const cell = element('div','', 'cal-blank'); cell.setAttribute('aria-hidden','true'); grid.append(cell); }
     for (let day=1;day<=count;day++) {
       const date = month + '-' + String(day).padStart(2,'0'), list = all.filter(event => covers(event,date));
+      const info = window.ScholarCalculator.dayInfo(date, holidays), patients = appointments.dates.get(date) || [];
       const button = element('button','', 'cal-day'); button.type = 'button'; button.dataset.date = date;
-      button.setAttribute('aria-label', `${date}，${list.length} 件事件`); button.setAttribute('aria-pressed', String(date === selected));
+      button.setAttribute('aria-label', `${date}，${list.length} 件事件` + (info.label ? '，' + info.label : '') + (patients.length ? `，${patients.length} 筆回診` : '')); button.setAttribute('aria-pressed', String(date === selected));
+      if (info.off) button.classList.add('cal-holiday');
+      if (info.makeup) button.classList.add('cal-makeup');
       if (date === localDate()) button.classList.add('cal-today');
-      button.append(element('span', String(day), 'cal-number'));
-      list.slice(0,2).forEach(event => button.append(element('span', (event.startTime || (event.period === 'AM' ? '上午' : event.period === 'PM' ? '下午' : '')) + ' ' + event.title, 'cal-preview')));
-      if (list.length > 2) button.append(element('span', '+' + (list.length-2), 'cal-more'));
+      if (list.some(event => event.title.trim() === '照會')) button.classList.add('cal-consult');
+      const heading = element('span', '', 'cal-day-heading');
+      heading.append(element('span', String(day), 'cal-number'));
+      if (patients.length) {
+        const dot = element('span', '', 'cal-appointment-dot'); dot.setAttribute('aria-hidden', 'true'); heading.append(dot);
+      }
+      if (info.makeup || (info.label && info.label !== '週末')) heading.append(element('span', info.makeup ? '補班' : info.label, 'cal-holiday-label'));
+      const allDay = list.filter(event => !dayParts(event, date).length);
+      if (allDay.length) heading.append(element('span', allDay.map(event => event.title).join(' · '), 'cal-all-day'));
+      button.append(heading);
+      for (const part of ['AM', 'PM']) {
+        const half = element('span', '', 'cal-half ' + (part === 'AM' ? 'cal-morning' : 'cal-afternoon'));
+        half.setAttribute('aria-label', part === 'AM' ? '上午' : '下午');
+        const entries = list.filter(event => dayParts(event, date).includes(part));
+        entries.slice(0, 2).forEach(event => half.append(element('span', (event.startTime ? event.startTime + ' ' : '') + event.title, 'cal-preview')));
+        if (entries.length > 2) half.append(element('span', '+' + (entries.length - 2), 'cal-more'));
+        button.append(half);
+      }
       button.onclick = () => { selected = date; render(); }; grid.append(button);
     }
     by('cal-selected').textContent = selected;
+    const selectedInfo = window.ScholarCalculator.dayInfo(selected, holidays);
+    by('cal-holiday').textContent = !holidays ? holidayError ? '假日資料暫無法載入' : '假日資料載入中…' : selectedInfo.known ? selectedInfo.label || '上班日' : (selectedInfo.label ? selectedInfo.label + ' · ' : '') + '此年份尚無官方假日資料';
+    const patientList = by('cal-patients'); patientList.replaceChildren();
+    const patients = appointments.dates.get(selected) || [];
+    for (const row of patients) {
+      const item = element('li', '', 'cal-patient');
+      item.append(element('strong', row.name || '未填姓名'));
+      if (row.mrn) {
+        const copy = element('button', row.mrn, 'cal-patient-mrn'); copy.type = 'button'; copy.title = '複製病歷號';
+        copy.onclick = async () => {
+          try { await navigator.clipboard.writeText(row.mrn); by('cal-patient-status').textContent = '已複製病歷號。'; }
+          catch (_) { by('cal-patient-status').textContent = '無法自動複製，請選取病歷號後複製。'; }
+        }; item.append(copy);
+      }
+      item.append(element('span', (row.vs ? 'VS ' + row.vs + ' · ' : '') + row.followup)); patientList.append(item);
+    }
+    if (!patients.length) patientList.append(element('li', appointments.error ? '回診資料暫無法讀取。' : window.ScholarSync.status().user ? '當天沒有已標示的回診個案。' : '登入後可查看回診個案。', 'cal-muted'));
+    by('cal-patient-status').textContent = '';
     const agenda = by('cal-agenda'); agenda.replaceChildren();
     const list = all.filter(event => covers(event,selected));
     if (!list.length) agenda.append(element('p', '當日尚無事件。', 'cal-muted'));
@@ -124,8 +199,8 @@
     by('calendar-panel').innerHTML = `
       <section class="cal-shell"><header class="cal-head"><div><h1>行事曆</h1><p>其家 · 2026 年 11 月起</p></div><button id="cal-add" class="sg-btn sg-primary" type="button">＋ 新增事件</button></header>
         <div class="cal-tools"><button id="cal-prev" class="sg-btn" type="button" aria-label="上個月">‹</button><label>月份 <input id="cal-month" type="month" min="2026-11"></label><button id="cal-next" class="sg-btn" type="button" aria-label="下個月">›</button><button id="cal-today" class="sg-btn" type="button">今天</button></div>
-        <p id="cal-source-state" class="cal-muted"></p><p class="cal-muted">班表未提供確切時間時保留上午／下午。個人新增與修改須登入後儲存。</p><p id="cal-status" role="status" aria-live="polite"></p>
-        <div class="cal-layout"><div class="cal-month-grid"><div class="cal-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div id="cal-days" class="cal-days" aria-label="選擇日期"></div></div><section class="cal-detail" aria-labelledby="cal-selected"><h2 id="cal-selected"></h2><div id="cal-agenda"></div></section></div>
+        <p id="cal-source-state" class="cal-muted"></p><p class="cal-muted">每日上半格為上午，下半格為下午；黃色表示照會。個人新增與修改須登入後儲存。</p><p class="cal-legend"><a id="cal-holiday-source" href="https://data.gov.tw/dataset/14718" target="_blank" rel="noopener noreferrer"></a><span>紅色：假日 · 藍點：病人回診</span></p><p id="cal-cases-warning" hidden></p><p id="cal-status" role="status" aria-live="polite"></p>
+        <div class="cal-layout"><div class="cal-month-grid"><div class="cal-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div id="cal-days" class="cal-days" aria-label="選擇日期"></div></div><section class="cal-detail" aria-labelledby="cal-selected"><h2 id="cal-selected"></h2><p id="cal-holiday" class="cal-muted"></p><section class="cal-patient-section" aria-labelledby="cal-patients-title"><h3 id="cal-patients-title">病人回診</h3><ul id="cal-patients"></ul><p id="cal-patient-status" role="status"></p><a href="#cases">個案追蹤</a></section><div id="cal-agenda"></div></section></div>
       </section>
       <dialog id="cal-dialog" class="cal-dialog" aria-labelledby="cal-editor-title"><form id="cal-form"><h2 id="cal-editor-title">新增事件</h2><div class="cal-fields">
         <label class="cal-full">事件名稱<input id="cal-title" required maxlength="250"></label>
@@ -142,11 +217,16 @@
     by('cal-delete').onclick = () => save(true);
     by('cal-cancel').onclick = () => { if (!saving) by('cal-dialog').close(); };
     by('cal-dialog').addEventListener('cancel', event => { if (saving) event.preventDefault(); });
-    window.ScholarSync.subscribe(key => { if (key === KEY) render(); });
+    window.ScholarSync.subscribe(key => { if (key === KEY || key === 'scholar-cases-v1') render(); });
+    let identity = window.ScholarSync.status().user?.uid;
+    window.addEventListener('scholar-sync-status', () => {
+      const next = window.ScholarSync.status().user?.uid;
+      if (next !== identity) { identity = next; render(); }
+    });
     mounted = true;
   }
   async function show() {
-    if (!mounted) mount(); render();
+    if (!mounted) mount(); render(); loadHolidays();
     if (feed) return;
     try {
       say('讀取班表…');

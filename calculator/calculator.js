@@ -226,5 +226,5 @@
   root.ScholarSync.subscribe(key=>{if(key==='scholar-calculator-v1')hydrate();});hydrate();
 
  }
- root.ScholarCalculator={show};
+ root.ScholarCalculator={show,followupDate,dayInfo};
 })(typeof window==='undefined'?globalThis:window);
