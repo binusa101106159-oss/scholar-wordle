@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const {fields,parseRecords,upsert,filterRecords,moveRecord}=require('../cases/cases.js');
-const row=(id,extra={})=>Object.assign(Object.fromEntries(fields.map(([key])=>[key,''])),{id,name:'測試個案',mrn:'00001234'},extra);
+const {fields,parseRecords,upsert,filterRecords,moveRecord,followupText}=require('../cases/cases.js');
+const row=(id,extra={})=>Object.assign(Object.fromEntries(fields.map(([key])=>[key,''])),{id,name:'測試個案',mrn:'00001234',followupPeriod:'AM'},extra);
 test('case records preserve the seven fields, leading zeroes and multiline notes',()=>{
   assert.deepEqual(fields.map(([,label])=>label),['姓名','病歷號','VS','回診目的','診斷','回診時間','備註']);
   const record=row('one',{date:'2026-11-04',purpose:'評估',diagnosis:'診斷一\n診斷二',followup:'11/18 上午',notes:'第一行\n第二行'});
@@ -52,4 +52,27 @@ test('case reorder preserves fields, supports both drop edges, and new cases sta
  assert.equal(moveRecord(rows,'missing','a'),rows);
  const added=upsert(moved,row('new'));assert.equal(added[0].sortOrder,-1);
  assert.equal(upsert(moved,row('c',{notes:'updated'}))[0].sortOrder,0);
+});
+
+test('new patients must explicitly select AM or PM while legacy patients remain editable',()=>{
+ const legacy=row('legacy');delete legacy.followupPeriod;
+ assert.deepEqual(parseRecords(JSON.stringify({version:1,records:[legacy]})),[legacy]);
+ assert.equal(Object.hasOwn(legacy,'followupPeriod'),false);
+ assert.throws(()=>upsert([],legacy),/請選擇回診時段/);
+ assert.throws(()=>upsert([],row('new',{followupPeriod:''})),/請選擇回診時段/);
+ assert.equal(upsert([legacy],{...legacy,notes:'edited'})[0].followupPeriod,undefined);
+ assert.equal(upsert([legacy],{...legacy,followupPeriod:'PM'})[0].followupPeriod,'PM');
+ for(const followupPeriod of ['morning',null,0,false]){
+  assert.throws(()=>parseRecords(JSON.stringify({version:1,records:[row('bad',{followupPeriod})]})));
+  assert.throws(()=>upsert([row('bad')],row('bad',{followupPeriod})));
+ }
+});
+test('case period display and search use the selected period without rewriting legacy date text',()=>{
+ const record=row('one',{followup:'2026/11/24 上午',followupPeriod:'PM'});
+ assert.equal(followupText(record),'2026/11/24 · 下午');
+ assert.equal(record.followup,'2026/11/24 上午');
+ assert.deepEqual(filterRecords([record],'PM'),[record]);
+ assert.deepEqual(filterRecords([record],'下午'),[record]);
+ const legacy={...record};delete legacy.followupPeriod;
+ assert.equal(followupText(legacy),legacy.followup);
 });

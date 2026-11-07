@@ -6,6 +6,13 @@
     ['name', '姓名'], ['mrn', '病歷號'], ['vs', 'VS'], ['purpose', '回診目的'],
     ['diagnosis', '診斷'], ['followup', '回診時間'], ['notes', '備註']
   ];
+  const recordFields = [...fields.map(([key]) => key), 'followupPeriod'];
+  const periodLabels = {AM: '上午', PM: '下午'};
+  function followupText(row) {
+    const text = row.followup || '', label = periodLabels[row.followupPeriod];
+    if (!label) return text;
+    return [text.replace(/上午|下午|\bAM\b|\bPM\b/gi, '').trim(), label].filter(Boolean).join(' · ');
+  }
   function parseRecords(raw) {
     if (raw === null) return [];
     const data = JSON.parse(raw);
@@ -14,6 +21,7 @@
     for (const row of data.records) {
       if (!row || typeof row.id !== 'string' || !row.id || ids.has(row.id) ||
           fields.some(([key]) => typeof row[key] !== 'string' && !(key === 'vs' && row[key] === undefined))) throw new Error('Invalid record');
+      if (row.followupPeriod !== undefined && !['', 'AM', 'PM'].includes(row.followupPeriod)) throw new Error('Invalid follow-up period');
       ids.add(row.id);
     }
     const rows = data.records.map(row => row.vs === undefined ? { ...row, vs: '' } : row);
@@ -22,6 +30,7 @@
   function upsert(records, record) {
     if (!record.name.trim()) throw new Error('請填寫姓名。');
     const next = records.slice(), at = next.findIndex(row => row.id === record.id);
+    if ((at < 0 || (record.followupPeriod !== undefined && record.followupPeriod !== '')) && !['AM', 'PM'].includes(record.followupPeriod)) throw new Error('請選擇回診時段：上午或下午。');
     if (at < 0) {
       const ordered = records.filter(row => Number.isFinite(row.sortOrder));
       next.unshift(ordered.length ? { ...record, sortOrder: Math.min(...ordered.map(row=>row.sortOrder))-1 } : record);
@@ -39,11 +48,11 @@
   function filterRecords(records, query) {
     const terms = query.normalize('NFKC').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
     return records.filter(row => {
-      const haystack = fields.map(([key]) => row[key]).join('\n').normalize('NFKC').toLocaleLowerCase();
+      const haystack = [...fields.map(([key]) => row[key]), row.followupPeriod || '', followupText(row)].join('\n').normalize('NFKC').toLocaleLowerCase();
       return terms.every(term => haystack.includes(term));
     });
   }
-  if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords, moveRecord };
+  if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords, moveRecord, followupText };
   if (typeof document === 'undefined') return;
   const by = id => document.getElementById(id);
   let booted = false, records = [], editing = null, editingBase = null, deleting = null, saving = false, readable = true, sorting = false, drag = null;
@@ -90,7 +99,7 @@
           const copy = document.createElement('button');
           copy.type = 'button'; copy.className = 'ct-copy-mrn'; copy.dataset.action = 'copy-mrn'; copy.dataset.id = row.id;
           copy.textContent = row[key]; copy.title = '點擊複製病歷號'; copy.setAttribute('aria-label', '複製病歷號 ' + row[key]); td.append(copy);
-        } else td.textContent = row[key] || '—';
+        } else td.textContent = (key === 'followup' ? followupText(row) : row[key]) || '—';
         tr.append(td);
       }
       const actions = document.createElement('td'); actions.className = 'ct-actions'; actions.dataset.label = '操作';
@@ -218,7 +227,9 @@
     editing = id;
     editingBase = row ? structuredClone(row) : null;
     by('ct-form').reset(); by('ct-form-error').textContent = '';
-    for (const [key] of fields) by('ct-' + key).value = row ? row[key] : '';
+    for (const key of recordFields) by('ct-' + key).value = row?.[key] || '';
+    by('ct-followupPeriod').required = !row;
+    by('ct-period-required').hidden = Boolean(row);
     by('ct-editor-title').textContent = row ? '編輯個案' : '新增個案';
     window.ScholarPeek.open(by('ct-editor'));
     by('ct-name').focus({ preventScroll: true });
@@ -248,7 +259,8 @@
           <label>姓名 <span class="ct-required">*</span><input id="ct-name" name="name" required maxlength="120" autocomplete="off"></label>
           <label>病歷號<input id="ct-mrn" name="mrn" maxlength="80" autocomplete="off" spellcheck="false"></label>
           <label>VS<input id="ct-vs" name="vs" maxlength="120" autocomplete="off"></label>
-          <label>回診時間<input id="ct-followup" name="followup" placeholder="例如 2026/11/18 上午" maxlength="120" autocomplete="off"></label>
+          <div class="ct-full ct-followup-fields"><label>回診日期<input id="ct-followup" name="followup" placeholder="例如 2026/11/18" maxlength="120" autocomplete="off"></label>
+            <label>回診時段 <span id="ct-period-required" class="ct-required">*</span><select id="ct-followupPeriod" name="followupPeriod" required><option value="">請選擇</option><option value="AM">上午 AM</option><option value="PM">下午 PM</option></select></label></div>
           <label class="ct-full">回診目的<textarea id="ct-purpose" name="purpose" rows="2" maxlength="500"></textarea></label>
           <label class="ct-full">診斷<textarea id="ct-diagnosis" name="diagnosis" rows="2" maxlength="4000"></textarea></label>
           <label class="ct-full">備註<textarea id="ct-notes" name="notes" rows="3" maxlength="8000"></textarea></label>
@@ -282,12 +294,14 @@
       saving = true; by('ct-save').disabled = true;
       try {
         const record = { id: editing || crypto.randomUUID(), createdAt: editingBase?.createdAt || Date.now() };
-        for (const [key] of fields) record[key] = by('ct-' + key).value.trim();
+        for (const key of recordFields) record[key] = by('ct-' + key).value.trim();
         const latest = read();
         if (editing && editingBase) {
           const current = latest.find(row => row.id === editing);
           if (!current) throw Error('此個案已在其他裝置刪除，未重新建立。');
-          for (const [key] of fields) if (record[key] === editingBase[key]) record[key] = current[key];
+          for (const key of recordFields) if (record[key] === (editingBase[key] || '')) {
+            if (current[key] === undefined) delete record[key]; else record[key] = current[key];
+          }
         }
         await commit(upsert(latest, record)); editing = record.id;
         announce('已儲存至雲端。');
@@ -306,7 +320,7 @@
     });
     window.addEventListener('storage', event => { if (event.key === STORE || event.key === null) refresh(); });
     window.addEventListener('beforeunload', event => {
-      if (by('ct-editor').open && fields.some(([key])=>by('ct-'+key).value.trim() !== (editingBase?.[key] || ''))) {
+      if (by('ct-editor').open && recordFields.some(key=>by('ct-'+key).value.trim() !== (editingBase?.[key] || ''))) {
         event.preventDefault();event.returnValue='';
       }
     });
@@ -320,5 +334,5 @@
     for (const id of ['ct-editor', 'ct-delete']) if (by(id).open) by(id).close();
     deleting = null;
   }
-  window.ScholarCases = { show, hide };
+  window.ScholarCases = { show, hide, followupText };
 })();

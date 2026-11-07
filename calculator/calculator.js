@@ -105,7 +105,7 @@
     const li=document.createElement('li'),name=document.createElement('strong'),time=document.createElement('span');
     name.textContent=row.name||'未填姓名';li.append(name);
     if(row.mrn){const copy=document.createElement('button');copy.type='button';copy.className='cl-calendar-mrn';copy.dataset.mrn=row.mrn;copy.textContent=row.mrn;copy.title='複製病歷號';li.append(copy);}
-    time.textContent=(row.vs?'VS '+row.vs+' · ':'')+row.followup;li.append(time);list.append(li);
+    time.textContent=(row.vs?'VS '+row.vs+' · ':'')+(root.ScholarCases?.followupText?.(row)||row.followup);li.append(time);list.append(li);
    }
    if(!patients.length){const li=document.createElement('li');li.textContent=caseError?'回診資料暫無法讀取。':root.ScholarSync.status?.()?.user?'當天沒有已標示的回診個案。':'登入後可查看回診個案。';list.append(li);}
   }

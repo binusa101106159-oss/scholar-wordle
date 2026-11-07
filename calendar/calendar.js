@@ -127,6 +127,8 @@
         const entries = list.filter(event => dayParts(event, date).includes(part));
         entries.slice(0, 2).forEach(event => half.append(element('span', (event.startTime ? event.startTime + ' ' : '') + event.title, 'cal-preview')));
         if (entries.length > 2) half.append(element('span', '+' + (entries.length - 2), 'cal-more'));
+        const followups = patients.filter(row => row.followupPeriod === part);
+        if (followups.length) half.append(element('span', followups.length + ' 回診', 'cal-followup-count'));
         button.append(half);
       }
       button.onclick = () => { selected = date; render(); }; grid.append(button);
@@ -146,7 +148,7 @@
           catch (_) { by('cal-patient-status').textContent = '無法自動複製，請選取病歷號後複製。'; }
         }; item.append(copy);
       }
-      item.append(element('span', (row.vs ? 'VS ' + row.vs + ' · ' : '') + row.followup)); patientList.append(item);
+      item.append(element('span', (row.vs ? 'VS ' + row.vs + ' · ' : '') + (window.ScholarCases?.followupText?.(row) || row.followup))); patientList.append(item);
     }
     if (!patients.length) patientList.append(element('li', appointments.error ? '回診資料暫無法讀取。' : window.ScholarSync.status().user ? '當天沒有已標示的回診個案。' : '登入後可查看回診個案。', 'cal-muted'));
     by('cal-patient-status').textContent = '';
