@@ -556,7 +556,7 @@
       rememberPosition();
       by('hx-conclusion').hidden = true;
       delete by('hx-conclusion').dataset.block;
-      by('hx-doc').innerHTML = '<p class="hx-loading">載入中…</p>';
+      by('hx-doc').innerHTML = '<p class="hx-loading">載入中…</p>';window.ScholarReaderTables?.sync('hx');
       let data;
       try { data = await getText(id); }
       catch (_) { by('hx-doc').innerHTML = '<p class="hx-loading">無法載入這份特做。請確認網路連線後再試一次。</p>'; return; }
@@ -605,6 +605,7 @@
     }
     html += '</div><div class="hx-body">' + blocksHTML(guide.blocks, terms, { anchor: guide.id }) + '</div>';
     by('hx-doc').innerHTML = html;
+    window.ScholarReaderTables?.sync('hx');
     const conclusion = guide.blocks.findIndex(b => b.t === 'h' && /^[一二三四五六七八九十]+[、.．]?健康檢查結果管理分級建議|^[一二三四五六七八九十]+[、.．]?管理分級建議/.test((b.text || '').normalize('NFKC').replace(/\s+/g, '')));
     by('hx-conclusion').hidden = conclusion < 0;
     if (conclusion >= 0) by('hx-conclusion').dataset.block = String(conclusion);

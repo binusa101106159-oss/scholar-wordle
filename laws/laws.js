@@ -594,7 +594,7 @@
     if(state.current?.id===id && JSON.stringify(oldTerms)!==JSON.stringify(state.resultTerms))renderDoc(state.current,true);
     if (!state.current || state.current.id !== id) {
       rememberPosition();
-      by('lx-doc').innerHTML = '<p class="lx-loading">載入中…</p>';
+      by('lx-doc').innerHTML = '<p class="lx-loading">載入中…</p>';window.ScholarReaderTables?.sync('lx');
       let data;
       try { data = await getText(id); }
       catch (_) { by('lx-doc').innerHTML = '<p class="lx-loading">無法載入這部法規。請確認網路連線後再試一次。</p>'; return; }
@@ -664,6 +664,7 @@
       html += articleHTML(law, it, terms);
     });
     by('lx-doc').innerHTML = html;
+    window.ScholarReaderTables?.sync('lx');
     const sel = by('lx-chapters');
     sel.hidden = !chapters.length;
     sel.innerHTML = '<option value="">章節</option>' + chapters.map(c => '<option value="' + c.id + '">' + '　'.repeat(c.level - 1) + esc(c.text.replace(/\s+/g, ' ')) + '</option>').join('');

@@ -181,7 +181,7 @@
       const button=document.createElement('button');button.type='button';button.className='ax-table-shortcut';button.dataset.tableOpen=object.id;
       button.textContent=object.label;button.title=tableCaption(object);button.setAttribute('aria-label',object.label+' '+tableCaption(object));button.setAttribute('aria-haspopup','dialog');shortcuts.append(button);
     }
-    by('ax-table-shortcuts').replaceChildren(shortcuts);by('ax-table-shortcuts').hidden=!by('ax-table-shortcuts').childElementCount;
+    by('ax-table-shortcuts').replaceChildren(shortcuts);by('ax-table-shortcuts').hidden=!by('ax-table-shortcuts').childElementCount;window.ScholarReaderTables?.sync('ax');
     by('ax-section').replaceChildren(...choices.map(section => {
       const option=document.createElement('option'); option.value=section.id; option.textContent=section.title; return option;
     }));
@@ -219,7 +219,7 @@
     });
     by('ax-content').setAttribute('aria-labelledby','ax-tab-'+id);
     by('ax-kicker').textContent=chapterLabel(chapter); by('ax-title').textContent=chapter.title;
-    by('ax-table-shortcuts').hidden=true;
+    by('ax-table-shortcuts').hidden=true;window.ScholarReaderTables?.sync('ax');
     by('ax-location').textContent=chapter.type==='supplement' ? chapter.title : '第 '+chapter.no+' 章／共 '+catalogue.chapters.filter(c=>c.type!=='supplement').length+' 章';
     by('ax-tools').hidden=!chapter.ready; by('ax-status').textContent=''; by('ax-section').replaceChildren();
     by('ax-body').innerHTML='<div class="ax-pending sg-glass"><p>'+(chapter.ready?'載入中…':'正文準備中。')+'</p>'+(chapter.ready?'':'<p>本章正文與圖表尚未匯入。</p>')+'</div>';
