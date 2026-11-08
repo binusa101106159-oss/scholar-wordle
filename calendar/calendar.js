@@ -142,6 +142,7 @@
       if (info.off) button.classList.add('cal-holiday');
       if (info.makeup) button.classList.add('cal-makeup');
       if (date === localDate()) button.classList.add('cal-today');
+      if (day === 1) button.classList.add('cal-month-start');
       if (list.some(event => event.title.trim() === '照會')) button.classList.add('cal-consult');
       const heading = element('span', '', 'cal-day-heading');
       heading.append(element('span', String(day), 'cal-number'));
