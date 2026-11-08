@@ -226,7 +226,7 @@
     saved.chapter=id; persist();
     if (options.closeMenu!==false && mobile.matches) menu(false); else revealSelection();
     if (options.focusTab) by('ax-tab-'+id).focus();
-    else if (options.focusHeading && mobile.matches) by('ax-title').focus({preventScroll:true});
+    else if (options.focusHeading && mobile.matches) by('ax-content').focus({preventScroll:true});
     by('ax-scroll').scrollTop=0;
     if (!chapter.ready) return;
     try {
@@ -506,7 +506,7 @@
       '<div id="ax-results" class="ax-results" aria-live="polite" hidden></div><div id="ax-list" class="ax-list" role="tablist" aria-label="AMA 章節" aria-orientation="vertical"></div></div></aside>'+
       '<div class="ax-reader"><div class="ax-bar"><button id="ax-menu" class="ax-sidebar-toggle" type="button" aria-controls="ax-sidebar-content" aria-expanded="false" aria-label="展開側欄" title="展開側欄"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><span id="ax-location" class="ax-location"></span></div>'+
       '<div id="ax-tools" class="ax-tools" hidden><label class="ax-sr" for="ax-section">本章小節</label><select id="ax-section"></select><div class="ax-reading-controls"><label class="ax-font-control" for="ax-font">正文字型<select id="ax-font"><option value="default">預設</option><option value="georgia">Georgia</option><option value="times">Times New Roman</option><option value="arial">Arial</option><option value="system">系統字型</option></select></label><button id="ax-smaller" type="button" aria-label="縮小文字">A−</button><button id="ax-larger" type="button" aria-label="放大文字">A＋</button><button id="ax-mark" type="button">標記選取</button><button id="ax-copy-chapter" type="button">複製本章</button><button id="ax-copy-all" type="button">複製已匯入全文</button><button id="ax-clear-marks" type="button">清除本章標記</button></div></div><div id="ax-status" class="ax-status" role="status"></div>'+
-      '<div id="ax-scroll" class="ax-scroll"><article id="ax-content" role="tabpanel" tabindex="0"><div class="ax-head sg-glass"><p id="ax-kicker" class="ax-kicker"></p><h1 id="ax-title" class="ax-title" tabindex="-1"></h1><nav id="ax-table-shortcuts" class="ax-table-shortcuts" aria-label="本章表格快覽" hidden></nav></div><div id="ax-body"></div></article></div></div></div>'+
+      '<div id="ax-scroll" class="ax-scroll"><article id="ax-content" role="tabpanel" tabindex="0"><div class="ax-head"><p id="ax-kicker" class="ax-kicker ax-sr"></p><h1 id="ax-title" class="ax-title ax-sr" tabindex="-1"></h1><nav id="ax-table-shortcuts" class="ax-table-shortcuts" aria-label="本章表格快覽" hidden></nav></div><div id="ax-body"></div></article></div></div></div>'+
       '<dialog id="ax-dialog" class="ax-dialog" aria-labelledby="ax-dialog-title"><div class="ax-dialog-bar"><h2 id="ax-dialog-title"></h2><button id="ax-peek-expand" type="button" hidden>展開</button><button id="ax-dialog-close" type="button" aria-label="關閉圖表">關閉</button></div><div id="ax-table-nav" class="ax-table-nav" hidden><button id="ax-table-prev" type="button">上一張</button><button id="ax-table-index" type="button">表格目錄</button><button id="ax-table-next" type="button">下一張</button><span id="ax-table-position" aria-live="polite"></span></div><div id="ax-dialog-body" class="ax-dialog-body"></div></dialog>';
     const supplements=catalogue.chapters.filter(c=>c.type==='supplement').length;
     by('ax-count').textContent=(catalogue.chapters.length-supplements)+' 章'+(supplements?'＋'+supplements+' 附錄':'');

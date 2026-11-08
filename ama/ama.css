@@ -275,3 +275,5 @@
   .ax-dialog-body .ax-source-object { content-visibility:auto;overflow-clip-margin:4px; }
 }
 @media print { .ax-dialog-body .ax-source-object { content-visibility:visible; } }
+
+#ama-panel .ax-head{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}#ama-panel .ax-head .ax-sr{margin:0;padding:0}#ama-panel .ax-table-shortcuts{margin:0 0 12px}

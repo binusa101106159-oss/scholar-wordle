@@ -590,6 +590,18 @@
     if (flash) { el.classList.add('hx-flash'); setTimeout(() => el.classList.remove('hx-flash'), 1400); }
     return true;
   }
+  function mergeCover(guide) {
+    if(guide.meta.cat!=='full'||guide.blocks[0]?.t!=='p')return;
+    const page=guide.blocks[0].pdf_page,cover=[];
+    for(let k=0;k<guide.blocks.length;k++){const block=guide.blocks[k];if(block.t!=='p'||block.pdf_page!==page)break;cover.push(k);}
+    if(!cover.some(k=>/撰寫者|編寫者|作者/.test(guide.blocks[k].text||'')))return;
+    const head=by('hx-doc').querySelector('.hx-head'),front=document.createElement('div');front.className='hx-frontmatter';
+    for(const k of cover){const block=by('hx-b-'+guide.id+'-'+k);if(block){block.classList.add('hx-cover-line');front.append(block);}}
+    head.insertBefore(front,head.querySelector('.hx-credit'));
+    head.classList.add('hx-merged-cover');
+    const next=guide.blocks[cover.length],norm=text=>String(text||'').replace(/\s+/g,'');
+    if(next?.t==='p'&&norm(next.text)===norm(guide.blocks[0].text))by('hx-b-'+guide.id+'-'+cover.length)?.classList.add('hx-repeated-cover-title');
+  }
   function renderDoc(guide, keepScroll) {
     const terms = state.terms, meta = guide.meta;
     const sc = by('hx-scroll'), top = sc.scrollTop;
@@ -605,6 +617,7 @@
     }
     html += '</div><div class="hx-body">' + blocksHTML(guide.blocks, terms, { anchor: guide.id }) + '</div>';
     by('hx-doc').innerHTML = html;
+    mergeCover(guide);
     window.ScholarReaderTables?.sync('hx');
     const conclusion = guide.blocks.findIndex(b => b.t === 'h' && /^[一二三四五六七八九十]+[、.．]?健康檢查結果管理分級建議|^[一二三四五六七八九十]+[、.．]?管理分級建議/.test((b.text || '').normalize('NFKC').replace(/\s+/g, '')));
     by('hx-conclusion').hidden = conclusion < 0;

@@ -329,3 +329,5 @@ mark.hx-hl mark.hx-mark { background: transparent; box-shadow: 0 0 0 1px rgba(22
 .hx-fraction {display:inline-flex;flex-direction:column;align-items:stretch;vertical-align:middle;text-align:center;line-height:1.45;white-space:nowrap;}
 .hx-fraction > span:first-child {border-bottom:1px solid currentColor;padding:0 .25em .1em;}
 .hx-fraction > span:last-child {padding:.1em .25em 0;}
+
+#health-panel .hx-merged-cover{padding:20px 24px}.hx-merged-cover>.hx-title{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}#health-panel .hx-frontmatter .hx-cover-line{padding:0!important;text-indent:0!important;margin:5px 0;font-size:14px;line-height:1.7}#health-panel .hx-frontmatter .hx-cover-line:first-child{font-size:clamp(21px,2.4vw,28px);font-weight:650;line-height:1.5;margin:8px 0 12px}#health-panel .hx-frontmatter .hx-cover-line:empty{display:none}.hx-repeated-cover-title:not(:has(mark)){display:none}#health-panel .hx-merged-cover .hx-credit{margin:12px 0 0;font-size:12px}

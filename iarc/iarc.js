@@ -22,8 +22,9 @@
   }catch(_){host.innerHTML='<p role="status">無法載入 IARC 清單。</p><button type="button">重試</button>';host.querySelector('button').onclick=show;}
  }
  function render(host,data){
-  host.innerHTML='<section class="ir-app"><header class="ir-header"><h1>IARC</h1><a href="https://monographs.iarc.who.int/list-of-classifications/" target="_blank" rel="noopener">官方分類</a></header><div class="ir-search-bar"><label for="ir-search" class="ir-sr">搜尋 IARC 清單</label><input id="ir-search" type="search" placeholder="搜尋英文名稱或關鍵字" autocomplete="off" spellcheck="false"><button type="button" id="ir-clear" aria-label="清除搜尋">×</button></div><div id="ir-groups" class="ir-groups" role="group" aria-label="分類篩選"><button type="button" data-ir-group="" aria-pressed="true">全部</button>'+['1','2A','2B','3'].map(group=>'<button type="button" data-ir-group="'+group+'" aria-pressed="false">Group '+group+'</button>').join('')+'</div><div class="ir-table-wrap"><table class="ir-table"><colgroup><col class="ir-group-col"><col></colgroup><thead><tr><th scope="col">分類</th><th scope="col">項目</th></tr></thead><tbody id="ir-rows"></tbody></table></div><p id="ir-empty" role="status" hidden>沒有符合項目。</p><button id="ir-more" type="button" hidden>顯示更多</button></section>';
+  host.innerHTML='<section class="ir-app"><button id="ir-menu-toggle" type="button" aria-controls="ir-sidebar" aria-expanded="false">搜尋／分類</button><aside id="ir-sidebar" class="ir-sidebar" aria-label="IARC搜尋與分類"><header class="ir-header"><h1>IARC</h1><a href="https://monographs.iarc.who.int/list-of-classifications/" target="_blank" rel="noopener">官方分類</a></header><div class="ir-search-bar"><label for="ir-search" class="ir-sr">搜尋 IARC 清單</label><input id="ir-search" type="search" placeholder="搜尋英文名稱或關鍵字" autocomplete="off" spellcheck="false"><button type="button" id="ir-clear" aria-label="清除搜尋">×</button></div><div id="ir-groups" class="ir-groups" role="group" aria-label="分類篩選"><button type="button" data-ir-group="" aria-pressed="true">全部</button>'+['1','2A','2B','3'].map(group=>'<button type="button" data-ir-group="'+group+'" aria-pressed="false">Group '+group+'</button>').join('')+'</div></aside><div class="ir-content"><div class="ir-table-wrap"><table class="ir-table"><colgroup><col class="ir-group-col"><col></colgroup><thead><tr><th scope="col">分類</th><th scope="col">項目</th></tr></thead><tbody id="ir-rows"></tbody></table></div><p id="ir-empty" role="status" hidden>沒有符合項目。</p><button id="ir-more" type="button" hidden>顯示更多</button></div></section>';
   const by=id=>host.querySelector('#'+id),query=by('ir-search'),body=by('ir-rows'),more=by('ir-more');
+  by('ir-menu-toggle').onclick=()=>{const app=host.querySelector('.ir-app'),open=app.classList.toggle('ir-menu-open');by('ir-menu-toggle').setAttribute('aria-expanded',String(open));};
   const search=createIndex(data),all=new Map(data.entries.map(row=>[row.id,row])),cache=new Map();
   let group='',limit=60,matches=[],frame=0;
   function rowNode(row){
@@ -39,7 +40,7 @@
   function schedule(){if(!frame)frame=requestAnimationFrame(()=>{frame=0;update();});}
   query.addEventListener('input',schedule);
   by('ir-clear').onclick=()=>{query.value='';query.focus();update();};
-  by('ir-groups').onclick=e=>{const button=e.target.closest('[data-ir-group]');if(!button)return;group=button.dataset.irGroup;by('ir-groups').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));update();};
+  by('ir-groups').onclick=e=>{const button=e.target.closest('[data-ir-group]');if(!button)return;group=button.dataset.irGroup;by('ir-groups').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));update();host.querySelector('.ir-app').classList.remove('ir-menu-open');by('ir-menu-toggle').setAttribute('aria-expanded','false');};
   more.onclick=()=>{const before=limit;limit+=60;paint();body.children[before]?.focus({preventScroll:true});};
   update();
  }
