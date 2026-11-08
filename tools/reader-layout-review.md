@@ -26,3 +26,5 @@
 - 139項Node測試通過，來源JSON完全未變更，git diff --check通過。快取v183。
 
 Residual cover-title review (2026-11-08): audited the first body-page title in all 32 full health guides. Match multi-paragraph titles as a whole and normalize only the source title suffix variants 健康檢查指引 / 健康管理分級建議指引. Hide duplicate presentation while retaining original nodes, IDs, and source text for annotations. Chromium, Firefox, WebKit: 32/32 repeated titles absent from body, all original paragraph text retained, first real section visible; mobile 390px no overflow. 139 Node tests pass; no JSON changes. Visually reviewed full13 screenshot.
+
+2026-11-08: compact first health section spacing after hidden repeated PDF title; retained source blocks. Forms viewport height now measured below primary navigation and constrained against shared flex sizing; actual wheel scrolling verified at center in Chromium/Firefox/WebKit at 1440 and 390px. Moved form progress/reset/submit to sidebar (mobile drawer), retained native form association for submit validation; removed source footer. Sidebar submit detects missing answer; slider still works. 139 tests pass; no JSON changes.

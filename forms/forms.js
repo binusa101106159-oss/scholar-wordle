@@ -31,9 +31,8 @@
   const section=element('section','', 'fm-questionnaire');section.id='fm-'+form.id;section.setAttribute('role','tabpanel');section.setAttribute('aria-labelledby','fm-tab-'+form.id);section.hidden=form.id!==active;
   const heading=element('div','', 'fm-heading');heading.append(element('h1',form.name));section.append(heading);
   if(form.notice)section.append(element('p',form.notice,'fm-version'));
-  const source=element('a',form.sourceLabel,'fm-source');if(form.source)source.href=form.source;if(form.source&&!form.source.startsWith('#')){source.target='_blank';source.rel='noopener';}
-  if(form.pending){section.append(element('p','完整題目尚待匯入，請使用原始問卷；計算機的11題快速計分仍可使用。','fm-pending'),source);host.append(section);views.set(form.id,{section,hydrate(){}});return;}
-  const questionnaire=element('form');questionnaire.noValidate=true;const groups=[];
+  if(form.pending){section.append(element('p','完整題目尚待匯入，請使用原始問卷；計算機的11題快速計分仍可使用。','fm-pending'));host.append(section);views.set(form.id,{section,hydrate(){}});return;}
+  const questionnaire=element('form');questionnaire.id='fm-answers-'+form.id;questionnaire.noValidate=true;const groups=[];
   form.questions.forEach((q,i)=>{
    if(q.section)questionnaire.append(element('h2',q.section,'fm-section-title'));
    const group=element('fieldset','', 'fm-question');group.id='fm-'+form.id+'-q'+(i+1);
@@ -57,7 +56,7 @@
    if(form.id==='quickdash'){const clear=element('button','清除此題','fm-clear-question');clear.type='button';clear.onclick=()=>{const saved=read(form.id);delete saved['q'+(i+1)];saved.submitted=false;root.ScholarStorage.setItem(KEY(form.id),JSON.stringify(saved));hydrate();};group.append(clear);}
    questionnaire.append(group);groups.push(group);
   });
-  const footer=element('div','', 'fm-footer'),progress=element('span','', 'fm-progress'),submit=element('button','完成作答','fm-primary'),reset=element('button','清除本份','fm-reset');submit.type='submit';reset.type='button';footer.append(progress,reset,submit);questionnaire.append(footer);
+  const footer=element('div','', 'fm-footer'),progress=element('span','', 'fm-progress'),submit=element('button','完成作答','fm-primary'),reset=element('button','清除本份','fm-reset');submit.type='submit';submit.setAttribute('form',questionnaire.id);reset.type='button';footer.append(progress,reset,submit);questionnaire.append(footer);
   const result=element('section','', 'fm-result');result.setAttribute('role','status');result.setAttribute('aria-live','polite');result.hidden=true;
   let submitted=false;
   function values(){return groups.map(g=>{const slider=g.querySelector('input[type=range]');return slider.dataset.answered==='true'?Number(slider.value):null;});}
@@ -95,11 +94,12 @@
    submitted=true;const saved=read(form.id);saved.submitted=true;root.ScholarStorage.setItem(KEY(form.id),JSON.stringify(saved));update();result.scrollIntoView({block:'center',behavior:'smooth'});
   };
   reset.onclick=()=>{if(values().some(v=>v!==null)&&!confirm('清除這份問卷的全部答案？'))return;root.ScholarStorage.removeItem(KEY(form.id));hydrate();};
-  section.append(questionnaire,result,source);host.append(section);views.set(form.id,{section,hydrate});hydrate();
+  section.append(questionnaire,result);host.append(section);views.set(form.id,{section,footer,hydrate});hydrate();
  }
- function select(id,closeMenu=true){const changed=active!==id;active=id;views.forEach((view,key)=>view.section.hidden=key!==id);document.querySelectorAll('[data-form]').forEach(button=>{const chosen=button.dataset.form===id;button.setAttribute('aria-selected',String(chosen));button.tabIndex=chosen?0:-1;});if(changed)document.querySelector('.fm-content')?.scrollTo(0,0);if(closeMenu){document.querySelector('.fm-shell')?.classList.remove('fm-menu-open');const toggle=document.getElementById('fm-menu-toggle');if(toggle)toggle.setAttribute('aria-expanded','false');}}
+ function select(id,closeMenu=true){const changed=active!==id;active=id;views.forEach((view,key)=>{view.section.hidden=key!==id;if(view.footer)view.footer.hidden=key!==id;});document.querySelectorAll('[data-form]').forEach(button=>{const chosen=button.dataset.form===id;button.setAttribute('aria-selected',String(chosen));button.tabIndex=chosen?0:-1;});if(changed)document.querySelector('.fm-content')?.scrollTo(0,0);if(closeMenu){document.querySelector('.fm-shell')?.classList.remove('fm-menu-open');const toggle=document.getElementById('fm-menu-toggle');if(toggle)toggle.setAttribute('aria-expanded','false');}}
+ function sizePanel(){const panel=document.getElementById('forms-panel');if(panel&&!panel.hidden)panel.style.height=Math.max(200,root.innerHeight-panel.getBoundingClientRect().top)+'px';}
  async function show(){
-  if(catalog){select(active);return;}
+  if(catalog){select(active);requestAnimationFrame(sizePanel);return;}
   if(loading)return loading;
   const panel=document.getElementById('forms-panel');panel.textContent='載入表單…';
   loading=(async()=>{try{
@@ -108,7 +108,7 @@
    catalog.forms.forEach(form=>{const button=element('button',form.name);button.type='button';button.dataset.form=form.id;button.id='fm-tab-'+form.id;button.setAttribute('role','tab');button.setAttribute('aria-controls','fm-'+form.id);button.onclick=()=>select(form.id);tabs.append(button);});
    tabs.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();shell.classList.remove('fm-menu-open');document.getElementById('fm-menu-toggle').setAttribute('aria-expanded','false');document.getElementById('fm-menu-toggle').focus();return;}if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key))return;e.preventDefault();const buttons=[...tabs.children],index=buttons.indexOf(document.activeElement),next=e.key==='Home'?0:e.key==='End'?buttons.length-1:(index+(['ArrowRight','ArrowDown'].includes(e.key)?1:-1)+buttons.length)%buttons.length;select(buttons[next].dataset.form,false);buttons[next].focus();};
    const toggle=element('button','表單選單','fm-menu-toggle');toggle.id='fm-menu-toggle';toggle.type='button';toggle.setAttribute('aria-controls','fm-menu');toggle.setAttribute('aria-expanded','false');toggle.onclick=()=>{const open=shell.classList.toggle('fm-menu-open');toggle.setAttribute('aria-expanded',String(open));};
-   const content=element('div','', 'fm-content');shell.append(toggle,tabs,content);catalog.forms.forEach(form=>mountForm(form,content));panel.append(shell);select(active);
+   const content=element('div','', 'fm-content'),side=element('aside','','fm-side'),actions=element('div','','fm-actions');side.append(tabs,actions);shell.append(toggle,side,content);catalog.forms.forEach(form=>mountForm(form,content));views.forEach(view=>{if(view.footer)actions.append(view.footer);});panel.append(shell);select(active);requestAnimationFrame(sizePanel);if(root.ResizeObserver)new ResizeObserver(sizePanel).observe(document.querySelector('.sg-nav-shell')||document.body);root.addEventListener('resize',sizePanel);
    root.ScholarSync.subscribe(key=>catalog.forms.forEach(form=>{if(key===KEY(form.id))views.get(form.id).hydrate();}));
   }catch(error){catalog=null;panel.textContent='表單載入失敗。';const retry=element('button','重試');retry.onclick=()=>{loading=null;show();};panel.append(retry);}})();return loading;
  }

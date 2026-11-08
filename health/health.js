@@ -606,6 +606,7 @@
     for(let k=cover.length;k<guide.blocks.length&&guide.blocks[k].t==='p';k++)repeated.push(k);
     if(repeated.length&&norm(repeated.map(k=>guide.blocks[k].text||'').join(''))===norm(guide.blocks[0].text)){
       for(const k of repeated)by('hx-b-'+guide.id+'-'+k)?.classList.add('hx-repeated-cover-title');
+      by('hx-b-'+guide.id+'-'+(cover.length+repeated.length))?.classList.add('hx-opening-section');
     }
   }
   function renderDoc(guide, keepScroll) {
