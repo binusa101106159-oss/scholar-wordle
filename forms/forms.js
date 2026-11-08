@@ -41,22 +41,32 @@
    if(q.prompt)group.append(element('p',q.prompt,'fm-intro'));
    if(q.original){const original=element('details','', 'fm-original');original.append(element('summary','英文原題'),element('p',q.original));group.append(original);}
    if(q.anchors){const endpoints=element('div','', 'fm-endpoints');endpoints.append(element('span','0 · '+q.anchors[0]),element('span','10 · '+q.anchors[1]));group.append(endpoints);}
+   if(form.id==='pdq'){
+    const wrap=element('div','', 'fm-slider'),range=document.createElement('input'),value=element('output','未作答','fm-slider-value');
+    range.type='range';range.name='q'+(i+1);range.min='0';range.max='10';range.step='1';range.value='5';range.dataset.answered='false';range.setAttribute('aria-label','第'+(i+1)+'題，0至10分');
+    range.id=group.id+'-slider';value.setAttribute('for',range.id);
+    const ticks=element('div','', 'fm-slider-ticks');ticks.setAttribute('aria-hidden','true');for(let n=0;n<=10;n++)ticks.append(element('span',String(n)));
+    const accept=()=>{range.dataset.answered='true';submitted=false;const saved=read(form.id);saved[range.name]=Number(range.value);saved.submitted=false;root.ScholarStorage.setItem(KEY(form.id),JSON.stringify(saved));update();};
+    range.addEventListener('input',accept);range.addEventListener('change',accept);range.addEventListener('pointerup',accept);
+    wrap.append(value,range,ticks);group.append(wrap);
+   }else{
    const choices=element('div','',q.anchors?'fm-options fm-scale':q.options.some(o=>o.label.length>18)?'fm-options fm-long':'fm-options');
    q.options.forEach(option=>{
     const label=element('label','', 'fm-option'),input=document.createElement('input');input.type='radio';input.name='q'+(i+1);input.value=option.value;
     label.append(input,element('span',option.label));choices.append(label);
     input.addEventListener('change',()=>{submitted=false;const saved=read(form.id);saved[input.name]=Number(input.value);saved.submitted=false;root.ScholarStorage.setItem(KEY(form.id),JSON.stringify(saved));update();});
    });group.append(choices);
+   }
    if(form.id==='quickdash'){const clear=element('button','清除此題','fm-clear-question');clear.type='button';clear.onclick=()=>{const saved=read(form.id);delete saved['q'+(i+1)];saved.submitted=false;root.ScholarStorage.setItem(KEY(form.id),JSON.stringify(saved));hydrate();};group.append(clear);}
    questionnaire.append(group);groups.push(group);
   });
   const footer=element('div','', 'fm-footer'),progress=element('span','', 'fm-progress'),submit=element('button','完成作答','fm-primary'),reset=element('button','清除本份','fm-reset');submit.type='submit';reset.type='button';footer.append(progress,reset,submit);questionnaire.append(footer);
   const result=element('section','', 'fm-result');result.setAttribute('role','status');result.setAttribute('aria-live','polite');result.hidden=true;
   let submitted=false;
-  function values(){return groups.map(g=>{const checked=g.querySelector('input:checked');return checked?Number(checked.value):null;});}
+  function values(){return groups.map(g=>{const slider=g.querySelector('input[type=range]');if(slider)return slider.dataset.answered==='true'?Number(slider.value):null;const checked=g.querySelector('input:checked');return checked?Number(checked.value):null;});}
   function update(){
    const answers=values(),done=answers.filter(v=>v!==null).length;progress.textContent=`已填 ${done} / ${answers.length} 題`;
-   groups.forEach((g,i)=>g.classList.toggle('fm-answered',answers[i]!==null));result.replaceChildren();result.hidden=!submitted;
+   groups.forEach((g,i)=>{g.classList.toggle('fm-answered',answers[i]!==null);const slider=g.querySelector('input[type=range]');if(slider){g.querySelector('output').textContent=answers[i]===null?'未作答':answers[i]+' 分';slider.setAttribute('aria-valuetext',answers[i]===null?'未作答，請選擇0至10分':answers[i]+'分');}});result.replaceChildren();result.hidden=!submitted;
    if(!submitted)return;
    const calculated=score(form,answers);
    if(!calculated.ready){result.append(element('p','尚未完成，請確認未填的題目。'));return;}
@@ -70,7 +80,7 @@
    }
    result.append(element('p','請將此畫面交給醫療人員確認。','fm-intro'));
   }
-  function hydrate(){const saved=read(form.id);groups.forEach((g,i)=>g.querySelectorAll('input').forEach(input=>{input.checked=Number.isInteger(saved['q'+(i+1)])&&Number(input.value)===saved['q'+(i+1)];}));submitted=saved.submitted===true;update();}
+  function hydrate(){const saved=read(form.id);groups.forEach((g,i)=>g.querySelectorAll('input').forEach(input=>{const value=saved['q'+(i+1)];if(input.type==='range'){const answered=Number.isInteger(value)&&value>=0&&value<=10;input.dataset.answered=String(answered);input.value=answered?value:5;}else input.checked=Number.isInteger(value)&&Number(input.value)===value;}));submitted=saved.submitted===true;update();}
   questionnaire.onsubmit=event=>{
    event.preventDefault();const answers=values();const missing=answers.findIndex(v=>v===null);
    if(missing!==-1 && !(form.id==='quickdash' && answers.filter(v=>v!==null).length>=10)){submitted=false;update();groups[missing].scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});groups[missing].querySelector('input').focus({preventScroll:true});progress.textContent+=' · 請完成第'+(missing+1)+'題';return;}
