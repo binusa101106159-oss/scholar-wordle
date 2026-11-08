@@ -65,16 +65,19 @@
       const changed=next!==selected;selected=next;
       if(!animate||!ready||!changed||!before||reduced()){lens.classList.remove('lg-flowing');return;}
       const oldX=before.left-base+nav.scrollLeft,oldWidth=before.width;
-      const distance=x-oldX,stretch=Math.min(20,Math.abs(distance)*.1);
+      const distance=x-oldX, direction=Math.sign(distance), travel=Math.abs(distance);
+      const stretch=Math.min(rect.width*.26,travel*.18), overshoot=direction*Math.min(8,travel*.035);
       const shape=(left,width,sy=1)=>`translateX(${left-x}px) scale(${width/rect.width},${sy})`;
+      // Deform the small glass layer only; labels and page contents stay still.
       const frames=[
-        {offset:0,transform:shape(oldX,oldWidth,before.height/rect.height)},
-        {offset:.65,transform:shape(oldX+distance*.8,oldWidth+(rect.width-oldWidth)*.8+stretch,.98)},
+        {offset:0,transform:shape(oldX,oldWidth,before.height/rect.height),easing:'cubic-bezier(.3,0,.35,1)'},
+        {offset:.28,transform:shape(oldX+distance*.44-(direction<0?stretch:0),oldWidth+(rect.width-oldWidth)*.44+stretch,.91),easing:'cubic-bezier(.16,.65,.24,1)'},
+        {offset:.62,transform:shape(x+overshoot,rect.width*.97,1.025),easing:'cubic-bezier(.3,0,.3,1)'},
+        {offset:.82,transform:shape(x-overshoot*.25,rect.width*1.012,.992),easing:'cubic-bezier(.2,.6,.25,1)'},
         {offset:1,transform:'none'}
       ];
-      const light=matchMedia('(pointer:coarse)').matches||CSS.supports('-moz-appearance','none');
-      const steps=light?[{opacity:.45,transform:'none'},{opacity:1,transform:'none'}]:frames;
-      lens.classList.add('lg-flowing');const flow=lens.animate(steps,{duration:light?120:220,easing:'cubic-bezier(.2,.65,.25,1)'});motion=flow;
+      lens.classList.add('lg-flowing');
+      const flow=lens.animate(frames,{duration:460+Math.min(60,travel*.09),easing:'linear'});motion=flow;
       flow.finished.then(()=>{if(motion===flow){motion=null;lens.classList.remove('lg-flowing');}},()=>{});
     }
     const schedule=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;sync(true);});};
