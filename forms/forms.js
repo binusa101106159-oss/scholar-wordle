@@ -50,7 +50,10 @@
    const ticks=element('div','', 'fm-slider-ticks');ticks.setAttribute('aria-hidden','true');q.options.forEach(option=>ticks.append(element('span',String(option.value))));
    const accept=()=>{range.dataset.answered='true';submitted=false;const saved=read(form.id);saved[range.name]=Number(range.value);saved.submitted=false;root.ScholarStorage.setItem(KEY(form.id),JSON.stringify(saved));update();};
    range.addEventListener('input',accept);range.addEventListener('change',accept);range.addEventListener('pointerup',accept);
-   wrap.append(value,range,ticks);group.append(wrap);
+   const dots=element('div','', 'fm-start-dots');dots.setAttribute('aria-hidden','true');
+   for(let point=0;point<5;point++)dots.append(element('span','', 'fm-start-dot'));
+   const rail=element('div','', 'fm-slider-rail'),hint=element('span','左右滑動作答','fm-slider-hint');rail.append(range,dots);
+   wrap.append(value,rail,ticks,hint);group.append(wrap);
    if(form.id==='quickdash'){const clear=element('button','清除此題','fm-clear-question');clear.type='button';clear.onclick=()=>{const saved=read(form.id);delete saved['q'+(i+1)];saved.submitted=false;root.ScholarStorage.setItem(KEY(form.id),JSON.stringify(saved));hydrate();};group.append(clear);}
    questionnaire.append(group);groups.push(group);
   });
@@ -65,6 +68,7 @@
     const option=q.options.find(o=>o.value===answers[i]);
     const label=answers[i]===null?'未作答':q.anchors?answers[i]+' 分':answers[i]+' · '+option.label;
     g.querySelector('output').textContent=label;
+    const answered=answers[i]!==null,wrap=g.querySelector('.fm-slider');wrap.querySelector('.fm-start-dots').hidden=answered;wrap.querySelector('.fm-slider-hint').hidden=answered;[wrap.querySelector('output'),wrap.querySelector('.fm-slider-ticks')].forEach(e=>e.hidden=!answered);
     slider.setAttribute('aria-valuetext',answers[i]===null?'未作答，請選擇'+slider.min+'至'+slider.max:label);
    });result.replaceChildren();result.hidden=!submitted;
    if(!submitted)return;
@@ -87,7 +91,7 @@
   }
   questionnaire.onsubmit=event=>{
    event.preventDefault();const answers=values();const missing=answers.findIndex(v=>v===null);
-   if(missing!==-1 && !(form.id==='quickdash' && answers.filter(v=>v!==null).length>=10)){submitted=false;update();groups[missing].scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});groups[missing].querySelector('input').focus({preventScroll:true});progress.textContent+=' · 請完成第'+(missing+1)+'題';return;}
+   if(missing!==-1 && !(form.id==='quickdash' && answers.filter(v=>v!==null).length>=10)){submitted=false;update();groups[missing].scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});groups[missing].querySelector('input[type=range]').focus({preventScroll:true});progress.textContent+=' · 請完成第'+(missing+1)+'題';return;}
    submitted=true;const saved=read(form.id);saved.submitted=true;root.ScholarStorage.setItem(KEY(form.id),JSON.stringify(saved));update();result.scrollIntoView({block:'center',behavior:'smooth'});
   };
   reset.onclick=()=>{if(values().some(v=>v!==null)&&!confirm('清除這份問卷的全部答案？'))return;root.ScholarStorage.removeItem(KEY(form.id));hydrate();};
