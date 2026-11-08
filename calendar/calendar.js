@@ -33,6 +33,10 @@
   const localDate = () => { const now = new Date(); return [now.getFullYear(), String(now.getMonth()+1).padStart(2,'0'), String(now.getDate()).padStart(2,'0')].join('-'); };
   let feed = null, loading = null, mounted = false, selected = localDate() < FIRST + '-01' ? FIRST + '-01' : localDate();
   let month = selected.slice(0,7), editing = null, saving = false, readable = true;
+  const weekOfMonth = value => { const [year, month] = value.split('-').map(Number); return window.ScholarCalculator.monthWeek(year * 12 + month - 1); };
+  const keyOfDate = value => value.year + '-' + String(value.month + 1).padStart(2, '0') + '-' + String(value.day).padStart(2, '0');
+  const FIRST_WEEK = weekOfMonth(FIRST);
+  let startWeek = Math.max(FIRST_WEEK, weekOfMonth(month) - 28), weekCount = 24, pendingWeek = weekOfMonth(month), scrollFrame = 0;
   let holidays = null, holidayLoading = null, holidayError = false;
   function readAppointments() {
     const result = {dates: new Map(), missing: 0, error: false};
@@ -76,9 +80,33 @@
     const node = document.createElement(tag); node.textContent = text;
     if (className) node.className = className; return node;
   }
+  function prepareDate(date) {
+    selected = date; month = date.slice(0, 7);
+    pendingWeek = weekOfMonth(month); startWeek = Math.max(FIRST_WEEK, pendingWeek - 28); weekCount = 24;
+  }
   function setMonth(value) {
-    if (!/^\d{4}-\d{2}$/.test(value) || value < FIRST) return;
-    month = value; selected = month + '-01'; render();
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(value) || value < FIRST) return;
+    prepareDate(value + '-01'); render();
+  }
+  function refreshMonth() {
+    by('cal-month').value = month; by('cal-prev').disabled = month === FIRST;
+    const info = feed?.months?.[month];
+    by('cal-source-state').textContent = info ? `其家 · ${info.provisional ? '暫定班表' : '班表'} · ${info.sheet} · 已排除門診` : '此月尚無匯入班表，可自行新增事件。';
+  }
+  function scrollWeeks() {
+    scrollFrame = 0;
+    const viewport = by('cal-scroll'); if (!viewport.clientHeight) return;
+    const rows = [...by('cal-days').children];
+    const active = rows.find(row => row.offsetTop + row.offsetHeight > viewport.scrollTop + 20);
+    if (active && active.dataset.month !== month) { month = active.dataset.month; refreshMonth(); }
+    if (viewport.scrollTop < 300 && startWeek > FIRST_WEEK) {
+      const added = Math.min(12, (startWeek - FIRST_WEEK) / 7); startWeek -= added * 7; weekCount += added;
+      weekCount = Math.min(52, weekCount); render();
+    } else if (viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 300) {
+      weekCount += 12;
+      if (weekCount > 52) { startWeek += (weekCount - 52) * 7; weekCount = 52; }
+      render();
+    }
   }
   function shift(step) {
     const [y,m] = month.split('-').map(Number), next = new Date(y, m-1+step, 1);
@@ -88,7 +116,7 @@
     let all;
     try { all = events(); readable = true; }
     catch (error) { readable = false; say(error.message); all = feed?.events || []; }
-    by('cal-month').value = month; by('cal-prev').disabled = month === FIRST;
+    refreshMonth();
     by('cal-add').disabled = !readable;
     const appointments = readAppointments();
     const warning = by('cal-cases-warning'); warning.replaceChildren();
@@ -98,13 +126,16 @@
     }
     warning.hidden = !warning.textContent;
     by('cal-holiday-source').textContent = holidays ? `臺灣辦公日曆 ${holidays.years[0]}–${holidays.years.at(-1)}` : holidayError ? '假日資料暫無法載入' : '假日資料載入中…';
-    const info = feed?.months?.[month];
-    by('cal-source-state').textContent = info ? `其家 · ${info.provisional ? '暫定班表' : '班表'} · ${info.sheet} · 已排除門診` : '此月尚無匯入班表，可自行新增事件。';
-    const [y,m] = month.split('-').map(Number), offset = new Date(y,m-1,1).getDay(), count = new Date(y,m,0).getDate();
-    const grid = by('cal-days'); grid.replaceChildren();
-    for (let blank=0;blank<offset;blank++) { const cell = element('div','', 'cal-blank'); cell.setAttribute('aria-hidden','true'); grid.append(cell); }
-    for (let day=1;day<=count;day++) {
-      const date = month + '-' + String(day).padStart(2,'0'), list = all.filter(event => covers(event,date));
+    const grid = by('cal-days'), viewport = by('cal-scroll');
+    const previousTop = viewport.scrollTop;
+    const anchor = [...grid.children].find(row => row.offsetTop + row.offsetHeight > previousTop);
+    const anchorStart = anchor?.dataset.start, anchorOffset = anchor ? previousTop - anchor.offsetTop : 0;
+    const fragment = document.createDocumentFragment();
+    for (let week = 0; week < weekCount; week++) {
+      const dates = window.ScholarCalculator.weekDates(startWeek + week * 7), context = dates.find(date => date.day === 1) || dates[0];
+      const row = element('div', '', 'cal-week'); row.dataset.start = startWeek + week * 7; row.dataset.month = keyOfDate(context).slice(0, 7);
+      for (const dateObject of dates) {
+      const day = dateObject.day, date = keyOfDate(dateObject), list = all.filter(event => covers(event, date));
       const info = window.ScholarCalculator.dayInfo(date, holidays), patients = appointments.dates.get(date) || [];
       const button = element('button','', 'cal-day'); button.type = 'button'; button.dataset.date = date;
       button.setAttribute('aria-label', `${date}，${list.length} 件事件` + (info.label ? '，' + info.label : '') + (patients.length ? `，${patients.length} 筆回診` : '')); button.setAttribute('aria-pressed', String(date === selected));
@@ -114,6 +145,7 @@
       if (list.some(event => event.title.trim() === '照會')) button.classList.add('cal-consult');
       const heading = element('span', '', 'cal-day-heading');
       heading.append(element('span', String(day), 'cal-number'));
+      if (day === 1) heading.append(element('span', date.slice(0, 7).replace('-', '/'), 'cal-month-marker'));
       if (patients.length) {
         const dot = element('span', '', 'cal-appointment-dot'); dot.setAttribute('aria-hidden', 'true'); heading.append(dot);
       }
@@ -131,8 +163,14 @@
         if (followups.length) half.append(element('span', followups.length + ' 回診', 'cal-followup-count'));
         button.append(half);
       }
-      button.onclick = () => { selected = date; render(); }; grid.append(button);
+      button.onclick = () => { selected = date; render(); }; row.append(button);
+      }
+      fragment.append(row);
     }
+    grid.replaceChildren(fragment);
+    const restored = pendingWeek !== null ? grid.querySelector(`[data-start="${pendingWeek}"]`) : anchorStart ? grid.querySelector(`[data-start="${anchorStart}"]`) : null;
+    viewport.scrollTop = restored ? restored.offsetTop + (pendingWeek !== null ? 0 : anchorOffset) : previousTop;
+    pendingWeek = null;
     by('cal-selected').textContent = selected;
     const selectedInfo = window.ScholarCalculator.dayInfo(selected, holidays);
     by('cal-holiday').textContent = !holidays ? holidayError ? '假日資料暫無法載入' : '假日資料載入中…' : selectedInfo.known ? selectedInfo.label || '上班日' : (selectedInfo.label ? selectedInfo.label + ' · ' : '') + '此年份尚無官方假日資料';
@@ -192,7 +230,7 @@
         validate(event);
       }
       await persist(event);
-      if (!remove) { selected = event.date; month = selected.slice(0,7); }
+      if (!remove) prepareDate(event.date);
       by('cal-dialog').close(); render(); say(remove ? '已刪除事件。' : '事件已儲存至帳號。');
     } catch (error) { by('cal-error').textContent = error.message || '無法儲存，填寫內容仍保留。'; }
     finally { saving = false; by('cal-save').disabled = false; by('cal-delete').disabled = false; }
@@ -201,8 +239,8 @@
     by('calendar-panel').innerHTML = `
       <section class="cal-shell"><header class="cal-head"><div><h1>行事曆</h1><p>其家 · 2026 年 11 月起</p></div><button id="cal-add" class="sg-btn sg-primary" type="button">＋ 新增事件</button></header>
         <div class="cal-tools"><button id="cal-prev" class="sg-btn" type="button" aria-label="上個月">‹</button><label>月份 <input id="cal-month" type="month" min="2026-11"></label><button id="cal-next" class="sg-btn" type="button" aria-label="下個月">›</button><button id="cal-today" class="sg-btn" type="button">今天</button></div>
-        <p id="cal-source-state" class="cal-muted"></p><p class="cal-muted">每日上半格為上午，下半格為下午；黃色表示照會。個人新增與修改須登入後儲存。</p><p class="cal-legend"><a id="cal-holiday-source" href="https://data.gov.tw/dataset/14718" target="_blank" rel="noopener noreferrer"></a><span>紅色：假日 · 藍點：病人回診</span></p><p id="cal-cases-warning" hidden></p><p id="cal-status" role="status" aria-live="polite"></p>
-        <div class="cal-layout"><div class="cal-month-grid"><div class="cal-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div id="cal-days" class="cal-days" aria-label="選擇日期"></div></div><section class="cal-detail" aria-labelledby="cal-selected"><h2 id="cal-selected"></h2><p id="cal-holiday" class="cal-muted"></p><section class="cal-patient-section" aria-labelledby="cal-patients-title"><h3 id="cal-patients-title">病人回診</h3><ul id="cal-patients"></ul><p id="cal-patient-status" role="status"></p><a href="#cases">個案追蹤</a></section><div id="cal-agenda"></div></section></div>
+        <p id="cal-source-state" class="cal-muted"></p><p class="cal-muted">上下捲動可連續瀏覽月份。每日上半格為上午，下半格為下午；黃色表示照會。個人新增與修改須登入後儲存。</p><p class="cal-legend"><a id="cal-holiday-source" href="https://data.gov.tw/dataset/14718" target="_blank" rel="noopener noreferrer"></a><span>紅色：假日 · 藍點：病人回診</span></p><p id="cal-cases-warning" hidden></p><p id="cal-status" role="status" aria-live="polite"></p>
+        <div class="cal-layout"><div class="cal-month-grid"><div class="cal-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div id="cal-scroll" tabindex="0" role="region" aria-label="行事曆，上下捲動瀏覽月份"><div id="cal-days" class="cal-days" aria-label="選擇日期"></div></div></div><section class="cal-detail" aria-labelledby="cal-selected"><h2 id="cal-selected"></h2><p id="cal-holiday" class="cal-muted"></p><section class="cal-patient-section" aria-labelledby="cal-patients-title"><h3 id="cal-patients-title">病人回診</h3><ul id="cal-patients"></ul><p id="cal-patient-status" role="status"></p><a href="#cases">個案追蹤</a></section><div id="cal-agenda"></div></section></div>
       </section>
       <dialog id="cal-dialog" class="cal-dialog" aria-labelledby="cal-editor-title"><form id="cal-form"><h2 id="cal-editor-title">新增事件</h2><div class="cal-fields">
         <label class="cal-full">事件名稱<input id="cal-title" required maxlength="250"></label>
@@ -213,7 +251,8 @@
       </div><p id="cal-error" role="alert"></p><div class="cal-actions"><button id="cal-delete" type="button" class="sg-btn" hidden>刪除</button><button id="cal-cancel" type="button" class="sg-btn">取消</button><button id="cal-save" type="submit" class="sg-btn sg-primary">儲存</button></div></form></dialog>`;
     by('cal-add').onclick = () => openEditor(); by('cal-prev').onclick = () => shift(-1); by('cal-next').onclick = () => shift(1);
     by('cal-month').onchange = event => setMonth(event.target.value);
-    by('cal-today').onclick = () => { selected = localDate() < FIRST + '-01' ? FIRST + '-01' : localDate(); month = selected.slice(0,7); render(); };
+    by('cal-today').onclick = () => { prepareDate(localDate() < FIRST + '-01' ? FIRST + '-01' : localDate()); render(); };
+    by('cal-scroll').addEventListener('scroll', () => { if (!scrollFrame) scrollFrame = requestAnimationFrame(scrollWeeks); }, {passive: true});
     by('cal-date').onchange = () => { if (by('cal-endDate').value < by('cal-date').value) by('cal-endDate').value = by('cal-date').value; };
     by('cal-form').onsubmit = event => { event.preventDefault(); save(); };
     by('cal-delete').onclick = () => save(true);

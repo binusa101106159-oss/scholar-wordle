@@ -16,3 +16,8 @@ body[data-game="calendar"]{height:100dvh;min-height:0;overflow:hidden}
 .cal-day.cal-holiday:not(.cal-consult){background:linear-gradient(145deg,#f0808030,#b947471c);border-color:#f0a0a05c}.cal-day.cal-holiday:not(.cal-consult):hover{background:linear-gradient(145deg,#f0808040,#b9474728)}.cal-day.cal-holiday:not(.cal-consult)[aria-pressed="true"]{background:linear-gradient(145deg,#f0808048,#b9474732);border-color:#f6b3b3}.cal-holiday .cal-afternoon{border-top-color:#edabab36}
 
 .cal-followup-count{display:block;color:#94c4ff;font-size:11px;line-height:1.6}
+
+/* A bounded viewport scrolls through complete, adjoining weeks and months. */
+#cal-scroll{height:max(280px,calc(100vh - 340px));height:max(280px,calc(100dvh - 340px));overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y pinch-zoom;scrollbar-width:auto;scrollbar-color:#a9c8ff65 transparent;border-radius:14px;scroll-padding-block:8px}
+#cal-scroll:focus-visible{outline:2px solid #a9c8ff;outline-offset:3px}.cal-days{display:block;position:relative}.cal-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-bottom:5px}.cal-month-marker{color:#bfd8f8;font-size:11px;font-weight:600;white-space:nowrap}.cal-month-grid{min-width:0}
+@media(max-width:500px){.cal-week{gap:3px;margin-bottom:3px}.cal-month-marker{font-size:9px}.cal-day-heading{align-content:start}}
