@@ -33,3 +33,18 @@ body[data-game="calendar"]{height:100dvh;min-height:0;overflow:hidden}
 
 #calendar-panel{scrollbar-width:none}#calendar-panel::-webkit-scrollbar{display:none}
 #cal-scroll{scrollbar-width:none}#cal-scroll::-webkit-scrollbar{display:none}
+
+/* Calendar fills the reader viewport; controls and daily detail occupy side rails. */
+#calendar-panel{overflow:hidden}
+.cal-shell{max-width:none;height:100%;min-height:0;padding:8px 12px;display:grid;grid-template-columns:190px minmax(0,1fr);gap:12px}
+.cal-controls{min-width:0;overflow:auto;scrollbar-width:none}.cal-controls::-webkit-scrollbar{display:none}
+.cal-tools{margin:0;gap:6px}.cal-tools label{order:-1;width:100%;font-size:12px}.cal-tools input{width:130px}.cal-tools .sg-btn{padding:5px 10px}
+.cal-layout{min-height:0;grid-template-columns:minmax(0,1fr) 250px;gap:14px}
+.cal-month-grid{display:flex;flex-direction:column;min-height:0}.cal-weekdays{flex:none}#cal-scroll{height:auto;min-height:0;flex:1}
+.cal-detail{padding:6px 0;overflow:auto;scrollbar-width:none}.cal-detail::-webkit-scrollbar{display:none}.cal-detail #cal-agenda{display:block}.cal-detail h2{font-size:18px;margin-bottom:8px}.cal-patient-section{padding:12px}.cal-sidebar-toggle{display:none}
+@media(max-width:1100px){.cal-shell{grid-template-columns:150px minmax(0,1fr);gap:8px}.cal-layout{grid-template-columns:minmax(0,1fr) 200px;gap:10px}.cal-tools input{width:104px}}
+@media(max-width:760px){.cal-shell{position:relative;display:block;padding:4px 6px;height:100%}.cal-layout{display:block;height:100%}.cal-month-grid{height:100%}.cal-weekdays{padding:7px 55px}.cal-sidebar-toggle{display:block;position:absolute;top:2px;z-index:3;min-height:28px;padding:4px 9px;font-size:11px}#cal-controls-toggle{left:7px}#cal-detail-toggle{right:7px}.cal-controls,.cal-detail{display:none;position:absolute;top:35px;bottom:8px;width:min(280px,calc(100% - 32px));z-index:4;box-sizing:border-box;padding:14px;border:1px solid #b9d7ff40;border-radius:16px;background:#101b2bf5;box-shadow:0 12px 40px #0007}.cal-controls{left:6px}.cal-detail{right:6px}.cal-sidebar-open{display:block}.cal-weekdays{padding-left:0;padding-right:0;padding-top:36px}.cal-tools input{width:150px}}
+
+.cal-followup{display:block;min-width:0;color:#b9d7ff;font-size:11px;line-height:1.4;overflow-wrap:anywhere}.cal-followup-name,.cal-followup-purpose{display:block;white-space:pre-wrap}.cal-followup-name{font-weight:650}.cal-followup-purpose{color:#b8c6d9;font-size:10px}
+
+.cal-sidebar-toggle{display:none!important}@media(max-width:760px){.cal-sidebar-toggle{display:block!important}}

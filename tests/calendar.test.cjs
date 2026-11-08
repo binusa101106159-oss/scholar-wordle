@@ -3,8 +3,9 @@ const test = require('node:test'), assert = require('node:assert/strict');
 const {validate, combine, covers, dayParts} = require('../calendar/calendar.js');
 const event = (id, extra={}) => ({id, title:'事件', date:'2026-11-12', endDate:'2026-11-12', startTime:'', endTime:'', period:'PM', notes:'', source:'manual', ...extra});
 test('calendar rejects impossible dates and reversed time ranges but allows overnight events', () => {
-  for (const extra of [{date:'2026-11-31'}, {date:'2026-10-31'}, {endDate:'2026-11-11'}, {title:'  '}, {startTime:'24:00'}, {endTime:'10:00'}, {startTime:'14:00',endTime:'13:00'}]) assert.throws(()=>validate(event('one',extra)));
+  for (const extra of [{date:'2026-11-31'}, {endDate:'2026-11-11'}, {title:'  '}, {startTime:'24:00'}, {endTime:'10:00'}, {startTime:'14:00',endTime:'13:00'}]) assert.throws(()=>validate(event('one',extra)));
   assert.equal(validate(event('one',{startTime:'23:00',endTime:'01:00',endDate:'2026-11-13'})).endDate,'2026-11-13');
+  assert.equal(validate(event('past',{date:'2025-10-31',endDate:'2025-10-31'})).date,'2025-10-31');
   assert.equal(validate(event('two',{startTime:'09:30'})).startTime,'09:30');
 });
 test('roster updates preserve manual events, edits and deletions without stale removed assignments', () => {

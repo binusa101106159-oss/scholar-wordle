@@ -259,9 +259,10 @@
     const panel = by('cases-panel');
     panel.innerHTML = `
       <div class="ct-shell">
-        <header class="ct-head"><div><h1>個案追蹤</h1><p>登入後儲存至私人雲端，其他裝置使用同一帳號即可接續。儲存成功前請勿關閉此頁。</p></div>
-          <button class="sg-btn sg-primary" id="ct-add" type="button">＋ 新增個案</button></header>
-        <div class="ct-tools"><input id="ct-search" type="search" aria-label="搜尋個案" placeholder="搜尋姓名、病歷號、VS、回診目的、診斷或備註" autocomplete="off"><span id="ct-count"></span></div>
+        <header class="ct-head"><h1>個案追蹤</h1>
+          <div class="ct-tools"><input id="ct-search" type="search" aria-label="搜尋個案" placeholder="搜尋姓名、病歷號、VS、回診目的、診斷或備註" autocomplete="off"><span id="ct-count"></span></div>
+          <button class="sg-btn sg-primary" id="ct-add" type="button">＋ 新增個案</button>
+          <p>登入後儲存至私人雲端，其他裝置使用同一帳號即可接續。儲存成功前請勿關閉此頁。</p></header>
         <p id="ct-status" class="ct-status" role="status" aria-live="polite"></p>
         <p id="ct-empty" class="ct-empty"></p>
         <div class="ct-table-wrap" id="ct-table-wrap" hidden><table class="ct-table"><caption class="ct-sr">個案追蹤清單</caption><thead><tr>

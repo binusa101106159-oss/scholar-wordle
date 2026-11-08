@@ -34,3 +34,7 @@ body[data-game="cases"] #game-main,body[data-game="cases"] #wordle-toolbar{displ
 @media(prefers-reduced-motion:reduce){.ct-reordering>tr{transition:none}}
 
 .ct-followup-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,.55fr);gap:16px;align-items:start}.ct-fields select{color-scheme:dark;cursor:pointer}.ct-fields select option{color:#edf2f8;background:#14202e}@media(max-width:480px){.ct-followup-fields{grid-template-columns:minmax(0,1fr) 110px;gap:10px}}
+
+.ct-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px 22px}
+.ct-head>.ct-tools{padding:0;border:0;border-radius:0;background:none;box-shadow:none;min-width:0}.ct-head>p{grid-column:1/-1;margin:0;max-width:none}
+@media(max-width:900px){.ct-head{grid-template-columns:minmax(0,1fr) auto;gap:12px}.ct-head>h1{grid-column:1;grid-row:1}.ct-head>#ct-add{grid-column:2;grid-row:1}.ct-head>.ct-tools{grid-column:1/-1;grid-row:2;flex-wrap:nowrap}.ct-head>.ct-tools input{width:auto}.ct-head>p{grid-row:3}}
