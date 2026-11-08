@@ -33,6 +33,7 @@
   return {valid,ready:valid>=10,score:valid>=10?(sum/valid-1)*25:null};
  }
  if(typeof module!=='undefined'&&module.exports)module.exports={scoreAAOS,severityFor,round,scoreQuickDASH};
+ root.ScholarQuestionnaireScores={scoreAAOS,scoreQuickDASH};
  if(typeof document==='undefined')return;
  let data=null,promise=null;
  async function mount(){
