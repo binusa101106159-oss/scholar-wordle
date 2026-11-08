@@ -48,3 +48,5 @@ body[data-game="calendar"]{height:100dvh;min-height:0;overflow:hidden}
 .cal-followup{display:block;min-width:0;color:#b9d7ff;font-size:11px;line-height:1.4;overflow-wrap:anywhere}.cal-followup-name,.cal-followup-purpose{display:block;white-space:pre-wrap}.cal-followup-name{font-weight:650}.cal-followup-purpose{color:#b8c6d9;font-size:10px}
 
 .cal-sidebar-toggle{display:none!important}@media(max-width:760px){.cal-sidebar-toggle{display:block!important}}
+
+.cal-day-dialog{width:min(560px,calc(100vw - 24px));padding:18px}.cal-day-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.cal-day-dialog-head strong{font-size:15px;color:#bdcfe4}.cal-day-dialog #cal-detail{display:block;position:static;width:100%;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible}.cal-day-dialog #cal-agenda{display:block}.cal-day-dialog #cal-day-add{width:100%;min-height:44px;margin-top:12px}.cal-day-dialog .cal-patient-section{margin-bottom:14px}

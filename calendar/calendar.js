@@ -85,7 +85,7 @@
     pendingWeek = weekOfMonth(month); startWeek = pendingWeek - 28; weekCount = 24;
   }
   function setMonth(value) {
-    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) return;
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(value) || value === month) return;
     prepareDate(value + '-01'); render();
   }
   function refreshMonth() {
@@ -204,7 +204,27 @@
       edit.onclick = () => openEditor(event); card.append(edit); agenda.append(card);
     }
   }
+  const mobileCalendar = () => matchMedia('(max-width:760px), (pointer:coarse)').matches;
+  function closeDayDetails() { if (by('cal-day-dialog').open) by('cal-day-dialog').close(); }
+  function restoreDayDetails() {
+    const detail=by('cal-detail');
+    if(by('cal-day-content').contains(detail)) by('cal-scroll').closest('.cal-layout').append(detail);
+  }
+  function openDayDetails() {
+    const dialog=by('cal-day-dialog');
+    by('cal-detail').classList.remove('cal-sidebar-open');
+    by('cal-day-content').append(by('cal-detail'));
+    by('cal-day-add').disabled=!readable;
+    if(!dialog.open)dialog.showModal();
+  }
+  function goToday() {
+    closeDayDetails();lastDayClick=null;prepareDate(localDate());render();
+    by('cal-controls').classList.remove('cal-sidebar-open');by('cal-controls-toggle').setAttribute('aria-expanded','false');
+    const day=by('cal-days').querySelector(`[data-date="${selected}"]`),viewport=by('cal-scroll');
+    if(day){const box=day.getBoundingClientRect(),view=viewport.getBoundingClientRect();viewport.scrollTop+=box.top-view.top-Math.max(0,(viewport.clientHeight-box.height)/2);}
+  }
   function openEditor(event = null) {
+    closeDayDetails();
     editing = event; by('cal-form').reset(); by('cal-error').textContent = '';
     by('cal-editor-title').textContent = event ? '編輯事件' : '新增事件';
     for (const field of ['title','date','endDate','startTime','endTime','period','notes']) by('cal-' + field).value = event?.[field] || (field === 'date' || field === 'endDate' ? selected : '');
@@ -235,11 +255,12 @@
   }
   function mount() {
     by('calendar-panel').innerHTML = `
-      <section class="cal-shell"><button id="cal-controls-toggle" class="sg-btn cal-sidebar-toggle" type="button" aria-expanded="false" aria-controls="cal-controls">月份</button><button id="cal-detail-toggle" class="sg-btn cal-sidebar-toggle" type="button" aria-expanded="false" aria-controls="cal-detail">當日</button><aside id="cal-controls" class="cal-controls" aria-label="月份導覽">
+      <section class="cal-shell"><button id="cal-controls-toggle" class="sg-btn cal-sidebar-toggle" type="button" aria-expanded="false" aria-controls="cal-controls">月份</button><button id="cal-detail-toggle" class="sg-btn cal-sidebar-toggle" type="button" aria-label="回到今日">今日</button><aside id="cal-controls" class="cal-controls" aria-label="月份導覽">
         <div class="cal-tools"><button id="cal-prev" class="sg-btn" type="button" aria-label="上個月">‹</button><label>月份 <input id="cal-month" type="month"></label><button id="cal-next" class="sg-btn" type="button" aria-label="下個月">›</button><button id="cal-today" class="sg-btn" type="button">今天</button></div>
         <p id="cal-cases-warning" hidden></p><p id="cal-status" role="status" aria-live="polite"></p>
         </aside><div class="cal-layout"><div class="cal-month-grid"><div class="cal-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div id="cal-scroll" tabindex="0" role="region" aria-label="行事曆，上下捲動瀏覽月份"><div id="cal-days" class="cal-days" aria-label="選擇日期"></div></div></div><section id="cal-detail" class="cal-detail" aria-labelledby="cal-selected"><h2 id="cal-selected"></h2><p id="cal-holiday" class="cal-muted"></p><section class="cal-patient-section" aria-labelledby="cal-patients-title"><h3 id="cal-patients-title">病人回診</h3><ul id="cal-patients"></ul><p id="cal-patient-status" role="status"></p><a href="#cases">個案追蹤</a></section><div id="cal-agenda"></div></section></div>
       </section>
+      <dialog id="cal-day-dialog" class="cal-dialog cal-day-dialog" aria-labelledby="cal-selected"><header class="cal-day-dialog-head"><strong>當日詳情</strong><button id="cal-day-close" type="button" class="sg-btn" aria-label="關閉當日詳情">關閉</button></header><div id="cal-day-content"></div><button id="cal-day-add" class="sg-btn" type="button">＋ 新增事件</button></dialog>
       <dialog id="cal-dialog" class="cal-dialog" aria-labelledby="cal-editor-title"><form id="cal-form"><h2 id="cal-editor-title">新增事件</h2><div class="cal-fields">
         <label class="cal-full">事件名稱<input id="cal-title" required maxlength="250"></label>
         <label>日期<input id="cal-date" type="date" required></label><label>結束日期<input id="cal-endDate" type="date" required></label>
@@ -247,13 +268,15 @@
         <label class="cal-full">未指定時間的時段<select id="cal-period"><option value="">全天／未指定</option><option value="AM">上午</option><option value="PM">下午</option></select></label>
         <label class="cal-full">備註<textarea id="cal-notes" rows="3" maxlength="4000"></textarea></label>
       </div><p id="cal-error" role="alert"></p><div class="cal-actions"><button id="cal-delete" type="button" class="sg-btn" hidden>刪除</button><button id="cal-cancel" type="button" class="sg-btn">取消</button><button id="cal-save" type="submit" class="sg-btn sg-primary">儲存</button></div></form></dialog>`;
-    for (const name of ['controls', 'detail']) by('cal-' + name + '-toggle').onclick = () => {
+    for (const name of ['controls']) by('cal-' + name + '-toggle').onclick = () => {
       const toggle = by('cal-' + name + '-toggle'), open = toggle.getAttribute('aria-expanded') !== 'true';
       toggle.setAttribute('aria-expanded', String(open)); by('cal-' + name).classList.toggle('cal-sidebar-open', open);
     };
     by('cal-prev').onclick = () => shift(-1); by('cal-next').onclick = () => shift(1);
     by('cal-month').onchange = event => setMonth(event.target.value);
-    by('cal-today').onclick = () => { prepareDate(localDate()); render(); };
+    by('cal-today').onclick = goToday;by('cal-detail-toggle').onclick = goToday;
+    by('cal-day-close').onclick = closeDayDetails;by('cal-day-add').onclick = () => openEditor();
+    by('cal-day-dialog').addEventListener('close',restoreDayDetails);
     let dayPointer = null;
     by('cal-days').onpointerdown = event => {
       const day = event.target.closest('.cal-day');
@@ -266,7 +289,7 @@
       const now = performance.now(), doubleClick = lastDayClick?.date === day.date && now - lastDayClick.time < 450;
       lastDayClick = doubleClick ? null : {date: day.date, time: now};
       selected = day.date; render();
-      if (doubleClick && readable) openEditor();
+      if (doubleClick) { if(mobileCalendar())openDayDetails();else if(readable)openEditor(); }
     };
     by('cal-scroll').addEventListener('scroll', () => { if (!scrollFrame) scrollFrame = requestAnimationFrame(scrollWeeks); }, {passive: true});
     by('cal-date').onchange = () => { if (by('cal-endDate').value < by('cal-date').value) by('cal-endDate').value = by('cal-date').value; };
@@ -293,6 +316,6 @@
       render(); say('');
     } catch (_) { feed = null; loading = null; say('無法載入班表。請重新開啟行事曆重試；你的個人事件仍保留。'); }
   }
-  function hide() { if (mounted && by('cal-dialog').open && !saving) by('cal-dialog').close(); }
+  function hide() { if(!mounted)return;closeDayDetails();if(by('cal-dialog').open&&!saving)by('cal-dialog').close(); }
   window.ScholarCalendar = {show, hide};
 })();
