@@ -22,6 +22,8 @@ body[data-game="calendar"]{height:100dvh;min-height:0;overflow:hidden}
 #cal-scroll:focus-visible{outline:2px solid #a9c8ff;outline-offset:3px}.cal-days{display:block;position:relative}.cal-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-bottom:5px}.cal-month-marker{color:#bfd8f8;font-size:11px;font-weight:600;white-space:nowrap}.cal-month-grid{min-width:0}
 @media(max-width:500px){.cal-week{gap:3px;margin-bottom:3px}.cal-month-marker{font-size:9px}.cal-day-heading{align-content:start}}
 
-.cal-days .cal-day.cal-month-start:not(.cal-holiday){background:linear-gradient(145deg,#68c99532,#288b5b20);border-color:#95dcb576}.cal-days .cal-day.cal-month-start:not(.cal-holiday):hover{background:linear-gradient(145deg,#68c99544,#288b5b30)}.cal-days .cal-day.cal-month-start:not(.cal-holiday)[aria-pressed="true"]{background:linear-gradient(145deg,#68c99550,#288b5b38);border-color:#b6f0cf}.cal-month-start:not(.cal-holiday) .cal-afternoon{border-top-color:#a4dfbf40}.cal-month-start:not(.cal-holiday) .cal-month-marker{color:#b6eccd}
+.cal-days .cal-day.cal-month-start:not(.cal-holiday):not(.cal-consult){background:linear-gradient(145deg,#68c99532,#288b5b20);border-color:#95dcb576}.cal-days .cal-day.cal-month-start:not(.cal-holiday):not(.cal-consult):hover{background:linear-gradient(145deg,#68c99544,#288b5b30)}.cal-days .cal-day.cal-month-start:not(.cal-holiday):not(.cal-consult)[aria-pressed="true"]{background:linear-gradient(145deg,#68c99550,#288b5b38);border-color:#b6f0cf}.cal-month-start:not(.cal-holiday):not(.cal-consult) .cal-afternoon{border-top-color:#a4dfbf40}.cal-month-start:not(.cal-holiday):not(.cal-consult) .cal-month-marker{color:#b6eccd}
 
 .cal-holiday .cal-month-marker{color:#f4b2b2}
+
+.cal-consult:not(.cal-holiday) .cal-month-marker{color:#ffe08c}
