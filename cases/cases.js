@@ -8,10 +8,20 @@
   ];
   const recordFields = [...fields.map(([key]) => key), 'followupPeriod'];
   const periodLabels = {AM: '上午', PM: '下午'};
+  const weekdayFor = typeof module === 'object' && module.exports
+    ? require('../calculator/calculator.js').followupWeekday
+    : raw => window.ScholarCalculator.followupWeekday(raw);
   function followupText(row) {
-    const text = row.followup || '', label = periodLabels[row.followupPeriod];
-    if (!label) return text;
-    return [text.replace(/上午|下午|\bAM\b|\bPM\b/gi, '').trim(), label].filter(Boolean).join(' · ');
+    const raw = row.followup || '', label = periodLabels[row.followupPeriod], weekday = weekdayFor(raw);
+    let text = label ? raw.replace(/上午|下午|\bAM\b|\bPM\b/gi, '').trim() : raw;
+    if (weekday) {
+      const prefix = text.match(/^\s*(?:民國\s*)?[\d０-９]{3,4}\s*(?:年|[.／/－-])\s*[\d０-９]{1,2}\s*(?:月|[.／/－-])\s*[\d０-９]{1,2}(?:日|號)?/);
+      if (prefix) {
+        const rest = text.slice(prefix[0].length).replace(/^\s*[（(](?:星期|週|周)?[一二三四五六日天][）)]/, '');
+        text = prefix[0] + '（' + weekday + '）' + rest;
+      } else text += '（' + weekday + '）';
+    }
+    return [text, label].filter(Boolean).join(' · ');
   }
   function parseRecords(raw) {
     if (raw === null) return [];
@@ -230,9 +240,14 @@
     for (const key of recordFields) by('ct-' + key).value = row?.[key] || '';
     by('ct-followupPeriod').required = !row;
     by('ct-period-required').hidden = Boolean(row);
+    updateWeekday();
     by('ct-editor-title').textContent = row ? '編輯個案' : '新增個案';
     window.ScholarPeek.open(by('ct-editor'));
     by('ct-name').focus({ preventScroll: true });
+  }
+  function updateWeekday() {
+    const weekday = weekdayFor(by('ct-followup').value);
+    by('ct-followup-weekday').textContent = weekday ? '（' + weekday + '）' : '';
   }
   async function closeEditor() {
     if (saving) return;
@@ -259,7 +274,7 @@
           <label>姓名 <span class="ct-required">*</span><input id="ct-name" name="name" required maxlength="120" autocomplete="off"></label>
           <label>病歷號<input id="ct-mrn" name="mrn" maxlength="80" autocomplete="off" spellcheck="false"></label>
           <label>VS<input id="ct-vs" name="vs" maxlength="120" autocomplete="off"></label>
-          <div class="ct-full ct-followup-fields"><label>回診日期<input id="ct-followup" name="followup" placeholder="例如 2026/11/18" maxlength="120" autocomplete="off"></label>
+          <div class="ct-full ct-followup-fields"><label>回診日期 <span id="ct-followup-weekday" aria-live="polite"></span><input id="ct-followup" name="followup" placeholder="例如 2026/11/18" maxlength="120" autocomplete="off"></label>
             <label>回診時段 <span id="ct-period-required" class="ct-required">*</span><select id="ct-followupPeriod" name="followupPeriod" required><option value="">請選擇</option><option value="AM">上午 AM</option><option value="PM">下午 PM</option></select></label></div>
           <label class="ct-full">回診目的<textarea id="ct-purpose" name="purpose" rows="2" maxlength="500"></textarea></label>
           <label class="ct-full">診斷<textarea id="ct-diagnosis" name="diagnosis" rows="2" maxlength="4000"></textarea></label>
@@ -272,6 +287,7 @@
     setupReorder();
     by('ct-add').addEventListener('click', () => edit());
     by('ct-search').addEventListener('input', render);
+    by('ct-followup').addEventListener('input', updateWeekday);
     by('ct-editor-close').addEventListener('click', closeEditor); by('ct-cancel').addEventListener('click', closeEditor);
     by('ct-editor').addEventListener('close', () => { by('ct-form').reset(); editing = null; });
     by('ct-rows').addEventListener('click', async event => {

@@ -69,10 +69,25 @@ test('new patients must explicitly select AM or PM while legacy patients remain 
 });
 test('case period display and search use the selected period without rewriting legacy date text',()=>{
  const record=row('one',{followup:'2026/11/24 上午',followupPeriod:'PM'});
- assert.equal(followupText(record),'2026/11/24 · 下午');
+ assert.equal(followupText(record),'2026/11/24（二） · 下午');
  assert.equal(record.followup,'2026/11/24 上午');
  assert.deepEqual(filterRecords([record],'PM'),[record]);
  assert.deepEqual(filterRecords([record],'下午'),[record]);
  const legacy={...record};delete legacy.followupPeriod;
- assert.equal(followupText(legacy),legacy.followup);
+ assert.equal(followupText(legacy),'2026/11/24（二） 上午');
+ assert.equal(legacy.followup,'2026/11/24 上午');
+});
+
+test('follow-up weekdays support Gregorian, ROC and full-width dates without guessing ambiguous dates',()=>{
+ for(const [followup,expected] of [
+  ['2026/11/18','2026/11/18（三）'],
+  ['115/11/24','115/11/24（二）'],
+  ['民國115年11月22日','民國115年11月22日（日）'],
+  ['２０２６／１１／２４','２０２６／１１／２４（二）'],
+  ['2026/11/24（三）','2026/11/24（二）'],
+  ['11/24','11/24'],['2026/2/30','2026/2/30'],
+  ['2026/11/24取消','2026/11/24取消'],['','']
+ ]){
+  const record={followup};assert.equal(followupText(record),expected);assert.equal(record.followup,followup);
+ }
 });

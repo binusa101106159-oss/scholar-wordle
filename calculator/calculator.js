@@ -47,6 +47,10 @@
   const date=new Date(Date.UTC(year,month-1,day));
   return date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day?dateKey(year,month,day):null;
  }
+ function followupWeekday(raw){
+  const key=followupDate(raw);
+  return key?['日','一','二','三','四','五','六'][new Date(key+'T00:00:00Z').getUTCDay()]:'';
+ }
  function dayInfo(key,data){
   const [year,month,day]=key.split('-').map(Number),weekday=new Date(Date.UTC(year,month-1,day)).getUTCDay(),weekend=weekday===0||weekday===6;
   const known=Boolean(data?.years.includes(year)),exception=known?data.dates[key]:null;
@@ -184,7 +188,7 @@
   fetch('calculator/taiwan-calendar.json').then(response=>{if(!response.ok)throw Error('Calendar unavailable');return response.json();}).then(data=>{holidays=data;refresh();}).catch(()=>{holidayError=true;refresh();});
   return {refresh(){readAppointments();refresh();}};
  }
- if(typeof module!=='undefined'&&module.exports)module.exports={calculate,monthGrid,weekDates,monthWeek,followupDate,dayInfo};
+ if(typeof module!=='undefined'&&module.exports)module.exports={calculate,monthGrid,weekDates,monthWeek,followupDate,followupWeekday,dayInfo};
  if(typeof document==='undefined')return;
  let ready=false,calendar;
  function show(){
@@ -226,5 +230,5 @@
   root.ScholarSync.subscribe(key=>{if(key==='scholar-calculator-v1')hydrate();});hydrate();
 
  }
- root.ScholarCalculator={show,followupDate,dayInfo,monthWeek,weekDates};
+ root.ScholarCalculator={show,followupDate,followupWeekday,dayInfo,monthWeek,weekDates};
 })(typeof window==='undefined'?globalThis:window);
