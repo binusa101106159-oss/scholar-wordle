@@ -8,3 +8,5 @@ body[data-game="forms"] #game-main,body[data-game="forms"] #wordle-toolbar{displ
 @media(max-width:600px){.fm-options:not(.fm-scale):not(.fm-long){display:grid;grid-template-columns:1fr}}
 
 .fm-slider{display:grid;gap:4px}.fm-slider-value{justify-self:center;font-size:20px;font-weight:650;color:#cde3ff;font-variant-numeric:tabular-nums}.fm-slider input{display:block;width:100%;box-sizing:border-box;margin:0;min-width:0;height:44px;accent-color:#a9ceff;cursor:pointer}.fm-slider input[data-answered=false]{opacity:.6}.fm-slider input:focus-visible{outline:2px solid #cde3ff;outline-offset:3px;border-radius:12px}.fm-slider-ticks{display:flex;justify-content:space-between;padding:0 5px;color:#a4b8d2;font:12px system-ui;font-variant-numeric:tabular-nums}.fm-slider-ticks span{text-align:center;min-width:14px}
+
+.fm-slider-choice{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;min-height:3.2em;font-size:16px;line-height:1.6;text-align:center;overflow-wrap:anywhere}.fm-slider-long-choice{min-height:4.8em}
