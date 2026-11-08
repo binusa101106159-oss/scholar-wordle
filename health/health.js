@@ -599,8 +599,14 @@
     for(const k of cover){const block=by('hx-b-'+guide.id+'-'+k);if(block){block.classList.add('hx-cover-line');front.append(block);}}
     head.insertBefore(front,head.querySelector('.hx-credit'));
     head.classList.add('hx-merged-cover');
-    const next=guide.blocks[cover.length],norm=text=>String(text||'').replace(/\s+/g,'');
-    if(next?.t==='p'&&norm(next.text)===norm(guide.blocks[0].text))by('hx-b-'+guide.id+'-'+cover.length)?.classList.add('hx-repeated-cover-title');
+    // The next page can repeat its title across several PDF paragraphs.
+    // Match the complete title, allowing the source's two title suffixes only.
+    const norm=text=>String(text||'').replace(/\s+/g,'').replace(/健康(?:管理分級建議|檢查)指引$/, '健康指引');
+    const repeated=[];
+    for(let k=cover.length;k<guide.blocks.length&&guide.blocks[k].t==='p';k++)repeated.push(k);
+    if(repeated.length&&norm(repeated.map(k=>guide.blocks[k].text||'').join(''))===norm(guide.blocks[0].text)){
+      for(const k of repeated)by('hx-b-'+guide.id+'-'+k)?.classList.add('hx-repeated-cover-title');
+    }
   }
   function renderDoc(guide, keepScroll) {
     const terms = state.terms, meta = guide.meta;

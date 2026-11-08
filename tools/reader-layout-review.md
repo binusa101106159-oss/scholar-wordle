@@ -24,3 +24,5 @@
 - IARC搜尋與分類移至左側，結果區獨立捲動；手機使用搜尋／分類側欄，選取分類後回到結果。
 - 三引擎1440/390px檢查表單切換及作答、IARC搜尋asbestos及Group1篩選、特做四段封面文字／來源定位、AMA無大型卡片及原表格彈窗。三引擎320px與側欄鍵盤操作通過。以虛構標記核對特做作者段的原block ID與offset畫線仍正確顯示。
 - 139項Node測試通過，來源JSON完全未變更，git diff --check通過。快取v183。
+
+Residual cover-title review (2026-11-08): audited the first body-page title in all 32 full health guides. Match multi-paragraph titles as a whole and normalize only the source title suffix variants 健康檢查指引 / 健康管理分級建議指引. Hide duplicate presentation while retaining original nodes, IDs, and source text for annotations. Chromium, Firefox, WebKit: 32/32 repeated titles absent from body, all original paragraph text retained, first real section visible; mobile 390px no overflow. 139 Node tests pass; no JSON changes. Visually reviewed full13 screenshot.
