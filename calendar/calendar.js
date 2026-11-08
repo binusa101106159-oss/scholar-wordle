@@ -115,6 +115,7 @@
     try { all = events(); readable = true; }
     catch (error) { readable = false; say(error.message); all = feed?.events || []; }
     refreshMonth();
+    by('cal-day-add').disabled=!readable;
     const appointments = readAppointments();
     const warning = by('cal-cases-warning'); warning.replaceChildren();
     if (appointments.error) warning.textContent = '無法讀取回診資料，原有個案資料仍保留。';
@@ -258,9 +259,9 @@
       <section class="cal-shell"><button id="cal-controls-toggle" class="sg-btn cal-sidebar-toggle" type="button" aria-expanded="false" aria-controls="cal-controls">月份</button><button id="cal-detail-toggle" class="sg-btn cal-sidebar-toggle" type="button" aria-label="回到今日">今日</button><aside id="cal-controls" class="cal-controls" aria-label="月份導覽">
         <div class="cal-tools"><button id="cal-prev" class="sg-btn" type="button" aria-label="上個月">‹</button><label>月份 <input id="cal-month" type="month"></label><button id="cal-next" class="sg-btn" type="button" aria-label="下個月">›</button><button id="cal-today" class="sg-btn" type="button">今天</button></div>
         <p id="cal-cases-warning" hidden></p><p id="cal-status" role="status" aria-live="polite"></p>
-        </aside><div class="cal-layout"><div class="cal-month-grid"><div class="cal-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div id="cal-scroll" tabindex="0" role="region" aria-label="行事曆，上下捲動瀏覽月份"><div id="cal-days" class="cal-days" aria-label="選擇日期"></div></div></div><section id="cal-detail" class="cal-detail" aria-labelledby="cal-selected"><h2 id="cal-selected"></h2><p id="cal-holiday" class="cal-muted"></p><section class="cal-patient-section" aria-labelledby="cal-patients-title"><h3 id="cal-patients-title">病人回診</h3><ul id="cal-patients"></ul><p id="cal-patient-status" role="status"></p><a href="#cases">個案追蹤</a></section><div id="cal-agenda"></div></section></div>
+        </aside><div class="cal-layout"><div class="cal-month-grid"><div class="cal-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div id="cal-scroll" tabindex="0" role="region" aria-label="行事曆，上下捲動瀏覽月份"><div id="cal-days" class="cal-days" aria-label="選擇日期"></div></div></div><section id="cal-detail" class="cal-detail" aria-labelledby="cal-selected"><h2 id="cal-selected"></h2><p id="cal-holiday" class="cal-muted"></p><section class="cal-patient-section" aria-labelledby="cal-patients-title"><h3 id="cal-patients-title">病人回診</h3><ul id="cal-patients"></ul><p id="cal-patient-status" role="status"></p><a href="#cases">個案追蹤</a></section><div id="cal-agenda"></div><button id="cal-day-add" class="sg-btn" type="button">＋ 新增事件</button></section></div>
       </section>
-      <dialog id="cal-day-dialog" class="cal-dialog cal-day-dialog" aria-labelledby="cal-selected"><header class="cal-day-dialog-head"><strong>當日詳情</strong><button id="cal-day-close" type="button" class="sg-btn" aria-label="關閉當日詳情">關閉</button></header><div id="cal-day-content"></div><button id="cal-day-add" class="sg-btn" type="button">＋ 新增事件</button></dialog>
+      <dialog id="cal-day-dialog" class="cal-dialog cal-day-dialog" aria-labelledby="cal-selected"><header class="cal-day-dialog-head"><strong>當日詳情</strong><button id="cal-day-close" type="button" class="sg-btn" aria-label="關閉當日詳情">關閉</button></header><div id="cal-day-content"></div></dialog>
       <dialog id="cal-dialog" class="cal-dialog" aria-labelledby="cal-editor-title"><form id="cal-form"><h2 id="cal-editor-title">新增事件</h2><div class="cal-fields">
         <label class="cal-full">事件名稱<input id="cal-title" required maxlength="250"></label>
         <label>日期<input id="cal-date" type="date" required></label><label>結束日期<input id="cal-endDate" type="date" required></label>
