@@ -60,3 +60,18 @@ def source_dir(lid):
     return PUBLIC_SRC if lid.startswith("pub") else SRC
 
 EXTRA_ANNEX_FILES = {"pub01": ["附表 公教人員保險被保險人於本法修正施行前保險年資養老給付月數標準表.PDF"]}
+
+# Supplied medical and general laws, shown after all existing study groups.
+TIERS += [("醫療法規", ""), ("基本法規", "")]
+LAWS += [
+ ("med01", "醫療法規", "醫師懲戒辦法", "醫師懲戒辦法"),
+ ("med02", "醫療法規", "醫師法", "醫師法"),
+ ("med03", "醫療法規", "醫師法施行細則", "醫師法施行細則"),
+ ("med04", "醫療法規", "醫師獎勵辦法", "醫師獎勵辦法"),
+ ("med05", "醫療法規", "醫療法", "醫療法"),
+ ("base01", "基本法規", "中華民國刑法", "中華民國刑法"),
+ ("base02", "基本法規", "中華民國憲法", "中華民國憲法"),
+ ("base03", "基本法規", "刑事訴訟法", "刑事訴訟法"),
+ ("base04", "基本法規", "民事訴訟法", "民事訴訟法"),
+ ("base05", "基本法規", "民法", "民法"),
+]

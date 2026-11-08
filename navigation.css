@@ -16,3 +16,10 @@
  #scholar-game-tabs>.lg-tab-lens{border-radius:12px}
  .sg-games-menu{left:12px;max-width:calc(100% - 24px)}
 }
+
+/* Let wide displays use their available width instead of the old 1200px cap. */
+@media(min-width:1100px) and (orientation:landscape){
+ .sg-nav-shell>.sg-nav-inner{max-width:none;width:100%;box-sizing:border-box}
+ #scholar-game-tabs{width:100%;box-sizing:border-box}
+ #scholar-game-tabs>.sg-tab{flex:1 0 auto}
+}

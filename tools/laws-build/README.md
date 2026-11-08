@@ -50,3 +50,19 @@ python3 review.py pub01 pub02 pub03 pub04 pub05 pub06 pub07
 - `annex.merge_continued`: a row split by a page break never repeats a check box (□) in the same column, and in a
   column of one numbered item per row, the next number on the next page starts a new row. Both checked against the
   公保 附表 (outputs unchanged) and the 四大計畫 forms.
+
+## 醫療法規與基本法規（置於清單最下方）
+
+med01–med05、base01–base05使用LAWS_SRC中的使用者PDF。醫師法施行細則三份附表亦由同一目錄轉換。
+
+```sh
+python parse_laws.py out/laws 醫療法規 基本法規
+python run_annex.py out/annex 醫療法規 基本法規
+python manual.py out/annex
+python build.py ../.. S A B C 公保 醫療法規 基本法規
+python review.py med01 med02 med03 med04 med05 base01 base02 base03 base04 base05
+```
+
+build.py會重建全部資料，不可漏掉既有分類。若out不存在而只新增這兩組，先由已發布laws/text、laws/annex播種既有資料與圖片，out/annex/index.json依laws/index.json各法規annexes產生；不可將缺少原始PDF誤當成要刪除既有資料。新資料先在獨立目錄建置，確認所有既有資料與目錄紀錄一致後才安裝。
+
+增訂章節（章之一、編之二、節之一）保留為獨立標題；PDF實際印出的單獨項號也必須保留。完整來源盤點及337個章節清單見 [QA-medical-general.md](QA-medical-general.md)。

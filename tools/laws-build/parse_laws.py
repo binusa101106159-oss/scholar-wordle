@@ -9,7 +9,7 @@ from boxtables import box_tables, BOX
 from formulas import find_formulas, norm
 
 ART = re.compile(r'^第\s*(\d+(?:-\d+)?)\s*條$')
-CH = re.compile(r'^第\s+[一二三四五六七八九十百零〇]+\s+[編章節款目]\s+\S')
+CH = re.compile(r'^第\s+[一二三四五六七八九十百零〇]+\s+[編章節款目](?:之[一二三四五六七八九十百零〇]+)?\s+\S')
 PARA = re.compile(r'^(\d+)\s(?=\S)')
 LEVELS = [
     (1, re.compile(r'^[一二三四五六七八九十百]+、')),
@@ -112,10 +112,6 @@ def parse(law_id, tier, name, stem):
             para['lines'].append({"lv": lv or 0, "text": s})
         else:
             para['lines'][-1]['text'] = join(para['lines'][-1]['text'], s)
-    # A single numbered paragraph is never printed with a number; drop numbering if only "1" with no 2.
-    for it in law['items']:
-        if it['t'] == 'art' and len(it['paras']) == 1:
-            it['paras'][0]['n'] = None
     return law
 
 
