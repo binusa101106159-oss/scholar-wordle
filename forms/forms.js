@@ -36,7 +36,7 @@
   form.questions.forEach((q,i)=>{
    if(q.section)questionnaire.append(element('h2',q.section,'fm-section-title'));
    const group=element('fieldset','', 'fm-question');group.id='fm-'+form.id+'-q'+(i+1);
-   group.append(element('legend',(form.id==='bsrs'&&i===5?'附加題':String(i+1))+'. '+q.text));
+   group.append(element('legend',String(i+1)+'. '+q.text));
    if(q.prompt)group.append(element('p',q.prompt,'fm-intro'));
    if(q.original){const original=element('details','', 'fm-original');original.append(element('summary','英文原題'),element('p',q.original));group.append(original);}
    const first=q.options[0],last=q.options.at(-1),anchors=q.anchors||[first.label,last.label];
