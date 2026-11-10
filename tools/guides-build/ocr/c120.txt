@@ -1,0 +1,76 @@
+@cover 硝酸中毒之認定基準
+@cover 何啟功 醫師
+# 一、導論
+硝酸是二氧化氮(NO2)的水溶液。最主要的製造方法是高壓氨氧化法。硝酸因環境的不同如溫溼度或其他有機物質的接觸而產生硝酸及氮氧化物的混合物，以蒸汽或燻煙呈現。除工業上的用途非常廣泛，環境污染物中由氮氫化物和碳氫化物作用而成之光化學煙霧(photochemical smog)也會產生硝酸。
+硝酸在工業上的用途相當普遍，常見如肥料、炸藥、火箭燃料、殺蟲劑的製造，還有藥物、顏料、硝酸鹽、硝化纖維素等的合成需使用硝酸。而硝酸的強酸性質也被利用在包括冶金、照相製版、金屬蝕刻、酸洗、橡膠及核燃料的處理、電鍍、獸醫用燒灼劑等工作當中(1)。而硝酸的製造在工業上極為重要。硝酸具強腐蝕性，皮膚或組織被波及會造成糜爛，吸入則發生肺水腫、或成為慢性阻塞性肺病。溢出的硝酸會產生氮氧化物(NOx)，包括強力吸入性肺毒物二氧化氮、一氧化二氮等。硝酸造成人體傷害的臨床變化有一特徵，即在暴露後有一段正常無症狀的潛伏期，通常是幾小時，而後再快速進展惡化。經常發生致命的非心因性肺水腫，其致病機轉可能和二氧化氮造成微血管傷害而使微小血管的通透性增加使然。
+# 二、具潛在暴露的職業
+硝酸在工業上使用廣泛，包括其本身的製造及利用硝酸強腐蝕性的職業都可能會暴露到。主要有以下工作：(2,3,4,5)
+> (1) 硝酸的製造----所有商業上的製造方法是高壓氨氧化法。
+> (2) 肥料(硝酸銨 ammonium nitrate)的製造。
+> (3) 火藥、火箭燃料的製造。
+> (4) 殺蟲劑(pesticide)、藥物、顏料、硝酸鹽類、硝化纖維素等的製造。
+> (5) 冶金(metallurgy)、金屬蝕刻(etching steel)、金屬酸洗(bright-dipping, pickling)金屬加工處理的工作。
+> (6) 照相製版(photoengraving)，在半導體、電子製造業使用頻繁。
+> (7) 橡膠及核燃料的化學處理。
+> (8) 電鍍業，除硫酸、鉻酸、氰化物外，硝酸也是電鍍職場常使用的物質。
+> (9) 獸醫治療疣(warts)的燒灼劑也使用硝酸。
+# 三、醫學評估及鑑別診斷
+## 急性硝酸暴露的健康危害:
+硝酸接觸人體對皮膚、眼睛、鼻子、黏膜、呼吸道和消化道等任何組織都產生刺激腐蝕作用而造成灼傷、糜爛。嚴重時形成壞死、結疤。呼吸道的症狀如咳嗽、胸痛、呼吸困難等會在大量暴露之後 4 至 30 小時才發作，亦即延遲性發作(6)。急性大量暴露硝酸也會造成循環衰竭，呈現皮膚濕冷、脈搏快而微弱及呼吸淺的情形，這是常見致命因素之一(7,8)。眼睛被波及會有劇痛、角膜潰瘍、灼傷等刺激性傷害，同時在直接侵害眼睛造成勢力衰退或失明，更嚴重則穿透眼球破壞眼睛內部組織(9)。對呼吸道的傷害在低濃度或暴露較小時，以鼻子受刺激、乾燥感覺，口腔喉嚨黏膜亦類似，但除乾燥外伴隨有咳嗽。而在急性大量暴露之後發生較嚴重的傷害有喉部攣縮、喉頭水腫、會厭水腫或肺水腫。後兩者也是常見致命因素，而這些症狀也都會延遲性發作。吸入性傷害也可能會產生化學性肺炎。消化道暴露硝酸其結果和鹽酸類似，有食道壞死、穿孔、胃炎合併心窩痛、噁心、嘔吐，另外胃潰瘍、胃穿孔、幽門狹窄也可能出現。非特異性症狀如頭痛、倦怠也常出現。若是暴露的硝酸釋放出二氧化氮(NO2)此時會有變性血紅素(methemoglobin)行程，當變性血紅素值超過 15%時，有發紺、頭痛、暈眩、嘔吐、意識不明、昏睡、呼吸停止甚至死亡等輕重不一的症狀，一般超過 80%時即致命，經常伴隨紅血球破壞，有溶血情形(6)。
+## 慢性暴露硝酸的危害:
+在工作場所慢性長期接觸硝酸有牙齒變黃或糜爛、眼睛結膜炎、甚至結膜壞死(3,8,9)。長久肺部、呼吸道吸入硝酸和肺部纖維化有相關，也造成化學性肺炎、慢性支氣管炎。在動物實驗發現 0.5%硝酸滴入老鼠氣管，在 60 天後發生支氣管擴張，而在急性期出現支氣管炎、阻塞性細支氣管炎、細支氣管擴張不全(11)。用 1%硝酸噴霧給狗暴露 4 週後，發現有小氣管阻塞、肺阻力增加及對組織胺有延遲性過度反應(12)。在致癌性的報告裡，硝酸至今未被證實有致癌性。但硝酸在人體中還原為硝酸鹽在和胺類(amine)結合成為具致癌性的硝酸胺(n-nitrosamine)。
+## 臨床醫學評估
+病人需包括急性刺激性症狀(口、鼻、眼、呼吸道及皮膚)的檢查，肺部聽診及胸部 X 光片檢查看是否出現肺水腫。另外可抽血檢驗是否出現變性血紅素。在慢性長期接觸的個案須注意牙齒、眼結膜的變化，實驗室方面可進行胸部 X 光及肺功能檢查。
+## 鑑別診斷
+須和其他刺激物造成的類似變化區分，這可由暴露史的詳細查詢中分別出來。臨床上病毒性肺炎、心臟衰竭和流行性感冒都可能和急性硝酸傷害的表現類似，須加以鑑別。若出現變性血紅素症狀則要與其他可能導致變性血紅素的原因作鑑別診斷，大都是其他化學物質包括苯胺、硝酸鹽、亞硝酸鹽、苯及其衍生物等上百種物質。
+# 四、流行病學證據
+有關硝酸暴露的流行病學報告非常有限，常以空氣污染物的研究呈現。有人以自願者作暴露實驗，讓健康運動員在中度運動狀態暴露於 500ug/m3 的硝酸環境中，測量其肺功能並作氣管肺泡沖洗檢查(bronchoalveolar lavage)，結果在此種濃度下的硝酸對近端或遠端呼吸道沒有明顯傷害(13)。而在動物實驗的結果如前述有肺部傷害存在，因為使用之濃度和暴露方式不同有所差異。最常見硝酸的健康危害報告是個案研究，如紙漿廠三個工人吸入大量硝酸燻煙(1736 公升 68%硝酸槽爆炸)10 到 15 分鐘，最後發生肺水腫都不治(14)。類似事故亦常見於暴露於二氧化氮(NO2)的報告中，二氧化氮吸進肺部遇水形成硝酸後，造成肺水腫發生。
+# 五、暴露證據
+硝酸的暴露證據，可以：
+> 1. 詳細工作環境描述及暴露物的物質安全資料表或相關文件查詢。
+> 2. 現場蒐集空氣樣品分析，超過 2ppm(TWA)或 5mg/m3 即屬對人體有影響的濃度(15,16)。
+> 3. 現場空氣採樣或受傷者接觸之液體直接分析。
+# 六、結論
+## 急性硝酸暴露的診斷基準:
+### (一) 主要基準:下列條件均需符合
+> 1. 確定的暴露證據，包含職業工作史、物質安全資料表、作業環境空氣採樣分析結果、該物質的分析結果。
+> 2. 暴露後才有病症發生的時序性
+> 3. 臨床診斷
+>> (1) 溶液造成的皮膚、黏膜、眼睛的化學性灼傷。
+>> (2) 蒸氣造成的皮膚、黏膜、眼睛、呼吸道的刺激。
+>> (3) 吸入蒸氣造成的肺水腫、化學性肺炎，變性血紅素血症。
+> 4. 排除其它可能因素。
+### (二) 輔助基準:
+> 1. 同一工作環境其它員工有類似症狀。
+> 2. 離開該工作環境後症狀減輕或改善。
+> 3. 把工作環境適度改善後，症狀消失或減輕。
+## 慢性硝酸暴露的診斷基準:
+### (一) 主要基準:下列條件均需符合
+> 1. 確定的暴露證據，包含職業工作史、物質安全資料表、作業環境空氣採樣分析結果、該物質的分析結果。
+> 2. 暴露後才有病症發生的時序性
+> 3. 臨床診斷
+>> (1) 長期接觸牙齒變黃或糜爛。
+>> (2) 眼結膜炎或結膜壞死。
+>> (3) 慢性吸入的化學性肺炎、慢性支氣管炎或支氣管擴張不全。
+> 4. 排除其它可能因素。
+### (二) 輔助基準:
+> 1. 同一工作環境其它員工有類似症狀。
+> 2. 離開該工作環境後症狀減輕或改善。
+> 3. 把工作環境適度改善後，症狀消失或減輕。
+# 七、參考文獻
+> 1. AAR: Emergency Handling of Hazardous Materials in Surface Transportation. Bureau of Explosives, Association of American Railroads, Washington, DC, 1987.
+> 2. Sittig M. Handbook of Toxic and Hazardous Chemicals and Carcinogens, 2nd ed. Noyes Publications, Park Ridge, NJ, 1985, pp 647-648.
+> 3. ITI: Toxic and Hazardous Industrial Chemicals Safety Manual. The International Technical Information Institute, Tokyo, Japan, 1985, pp 362-364.
+> 4. Budavari S (Ed). The Merck Index, 11th ed. Merck & Co, Inc, Rahway, NJ, 1989.
+> 5. Burgess WA. Recognition of health hazards in industry, John Wiley & Sons, Inc. New York, 1981, p15-17.
+> 6. Proctor NH, Hughes JP. Chemical Hazards of the Workplace. JB Lippincott Co, Philadelphia, PA, 1988, p 363-374.
+> 7. Gosselin RE, Smith RP, Hodge HC (Eds). Clinical Toxicology of Commercial Products, 5th ed. Williams & Wilkins, Baltimore, MD, 1984.
+> 8. Finkel AJ (Ed). Hamilton and Hardy's Industrial Toxicology, 4th ed. John Wright, PSG Inc, Boston, MA, 1983, pp 184-186.
+> 9. CHRIS. CHRIS Hazardous Chemical Data. US Department of Transportation, US Coast Guard, Washington, DC, 1985.
+> 10. Fairhall LT. Nitric Acid, in: Industrial Toxicology, 2nd ed. Williams & Wilkins Co, Baltimore, MD, 1974, p 83-84.
+> 11. Fujita M, Schroeder MA, Hyatt RE et al. Canine model of chronic bronchial injury. Am Rev Respir Dis 1988; 137:429-434.
+> 12. Coalson JJ, Collins JF. Nitric acid-induced injury in the hamster lung. Br J Exp Pathol 1985;66:201-215.
+> 13. Aris R, Christian D, Tager I et al. Effects of nitric acid gas alone or in combination with ozone on healthy volunteers. Am Rev Respir Dis 1993; 148:965-973.
+> 14. Hajela R, Janigan DT, Landrigan PL et al. Fatal pulmonary edema due to nitric acid fume inhalation in three pulp-mill workers. Chest 1990; 97:487-489.
+> 15. ACGIH(R). 1997 Threshold Limit Values (TLVs(R)) for Chemical Substances and Physical Agents and Biological Exposure Indices (BEIs(R)). Am Conference Govt Ind Hyg, Inc, Cincinnati, OH, 1997.
+> 16. 勞工作業環境空氣中有害物質容許濃度標準。1995 行政院勞委會。
