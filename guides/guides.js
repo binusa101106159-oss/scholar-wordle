@@ -4,7 +4,7 @@
   const BASE = 'guides/';
   const STORE = 'scholar-guides-v1';
   const state = { index: null, byId: new Map(), texts: new Map(), atts: new Map(), current: null, query: '', terms: [],
-    scope: 'all', field: null, corpus: null, corpusPromise: null, attOpen: null };
+    scope: 'all', field: null, corpus: null, corpusPromise: null, attOpen: null, scanView: false };
   const compactLayout = matchMedia('(max-width:1099px), (orientation:portrait)');
   const by = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -216,6 +216,7 @@
             <button type="button" class="gx-sidebar-toggle gx-menu-btn" id="gx-menu" aria-label="展開側欄" title="展開側欄" aria-controls="gx-sidebar-content" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button>
             <select class="gx-select" id="gx-chapters" aria-label="跳到章節" hidden></select>
             <button type="button" class="sg-btn gx-conclusion-btn" id="gx-conclusion" title="跳至結論" aria-label="跳至結論" hidden><span class="gx-wide-only">跳至</span>結論</button>
+            <button type="button" class="sg-btn gx-view-btn" id="gx-view" title="切換文字版／原頁掃描" aria-pressed="false" hidden>原頁掃描</button>
             <span class="gx-spacer"></span>
             <button type="button" class="sg-btn gx-tool-btn" id="gx-marks-btn" aria-haspopup="dialog" aria-controls="gx-panel" title="我的畫線">${icon.pen}<span>畫線</span></button>
             <button type="button" class="sg-btn gx-tool-btn" id="gx-style-btn" aria-haspopup="dialog" aria-controls="gx-panel" title="閱讀設定">${icon.aa}<span>閱讀設定</span></button>
@@ -308,6 +309,12 @@
       const el = by(e.target.value); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       e.target.value = '';
     });
+    by('gx-view').addEventListener('click', () => {
+      if (!state.current) return;
+      state.scanView = !state.scanView;
+      renderDoc(state.current);
+      by('gx-scroll').scrollTop = 0;
+    });
     by('gx-conclusion').addEventListener('click', () => {
       const block = by('gx-conclusion').dataset.block;
       if (block != null) scrollToBlock(Number(block), true);
@@ -388,7 +395,7 @@
     const n = g.attach.length;
     return '<button type="button" class="gx-guide" data-guide="' + g.id + '"' + (state.current && state.current.id === g.id ? ' aria-current="true"' : '') + '>' +
       '<span class="gx-guide-no">' + g.no + '</span><span>' + (terms ? rich(g.name, null, terms) : esc(g.name)) + '</span>' +
-      '<span class="gx-guide-meta">' + (terms ? esc(catPath(g.cat)) + ' · ' : '') + g.pages + ' 頁' + (g.scan ? ' · 掃描影像' : '') + (n ? ' · ' + n + ' 個附件與表圖' : '') + '</span></button>';
+      '<span class="gx-guide-meta">' + (terms ? esc(catPath(g.cat)) + ' · ' : '') + g.pages + ' 頁' + (g.scan ? ' · 掃描影像' : g.ocr ? ' · 掃描轉文字' : '') + (n ? ' · ' + n + ' 個附件與表圖' : '') + '</span></button>';
   }
   /* 農保／人因性: a category with its parents, for title hits listed outside the tree */
   function catPath(id) {
@@ -579,23 +586,29 @@
   function renderDoc(guide, keepScroll) {
     const terms = state.terms, meta = guide.meta;
     const sc = by('gx-scroll'), top = sc.scrollTop;
+    const scanView = !!(guide.ocr && state.scanView && guide.pages);
+    const viewBtn = by('gx-view');
+    viewBtn.hidden = !guide.ocr;
+    viewBtn.textContent = scanView ? '文字版' : '原頁掃描';
+    viewBtn.setAttribute('aria-pressed', String(scanView));
     const cat = state.index.cats.find(c => c.id === meta.cat) || {};
     let html = '<div class="gx-head sg-glass"><p class="sg-eyebrow">' + esc(cat.name || '') + ' · ' + meta.no + ' / ' + (cat.total || '') + '</p>' +
       '<h1 class="gx-title">' + rich(guide.name, null, terms) + '</h1>' +
       guide.cover.map(c => '<p class="gx-cover">' + rich(c, null, terms) + '</p>').join('') +
       '<p class="gx-credit">' + esc(guide.credit) + '</p>' +
-      (guide.scan ? '<p class="gx-scan-note">原始 PDF 為掃描影像、沒有文字層，以下為原頁影像，不提供全文搜尋。</p>' : '');
+      (guide.scan ? '<p class="gx-scan-note">原始 PDF 為掃描影像、沒有文字層，以下為原頁影像，不提供全文搜尋。</p>' : '') +
+      (guide.ocr ? '<p class="gx-scan-note">' + (scanView ? '以下為原頁掃描影像。按上方「文字版」切回可搜尋、可畫線的文字。' : '本指引原為掃描影像，以下文字由原頁轉錄；如有疑義請按上方「原頁掃描」對照原頁。') + '</p>' : '');
     if (meta.attach.length) {
       html += '<div class="gx-chips">' + meta.attach.map(a => '<button type="button" class="gx-chip" data-att="' + a.id + '">' + esc(a.label) + (a.title ? '<span>' + esc(a.title) + '</span>' : '') + '</button>').join('') + '</div>';
     }
-    html += '</div><div class="gx-body">' + blocksHTML(guide.blocks, terms, { anchor: guide.id }) + '</div>';
+    html += '</div><div class="gx-body">' + (scanView ? blocksHTML(guide.pages, terms) : blocksHTML(guide.blocks, terms, { anchor: guide.id })) + '</div>';
     by('gx-doc').innerHTML = html;
     window.ScholarReaderTables?.sync('gx');
-    const conclusion = guide.blocks.findIndex(b => b.t === 'h' && /^(?:第?[一二三四五六七八九十百0-9]+(?:章|節)?[、.．:：)）]?)?(?:結論|總結)/.test((b.text || '').normalize('NFKC').replace(/\s+/g, '')));
+    const conclusion = scanView ? -1 : guide.blocks.findIndex(b => b.t === 'h' && /^(?:第?[一二三四五六七八九十百0-9]+(?:章|節)?[、.．:：)）]?)?(?:結論|總結)/.test((b.text || '').normalize('NFKC').replace(/\s+/g, '')));
     by('gx-conclusion').hidden = conclusion < 0;
     if (conclusion >= 0) by('gx-conclusion').dataset.block = String(conclusion);
     else delete by('gx-conclusion').dataset.block;
-    const chapters = guide.blocks.map((b, k) => b.t === 'h' ? { id: 'gx-b-' + guide.id + '-' + k, text: b.text, lv: b.lv } : null).filter(Boolean);
+    const chapters = scanView ? [] : guide.blocks.map((b, k) => b.t === 'h' ? { id: 'gx-b-' + guide.id + '-' + k, text: b.text, lv: b.lv } : null).filter(Boolean);
     const sel = by('gx-chapters');
     sel.hidden = !chapters.length;
     sel.innerHTML = '<option value="">章節</option>' + chapters.map(c => '<option value="' + c.id + '">' + '　'.repeat(c.lv - 1) + esc(c.text.replace(/\s+/g, ' ')) + '</option>').join('');
@@ -771,6 +784,7 @@
   // wrap the stored ranges in <mark>; a mark whose text moved is looked up by its words, or left unpainted
   function paintMarks() {
     if (!state.current) return;
+    if (state.current.ocr && state.scanView) return;   // marks live on the text version
     const doc = by('gx-doc');
     doc.querySelectorAll('mark.gx-hl').forEach(m => { const p = m.parentNode; while (m.firstChild) p.insertBefore(m.firstChild, m); p.removeChild(m); p.normalize(); });
     for (const m of marksOf(state.current.id)) {

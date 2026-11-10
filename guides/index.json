@@ -2333,8 +2333,8 @@
 "official": "甲醇中毒之認定參考指引",
 "pages": 10,
 "attach": [],
-"scan": true,
-"no": 90
+"no": 90,
+"ocr": true
 },
 {
 "id": "c091",
@@ -2453,8 +2453,8 @@
 "official": "二硫化碳之職業病認定參考指引",
 "pages": 13,
 "attach": [],
-"scan": true,
-"no": 102
+"no": 102,
+"ocr": true
 },
 {
 "id": "c103",

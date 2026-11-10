@@ -1,0 +1,104 @@
+@cover 甲醇中毒之認定基準
+@cover 蔡維禎 醫師
+# 一、導論
+甲醇(木精, methanol, methyl alcohol, wood spirits, wood alcohol, carbinol, CAS # 67-56-1，屬第二種有機溶劑)，分子式為 CH3OH，分子量為 32.04，常壓下熔點為-97.7℃，沸點為 64.7℃，常溫下比重 0.792，於 30℃時蒸氣壓為 160mmHg。是一種透明無色、可燃的液體，味道似一般醇類之酒精刺激味，易溶於水。味覺之閾值為 100ppm，有人觀察到空氣濃度在 2000ppm 時只聞到味道而無其他異狀。在常溫常壓下甲醇算是蠻穩定的溶劑，若與其他氧化性物質接觸時會燃燒，甚至爆炸，如 chromic anhydride，phosphorous trioxide，lead perchlorate，perchloric acid 與乙醇之混合液等等。在臺灣並不常見其中毒案件，與其他醇類一樣，因對呼吸道黏膜和皮膚有刺激性，易被警覺，祇要不誤食或刻意去吸入或接觸，通常造成危害的機會較小。但不幸中毒的話，可能引起嚴重的代謝性酸血症、視神經損傷及其他如呼吸、腦神經、腎衰竭等併發症，而在早期這些症狀往往不明顯，而容易被疏忽延誤。甲醇中毒，如能及早與予解毒治療，則預後較佳，因此早期之診斷及治療，相當重要。
+# 二、具潛在暴露的職業
+近一、二十年來甲醇之製造，直接用氫氣、一氧化碳及二氧化碳在高壓下合成，產量龐大，世界年產量達數千萬噸，為目前多項工業製程之原料，也是最重要的有機溶劑之一。甲醇是很好的溶媒，用於分析、萃取及做為其他化學品之原料，使用於不少工業，如：
+> 1. 合成絲紡織品製造業
+> 2. 油布製造業
+> 3. 皮革、鞋及氈帽製造業
+> 4. 假漆或上光漆製造業
+> 5. 油漆及染料製造業
+> 6. 油墨製造業
+> 7. 樹酯、土敏膠或其他塗料之製造業
+> 8. 火藥製造業
+> 9. 防凍劑化合物製造業
+> 10. 橡膠品製造業
+> 11. 甲醛製造業
+> 12. 苯二酸二甲基酯和氯化甲烷製造業
+甲醇同時也常加於工業用酒精或作為酒精燈燃料、油漆去污劑、天然氣除水劑等，甚至私酒。目前，在美國有些地區，以百分之十的甲醇加於汽油，代替乙醇製成燃料油，甲醇在某些國家被用於代替柴油車燃料。從事上述使用甲醇之作業勞工，有機會因吸入甲醇蒸氣、皮膚接觸或誤飲而暴露中毒。(4,7,11,12,13,14,15,16,17,18,25,29,38,39,40,41)
+# 三、醫學評估
+## 1. 毒物動力學：(3,5,6,7,8,11,12,24,27,28)
+甲醇可經由口服、呼吸道吸入或皮膚接觸吸收。吸收後經酒精脫氫酵素(alcohol dehydrogenase)代謝為甲醛(formaldehyde)，很快地再由乙醛脫氫酵素(acetaldehyde dehydrogenase)代謝為甲酸(formic acid)。甲酸再經由葉酸相關之酵素(formyl-tetrahydrofolate synthetase)代謝產生 10-formyl-tetrahydrofolate，最後再代謝為二氧化碳及水。甲醇之代謝速率在個體間差異極大，曾有報告指出成人之代謝速率約為8.5mg/dL/hour，而幼兒速率為 0.88mg/dL/hour。雖甲醛毒性比甲酸大，但因其存在的時間極短，被認為較無臨床意義，因此其毒性主要與甲酸代謝緩慢而蓄積有關，甲酸之半衰期，則約為 20 小時，由腎臟排除或進一步代謝。甲醇之清除代謝，主要在肝臟進行，約12% 由肺臟排除，只有少部份（3-5%）由腎臟以原型排除。除非連續暴露，甲醇不在人體貯積，因為人體可將之分解排出。在人體內，甲醇能經由正常的新陳代謝的被小量地製造出。
+## 2. 毒性範圍：(4,5,6,7,8,9,10,11,12,26)
+甲醇的毒性範圍變化相當大，一般成人致死的劑量為 60西西以上。而曾有人喝4西西純甲醇造成永久性失明，有人喝了15西西40%甲醇而導致死亡的報告。但也有人喝了500西西40% 甲醇仍可存活。一樣地，血中甲醇濃度與中毒嚴重度亦有相當的變化，一般而言，濃度大於 25mg/dL 就有可能會產生毒性症狀，而大於 50mg/dL 就可能發生嚴重的症狀。有人發現死後48-96 小時的血中濃度差異很大，從19.4到40mg/dL mg/dL不等，也有人發現血中甲醇濃度為 920mg/dL仍可活存。
+## 3. 臨床表徵：(1,2,3,4,5,6,8,9,10,11,12,19,26,30,31)
+甲醇中毒的臨床症狀變異很大，中毒的症狀與送醫的快慢較有關，與血中甲醇濃度較不一致。中毒之早期症狀是直接由甲醇造成，與乙醇中毒症狀類似，包括頭暈、頭痛、心跳加速、嘔吐、腹痛、腹瀉、食慾不振、全身虛弱、步態不穩、深肌腱反射增強等。嚴重者可能呼吸急促、神智混亂或木僵。在以上症狀中，以腸胃道症狀及神經系統的症狀較明顯。
+晚期症狀是因甲酸大量形成及有氧呼吸受抑制，進一步導致組織缺氧及乳酸血症，產生的時間多在中毒 6-12 小時後，甚至可能延遲至 18-60 小時才出現。臨床的表現，有呼吸急促、呼吸衰竭、視網膜及視神經傷害、昏迷、抽搐、心搏變慢、心臟衰竭、休克、死亡。此時實驗室檢查可發現：滲透壓間隙(osmolal gap)增加、高陰離子間隙(anion gap)代謝性酸中毒、血中氨、澱粉酵素及血糖升高、白血球數目升高、橫紋肌溶解症、低血鎂、腎小管壞死、血尿、肝功能異常等等。
+眼睛的傷害是主要且特別的表現之一，具診斷的價值。甲醇造成視力損傷的主要機轉是因甲酸的堆積，導致視神經細胞傷害，影響部位主要位於視束交叉前之遠端視神經，也就是介於篩板(lamina cribrosa)與眼球端(orbital apex)之間的部份嚴重傷害，進而使視神經發生去髓鞘的變化，造成視力模糊、視野縮小、飛蚊症、眼振顫、瞳孔放大或對光無反應、視乳突充血及水腫、視網膜水腫或出血、乃至於失明。(15,38,39,40,41,42)
+除視神經的傷害外，也可同時出現腦及周邊神經傷害的後遺症，如腦基底核梗塞、出血病變，這通常在中毒後數個月至兩年內發生，可因而產生巴金森氏病，少數嚴重個案甚至同時發生多發性周邊神經病變。而發生這些慢性後遺症的機率，與中毒劑量、甲酸濃度、代謝性酸中毒程度及治療早晚有明顯之相關性。一般在十二小時內接受治療者預後較佳，等到酸中毒發生再治療者，預後較差，易發生其他之後遺症，甚至死亡。(20,21,22,27,41)
+## 4. 病史詢問：
+病史詢問包括以往職業或環境的物質暴露情形，以及過去病史、家族史、生產史、抽煙飲酒史及旅遊史。
+## 5. 理學檢查：
+除一般之生命徵象及身體檢查外，特別注意神經學檢查、視力及眼底檢查。神經學檢查應含判斷、理解、記憶及計算能力減低、定向感異常、肌無力、溫痛觸感覺異常、及肌腱反射異常等。眼睛檢查應含眼球運動、有無視力或視野變化、顏色辨認異常、眼壓異常、眼底鏡有無視乳突或視網膜之水腫、出血、萎縮、或視網膜之充血、出血等。
+## 6. 實驗室檢查：(1,2,19,20,21,22,23,24,25,26,27,29)
+生物偵測：血中、尿中之甲醇或甲酸測定，對於早期尚未有明顯中毒症狀時，可以氣相層析法偵測血液中的甲醇濃度。測量血中的滲透壓間隙（osmolal gap）也可推測甲醇濃度，一般每增加 1 mosmo/kg H2O，即表示約含有 2.6mg/dL 的甲醇。但須注意乙醇、乙二醇、異丙醇及丙酮等物質也可能會導致血中滲透壓間隙增加，須小心鑑別診斷。
+其他實驗室檢查：血中動脈氣體分析、乳酸濃度、電解質、血糖、澱粉酵素及脂肪酵素、腎功能、肝功能、CPK、白血球及血小板數目、尿液檢查、心電圖、腦部電腦斷層或磁振造影、神經傳導速度檢查等。
+## 7. 鑑別診斷：(4,5,6,7,8,9,10,11,12,18,19,23,24,26,27,28,31,33,36)
+對於甲醇中毒的診斷，早期因缺乏特殊症狀，診斷較難，主要仍須依賴病史並配合血中甲醇濃度的偵測；因此病史、臨床症狀及實驗室檢查等之綜合鑑別診斷，在爭取治療時效上很重要。甲醇引起的精神神經變化需與其他各種有機溶劑及重金屬如汞、錳引起的變化區別，其他一些類似的疾病也須予以鑑別，如急性腦病變、腦炎、中風、急性去髓鞘病變（如急性多發性硬化症）及自體免疫性腦病變（如紅斑性狼瘡侵犯中樞神經系統）等等。至於血中之滲透壓間隙差增加，雖然亦有助於診斷，但因還須考量其他可能的鑑別診斷，如乙醇、乙二醇、異丙醇等；甚至正常的血清滲透壓仍無法排除甲醇中毒的可能性，因此並不能依此一單項檢查的結果，即斷定是否為甲醇中毒。至於較晚期的甲醇中毒病程，除了眼底特殊的變化與視力變差外，明顯的陰離子間隙增加的代謝性酸中毒，配合上飲酒或可能接觸甲醇的病史，常是達成迅速診斷的主要依據。然而甲醇血中濃度的測量，依然是最終診斷的標準。
+# 四、流行病學證據(13,14,15,16,17,18)
+在動物實驗方面，猴子及老鼠之研究，甲醇吸入性濃度達 5000ppm 之情況下，每天暴露六小時，一週五天，四週後並無發生臟器包括視神經之傷害。但兔子在吸入甲醇濃度只有 46.6ppm 之情況下，暴露六個月後，觀察到視網膜細胞發生變化。老鼠之實驗發現甲醇暴露和畸胎之發生有關，而目前尚無甲醇暴露致癌之有關報告。
+人類之甲醇中毒，因大多是因蓄意或誤服，而經由消化道致毒。文獻上亦有一些非消化道，尤其是工作相關之暴露者，早在二十世紀初就有一些報導。如 de Schweinitz 及 Tyson 各在 1901 年 及 1912 年曾報告過以蟲膠片溶於木精使用之假漆工人因甲醇之皮膚接觸及吸入性中毒發生弱視現象。
+1976 年 NIOSH 曾報告過在一些甲醇相關行業，如甲醛、染料及油墨製造業工人，長期暴露在甲醇濃度 1200-8300ppm 之空氣中工作，導致視力模糊的現象。
+1984 年 Frederick 等人也曾報告過，在暴露在甲醇濃度 365-3080ppm 之空氣中之油墨複印業工人，發生視力模糊、頭痛、頭暈及噁心的現象。
+1992 年等 Downie 等人曾報告過一位只戴正壓呼吸器、無穿防護衣之主管在監視員工清理甲醇儲存槽時，約經兩三小時的皮膚接觸暴露，在八小時之後發生視力模糊、眼睛疼痛、頭暈、步態不穩，理學檢查發現眼底視神經乳突水腫，同時有嚴重之代謝性酸中毒現象，經治療後完全康復。
+1993 年等 Aufderheide 等人曾報告過兩位救火員在處理一件鐵路運輸之甲醇逸出事故時，因皮膚接觸及吸入性中毒，發生頭暈、噁心現象，迅速被送醫。雖然理學及生化常規檢查均正常，但其血中甲醇值皆在 20mg/dL 上下。
+# 五、暴露證據收集的方法：
+> 1. 個人工作史，工作時間，作業環境及內容，危害物質安全資料表等，可作為暴露的參考證據。
+> 2. 作業環境測定：以個人採樣器作個人呼吸區被動採樣，空氣中甲醇可以用氣相層析法分析。
+> 3. 管理之允許暴露標準：在台灣，甲醇屬第二種有機溶劑，依據行政院勞工委員會公佈之容許標準 TWA 為 200ppm (262mg/m3)。美國職業安全衛生相關單位，甲醇之規範濃度標準如下，OSHA-PEL 之 TWA 為 200ppm (262mg/m3)，無 STEL。NIOSH-REL 之 TWA 200ppm (260 mg/m3)，STEL 為 250ppm (325mg/m3)，IDLH 為 6000ppm。ACGIH-TLV 之 TWA 為 200ppm (262mg/m3)，STEL 為 250ppm (328mg/m3)。(15,38,39,40,41,42)
+> 4. 生物偵測：甲醇相關之工作暴露偵測時，採集檢體應於暴露結束時，通常是一天或一週工作結束時。方法很多，包括以氣相層析法測量血中或呼氣中甲醇含量，以高效率液相層析法(HPLC)分析尿中甲酸濃度。血中甲酸濃度比甲醇濃度對中毒之嚴重度更具有預測性，血中甲酸濃度大於 500mg/L 時，可能之併發症較為嚴重。此外，呼氣和周遭環境空氣中濃度可使用一種攜帶型的 Fourier 紅外線質譜儀（Fourier transform infrared spectrometer）來分析。當甲醇濃度在 30-200 ppm 時，呼氣或環境空氣中濃度為測定之相關係數為 0.97-0.995 之間，相當不錯。這個方法可同時對有機溶劑暴露的人員及環境做監測，相當方便、實用。另外，影響生物偵測的干擾因素很多，如：同時暴露於其他醇類或芳香烴、飲酒或用藥習慣、肝腎及心臟病史、種族性別均會影響代謝，判讀時須小心。(20,21,22,27,41)
+# 六、結論
+甲醇引起的傷害，就如其他之有機溶劑或化學物質的傷害，大都是可預防的，即使是毒性低的，仍然是以減少暴露為要。減少暴露方法很多，如改善通風、養成隨時加蓋、標示、存放固定地方的好習慣、採用毒性低的代替毒性高的取代方法，便可以減少許多不必要的危害。
+暴露於甲醇可引起急性之局部刺激症狀、消化道症狀，接著再發生代謝性酸中毒問題，終而引起眼睛及中樞神經、肝、腎、胰和心臟等的毒性症狀。其診斷基準如下：
+## (一)主要基準：(4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,33,34,35,36)
+> 1. 需具備客觀理學症候及實驗室數據記錄，急性甲醇暴露造成眼睛或皮膚局部刺激症狀，及頭暈、酩酊感、噁心、嘔吐等症狀，數小時後出現代謝性酸中毒，加上同時或隨後的眼睛（視力、視網膜及視乳突變化）及中樞神經（尤其是基底核病變）、肝、腎、胰和心臟等的毒性症狀。其中代謝性酸中毒，同時或接著發生之眼睛及中樞神經傷害，是急性甲醇暴露致毒之重要參考，若能加上甲醇存在體內之直接證據，診斷更無問題。
+> 2. 慢性甲醇中毒，因症狀及其時序變化不似急性中毒之特異性，須由進一步之眼科學及神經學檢查，加上其他之暴露證據，予以診斷。
+> 3. 具甲醇暴露之事實與上述症狀之時序性。暴露之事實，則包括職業史、環境或生物測定、物質安全資料表等等證據。
+> 4. 合理排除其他甲醇暴露以外的常見病因。若無法全然排除，甲醇至少是其中之較有意義的致病或惡化因子。
+## (二)輔助基準：
+> 1. 同一工作環境有其他工作人員有類似疾病或症狀。
+> 2. 病人離開原工作環境後，症狀改善。
+# 七、參考文獻：
+> 1. Foster WA, Schoenhals JA. Hyperammonemia with severe methanol intoxication. Western Journal of Medicine 1995;163:377-379.
+> 2. Grufferman S, Morris D, Alvarez J. Methanol poisoning complicated by myoglobinuric failure. American Journal of Emergency Medicine 1985;3:24-26.
+> 3. Johlin FC, Fortman CS, Nghiem DD, Tephly TR. Studies on the role of folic acid and folate-dependent enzymes in human methanol poisoning. Molecular Pharmacology 1987;31:557-561.
+> 4. Kruse JA. Methanol poisoning. Intensive Care Medicine 1992;18:391-397.
+> 5. Mahieu P, Hassoun A, lauwerys R. Predictors of methanol intoxication with unfavorable outcome. Human Toxicology 1989;8:135-137.
+> 6. McLean DR, Jacobs H, Mielke BW. Methanol poisoning: a clinical and pathological study. Annals of Neurology 1980;8:161-167.
+> 7. Tintinalli JE. Serum methanol in the absence of methanol ingestion. Ann Emerg Med. 1995;26:393.
+> 8. McMartin KE, Ambre JJ, Tephly TR. Methanol poisoning in human subjects: role for formic acid accumulation in the metabolic acidosis. American Journal of Medicine 1980;68:414-418.
+> 9. Nanji AA. Absence of symptoms and acidosis in potentially lethal methanol poisoning. Annals of Emergency Medicine 1984;13:487.
+> 10. Palmisano J, Gruver C, Adams ND. Absence of anion gap metabolic acidosis in severe methanol poisoning: a case report and review of the literature. American Journal of Kidney Diseases 1987;9:441-444.
+> 11. Shapiro L, Henderson M, Madi S, Mellor L. Unusual case of methanol poisoning. Lancet 1993;341:112.
+> 12. Teo SK, Lo KL, Tey BH. Mass methanol poisoning: a clinico-biochemical analysis of 10 cases. Singapore Medical Journal 1996;37:485-487.
+> 13. Tyson HH. Amblyopia from inhalation of methyl alcohol. Arch Ophthalmol (NY) 1912;41:459-71.
+> 14. de Schweinitz GE. A case of methyl alcohol amaurosis, the pathway of entrance of poisoning being the lungs and the cutaneous surface. The Ophthalmic Record. 1901;X:289-96.
+> 15. NIOSH: Criteria for a recommended standard. Occupational exposure to methyl alcohol. DHEW (NIOSH) Pub No 76-148, pp 68-75. Washington DC, US Government Printinging Office, 1976.
+> 16. Frefrick LJ et al. Investigation and control of occupational hazards associated with the use of spirit duplicators. Am Ind Hyg Assoc J 1984;45:51-55.
+> 17. Downie A, et al. A case of percutaneous industrial methanol toxicity. Occp Med. 1992;42:47-49.
+> 18. Aufderheide TP, White SM, Brady WJ et al: Inhalational and percutaneous methanol toxicity in two firefighters. Ann Emerg Med 1993; 22:1916-1918.
+> 19. Aabakken L, Johansen KS, Rydningen EB et al: Osmolal and anion gaps in patients admitted to an emergency medical department. Human Exp Toxicol 1994; 13:131-134.
+> 20. Abolin G, McRae JD, Tozer TN et al: Gas chromatographic head-space assay of formic acid as methyl formate in biological fluids: potential application to methanol poisoning. Biochem Med 1980; 23:209-218.
+> 21. Anzimlt KC: Methanol levels in methylated spirit drinking alcoholics. NZ Med J 1986; 99:764-765.
+> 22. Baumann K & Angerer J: Occupational exposure to organic solvents: IV. Formic acid concentration in the blood and urine as an indication of methanol exposure. Internat Arch Occup Environ Health 1979; 42:241-249.
+> 23. Glaser DS. Utility of the serum osmol gap in the diagnosis of methanol and ethylene glycol ingestion. Annals of Emergency Medicine 1996;27:343-346.
+> 24. Jacobsen D, Webb R, Collins TD, McMartin KE. Methanol and formate kinetics in late diagnosed methanol intoxication. Medical Toxicology and Adverse drug Experience 1988;3:418-423.
+> 25. Merian E. The environmental chemistry of volatile hydrocarbons. Toxicol Environ Chem 1982; 5 : 167-175.
+> 26. Mittal BV, Desai AP, Khade KR. Methyl alcohol poisoning: an autopsy study of 28 cases, Journal of Postgraduate Medicine 1991;37:9-13.
+> 27. Palatnick W, Redman LW, Sitar DS, Tenenbein M. Methanol half-life during ethanol administration: implications for management of methanol poisoning. Annals of Emergency Medicine 1995;26:202-207.
+> 28. Prabhakaran V, Ettler H, Mills A. Methanol poisoning: two cases with similar plasma methanol concentrations but different outcomes. Canadian Medical Association Journal 1993;148:981-984.
+> 29. Robert R, Lauwerys Perrine Hoet. Industrial Chemical Exposure Guidelines For Biological Monitoring 2nd. Lewis Publishers. p116-131.
+> 30. Anderson CA, Rubinstein D, Filley CM, Stears JC. MR enhancing brain lesions in methanol intoxication. Journal of Computer Assisted Tomography 1997;21:834-836.
+> 31. Anderson TJ, Shuaib A & Becker W: Methanol poisoning: factors associated with neurologic complications. Canad J Neurol Sci 1989; 16:432-435.
+> 32. Anderson TJ, Shuaib A & Becker WJ: Neurologic sequelae of methanol poisoning. Canad Med Assoc J 1987; 136:1177-1179.
+> 33. Anderson TJ, Shuaib A, Becker WJ. Methanol poisoning: factors associated with neurologic complications. Canadian Journal of Neurological Sciences 1989; 16:432-435.
+> 34. Aquilonius AM, Bergstrom K, Enoksson P et al: Cerebral computed tomography in methanol intoxication. J Comput Assist Tomogr 1980; 4:425-428.
+> 35. Hsu HH, Chen CY, Chen FH, Lee CC, Chou TY, Zimmerman RA. Optic atrophy and cerebral infarcts caused by methanol intoxication: MRI. Neuroradiology 1997;39:192-194.
+> 36. Naeser P. Optic nerve involvement in a case of methanol poisoning. British Journal of Ophthalmology 1988;72:778-781.
+> 37. Sharpe JA, Hostovsky M, Bilbao JM, Rewcastle NB. Methanol optic neuropathy: a histopathological study. Neurology 1982;32:1093-1100.
+> 38. ACGIH(R): 1998 Threshold Limit Values (TLVs(R)) for Chemical Substances and Physical Agents and Biological Exposure Indices (BEIs(R)). Am Conference Govt Ind Hyg, Inc, Cincinnati, OH, 1998.
+> 39. ACGIH: Threshold Limit Values and Biological Exposure Indices for 1989-90. Am Conference Govt Ind Hyg, Inc, Cincinnati, OH, 1989.
+> 40. AIHA: 1996 Emergency Response Planning Guidelines and Workplace Environmental Exposure Level Guides. American Industrial Hygiene Association, Fairfax, VA, 1996.
+> 41. Franzblau A, et al. The use of a trasportable fourier transform infrared (FTIR) spectrometer for the direct measurement of solvents in the breath and ambient air. 1. Methanol. Am Ind Hyg Assoc J. 1992;53:221-227.
+> 42. 行政院勞工委員會. 勞工作業環境空氣中有害物容許濃度標準. 中華民國八十四年七月。
