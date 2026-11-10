@@ -1,0 +1,68 @@
+@cover 鄰二甲基二胺其他基聯苯及其鹽類（O-Tolidine and its salts）
+@cover 黃旭瑩醫師
+# 一、導論
+鄰二甲基二胺基聯苯(O-Tolidine)是以甲基（CH3）取代二氯聯苯胺(3,3'-Dichlorobenzidin，由 o-Chloronitrobenzene 製造而來）之氯原子，它不溶於水，易溶於酒精和苯，鄰二甲基二胺基聯苯之鹽類為鹽酸鹽。
+它被用做染料或染料中間產物，它是 trypan blue 之成分之一，也是水公司或游泳池測定氯氣（Chlorine test kits）之成分，由於 MOCA（4,4'-methylene bis(2-chloraniline)）是致癌物，O-Tolidine 被用於取代 MOCA 當做是聚尿樹脂的處理劑（curing agent）。我國將鄰二甲基二胺基聯苯列為乙類特定化學物質，其人類致癌性目前尚不確定，也可能因其他染料的污染有關。
+# 二、具潛在暴露的職業
+鄰二甲基二胺基聯苯暴露的職業
+> 1. 化學分析師
+> 2. 藝術家
+> 3. 染料製造業
+> 4. 林業化學工程師
+> 5. 葡萄糖檢驗試紙製造業
+> 6. 皮革染料工人
+> 7. 衛生人員
+> 8. 廢水處理工人
+> 9. 游泳池檢測試紙製造業
+> 10. 游泳池服務人員
+> 11. 紡織業染料工人
+> 12. 二異氰酸甲苯製造業
+> 13. 聚尿樹脂處理人員
+> 14. 水公司人員
+# 三、醫學評估與鑑別診斷
+由於鄰二甲基二胺基聯苯也是芳香族的胺基衍生物，所以在常溫下是液體或固體，但在工作現場，通常大部分是暴露於其蒸氣或粉塵。需要特別留意的是，鄰二甲基二胺基聯苯很容易地經由皮膚吸收。
+## (一)、癌症
+鄰二甲基二胺基聯苯及其鹽類為動物致癌物。因其可能被代謝為聯苯胺，仍被認為是可疑的膀胱致癌物。
+尿液檢查可作為最初的篩檢。簡單的尿液檢查應該包括簡單的尿液沉渣的顯微鏡下觀察和內含白血球和紅血球的數目，如果白血球和紅血球的數目，在高倍鏡下每個視野數目超過五個以上的時候，就要考慮到尿路上皮有炎性反應或出血的可能，也包含在尿路上皮癌的高危險群中。
+尿液細胞學的篩檢，是將病人早晨的尿液加以蒐集，最好讓病人做下腹部的按摩，使膀胱上皮細胞能脫落。尿液利用微孔過濾器加以過濾，以特別的濾膜蒐集可能存在於尿液中的細胞，馬上加以固定；經過 Papanicolau 染色，製成抹片，然後由有經驗的檢驗技術員加以閱片，由病理科醫師加以診斷，可以將尿液的細胞根據型態變化，診斷為正常、發炎、異生、細胞分化不全(atypia)或癌症等等。目前對於膀胱癌或尿路上皮癌的篩檢，也可以作流體細胞核蛋白的分析，目前逐漸發展出來較為敏感的標記，像 BTA (bladder tumor antigen)，有相當高的準確度，可是在職業性膀胱癌的篩檢上仍待進一步的確定。
+膀胱癌的真正確定，還是要作病理的組織切片加以證實，然後進一步作病理的分級和臨床的分期，以為治療和追蹤的參考。如果病人在篩檢中是屬於高危險群的工人，雖然一、兩次檢查為陰性，可是長期追蹤，如果有任何的懷疑反覆加以切片，還是必要的。
+## (二)、變性血紅素症
+由鄰二甲基二胺基聯苯直接作用可以形成變性血紅素(methemoglobin)為中介，而見到如下面所列的症狀：起初為噁心、嘔吐、頭痛、發紺(cyanosis)等，繼而可發現呼吸困難、興奮、意識混亂、痙攣、意識喪失、失禁等。變性紅血素是血紅素的鐵由二價變成三價的一種不活性血紅素。如變性紅血素增加，生物體會陷入氧氣缺乏的狀態。
+在變性紅血素大量發生時，會有 Heinz 小體出現於紅血球，繼之紅血球的破壞加速，於是發生溶血性貧血。網狀紅血球的增加，血清中鐵的上昇在大部分的情況會發現。在高度溶血時，亦有可能再進一步伴隨黃疸、肝腫大或脾腫大。尿會成為茶褐色，尿膽素原(urobilinogen)、尿膽素(urobilin)、還原性物質(尤其是芳香族的胺基衍生物代謝而成的尿甘酸化合物會異常地增加)，而且尿液血紅素檢查會變成陽性。
+## (三)、皮膚
+鄰二甲基二胺基聯苯對皮膚具刺激性，是刺激性或過敏性接觸皮膚炎的發病原因，尤其是暴露於過敏原強的物質時，有過敏性者會發生激烈的發炎症狀。另外，有的會有光過敏性的性質亦需要注意。於使用鄰二甲基二胺基聯苯做二次反應過程的勞工，可看到過敏性接觸皮膚炎的發生，亦有很多發生濕疹化，不易治癒的情況。
+在這些鄰二甲基二胺基聯苯職業暴露所引起的疾病，臨床上的依據是病人暴露史，然後是尿液學檢查和皮膚病變、黃膽等症狀。如果，尿液檢查有異狀，則進一步作尿液細胞學檢查、癌細胞標記測定、膀胱鏡和切片，以及尿路 X 光和電腦斷層攝影等等。需要和膀胱癌或尿路上皮癌之鑑別診斷的疾病包括尿路發炎或結石、攝護腺肥大以及各種腎臟疾病。
+# 四、流行病學的證據
+鄰二甲基二胺基聯苯及其鹽類為動物致癌物，但人類流行病學研究資料尚缺乏。Zavon 追蹤 25 位平均工作年資為 10.6 年的聯苯胺製造工人，其中 13 位（52%）發生膀胱腫瘤，11 位是惡性，2 位是良性。工作環境中聯苯胺的濃度高達 17.6 mg/m3。雖然 25 位工人中 3 人曾暴露於貝他奈胺（但少於一年），3 人曾暴露於鄰二甲基二胺基聯苯，7 人曾暴露於二氯聯苯胺，但這些暴露情形無法與聯苯胺相比，且 11 位惡性膀胱癌工人未曾暴露於鄰二甲基二胺基聯苯1。康乃迪奈州一家化學工廠生產二氯聯苯胺、鄰二甲基二胺基聯苯和 o-dianisidine 的 700 名員工經追蹤 24 年後發現膀胱癌的危險比為 8.3，且呈現劑量效應關係。這家工廠已不再生產聯苯胺染料，且所有膀胱癌患者均抽煙，作者把膀胱癌之發生歸因於抽煙2。美國紐約州水牛城的一家工廠近年發生膀胱癌聚集的流行，經調查証實是鄰二甲基二胺基聯苯所引起3，重演一百年前發現聯苯胺致膀胱癌的類似事件。
+然而在台灣地區染料相關工廠的調查，仍然使用各種禁用的化學物質；在工人的調查中也有各種不同程度的職業暴露於鄰二甲基二胺基聯苯等可疑的膀胱致癌物中。由於鄰二甲基二胺基聯苯的暴露要一段時間才會引起癌症病變，所以要更長期追蹤流行病學證據才會明顯。
+鄰二甲基二胺基聯苯最早在 1950 年被發現可引起動物耳道管的 Zymbal's 腺體腫瘤4，以後的動物實驗發現它可造成多數器官系統的腫瘤5-9。注射鄰二甲基二胺基聯苯可引起老鼠的 Zymbal's 腺體、乳腺、皮膚、肺、甲狀腺、胃、小腸、血液系統和子宮的腫瘤6-9。皮下注射亦可能造成老鼠全身性腫瘤10。
+另外二種鄰二甲基二胺基聯苯鹽類染料，trypan blue 和 Evans blue，亦被發現會引起老鼠的腫瘤11,12。因此，IARC 認為 trypan blue 在腹腔注射和皮下注射均會造成老鼠的腫瘤，而 Evans blue 在腹腔注射則會引起老鼠之腫瘤13。
+# 五、暴露證據收集的方法
+臨床上則是以工人調查問卷，必須要詳細的知道其工作的性質和工作的時間，其中工作的時間要詳細的列出他做同性質的工作，斷斷續續一共多久。譬如：工人換了好幾個工廠，斷斷續續從事鄰二甲基二胺基聯苯染料相關職業，一共暴露了多久的時間。此外，他在從事工作時，有無按照規定作防護的措施，譬如：戴手套，戴防護的帽子或面罩，勤於洗手等等，也關係到是否有一定的染料暴露。這些因子的相乘，可以建立一個暴露指數，讓調查人員了解工人鄰二甲基二胺基聯苯暴露的量和相對危險。
+另外，可測量勞工尿液中鄰二甲基二胺基聯苯之濃度，做為生物偵測的指標。
+鄰二甲基二胺基聯苯及其鹽類是乙類特定化學物質，沒有允許暴露的標準。
+# 六、結論
+## (一)、主要基準
+> 1. 確定的鄰二甲基二胺基聯苯及其鹽類暴露證據，包括：職業史、物質安全資料表或環境偵測和生物偵測的証據。
+> 2. 鄰二甲基二胺基聯苯暴露發生在疾病之前的時序性。
+> 3. 確定的臨床診斷，包括：病理切片證實為膀胱癌，其他臨床疾病包括變性血紅素症、過敏性皮膚炎。
+> 4. 合理排除其他的致癌因子。
+## (二)、輔助基準
+> 1. 由暴露鄰二甲基二胺基聯苯染料之工人尿液中分析出鄰二甲基二胺基聯苯及其鹽類濃度。
+> 2. 同一工廠所有其他工人，具類似症狀。
+> 3. 病人離開原工作環境後，症狀改善（不包括癌症）。
+> 4. 改善原工作環境後，不再有新病人發生。
+# 七、參考文獻
+> 1. Zavon MR, Hoegg U, Bingham E. Benzidine exposure as a cause of bladder tumors. Arch Environ Health 1973;27:1.
+> 2. Ouellet-Hellstrom R, Rench JD. Bladder cancer incidence in arylamine workers. J Occup Environ Med 1996; 38: 1239-1247.
+> 3. Michaels D. When science isn't enough? Wilhelm Hueper, Robert A. M. case, and the limits of scientific evidence in preventing occupational bladder cancer. Int J Occup Environ Health 1995;1:278-288.
+> 4. Saffiotti U, Cefis F, Monesano R, Sellkurmar A. Induction of bladder cancer in hamsters fed aromatic amines. In: Bladder cancer. A symposium. Duchman WB, Tampe (Eds), Aesculapius Publishing Co., Brimingham, Ala., 129-135, 1967.
+> 5. Sellakumar A, Montesano R, Saffiotti U. Aromatic amines carcinogenicity in hamsters. Proc Am Assoc Cancer Res 1969;10:78.
+> 6. Pliss G, Zabezhinsky M. Carcinogenic properties of orthotolidine (3,3'-dimethyl-benzidine). JNCI 1970;45:283-295.
+> 7. Pliss G. On some regular relationships between carcinogenicity of aminodiphenyl derivatives and the structure of substances. Acta Inter Union Cancer 1963;19:499-501.
+> 8. Pliss G. Carcinogenic properties of orthotolidine and dianisine. Gin Tr Prof Zabol 1965;21:9, 18-22.
+> 9. Griswold D, Casey A, Weisburger E, Weisburger J. The carcinogenicity of multiple intragastric doses of aromatic and heterocyclic nitro or amino derivatives in young female Sprague-Dawley rats. Cancer Res 1968;28:924-933.
+> 10. IARC Monographs on the Evaluation of Carcinogenic Risk of Chemicals to Man. IARC, Lyon, France, vol. 1, 80, 1972.
+> 11. Marshall A. The production of tumors of the reticular tissue by di-azo vital dyes. Acta Path et Microbiol Scand 1953;33:1-9.
+> 12. Gillman J, Gillman T. The pathogenesis of experimentally produced lymphomata in rats. Cancer 1952;5:792-846.
+> 13. IARC Monographs on the Evaluation of Carcinogenic Risk of Chemicals to Man. IARC, Lyon, France, vol. 8:91, 151, and 267, 1975.
