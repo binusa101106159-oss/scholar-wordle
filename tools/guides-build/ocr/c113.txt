@@ -1,0 +1,97 @@
+@cover 聯苯胺(Benzidine)、貝他萘胺(β-naphthylamine)、阿伐萘胺(α-naphthylamine)、對二甲胺基偶氮苯(Paradimethylazobenzene)及其鹽類中毒之認定基準
+@cover 江漢聲醫師
+# 一、導論
+1890 年代，瑞士醫師 Rehn 首先發現染料會導致工人的膀胱癌(1)，在以後的二、三十年間，歐洲陸續有許多國家發現，染料及相關工業的工人會有尿路上皮癌的危險(2)。接著，從聯苯胺、萘胺及相關鹽類所做的各種動物實驗，包括：老鼠、狗等動物，都可以產生膀胱癌和尿路上皮癌(3,4)，所以聯苯胺及其相關鹽類的職業，會導致尿路上皮癌已經是相當確定的事實。以目前在全世界各地膀胱癌的發生率來看，高度工業文明的國家，這類的癌症發生率是最高的，每十萬人口男性膀胱癌的發生率，可以大於十人以上(5)，所以說，膀胱癌是一個化學性職業癌，是相當確定的說法。
+從化學物質的致癌，必須要經過相當長的暴露，這些致癌因子在體內潛伏二十年以上才會顯現出症狀(6)，所以，膀胱癌的職業衛生必須要做相當長遠的篩檢及追蹤。以日本為例：所有的染料工人必須要定期接受尿液細胞學的檢查，長達十年甚至二十年，並且從其中發現膀胱癌的病例，這種芳香族的胺基衍生物在職業衛生中的篩檢，已經是歐美文明國家職業衛生的一個必要措施(7)。所以，在我國設定職業病認定基準時，這類化學致癌物所引起的職業危險，必須有一定的認定基準，以為染料和相關職業工人的健康保障。
+聯苯胺又稱 4.4'二胺基聯苯或間-二胺基聯苯，主要用於製造偶氮染料（azo dye）。它是由 nitrobenzene 還原成 hydrazobenzene，再轉換成 benzidine，其鹽類主要是鹽酸或硫酸鹽類。其結構式為兩個相連的苯環，兩端各帶一個胺基（NH2）。
+貝他萘胺使用於染料工業當做中間產物及用於橡膠工業當做抗氧化劑。其結構式為萘環帶一個胺基（NH2）。
+阿伐萘胺用於製造偶氮染料。阿伐萘胺中含貝他萘胺之不純物約為 0.5～4%。其結構式為萘環帶一個胺基（NH2）。
+對二甲胺基偶氮苯又稱為奶油黃（Butter Yellow），主要是肝臟致癌物。其結構式為苯環以偶氮基（N=N）連接另一苯環，後者帶有二甲胺基（N(CH3)2）。
+# 二、具潛在暴露的職業(8)
+## (一) 聯苯胺及其鹽類：包括使用 Direct Black 38、Direct Brown 95、Direct Blue 6 等染料的職業。常見的職業如下：
+> 1. 印刷業(40%)
+> 2. 紡織業(25%)
+> 3. 皮革業(15%)
+> 4. 石油業
+> 5. 橡膠及塑膠
+> 6. 測量工具業
+> 7. 銀行業
+> 8. 製造其他染料之作業
+> 9. 藝術或手工藝製造作業
+> 10. 染髮劑接觸作業
+## (二) α萘胺、β萘胺及其鹽類的暴露職業：
+> 1. 染料製造業
+> 2. 橡膠製造業
+> 3. 農藥製造業
+> 4. 紡織業
+## (三) 對二甲胺偶氮苯及其鹽類的暴露職業：
+> 1. 黃色奶油（Butter Yellow）製造業
+# 三、醫學評估與鑑別診斷
+芳香族的胺基衍生物，在常溫下是液體或固體，但在工作現場，通常勞工是暴露於其蒸氣或粉塵。中毒以經由皮膚吸收而發生。需要特別留意的是，大部分芳香族的胺基衍生物，很容易地經由皮膚吸收(9)。
+## (一) 癌症
+芳香族的胺基衍生物中，聯苯胺和β-萘胺已知會造成泌尿系統的癌症。在我國是甲種特定化學物質，禁止輸入、製造和使用。在日本，過去亦有聯苯胺及β-萘胺的製造及使用，自昭和 20 年(1945 年)以後，有過不少的泌尿系統癌症的發生。現在這四種物質的製造及使用等雖依勞動安全衛生法【昭和 47 年(1972 年)法律第 57 號】被禁止，但因受此等物質暴露經過長時間後，亦會發生泌尿系統癌症，所以現在尚有新病例的發生。
+另外，曾經從事過α-萘胺的製造及使用的工作者中，有過泌尿系統癌症的病例發生，但被認為是因混入β-萘胺所導致的，而非由α-萘胺所引起。
+這些癌症，隨暴露濃度之不同，有的在比較短的暴露期間亦會發生。但是由於自暴露開始至發病的期間(所謂的潛伏期間)其長短並不一定，所以於退職後才發生的病例亦不少(從日本的發病例知道：有潛伏期未滿五年的，亦有超過三十年的)。
+尿液檢查可作為最初的篩檢。簡單的尿液檢查應該包括簡單的尿液沉渣的顯微鏡下觀察和內含白血球和紅血球的數目，如果白血球和紅血球的數目，在高倍鏡下每個視野數目超過五個以上的時候，就要考慮到尿路上皮有炎性反應或出血的可能，也包含在尿路上皮癌的高危險群中。
+尿液細胞學的篩檢(14-15)，是將病人早晨的尿液加以蒐集，最好讓病人做下腹部的按摩，使膀胱上皮細胞能脫落。尿液利用微孔過濾器加以過濾，以特別的濾膜蒐集可能存在於尿液中的細胞，馬上加以固定；經過 Papanicolau 染色，製成抹片，然後由有經驗的檢驗技術員加以閱片，由病理科醫師加以診斷，可以將尿液的細胞根據型態變化，診斷為正常、發炎、異生、atypia 或癌症等等。目前對於膀胱癌或尿路上皮癌的篩檢，也可以作流體細胞核蛋白的分析，目前逐漸發展出來較為敏感的標記，像 BTA (bladder tumor antigen) (16)，有相當高的準確度，可是在職業性膀胱癌的篩檢上仍待進一步的確定。
+膀胱癌的真正確定，還是要作病理的組織切片加以證實，然後進一步作病理的分級和臨床的分期，以為治療和追蹤的參考。如果病人在篩檢中是屬於高危險群的工人，雖然一、兩次檢查為陰性，可是長期追蹤，如果有任何的懷疑反覆加以切片，還是必要的。
+## (二) 變性血紅素症
+在由芳香族的胺基衍生物中所致的急性中毒時(尤其是聯苯胺和萘胺)，由其直接作用或以形成變性血紅素(methemoglobin)為中介，而見到如下面所列的症狀：起初為噁心、嘔吐、頭痛、發紺(cyanosis)等，繼而可發現呼吸困難、興奮、意識混亂、痙攣、意識喪失、失禁等。變性紅血素是血紅素的鐵由二價變成三價的一種不活性血紅素。如變性紅血素增加，生物體會陷入氧氣缺乏的狀態。
+在變性紅血素大量發生時，會有 Heinz 小體出現於紅血球，繼之紅血球的破壞加速，於是發生溶血性貧血。網狀紅血球的增加，血清中鐵的上昇在大部分的情況會發現。在高度溶血時，亦有可能再進一步伴隨黃疸、肝腫大或脾腫大。尿會成為茶褐色，尿膽素原(urobilinogen)、尿膽素(urobilin)、還原性物質(尤其是芳香族的胺基衍生物代謝而成的尿甘酸化合物會異常地增加)，而且尿液血紅素檢查會變成陽性。
+## (三) 皮膚病變
+於使用芳香族的胺基衍生物做二次反應過程的勞工，可看到過敏性接觸皮膚炎的發生，亦有很多發生濕疹化，不易治癒的情況。
+在這些職業暴露所引起的疾病，臨床上的依據是病人暴露史，然後是尿液學檢查和皮膚病變、黃膽等症狀。如果，尿液檢查有異狀，則進一步作尿液細胞學檢查、癌細胞標記測定、膀胱鏡和切片，以及尿路 X 光和電腦斷層攝影等等。需要和膀胱癌或尿路上皮癌之鑑別診斷的疾病包括尿路發炎或結石、攝護腺肥大以及各種腎臟疾病。
+# 四、流行病學的證據
+全世界各地膀胱癌發生率較高的地方可分為二種：一種是流行區像北非，因為血吸蟲所導致的膀胱癌(10)，有相當高的發生率；其他地區膀胱癌的高危險區(11,12)，也就是發生率男性每十萬人在二十人以上，女性每十萬人在五人以上，都是發生在歐美工業高文明的國家，像瑞典、德國、美國等等。另外，在北美也統計過膀胱癌的發生率，在工業區和一般的鄉村區是完全不同的。換句話說，職業暴露和附近居民所造成的膀胱癌，是有相當充分的流行病學證據。
+在歐美和日本，經過工廠多年來的調查，可以發現染料工業和膀胱癌有直接的關係。瑞士醫師 Rehn 首先在 1895 年報告三位德國染料工人罹患膀胱癌(18)，其後 Hueper 在 1934 年回顧染料工業「苯胺癌」(aniline cancer) 的流行病學證據。1954 年 Case 對英國染料工業中工作滿半年的 4622 位男性工人進行五年的追蹤(19)，其中 262 人罹患膀胱癌，144 張死亡證明書中 127 人為膀胱癌，膀胱癌的死亡危險性是一般人口群之 30 倍，作者結論中指出膀胱致癌為聯苯胺、貝他萘胺和阿伐萘胺，而非苯胺。作者也指出貝他萘胺之致癌性是聯苯胺的 3 倍，是阿伐萘胺的 5 倍。
+另一研究也證實聯苯胺是人類致癌物。Zavon 追蹤 25 位平均工作年資為 10.6 年的聯苯胺製造工人，其中 13 位（52%）發生膀胱腫瘤，11 位是惡性，2 位是良性。工作環境中聯苯胺的濃度高達 17.6 mg/m3。雖然 25 位工人中 3 人曾暴露於貝他萘胺（但少於一年），3 人曾暴露於 O-toluidine，7 人曾暴露於二氯聯苯胺，但這些暴露情形無法與聯苯胺相比，且 11 位惡性膀胱癌中 6 人（55%）未曾暴露於貝他萘胺或二氯聯苯胺。這家工廠之最終產物為聯苯胺硫酸鹽或鹽酸鹽，因而顯示聯苯胺之鹽類也是人類致癌物。
+Goldwater 也追蹤煤焦油染料製造工人自 1912 至 1962 年(21)，366 位工人中有 76 人（26.2%）僅暴露於聯苯胺，其膀胱癌發生率高達 21.3%（17 人）。而同時暴露聯苯胺和貝他萘胺的工人，膀胱癌發生率更高達 45.5%。聯苯胺的癌症潛伏期約為 18.7 年，癌症診斷後的存活期約為 3 年。
+Mancuso 亦追蹤一暴露於聯苯胺和貝他萘胺的 639 位男性染料工人，此結果亦發現貝他萘胺之致癌危險是聯苯胺之 4 倍，且暴露於二者的癌症危險性較單獨暴露者高(22)。Heinfeld(23)及 Barsotti 等人(24)亦均有類似發現。貝他萘胺致癌之潛伏期約為 16 年(19)或 20 年(23)。
+有關於阿伐萘胺的致癌性一般均認為是受貝他萘胺污染所致，但 Case 的研究(19)尚無法排除阿伐萘胺的致癌性。Barsotti 等人(24)之 902 位研究對象中有 30 僅暴露於阿伐萘胺，其中 23 人接受膀胱鏡檢查，結果 14 人正常，7 人有膀胱充血，另 2 人有乳突瘤（papilloma）。一位乳突瘤患者是暴露 4 年及 20 年的潛伏期，另一位乳突瘤之患者是 25 年暴露及一年的潛伏期。雖然阿伐萘胺的致癌性尚未有流行病學研究證實，但阿伐萘胺之代謝產物，N-OH-I-NA，被發現是動物的致癌物，且甚至較貝他萘胺代謝產物之致癌性還強(25)。
+對二甲胺基氮苯則在動物實驗發為肝癌致癌物(25-28)，但尚缺乏人類流行病學資料。
+在衛生署的研究計畫之下，我們也曾做過台灣地區染料相關工廠工人的調查(13)，結果發現：染料工廠的工人有各種不同程度的職業暴露於可疑的膀胱致癌物中，他們的尿液細胞學檢查雖然沒有直接的癌細胞證據，可是有些已經有細胞變性的情況發生；而且根據勞工描述，許多人在工作中均沒有使用安全防護設施，所以是有相當程度的高危險。
+# 五、暴露證據收集的方法
+在作工人職業暴露的調查問卷的時候，必須要詳細的知道其工作的性質和工作的時間，其中工作的時間要詳細的列出他做同性質的工作，斷斷續續一共多久。譬如：工人換了好幾個工廠，斷斷續續從事染料相關職業，一共暴露了多久的時間。此外，他在從事工作時，有無按照規定作防護的措施，譬如：戴手套，戴防護的帽子或面罩，勤於洗手等等，也關係到是否有一定的染料暴露。這些因子的相乘，可以建立一個暴露指數，讓調查人員了解工人暴露的量和相對危險。當然在調查中也必須瞭解，和膀胱尿路上皮癌相關因子的有無，例如：是否有抽煙？抽煙的量是多少？是否染髮？是否食用亞硝基醃製的食物？是否生長於台灣烏腳病盛行的地區？是否飲用過生井水？是否長期使用糖精？本人或家屬有無泌尿道相關疾病，如：結石、尿路感染、尿路上皮癌？這些都是判定膀胱癌或尿路上皮癌的高危險因子，判定是否因職業暴露引發癌症的重要參考。
+暴露評估可測量工作環境中致癌物的含量，例如 Zavon 在 1958 年測量染料工廠之聯苯胺濃度，最終產品的處理過程產生高達 17.6mg/m3 的聯苯胺(20)。尿液中，直接去分析致癌物本身或其代謝物濃度也是可行的(17)。例如美國 NIOSH 收集四類染料工廠工人的尿液，分析尿液中聯苯胺及其單甲基聯苯胺（monacetylbenzidine, MAB）之含量，他們發現染料製造工廠的所有工人其尿液中均存在聯苯胺和 MAB；紡織業 10 個工人中有四位尿液中含有聯苯胺或 MAB；而皮革業工人則無發現聯苯胺或 MAB。
+動物研究發現阿伐萘胺及貝他萘胺之代謝物 N-OH-阿伐萘胺或 N-OH-貝他萘胺可存在於動物尿液中且具有致癌性，但尚無人類研究報告。
+在我們國家已經認定許多化學物質，是確定或懷疑的膀胱致癌物，包括：聯苯胺(Benzidine)、β-萘胺(β-naphthylamine)、4 胺基聯苯(4-aminodiphenyl)、4 硝基聯苯(4-nitrodiphenyl)等四種物質為禁止輸入、使用及販賣之毒性化學物質(甲類第一種特定化學物質)，該物質在工作現場中不得被測出。α-萘胺是乙類特定化學物質，也沒有允許暴露標準。
+# 六、結論
+## (一)、主要基準
+> 1. 確定的暴露證據，包括職業史、暴露物質之致癌性和暴露的量。
+> 2. 暴露發生在疾病之前的時序性。
+> 3. 確定的臨床診斷，包括病理切片證實為膀胱癌，其他臨床疾病包括變性血紅素症、過敏性皮膚炎。
+> 4. 合理排除其他的致癌因子。
+## (二)、輔助基準
+> 1. 由暴露染料之工人尿液中分離出所暴露物質到一定的濃度。
+> 2. 同一工廠其他工人亦具類似症狀。
+> 3. 病人離開原工作環境後，症狀改善。
+> 4. 改善原工作環境後，不再有類似病例發生。
+# 七、參考文獻
+> 1. Rehn L. Blasengeschwulste bei Anilinarbeitern. Arch. Klin. Chir 1985;50: 588-600.
+> 2. Goldblatt, MW. The Problem of Vesical Neoplasms. Technical Report of the Imperial Chemical Industries, Ltd., Dyestuff Group, 1937.
+> 3. Jacobs JB, Arai M, Cohen SM, Friedell GH. A long term study of reversible and progressive urinary bladder cancer lesions in rats fed N-[4-(5-nitro-2-furyl)-2-thiazolyl]formamide, 1977.
+> 4. Kakunage T. The role of cell division on the malignant transformation of mouse cells treated with 3-methylcholanthrene. Cancer Res 1975;35:1637-1642.
+> 5. Wynder EL, Goldsmith R. The epidemiology of bladder cancer. A second look. Cancer 1977;40:1246-1268.
+> 6. Koss LG, Melamed MR, Kelly RE. Further cytologic and histologic studies of bladder lesions in workers exposed to paraminodiphenyl: progress report. J Natl Cancer Inst 1969; 43:233-243.
+> 7. Shinka T, Sawada Y, Morimoto S, et al. Clinical study on urothelial tumors of dye workers in Wakayama city J. Urol 1991;146:1504-1507.
+> 8. Cole P, Hoover R, Friedell GH. Occupational and cancer of the lower urinary tract. Cancer 1972;29:1250.
+> 9. U.S. Occupational Safety and Health Administration. Occupational Safety and Health standards for Carcinogens, pp. 3756-3797. OSHA, Washington, D.C, 1974.
+> 10. Lucas SB. Squamous cell carcinoma of the bladder and schistosomiasis. East Afr Med J 1982;59:345.
+> 11. King H, Bailar JC. Epidemiology of urinary bladder cancer. A review of selected literature. J Chronic Dis 1966;19:735-769.
+> 12. Chiang HS, Guo HR, Hong CL, et al. The incidence of bladder cancer in the black foot disease endemic area in Taiwan. Brit J Urol 1993;71:274-278.
+> 13. 江漢聲等，台灣染料有關工廠工人膀胱癌篩檢初步報告，1989 衛生署研究計畫，DOH78-14。
+> 14. Chiang HS, Guo HR, Hong CL, et al. Comparative study on the high prevalence of bladder cancer in the blackfoot disease endemic area in Taiwan. J Formosan Med Assoc 1988;87:1074-1080.
+> 15. Chiang HS, Guo HR, Hong CL, et al. Geographic distribution of high-risk areas for bladder cancer in the blackfoot disease endemic area in Taiwan. J Urol ROC 1993;4(2):1079-1085.
+> 16. 葉錦瑩，流式細胞儀在染料製造廠員工膀胱癌早期偵測之應用，1997 年勞委會特約研究計畫。
+> 17. 江漢聲，台灣地區常用染料和膀胱癌的相關研究 1990，衛生署研究計畫 DOH79-07。
+> 18. Hueper WC. Cancer of the urinary bladder in workers of chemical dye factories and dyeing establishments: A review. J Ind Hyg 1934;16:255.
+> 19. Case RAM, et al. Tumors of the urinary bladder in workmen engaged in manufacture and use of certain dyestuff intermediates in the British chemical industry. Part 1. The role of aniline, alpha-naphthylamine, and beta-naphthylamine. Br J Ind Med 1954;11:75.
+> 20. Zavon MR, Hoegg U, Bingham E. Benzidine exposure as a cause of bladder tumors. Arch Environ Health 1973;27:1.
+> 21. Goldwater LJ, Rosso AJ, Kleinfeld M. Bladder tumors in a coal tar dye plant. Arch Environ Health 1965;11:814.
+> 22. Mancuso TF, El-Attar AA. Cohort study of workers exposed to beta-naphthylamine and benzidine JOM 1967;9:277.
+> 23. Kleinfeld M. In: Lumpe KF. (Ed.) A symposium on bladder cancer (Birmingham: Aesculapius Publishing Company, 1967).
+> 24. Barsotti M, Vigliani EC. Bladder lesions from aromatic amines. Arch Ind Hyg 1952;5:234.
+> 25. Belman S, et al. Carcinogenicity and mutagenicity of arylhydroxylamines. Proc Am Assoc Cancer Res 1966;7:6.
+> 26. United States Department of HEW. Hazard review of 4-Dimethylaminoazobenzene (DAB). Office of Research and Standards Development, USPHS, NIOSH, Rockville, MD., Ref. 3 through 25, July, 1973.
+> 27. Kinosita R. Studies of carcinogenic chemical substance. Soc Pathol Japan 1937;27:665.
+> 28. Badger GM, Lewis GE. Carcinogenic azo-compounds: Chemical constitution and carcinogenic activity. Br J Cancer 1952;6:270.
