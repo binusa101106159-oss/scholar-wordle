@@ -1,0 +1,73 @@
+@cover 硫酸二甲酯中毒之認定基準
+@cover 劉益宏 醫師
+# 一、導論
+硫酸二甲酯(Dimethyl sulfate, 或 Methyl sulfate; DMS)其化學式為(CH3)2SO4；為無色、略有洋蔥氣味的油狀液體，分子量為 126.13，密度為 1.3322g/cm3（20℃/40℃），沸點 188℃，熔點-32℃，蒸氣壓＜0.133Kpa（20℃），蒸氣密度 4.35g/L，低溫時微溶於水，18℃時極易溶於水，溶於乙醇和乙醚1-2。在冷水中緩慢分解，隨溫度上升而加速。如在 50℃時生成未分解的硫酸二甲酯霧，極易水解生成硫酸和甲醇。稀鹼液可使硫酸二甲酯迅速水解，對金屬無作用。工業應用上主要用作甲基化劑，用於製藥、染料、和香料等工業3-4。
+# 二、具潛在暴露的職業
+硫酸二甲酯的暴露，最常見於工作場所上的職業暴露，但是硫酸二甲酯也會存在於煤炭燃燒所產生的飛塵或粉塵顆粒中，或在燃煤火力發電廠附近之大氣中，並經由吸入而暴露於硫酸二甲酯。在工業應用上，硫酸二甲酯主要用作甲基化劑，用於製造其他有機溶劑5。硫酸二甲酯在染料和香料工業上也常使用到。此外，礦物油的分離與引擎機油成分的分析過程中，也需使用到硫酸二甲酯。過去在第一次世界大戰中，曾用作化學毒劑，因此毒性氣體之製造，也有使用到硫酸二甲酯。
+具潛在硫酸二甲酯可能暴露的職業包括6：
+> 1. 各種有機溶劑製造與甲烷化。
+> 2. 染料和香料製造業。
+> 3. 礦物油的分離與引擎機油成分的分析作業。
+> 4. 化學戰爭毒性氣體的製造。
+> 5. 火力發電或燃煤工業。
+# 三、醫學評估及鑑別診斷
+硫酸二甲酯中毒勞工的臨床評估應包含詳細的病史詢問、理學檢查與實驗室檢查。而個人工作史、工作環境及行業特性都應仔細記錄。
+## （一）硫酸二甲酯中毒之臨床表徵：
+急性短期暴露於硫酸二甲酯可能造成眼睛、口腔、呼吸道黏膜的嚴重發炎與壞死。暴露在硫酸二甲酯的蒸汽下會立即引起眼睛刺激、咳嗽、舌頭、嘴唇及咽喉部腫脹甚至導致肺水腫。吞食或直接接觸會引起黏膜潰爛。主要傷及肺臟，但也可能傷及肝臟、腎臟、心臟與中樞神經系統。皮膚接觸硫酸二甲酯可能產生嚴重水泡。
+硫酸二甲酯具高毒性，同時具有遲發性生物效應，並且可能是人類致癌物。人接觸 500mg/m3（97ppm）10 分鐘可致死。吸入蒸氣可引起黏膜的嚴重炎症及致死的肺損傷。對皮膚有腐蝕作用，經皮膚吸收可引起水泡、潰瘍、壞死及全身毒性。對眼睛有強腐蝕作用，可能引起角膜混濁。其對全身各器官系統之傷害分述如下：
+### 1. 呼吸系統
+輕者以上呼吸道刺激症狀為主，有流涕、聲音沙啞、咽喉部燒灼感。鼻咽腔檢查時可以見到咽喉、會厭潰爛和聲帶充血腫脹。嚴重者數小時後出現呼吸困難、胸部壓迫感、喉頭水腫和中毒性肺水腫，氣管可發生大片壞死黏膜脫落，並引起窒息。也可能併發支氣管肺炎、支氣管炎、肺氣腫或偶見支氣管破裂而引起皮下氣腫。
+嚴重中毒者可發生休克，血壓下降。並可有肝、腎及心肌損傷。
+### 2. 眼部症狀
+輕者會有眼結膜刺激症狀，嚴重者在潛伏期後會出現疼痛、視力模糊、流淚、異物感以及眼瞼痙攣和水腫，同時可見結膜充血，角膜上皮有瀰漫性點狀浸潤，甚至角膜大塊脫落，造成視力減退或視覺障礙。眼睛症狀可能在幾天內消失，但視力減退與結膜角膜炎可持續相當長時間，患者並長期陳訴視力疲勞。
+### 3. 皮膚損傷
+接觸後皮膚紅腫，點狀出血，12 小時後可發展為大水泡，24 小時內病灶持續進展，嚴重時發生皮膚壞死，結締組織疏鬆部位如陰囊處可因間接接觸而造成損害。皮膚病灶之痊癒較緩慢，而長期接觸低濃度硫酸二甲酯也會造成眼睛和呼吸道的刺激症狀。
+### 4. 遲發性作用
+如果急性中毒症狀輕微且持續時間短暫，可以逐漸恢復而不產生後遺症。但是當急性中毒症狀嚴重時，在接觸後 6 至 24 小時會引起肺水腫，這種水腫可能為急性或慢性，接著發生支氣管水腫加重病情。遲發性作用包括眼、口腔及呼吸道的嚴重發炎，合併全身器官衰竭、甚至休克昏迷。由於腎臟、肝臟與心臟的遲發性病變，可能出現黃疸、蛋白尿及血尿而致死亡。
+## (二) 急性暴露健康效應：
+工業上硫酸二甲酯中毒通常是急性，多因吸入蒸氣所致。也可能是由於濺污皮膚或長期直接接觸，引起全身中毒。急性中毒時可在幾分鐘內迅速引起窒息，中度中毒可能有 6 至 8 小時的潛伏時間，潛伏期愈短症狀愈嚴重，以對上呼吸道、眼、皮膚損傷為主，伴有頭昏、頭痛、煩躁、體溫稍有升高等。
+## (三) 慢性低濃度暴露之健康效應：
+硫酸二甲酯的慢性中毒並不常見，其症狀多限於眼睛與呼吸道黏膜的刺激。
+## (四) 理學檢查
+需特別注意下列系統：
+> 1. 皮膚：檢查皮膚病灶，尤其手部、頸部、下肢暴露部位檢查，是否有接觸性皮膚炎，化學性皮膚灼傷或刺激性皮膚炎等皮膚病灶。
+> 2. 眼睛：急性暴露會有結膜角膜刺激紅腫現象。
+> 3. 口腔（黏）膜及呼吸系統：急性暴露會有（黏）膜刺激紅腫及呼吸道水腫、呼吸困難之現象。
+## (五) 實驗室檢查
+> 1. 肝功能檢查：以血清肝功能指標，來檢查肝功能有無異常或有無黃疸之產生。
+> 2. 腎功能檢查：以血清腎功能指標如肌酐酸與尿素氮等，檢查腎功能有無異常。
+> 3. 心臟功能檢查：以心電圖或心臟超音波等，檢查心臟功能有無異常。
+# 四、流行病學的證據
+由於硫酸二甲酯具有強烈毒性，流行病學上曾報告在醫院工作同仁，因暴露二甲基氧化硫之分解後產生的硫酸二甲酯，產生急毒性，因而死亡。也有員工因急性暴露於硫酸二甲酯，造成眼睛、口腔、呼吸道黏膜的嚴重發炎與壞死或經口腔食入、吸入硫酸二甲酯傷及肺臟7。皮膚接觸硫酸二甲酯可能產生嚴重化學性灼傷，IARC 將硫酸二甲酯歸類為可能人類致癌物（2A）。一國外報告，一小工廠使用硫酸二甲酯，由於缺乏必要的防護措施，曾有 3 例支氣管癌的報告，其中 1 例為 47 歲工人，接觸 11 年，有慢性支氣管炎的症狀，結果為上皮細胞支氣管癌。
+硫酸二甲酯中毒之防治：
+硫酸二甲酯中毒原因，多為意外事故或不遵守操作規定所致，故應加強密閉管理和維修，防止化學物之外洩或滴漏。對工作人員經常進行安全教育，做好預防。
+# 五、暴露證據收集方法
+> (一) 個人工作史、工作時間、作業名稱、作業環境控制情形需詳細記錄。
+> (二) 作業環境實地評估：可以進行硫酸二甲酯之環境採樣測定以評估作業環境暴露情形。
+> (三) 生物偵測：目前並無硫酸二甲酯之生物偵測方法之報告。
+> (四) 容許濃度6
+>> 美國職業安全衛生署(OSHA) PEL：0.5 mg/m3。
+>> 美國礦業安全衛生署(MSHA)暴露容許標準：5 mg/m3。
+>> 我國暴露容許濃度標準：0.5 mg/m3。
+# 六、結論
+人類急性短期暴露於硫酸二甲酯可能造成眼睛、口腔、呼吸道黏膜的嚴重發炎與壞死，急性食入或吸入性暴露於硫酸二甲酯主要傷及肺臟，但也可能傷及肝臟、腎臟、心臟與中樞神經系統。皮膚接觸硫酸二甲酯可能產生嚴重水泡，硫酸二甲酯不但具劇毒性，也被歸類為可能致癌物，由於硫酸二甲酯中毒主要導因於職業性暴露，因此，硫酸二甲酯中毒之診斷基準如下：
+## 主要基準
+> 1. 臨床上出現硫酸二甲酯中毒之臨床症狀，例如皮膚之潰瘍、壞死，眼角膜或咽喉黏膜暴露後之灼傷、吸入性肺水腫甚至休克、全身性器官衰竭等。
+> 2. 職業上有使用硫酸二甲酯，並有環境採樣或暴露評估中，證實有硫酸二甲酯暴露之証證。
+> 3. 在時序上，經過了硫酸二甲酯一段時間的暴露，才出現臨床症狀。
+> 4. 在鑑別診斷上，可排除其他導致類似症狀之病因。
+## 輔助基準
+> 1. 同一工作場所之其他員工有類似硫酸二甲酯中毒症狀。
+> 2. 該名疑似硫酸二甲酯中毒之員工，離開該工作環境後症狀減輕或改善。
+> 3. 把工作環境改善後，其他有類似硫酸二甲酯中毒症狀之員工症狀消失或減輕。
+# 七、參考文獻
+> 1. U.S. Department of Health and Human Services. Hazardous Substances Data Bank (HSDB, online database). National Library of Medicine, National Toxicology Information Program, Bethesda, MD. 1993.
+> 2. U.S. Environmental Protection Agency. Health and Environmental Effects Profile for Dimethyl Sulfate. EPA/600/x-85/392. Environmental Criteria and Assessment Office, Office of Health and Environmental Assessment, Office of Research and Development, Cincinnati, OH. 1985.
+> 3. The Merck Index. An Encyclopedia of Chemicals, Drugs, and Biologicals. 11th ed. Ed. S. Budavari. Merck and Co. Inc., Rahway, NJ. 1989.
+> 4. U.S. Environmental Protection Agency. Integrated Risk Information System (IRIS) on Dimethyl Sulfate. Environmental Criteria and Assessment Office, Office of Health and Environmental Assessment, Office of Research and Development, Cincinnati, OH. 1993.
+> 5. U.S. Department of Health and Human Services. Registry of Toxic Effects of Chemical Substances (RTECS, online database). National Toxicology Information Program, National Library of Medicine, Bethesda, MD. 1993.
+> 6. U.S. Environmental Protection Agency. Technical Background Document to Support Rulemaking Pursuant to the Clean Air Act--Section 112(g). Ranking of Pollutants with Respect to Hazard to Human Health. EPA-450/3-92-010. Emissions Standards Division, Office of Air Quality Planning and Standards, Research Triangle Park, NC. 1994.
+> 7. International Agency for Research on Cancer (IARC). IARC Monographs on the Evaluation of the Carcinogenic Risk of Chemicals to Man: Some Aromatic Amines, Hydrazines and Related Substances, N-Nitroso Compounds and Miscellaneous Alkylating Agents. Volume 4. World Health Organization, Lyon. 1982.
+> 8. Grant PM, Haas JS, Whipple RE, Andresen BD. A possible chemical explanation for the events associated with the death of Gloria Ramirez at Riverside General Hospital. Forensic Sci Int 1997; 87:219-37.
+> 9. Stolz R, Hinnen U, Elsner P. An evaluation of the relationship between 'atopic skin' and skin irritability in metal worker trainees. Contact Dermatitis 1997;36:281-4.
+> 10. Bogdanffy MS, Mathison BH, Kuykendall JR, Harman AE. Critical factors in assessing risk from exposure to nasal carcinogens. Mutat Res 1997;380:125-41.
