@@ -1,0 +1,52 @@
+@cover 眼球振顫症
+@cover 陳建同 醫師
+# 一. 導論:
+眼球震顫是一種眼球不自主，多呈規律性的運動，可為水平，垂直或兩種運動之混合。通常肉眼檢查即可看出。但是若震動的幅度很小，即需使用眼底鏡或眼震圖（nystagmography）來觀察並判定。眼球震顫可以依其震顫的律動性而分為擺動性(pendular)和急衝性(jerk)。擺動性眼球震顫的律動是規律的，其擺動的幅度和速度在來回的兩個方向上是一致的。相對的，急衝性眼球震顫則是眼球緩慢的向一方向移動，接著以較快速的方式向相反方向移動，其震顫的方向是以快速移動的方向為準。眼球震顫的發生可能與內耳前庭功能受損，腦幹或小腦病變造成，此一病例則與藥物中毒有關[6,7,12]。
+# 二. 具潛在性暴露之職業:
+臨床上，界定導致眼球震顫的職業暴露包括使用含碳氫的有機工業溶劑2,3，如二甲苯(xylene)，苯乙烯(styrene)，和三氯乙烯(trichloethylene)等職業。
+> 1. 油漆製造業和噴漆業。
+> 2. 紡織業和洗衣業。
+> 3. 皮革和毛皮業。
+> 4. 金屬製造業、電子業和電鍍業。
+> 5. 油脂、樹脂和橡膠之溶劑。
+> 6. 農藥製造業。
+> 7. 石蠟和油脂等物質之萃取劑。
+# 三. 醫學評估與鑑別診斷:
+臨床上，對眼球震顫有許多分類，需要作鑑別診斷。
+## 1. 先天性眼球震顫: (congenital nystagmus)
+這種眼球震顫是屬於擺動性，發生在出生或出生後很短時間之內。可以合併有視力發育不良，震顫會因雙眼會聚或當眼睛偏斜某一角度時而減低。因此，患者常會歪頭以便使眼睛位於這一偏斜的角度。先天性眼球震顫可以沒有合併其他眼睛問題而單獨發生，但是仍以合併有視網膜不正常、視神經異常或是眼球球體透光徑路不透明引起者居多數。
+## 2. 上下搖動的眼球震顫(seesaw nystagmus):
+這種眼球震顫是屬於共軛性的搖動震顫，其中一眼向上和向內翻，另一眼則是往下和往外翻。通常是發生在引起兩側顳葉半盲的鞍部腫瘤，腦幹病變或是撞擊受傷之後。
+## 3. 隱性眼球震顫(latent nystagmus):
+這種眼球震顫是屬於兩側的水平震顫，可以因為遮住一眼而引起，或是藉由雙眼視網膜所接受明亮度不同而引起。
+## 4. 終位性眼球震顫(end-point nystagmus):
+當眼睛看向極度偏斜的角度，這種眼球震顫是屬於急衝性眼球震顫，可以是水平或是垂直方向。通常發生在疲倦的正常人，服用巴必妥酸鹽藥物，神經性鎮定劑，或是抗凝血劑。此外，腦幹和小腦病變也會引起此類眼球震顫。
+## 5. 前庭性眼球震顫(vestibular nystagmus):
+這種眼球震顫是屬於急衝性眼球震顫，發生主要是因為兩側半規管或中樞傳導徑路受到不對稱的刺激。每側的前庭迷路各有水平，上方和垂直三個半規管，這些內耳結構的神經支配控制了身體的肌肉和針對頭部位置而維持眼球的共軛偏移，以這種方式來維持眼睛的正中位置。此類震顫常發生於前庭結構疾病，神經核病變，或中樞神經系統聯結異常，如果病灶是屬於週邊性，則常合併有頭暈，耳鳴和耳聾。通常是突發性的發生。眼球震顫屬眼球水平運動，且症狀會隨時間而減輕。常見的疾病如迷路炎，或梅尼爾氏症(meniere disease)。臨床上，職業暴露所引起的震顫屬於前庭震顫。其作用機轉被認為和有機溶劑會阻斷小腦對前庭眼睛運動反射的抑制有關。
+# 四. 流行病學證據:
+曾有報告指出使用含有芳香族的有機溶劑工作，如染料工人，油漆工人和運送汽油的卡車司機易罹患眼球震顫(Pollastrini, 1994)。再者動物實驗也顯示碳氫有機溶劑中毒會影響前庭眼睛運動反射(Od Kvist, 1983)。也有動物實驗顯示，有機溶劑如二甲苯，苯乙烯和三氯乙烯注射入兔子血中，會產生眼球震顫(Od Kvist, 1980)。
+# 五. 暴露證據之收集方法:
+> 1. 個人工作史，工作時間長短，工作環境和工作內容，危害物質安全資料表等，都可以作為職病暴露的參考。
+> 2. 作業環境測定，以個人採集器做個人呼吸區波動採樣。
+> 3. 可以再加上工作人員的體液，尿液和血液的收集，直接測量各種碳氫有機溶劑和其代謝物的濃度。
+# 六. 結論:
+長時間的暴露於含碳氫有機溶劑的環境中，嚴重者可引起前庭性眼球震顫。
+## (一) 主要基準:
+> 1. 眼睛呈現眼球震顫。
+> 2. 具碳氫有機溶劑如甲苯、二甲苯、苯乙烯和三氯乙烯等的工作環境暴露證據由環境測定，工作人員體液測定或物質安全資料表証實。
+> 3. 同時去除其他可能造成眼球震顫的因素。
+## (二) 輔助基準:
+> 1. 同一工作場所，有其他工作人員有類似之眼球震顫。
+# 七、參考資料
+> 1. Aantaa BE, Virolainen E, Karskela V. Permanent effects of low frequency vibration on the vestibular system. Acta Otolaryngology, 1997, 83: 470-474.
+> 2. Budvari S. The Merck Index: an encyclopedia of chemicals, drugs and biologicals. 1996.
+> 3. Budvari S. Trichloroethylene Index: poisindex, micromedex. Vol. 38, Denver, Colorado, 1996.
+> 4. Fishbein, L. An environmental chemistry of volatile hydrocarbons. Toxicol Environ Chemistry 1985; 42:267-288.
+> 5. Kippen S. The social and political meaning of the silent epidemic of miner's phthisis, Bendigo 1860-1960. Social Sci Med 1995; 41: 491-499.
+> 6. Liu Y, Rao D, Fechter LD. Correspondence between middle frequency auditory loss in vivo and outer hair cell shortening in vitro. Hearing Research 1997; 112: 134-140.
+> 7. Morata TC, et al. Auditory and vestibular functions after single or combined exposure to toluene: a review. Arch Toxicol 1995; 69: 431-443.
+> 8. Pollastrini L, et al. Early signs of occupational ototoxicity caused by inhalation of benzene derivative industrial solvents. Acta Otorhinolaryngol Ita 1994; 14: 503-512.
+> 9. Odkvist LM. et al. Vestibular and oculomotor disturbances caused by industrial solvents. Otolaryngol 1980; 9: 53-59.
+> 10. Odkvist LM. et al. Vestibulo-oculomotor disturbances in humans exposed to styrene. Otolaryngol Head Neck Sur 1982; 94: 487-493.
+> 11. Odkvist LM. et al. Vestibulo-oculomotor disturbances caused by industrial solvents. Otolaryngology Head Neck Sur 1983; 91: 537-539.
+> 12. Vrea A, et al. Brain stem evoked potential in individuals exposed to long-term low concentrations of toluene. Am Ind Med 1996; 30: 62-66.
