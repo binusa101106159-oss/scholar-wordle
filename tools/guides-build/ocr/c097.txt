@@ -1,0 +1,121 @@
+@cover 丙烯腈(Acrylonitrile)中毒之認定基準
+@cover 何啓功醫師
+# 一、導論
+丙烯腈是一種無色，揮發性及可燃性液體，化學式為：CH2＝CH-CN，具特殊的杏仁味；它是一種高反應化合物，純丙烯腈在缺氧或光照下易自行產生聚合，故在貯藏時須加入聚合物抑制劑。其蒸氣比重比空氣重，若在空氣中體積濃度超過 3-17%時，可產生爆炸及燃燒，且在燃燒時可釋出氰化氫氣體（1-3）。
+大部份丙烯腈單體被用來製造壓克力纖維做爲服飾、地毯及傢俱工業的原料，含有丙烯腈成份的塑膠特別是 ABS（acrylonitrile-butadiene-styrene）及 SAN（styrene-acrylonitrile）被用以製造導管及填充物，機汽車零件、裝備及建築材料；丙烯腈也可用以製造丙烯醯胺。
+丙烯腈對人體的危害可發生於單體或含丙烯腈成份的纖維、樹脂，尤其是在壓克力纖維的製造危害最大，美國國家職業安全衛生研究所（NIOSH）在 1980 年代早期曾估計美國勞工暴露於丙烯腈的危害人數約 33 萬 5 千人，丙烯腈可經由皮膚、呼吸道及消化道爲人體吸收，其變相半衰期爲 3.5 小時及 55-77 小時，進入人體後在肝臟代謝，最後由尿液排出，在急性中毒時，可在血液中偵測到 cyanide，在尿液中偵測到 thiocyanate，CEMA（2-cyanoethylmercapturic acid），0HMA（hydroxyethylmercapturic acid）或 Acrylonitrile 單體（4-7）。
+臨床上接觸到丙烯腈蒸氣會造成眼睛刺激，噁心、嘔吐、腹瀉、頭痛及肝功能的損傷，皮膚接觸會在數小時後產生水泡，如果暴露在高濃度的丙烯腈（如 7500mg／m3）的環境下，可以造成呼吸困難，肺水腫、抽搐、昏迷、心跳停止而至死亡，一如氰化物中毒（1-3，8-9）。慢性毒性也曾被報告在橡膠製造廠工人長期在 16-100ppm 丙烯腈環境中 20-45 分即感到鼻子的刺激，頭痛、噁心、疲憊、肝功能異常等症狀，至於是否會造成腫瘤或畸胎則各家研究報告不一(11-20)。在動物實驗中餵食或吸入丙烯腈老鼠在一年後產生腦瘤及胃部乳頭瘤(11)，另外在製造纖維工廠工人有較高比例的肺癌及大腸癌發生，然而在世代追蹤死亡研究(Cohort Mortality Studies)並未發現其致癌性與對照組有明顯之差異（14、18-20），故長期暴露的研究仍是需要的。
+# 二、具潛在暴露的職業
+> 1. 壓克力纖維製造工人
+> 2. 服飾製造工人
+> 3. 地毯製造工人
+> 4. 傢俱製造工人
+> 5. 含丙烯腈塑膠製造工人 (如 ABS 及 SAN)
+> 6. 水管及其填充物製造工人
+> 7. 汽機零件、裝備製造工
+> 8. 建築材料製造工人
+> 9. 丙烯醯胺製造工人
+> 10. 含腈類橡膠製造工人
+> 11. 黏帶、膠布製造工人
+> 12. 烴基樹脂製造工人
+> 13. 抗氧化劑製造工人
+> 14. 介質紙張製造工人
+> 15. 塗料製造工人
+> 16. 導電橡膠製造工人
+> 17. 殺蟲劑製造工人
+> 18. 含乳膠油漆製造工人
+> 19. 攝影用乳膠製造工人
+> 20. 人造皮製造工人
+> 21. 絕緣線製造工人
+> 22. 地板亮光劑製造工人
+> 23. 墨水製造工人
+> 24. 乳化劑製造工人
+> 25. 其他作業工人
+# 三、醫學評估與鑑別診斷
+丙烯腈對人體的毒性主要來自其釋出氰化物與體內細胞色素氧化酵素中的三價鐵離子形成穩定的複合物，抑制對氧的運用，使組織缺氧而死。
+## (一)、急性中毒：對缺氧較敏感的器官影響較大，如腦部及心臟。
+> 中樞神經：頭暈、頭痛、出汗、暈眩、焦燥不安、嗜睡、虛脫、角弓反張、體溫升高、痙攣、癡呆、麻痺、昏迷或死亡。
+> 腸胃道：舌頭灼傷、局部黏膜刺激、流涎、噁心、嘔吐。
+> 呼吸系統：呼吸困難且急促，而後呼吸受抑制，速率變緩，可能出現肺水腫。
+> 循環系統：首先血壓升高，併隨反射性心搏減慢及竇性心律不整，接著房室結或心室本身出現後續作用使心搏加速，合併低血壓及循環衰竭，QRS 複合波改變，T 波上升 ST 段縮短，心跳在呼吸完全被抑制後仍會持續數分鐘。
+> 皮膚：接觸丙烯腈會產生水泡。
+對於丙烯腈毒性發作期與範圍，端視其暴露狀況及吸收速率而定，一般而言大量吸入者其症狀在數秒內出現，嚴重者數分鐘後即死亡。其半致死劑量爲 35ml/kg。經由胃腸道吸收其症狀發生又視胃內容物多少而定，胃中內容物少，毒發時間快，但較吸入者延遲數分鐘至數小時（1-3,8-9）。液狀丙烯腈由皮膚吸收的速率約爲 0.6mg／cm2／h。
+## (二)、慢性中毒
+有報告指出暴露勞工會感到鼻部的刺激、頭痛、噁心、焦燥不安及疲憊感。對於致癌性，亦有報告指出勞工呼吸道腫瘤及攝護腺腫瘤危險性增加，但未有定論，IARC 將丙烯腈列爲 Group 2A 致癌物質（11-16）。
+## (三)、實驗室檢查
+對於疑似丙烯腈中毒患者，可檢測其血中 cyanide 濃度或尿液中 thiocyanate、acrylonitrile、CEMA（2-cyanoethylmercapturic acid），0HMA（hydroxyethylmercapturic acid）之濃度（後二者爲特殊實驗室方可做的檢查），當然對於吸煙者其濃度需要校正（4-7）。
+## (四)、醫學評估：對於下列各項應予詳細詢問
+> 1.職業暴露史：詳細記錄員工的工作史，工作名稱、作業環境、防護用具的使用如：口罩、手套、防護衣等。
+> 2.詳細病史之建立：包括過去、現在及家族史，以排除非職業性的原因，其他如飲酒習慣、抽煙史及服用藥物的病史。
+> 3.因丙烯腈中毒之症狀雖爲非特異性，但皮膚接觸處會起水泡及其特殊杏仁味可供參考。臨床症狀外，其他如測定血中 cyanide 濃度及乳酸血症、尿中 thiocyanate, CEMA（2-cyanoethylmercapturic acid），0HMA（hydroxyethylmercapturic acid）等輔助檢查，亦可測上腔靜脈血氧濃度若＞90%(22）也可幫助判讀。
+## (五)、鑑別診斷：須排除下列亦可釋出氰化物化合物中毒
+> 1.氯化氰（cyanogn chloride C1C≡N）
+> 2.丙二腈（Malononitrile N≡CCH2 C≡N）
+> 3.曼多腈（Mandelonitrile C6H5CH(OH)CN）
+> 4.丙腈 (Propionitrile　C2H5CN）
+> 5.三氯乙腈（Trichloroacetonitrile CCl3CN）
+> 6.丙酮合氰化物（Acetonecyanohydrin CH3C(OH)CHCH3）
+> 7.乙腈（Acetonitrile CH3CN）
+> 8.苯甲基氰（Benzylcyanide C6H5CH2CN）
+> 9.溴苯甲基氰（Bromobenzyl cyainde C6H5CH2BrCN）
+> 10.n-丁腈（n-Butyronitrile CH3CH2CH2CN）
+> 11.氰化物鹽類（Cyanide salt KCN NaCN etc.）
+> 12.氰（Cyanogen N≡C—C≡N）
+# 四、流行病學的證據
+丙烯腈在二次大戰後因用來製造”防油橡膠”而受重視，此後更被廣泛應用在人造纖維，塑膠及橡膠工業上，其流行病學的研究也因此展開，從 1940 年代起即有報告提出慢性暴露會導致肝功能異常現象(10)。對於暴露於丙烯腈勞工的致癌性研究則始於 O'Berg 在 1980 年對杜邦公司纖維製造廠工人所做的流行病學調查，研究指出：肺癌人數增加，且其危險隨著暴露的時間及濃度而提高（12）。Wermer 及 Carter 接著報告大英帝國丙烯腈聚合廠工人的死亡率，發現在 15 至 44 歲工人的肺癌及 55 至 64 歲工人的胃癌有意義的增加，但作者指出，胃癌增加可能是與當地一些因素有關，而肺癌在年輕者有意義地上升又不符暴露時間長，危險性增加之原則，所以對於丙烯腈致癌性未能有定論（14）。
+Delzell 及 Monson 在 1982 年報告在使用丙烯腈的橡膠工廠工人，其肺癌的死亡率增加，這些工人之工作史多介於 5 至 14 年且死亡多在開始工作後 15 年發生（15）。O'Berg 在 1985 年提出杜邦公司工人至 1983 年的延續研究結果發現攝護腺癌發生率顯著上升（觀察數 6 人，期望值 1.8 人）（13），對於這樣新的發現，O'Berg 當時也指出不易評估其結論。翌年在美國另一家杜邦纖造纖維廠追蹤 1083 位男性勞工 1975 至 1983 年間癌症發生率及至 1981 年之死亡率，也同樣發現攝護腺癌發生率有顯著上升且非關地區或種族因素，當然他最後結論：此新發現仍需做進一步研究來確立丙烯腈的致癌性（16）。二甲基甲醯胺(DMF)被用做壓克力聚合物的溶劑且有很強的肝毒性，且有致癌的可能，有人提出同時暴露在 DMF 及丙烯腈環境下會有加成的作用，但 1988 年 Chen 等人提出的研究並未有死亡率增加的情形(17)。
+有一些研究對丙烯腈是否有致癌性或增加死亡率持否定的結果，如 1979 年 Klesselbach 對拜耳公司丙烯腈暴露工人的研究（11）。Swaen 等人在 1992 發表對荷蘭 8 個化學工廠 6803 位工人所做的追蹤研究，並未發現癌症死亡率增加(18)。Collins 等人在美國的研究也不支持丙烯腈是一種致癌物(19)；Mastrallgelo 等人在義大利針對一家同時使用 DMF 及丙烯腈的壓克力纖維製造廠 671 名工人做的追蹤研究也未發現大小腸腫瘤與上二種化學品有相關（20）。
+有許多流行病學研究顯示，丙烯腈可能有致癌的潛力，特別是肺癌，因此 IARC,1982 年將丙烯腈列爲 Group 2A 的致癌物，因爲動物實驗的致癌性已確立，但人體致癌性的證據仍未充分（11）。
+# 五、暴露證據收集的方法
+> 1.個人工作史，工作時間及特性、作業環境（如作業地點、位置、空調設備、窗户…等），個人防護之有無、衛生習慣、飲酒抽煙史。
+> 2.空氣採樣及分析：利用活性碳做介質，在流速 10~200ml／min 採樣後做分析。容許濃度標準（TLV）規定如下：
+>> 美國職業安全衛生研究所（OSHA）：2ppm
+>> 美國國家職業安全衛生研究所(NIOSH）：1ppm（皮膚）
+>> 美國政府工業衛生師協會（ACGIH）：2ppm（皮膚）
+>> 中華民國勞工委員會：2ppm（1ppm＝2.17mg/m3）
+>> OSHA 及 NIOSH 都建議 15 分鐘最高容許濃度爲 10ppm。
+> 3.生物監測：因無較有效的方法評估丙烯腈在人體內的劑量，但仍可藉由偵測血中 cyanide 及尿中 thiocyanate，CEMA，OHMA 或 Acrylonitrile 濃度做評估，雖然一些因素包括抽煙會影響判讀，但上述的濃度經校正後其高低仍與暴露量成相關性。血中 cyanide 濃度＞2μg/ml 或尿中 cyanide＞(十)以上或 thiocyanate＞11.4mg／L 或 Acrylonitrile＞360μg/l。
+# 六、結論
+職業性丙烯腈中毒的診斷準則，須滿足下列主要基準及輔助基準，主要基準是職業病診斷之依據，輔助基準爲非必要的診斷條件，即使缺乏輔助基準的資料仍不妨礙此職業病診斷之成立。
+## (一)、主要基準
+> 1.職業上的暴露史
+> 2.丙烯腈中毒相符之臨床症狀及徵候，包括急性中樞神經症狀之頭暈、頭痛、出汗、暈眩、焦燥不安、嗜睡、虛脫、角弓反張、體溫升高、痙攣、癡呆、麻痺、昏迷或死亡及循環系統之血壓上升、心律不整、心電圖異常 (見本文三.醫學評估與鑑別診斷)。
+> 3.排除其他可能原因，尤其是其他氰化物中毒。
+## (二)、輔助基準
+> 1.相同作業環境中有其他員工出現相似之臨床症狀。
+> 2.作業環境空氣濃度大於 2ppm（TWA）。
+> 3.在急性中毒期，血或尿中測得異常升高之 Cyanide、Thiocyanate、Acrylonitrile。
+# 附錄：
+丙烯腈中毒之治療與處理：如同氰化物中毒之處理
+> 1. 迅將病人移至安全地方。
+> 2. 立即送醫。
+> 3. 假如病人呼吸停止，立刻保持呼吸道暢通。做人工呼吸、給 100%氧氣，並施行心肺復甦術（避免用口對口或口對鼻人工呼吸，以防施救者吸入中毒，可使用呼吸器如 Ambu bag）。
+> 4. 使用解毒劑(1-3,11,21)
+>> A.使用亞硝酸戊酯 amyl nitrile 直接用手捏碎，立刻放在中毒者的鼻口或呼吸器的吸入口每次吸 15 至 30 秒，須移開 15 秒，才能讓病人再吸 15 秒，直到亞硝酸鈉(sodium nitrile)準備好（每支藥效約可維持五分鐘）。
+>> B.如病人的皮膚或衣服仍殘餘氰化物，可利用此一空檔清除或移除。
+>> C.靜脈注射 10ml，3%亞硝酸鈉溶液（約 300mg Sod. nitrile），速率爲每分鐘 2.5~5ml，兒童則約每公斤體重 0.2ml，但不要超過 10ml。
+>> D.接著注射 50ml，25%硫代硫酸鈉 Sod. thiosulfate（約 12.5g），兒童爲 28ml／m2 體表面積，但總量不可超過 12.5g。
+>> E.中毒者必須接受至少 24 至 48 小時密切觀察，若再出現中毒徵象，必須以各原劑量一半的 Sod. nitrile 和 Sod. thiosulfate 處理。
+# 七、參考文獻
+> 1. Harber P, Schenker MB, Balmes JR. Occupational and Environmental Respiratory Disease. 1996;598-599.
+> 2. Rom WV. Environmental and Occupational Medicine. (2nd Edition) 1992;948-951.
+> 3. LaDou J. Occupational Medicine 1990;332-334.
+> 4. Jakubowski M, Linhart L, Poelas G, Kopecky J. 2-Cyanoethylmercapturic acid (CEMA) in the urine as a possible indicator of exposure to acrylonitrile. Br J Ind Med 1987;44:834-840.
+> 5. Muller G, Verkoyen C, Soton N, Norpoth K. Urinary excretion of acrylonitrile and its metabolites in rats. Arch Toxicol 1987;464-466.
+> 6. Lambotte-Vandepaer M, Durerger-van Boggaert M, Rollman B. Metabolism and mutagenicity of acrylonitrile :An in vivo study. Environ Mutagen 1985;7:655-662.
+> 7. Houthuijs D, Remijn B, Willems H, Boleij, Biersterker K. Biological monitoring of acrylonitrile exposure. Am J Ind Med 1982;3:313-320.
+> 8. Hall AH, Rumack BH, Colorado D. Clinical Toxicology of cyanide. Ann Emerg Med 1986;15:1067-1074.
+> 9. Graham DH, Lamam D, Thedore J, Robin ED. Acute cyanide poisoning complicated by lactic acidosis and pulmonary edema. 1977;137:1051-1055.
+> 10. Sakurai H, Onodera M, Utsunomiya T, Minakuchi H, Iwai H, Matsumura H. Health effect of acrylonitrile in acrylic fiber factories. Br J Ind Med 1978;35:219-222.
+> 11. Koerselman W, Van der Graaf M. Acrylonitrile:a suspected human carcinogen. Int Arch Occup Environ Health 1984;54:317-324.
+> 12. O'Berg MT. Epidemiologic study of workers exposed to acrylonitrile. J Occup Med 1980;22:245-252.
+> 13. O'Berg MT, Chen JL, Burke CA, Walrath J, Pell S. Epidemiologic study of workers exposed to acrylonitrile. An Update. J Occup Med 1985;27:835-840.
+> 14. Wermer JB, Carter JT. Mortality of United Kingdom acrylonitrile polymerization workers. Br J Ind Med 1981;38:247-253.
+> 15. Delzell E, Monson RR. Mortality among rubber workers with potential exposure to acrylonitrile. J Occup Med 1982;24:767-769.
+> 16. Chen JL, Walrath J, O'Berg MT,Burke CA.,Pells VS. Cancer incidence and mortality among workers exposed to acrylonitrile polymerization workers. Br J Ind Med 1981;38:247-253.
+> 17. Chen JL, Fayerweather WE, Pells VS. Mortality study of workers exposed to dimethylformamide and/or Acrylonitrile. J Occup Med 1988;30:819-821.
+> 18. Swaen GMH, Bloemen LJN, Twisk J, Scheffers T, Slangen JJM, Sturmans F. Mortality of workers exposed to acrylonitrile. J Occup Med 1992;34:801-809.
+> 19. Collins JJ, Page LC, Caporossi JC, Utidjian HM. Mortality patterns among employees exposed to acrylonitrile. J Occup Med 1989;31:368-371.
+> 20. Mastrandelo G, Serena R, Marzia V. Mortality from tumors in workers in an acrylic fibre factory. J Occup Med 1993;43:155-158.
+> 21. Chen KK, Rose CL. Nitrite and thiosulfate therapy in cyanide poisoning. JAMA 1952;149:113-119.
+> 22. Johnson RP, Mellors JW. Arteiolization of cenous blood gases: A clue to the diagnosis of cyanide poisoning. J Emerg Med 1988;16:401-404.
