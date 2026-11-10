@@ -1,0 +1,65 @@
+@cover 碘化甲烷(Methyl Iodide)中毒之認定基準
+@cover 何啓功醫師
+# 一、導論
+碘化甲烷是無色透明液體，接觸光後轉成棕色(1)。碘化甲烷在以往是由醋酸鉀和碘或碘化鉀電解產生，現在則多由甲醇和碘、磷反應生成或可由硫酸二甲酯(dimethyl sulfate)和碘溶液加還原劑而成。碘化甲烷主要用於製藥中間生成物及有機合成之烷化劑，因具高折射係數(refractive index)而在顯微鏡檢時當做檢體包埋劑使用，在農業上則應用於穀類內在黴菌之殺菌劑，過去的滅火劑也有使用碘化甲烷。
+碘化甲烷屬鹵化甲烷之一，但溴化甲烷、氯化甲烷的用途較廣，發生中毒的案例亦較多，碘化甲烷的案例較少被發現報告出來。基本上碘化甲烷對人體是一強力的麻醉劑，大量暴露可造成肺水腫，長時間或重覆暴露會對中樞神經產生傷害，由暴露到產生症狀的潛伏期從數小時到幾天，有延遲發作的特性，最初期的症狀有倦怠、嗜睡、口齒不清、運動失調、肌辨距力不良(dysmetria)以及視力障礙，進一步可惡化為抽搐、昏迷及死亡。當好轉時，幾週內神經症狀消失，但精神症狀如妄想、譫妄、幻想等接著產生，嚴重的暴露則對肺、肝、腎及腦部產生破壞，它對皮膚會產生刺激性病變。
+# 二、具潛在暴露的職業
+> 1. 碘化甲烷製造者
+> 2. 使用碘化甲烷當烷化劑的製藥廠員工
+> 3. 使用碘化甲烷當包埋劑的顯微鏡操作者
+> 4. 吡啶檢測實驗者
+> 5. 使用含碘化甲烷來殺黴菌的藥劑製造及使用者
+> 6. 滅火器製造或使用者(藥劑含碘化甲烷的狀況存在時)
+# 三、醫學評估與鑑別診斷
+碘化甲烷是強力的昏睡、麻醉劑，一旦暴露在數小時至數天內可能產生包括中樞神經、眼睛、肺、肝、腎等器官的症狀。
+## (一)、急性中毒：主要是中樞神經作用，在恢復期亦可能出現精神症狀。
+> 中樞神經：頭痛、躁動、倦怠、嗜睡、口齒不清、運動失調(2)、嚴重時進而麻痺抽搐、昏迷和死亡。恢復期可能出現精神障礙如妄想、譫妄、幻想等。可能由意識不清開始，隨暴露增加而加重至昏迷(3)，重度暴露會造成抽筋(4)，小腦失調或巴金森氏症候亦可能在暴露後發生，如口齒不清及抖動(5)。
+> 眼睛：複視及眼球震顫在嚴重中毒時會發生(6)。
+> 呼吸系統：對肺產生強力刺激而致充血及肺水腫(4)，動物實驗中用 22mg/L 劑量讓大鼠接觸 15 分鐘，老鼠在 11 天後死亡，解剖發現肺水腫(7)。
+> 腸胃消化系統：噁心、嘔吐及腹瀉。
+> 皮膚：接觸到碘化甲烷皮膚變紅、產生水泡，接觸愈久愈易發生。
+> 腎臟：有報告指出中毒後產生腎衰竭。
+## (二)、慢性中毒
+暴露碘化甲烷在新陳代謝、生殖系統致畸胎突變及致癌等危害在人類尚未有報告，但由於鹵化甲烷一般被認為是強力致突變及致癌物，因此美國國家職業安全衛生研究所(NIOSH)建議對碘化甲烷也應予以相同考慮(8)。國際癌症研究院(IARC)把碘化甲烷歸為第三類(Group 3)致癌物(9)。
+## (三)、醫學評估
+> 1. 詳細職業暴露史：詳細記錄員工的工作史，工作名稱、工作中接觸物質及環境的詢問、防護具的使用情形。
+> 2. 過去疾病史的建立：尤其是神經精神方面疾病的記錄，另外家族史、抽煙、喝酒等也必須詢問，以便排除其他非職業性暴露引起相同症狀之可能。
+> 3. 針對上述碘化甲烷的人體危害產生之症狀，詳細檢查及評估包括中樞神經、呼吸系統、皮膚及眼睛等器官。
+> 4. 在已有症狀的病人需做動脈血氧分析、胸部 X 光及肺功能檢查，另外因為碘化甲烷暴露可造成寡尿性腎衰竭，腎功能監控及尿液分析也必須進行。碘化甲烷可能造成高血脂尤其是三酸甘油脂，因此血脂分析亦為建議檢查項目。
+> 5. 血清中碘化甲烷可被檢驗，但臨床上應用未確定(10)。
+## (四)、鑑別診斷：排除其他造成類似症狀的可能原因
+> 1. 中樞神經感染
+> 2. 酒精或藥物造成的病變或戒斷症狀
+> 3. 其他器性質中樞神經病變
+> 4. 排除其他鹵化甲烷如溴化甲烷、氯化甲烷的中毒
+# 四、流行病學的證據
+有關碘化甲烷的流行病學調查或報告缺乏，甚至連個案報告也不多，Garland 和 Camps 報告二個因工業操作而暴露碘化甲烷蒸氣的個案，第一個病人產生的症狀包括暈眩，複視及運動失調、尿中檢測有碘，同時有譫妄重度精神障礙。第二個個案出現嗜睡、無法行走、口齒語意不清，尿中檢查出現碘，於 7~8 天後死亡(11)。Baselga-Monte 等人報告一個化學工人因碘化甲烷中毒出現憂鬱及精神異常並持續數週，122 天後才完全恢復(12)。
+而 Appel 等人報告的案例則是有延遲數週才產生肺充血，腎衰竭及明顯小腦和巴金森氏症狀等神經異常，其中毒變化和其他鹵化甲烷類似(4)。
+文獻上可查得之資料多為個案報告，也因為使用的地方不多，整體完整的流行病追蹤研究缺乏，僅能由中毒個案之資料略窺一二。
+# 五、暴露證據收集的方法
+> 1. 工作環境評估、物質安全資料表的取得、工作史記錄資料等。
+> 2. 空氣中採樣分析：目前我國及美國政府工業衛生師協會(ACGIH)建議的容許濃度標準 (TLV) 為 2ppm (11.6mg/m3)。若空氣中採樣所得濃度接近或超過 2ppm，則暴露的證據充分。
+> 3. 尿中檢測碘：Morgan 等人報告 5 小時內 30%的碘可在尿中被檢測(13)。
+# 六、結論
+## (一)、主要基準
+> 1. 職業上的暴露史。
+> 2. 碘化甲烷中毒相符之臨床症狀及徵候，尤其是神經精神症狀。
+> 3. 合理排除其他可能原因，如酒精藥物中毒、戒斷症狀等。
+## (二)、輔助基準
+> 1. 其他員工出現相似之臨床症狀。
+> 2. 作業環境空氣中碘化甲烷濃度高於 2ppm。
+> 3. 急性中毒時，尿中檢測出碘。
+# 七、參考文獻
+> 1. Budavari S (Ed) The Merck Index, 11th ed. Merck & Co, Inc, Rahway, NJ, 1989, 957.
+> 2. Anon. Current Intelligence Bulletin 43—Monohalomethanes. methyl chloride CH3Cl, methyl bromide CH3Br, methyl iodide CH3I. Current Intelligence Bulletin 43, NIOSH, US Department of Health and Human Services, Cincinnati, OH, DHHS (NIOSH) Publication 1984; No 84-117.
+> 3. Hathaway GJ, Proctor NH, Hughes JP, et al. Chemical Hazards of the Workplace, 3rd ed. Van Nostrand Reinhold Company, New York, NY, 1991;401-402.
+> 4. Appel GB, Galen J, O'Brien, et al. Methyl iodide intoxication. Ann Intern Med 1975; 82:534-536.
+> 5. Mackison FW, Stricoff RS, Partridge LJ Jr (Eds). NIOSH/OSHA - Occupational Health Guidelines for Chemical Hazards. DHHS(NIOSH) Publication No 81-123 (3 VOLS). Washington, DC: US Government Printing Office, Jan, 1981.
+> 6. Grant WM. Toxicology of the Eye, 3rd ed. Springfield, IL, Charles C Thomas, 1986.
+> 7. Clayton GD, Clayton FE (Eds). Patty's Industrial Hygiene and Toxicology, Vol 2B. Toxicology, 3rd ed. John Wiley & Sons, New York, NY, 1981a, pp 3446-3449.
+> 8. NIOSH: Monohalomethanes: methyl chloride, methyl bromide, methyl iodide. p22 (9/27/84).
+> 9. IARC: Monographs on the Evaluation of the Carcinogenic Risk of Chemicals to Man. Geneva: World Health Organization, International Agency for Research on Cancer, 1972-Present. (Multivolume work). 1987;66:S7.
+> 10. Robertz-Vaupel GM, Bierl R, Von Unruh G. Intravenous methyl iodide poisoning--detoxification using hemoperfusion (German). Anasthesiol-Intensivmed-Notfallmed-Schmerzther 1991; 26:44-47.
+> 11. Garland A, Camps FE. Methyl iodide poisoning. Br J Ind Med 1978;2:209-211.
+> 12. Baselga-Monte M, Estadclla-Botha S, Quer-Brossa S, Fornells-Martinez E. Intoxication professional por yoduro de metile. Med Lav 1965;56:592-595.
+> 13. Morgan DJ, Morgan A. Studies on the retention and metabolism of inhaled methyl iodide—I. retention of inhaled methyl iodide. Health Physics 1967; 13:1055-1065.
