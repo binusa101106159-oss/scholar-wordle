@@ -591,7 +591,7 @@
     html += '</div><div class="gx-body">' + blocksHTML(guide.blocks, terms, { anchor: guide.id }) + '</div>';
     by('gx-doc').innerHTML = html;
     window.ScholarReaderTables?.sync('gx');
-    const conclusion = guide.blocks.findIndex(b => b.t === 'h' && /^(?:第?[一二三四五六七八九十百0-9]+(?:章|節)?[、.．:：)）]?)?結論/.test((b.text || '').normalize('NFKC').replace(/\s+/g, '')));
+    const conclusion = guide.blocks.findIndex(b => b.t === 'h' && /^(?:第?[一二三四五六七八九十百0-9]+(?:章|節)?[、.．:：)）]?)?(?:結論|總結)/.test((b.text || '').normalize('NFKC').replace(/\s+/g, '')));
     by('gx-conclusion').hidden = conclusion < 0;
     if (conclusion >= 0) by('gx-conclusion').dataset.block = String(conclusion);
     else delete by('gx-conclusion').dataset.block;
