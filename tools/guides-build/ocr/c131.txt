@@ -1,0 +1,53 @@
+@cover （98 年修訂一版）
+# 一、主要基準
+> 1. 疾病證據：肺組織切片等病理檢查證實為為原發性肺癌；或細胞學檢查證實有肺癌細胞，並且配合合理的實驗室及影像學檢查。
+> 2. 暴露證據：必須具有可致肺癌的職業性暴露工作史，包括以下任何一種物質或製程：六價鉻及其化合物、鎳及其化合物、砷及其化合物、鈹及其化合物、鎘及其化合物、游離結晶二氧化矽粉塵、煤焦油、煤焦油瀝青、煙煤、焦油、煉焦爐作業、雙氯甲基乙醚，而醫學証據或環境測定、或生物偵測均可增強工作史之效度。
+>> (a) 最低暴露的強度：確認職業暴露於某種致癌物或工業製程之工作史，而作業環境空氣中濃度測定（workplace air monitoring）與生物偵測（biological monitoring），可增強暴露證據效度，作業環境空氣中容許濃度標準（PEL）與生物暴露指標（BEI）請參考表 1。
+>> (b) 最短暴露期間（Minimum duration of exposure）：一般 5-20 年，取決於致癌物、暴露的強度。
+> 3. 因果關係符合時序性，首次暴露該職業性致癌物與肺癌發生的時間，一般相隔 10 年以上。
+>> (a) 最低誘導期（Minimum Induction period）：癌症誘導期一般 10-40 年，肺癌之誘導期取決於致癌物種類。
+個別致癌物的誘導期（induction period）請參考表 1。
+> 4. 合理排除其他原因：如吸菸，終生累積吸菸暴露量在 15 包-年 (pack-year) 以下，或者過去吸菸者已經戒菸 15 年以上，則可將吸菸視為未達顯著差異之危險因子；另亦需注意抽菸與該致癌物質為相加或相乘性之關係。一般而言，職業性致癌物暴露引起肺癌的相對風險在 2 倍及以上者（RR≧2），其致癌強度即足以合理排除其他原因，請參考表 2。若無法排除其他原因，可依專家共識決定職業性致癌物暴露為一有意義的共同致病因子。
+# 二、輔助次要基準
+> 1. 癌症個案發生有時空的叢集性（cluster），例如同一工作場所至少超過一個以上的人發生相同種類癌症，臨床判斷比例明顯偏高，也可作為懷疑是職業性癌症的輔助判斷基準，建議進行流行病學調查。
+## 表 1 導致職業性肺癌致癌因素暴露條件之建議
+|w 19 40 18 16|
+| 致癌因素 | 最低暴露強度 | 最短暴露時間 | 最低誘導期 |
+| 石綿 | 工作史；PEL 每立方公分一根 | 1 年 | 10-15 年 |
+| 六價鉻及其化合物 | 工作史；PEL：0.1 mg/m3；BEI：尿中總鉻量 4 到 5 天結束工作後 25 μg/L、工作中 10 μg/L | 1 年 | 10-15 年 |
+| 鎳及其化合物 | 工作史；PEL：非溶性鎳化合物 1 mg/m3、可溶性鎳化合物 0.1 mg/m3 | 6 個月 | 10-15 年 |
+| 砷及其化合物 | 工作史；PEL：0.01 mg/m3（歐盟：250 μg/m3.years）；BEI：工作 4 到 5 天後尿中無機砷加上含甲醇的代謝物 35 μgAs/L | 1-5 年 | 10-15 年 |
+| 鈹及其化合物 | 工作史；PEL：0.002 mg/m3 | 1 年 | 10 年 |
+| 鎘及其化合物 | 工作史；PEL：0.05 mg/m3；BEI：尿中鎘 5μg/g creatinine、血中鎘 5μg/L | 1 年 | 10 年 |
+| 游離結晶二氧化矽 | 工作史；PEL：含游離二氧化矽 10%以上之礦物性粉塵，可呼吸性粉塵 (10 mg/m3)/(%SiO2+2)、總粉塵 (30 mg/m3)/(%SiO2+2)；未滿 10%游離二氧化矽之礦物性粉塵，可呼吸性粉塵 1 mg/m3、總粉塵 4 mg/m3 | 5 年 | 5-10 年以上 |
+| 多環芳香烴（煤焦油、煤焦油瀝青、煙煤、焦油） | 工作史；PEL：煤焦油瀝青揮發物 0.2 mg/m3 | 1 年 | 5 年 |
+| 煉焦爐作業 | 工作史；PEL：0.15 mg/m3 | 1 年 | 5 年 |
+| 雙氯甲基乙醚（BCME） | 工作史；PEL：0.0047 mg/m3（0.001 ppm） | 5 年 | 10 年 |
+## 表 2 導致職業性肺癌常見致癌原因之相對風險
+|w 30 30|
+| 致癌原因 | 相對風險 |
+| 石綿 | 2-6 a,b |
+| 六價鉻 | 2.78 a |
+| 無機鎳 | 1.56 a |
+| 無機砷 | 3.69 a |
+| 鈹 | 1.49 b |
+| 鎘 | 1.49 a (2.3-3.88) c |
+| 矽 | 1.33-2.8 a |
+| 煤焦油瀝青 | 2.25 d |
+| 煉焦爐作業 | 3-7 e |
+> a Steenland et al., 1996，死亡率比 (Steenland K, Loomis D, Shy C, Simonsen N. Review of occupational lung carcinogens. Am J Ind Med 1996; 29: 474-90.)
+> b 11th Report on carcinogens (Report on Carcinogens, Eleventh Edition; U.S. Department of Health and Human Services, Public Health Service, National Toxicology Program, 2005.)
+> c 資料來源：Sorahan, 1997，死亡率比 (Sorahan T, Lancashire RJ. Lung cancer mortality in a cohort of workers employed at a cadmium recovery plant in the United States: an analysis with detailed job histories. Occup Environ Med 1997; 54: 194-201.)
+> d Armstrong, 1994，死亡率比 (Armstrong B, Tremblay C, Baris D, Theriault G. Lung cancer mortality and polynuclear aromatic hydrocarbons: a case-cohort study of aluminum production workers in Arvida, Quebec, Canada. Am J Epidemiol 1994; 139: 250-62.)
+> e IARC, 1987 (IARC. Overall evaluations of carcinogenicity. IARC monographs on the evaluation of the carcinogenic risks to humans. Lyon, France: IARC; 1987.)
+# 石綿外之致癌物暴露導致職業性肺癌認定流程圖
+（原頁為由上而下之流程圖，各步驟依序如下，完成四步驟即確診；圖形請按「原頁掃描」對照。）
+> 1. 疾病證據：肺組織切片等病理檢查證實為為原發性肺癌；或細胞學檢查證實有肺癌細胞，並且配合合理的實驗室及影像學檢查。
+> ↓
+> 2. 暴露證據：必須具有可致肺癌的職業性暴露工作史，包括以下任何一種物質或製程：六價鉻及其化合物、鎳及其化合物、砷及其化合物、鈹及其化合物、鎘及其化合物、游離結晶二氧化矽粉塵、煤焦油、煤焦油瀝青、煙煤、焦油、煉焦爐作業、雙氯甲基乙醚，而醫學証據或環境測定、或生物偵測均可增強工作史之效度。(a)最低暴露的強度：確認職業暴露於某種致癌物或工業製程之工作史，而作業環境空氣中濃度測定與生物偵測可增強暴露證據之效度。(b)最短暴露期間：一般 5-20 年，取決於致癌物、暴露的強度。
+> ↓
+> 3. 因果關係符合時序性，肺癌之誘導期取決於致癌物種類，一般相隔 10 年以上，肺癌之誘導期取決於致癌物種類。
+> ↓
+> 1.（原圖編號）合理排除其他原因：如吸菸，終生累積吸菸暴露量在 15 pack-year 以下，或者過去吸菸者已經戒菸 15 年以上，則可將吸菸視為未達顯著差異之危險因子；另亦需注意抽菸與該致癌物質為相加或相乘性之關係。職業性致癌物暴露引起肺癌的相對風險在 2 倍及以上者（RR≧2），其致癌強度即足以合理排除其他原因。
+> ↓
+> 確診

@@ -1,0 +1,66 @@
+@cover 次乙亞胺（Ethyleneimine）中毒及其續發症
+@cover 廖國棟 醫師
+# 一、導論
+次乙亞胺（Ethyleneimine, CAS No.151-56-4），其 CAS 名稱為 aziridine，而 IUPAC 的系統名稱為 Ethylenimine，其他常見的名稱為 Ethyleneimine、dimethyleneimine 或 azacyclopropane1。
+其分子式為(CH2)2NH，在常態下為無色油性液體，有很重的氨水臭味，分子量為 43.07，沸點為 56℃，熔點為－77.9℃，20℃時的比重為 0.831，蒸氣壓為 160mmHg。易溶於乙醚、丙酮、苯等溶液中，也可以溶於水及酒精中。其聚合物與銀、鋁或酸接觸時會有爆炸性1-5。
+換算單位：1ppm=1.76mg/m3。
+# 二、具潛在性暴露之職業
+全球次乙亞胺每年生產量已經超過一萬兩千噸，根據 1995 年的資料顯示大部分都在德國與日本生產1。次乙亞胺大部分用在工業用途或實驗室使用。次乙亞胺在工業上主要用來合成聚合物過程中所使用的的中間物及單體。而這些聚合物可用來作為水處理的過濾器、燃料油與潤滑油的精煉、聚合物的穩定劑、藥品及化妝品製程的中間物及增進紙張的強度；它也可以用在紡織工業上作為不同覆蓋表面及黏著劑的成份來增進染料的防水性1-5。
+因此具有潛在性暴露之職業主要與上述幾種行業有關
+> 1. 過濾器製造。
+> 2. 紡織業。
+> 3. 油品添加劑製造業。
+> 4. 離子交換樹脂製造業。
+> 5. 藥品及化妝品製造業。
+> 6. 染料製造業。
+> 7. 噴漆工人。
+> 8. 實驗室工作者。
+# 三、醫學評估與鑑別診斷
+次乙亞胺吸收方式為呼吸道吸入或皮膚接觸吸收1，一般說來次乙亞胺不易由呼吸道吸入的方式吸收，因為其揮發性並不太高，但是當工作中有用到空壓機時，次乙亞胺會被噴成霧狀，就容易被吸入6。
+次乙亞胺對眼睛、皮膚及黏膜有刺激性，其蒸氣會造成臉、口、眼瞼及喉嚨的浮腫4。次乙亞胺會導致上呼吸道與下呼吸道的遲發性刺激，造成咳嗽、喉水腫、肺水腫及續發性支氣管肺炎5。曾有報告快速的皮膚吸收而造成致命性的中毒7。
+德國將次乙亞胺列為動物的致癌因子。但目前尚無足夠的證據證實其對人類有致癌性1。
+次乙亞胺毒性的醫學評估包括病史、理學檢查及實驗室檢查。
+## 病史詢問
+病史詢問包括製程、現場次乙亞胺使用情形、通風排氣、防護具使用情形，病史也應該包含其他化學物質使用及接觸情形。此外與過敏有關的因子也要一併詢問。
+## 理學檢查
+理學檢查與一般檢查相同，尤其應特別注意呼吸道、眼睛及皮膚的徵象與症狀。
+## 實驗室檢查
+實驗室檢查除了一般性的檢查以外，還必須包含胸部 X 光檢查、肺功能檢查，另外也需注意有無肺水腫或發炎。
+## 鑑別診斷
+次乙亞胺與其他刺激性氣體或液體所導致的症狀無法分別，只能從暴露史來區別。如能取得作業環境中的次乙亞胺濃度則可作為鑑別診斷的重要參考。
+目前次乙亞胺的代謝途徑及排出方式仍未清楚，故無法藉由其代謝物來診斷1。
+# 四、流行病學證據
+目前次乙亞胺引起的職業病之流行病學證據，主要在於暴露後的急性刺激及過敏反應。而有關致突變性、致癌性的證據，目前僅在實驗動物身上發現，人類尚缺乏足夠的證據。
+## 急性刺激及過敏反應
+在過去 40 年來，報告暴露後的急性反應已經超過一百例，其中包括因吸入及皮膚接觸而致死者。過度暴露對人類所造成的反應通常會延遲半小時到三小時，會包括噁心、嘔吐、頭痛、頭暈、眼睛與鼻子的不適、喉部水腫、氣管炎、呼吸困難、肺水腫及次發性支氣管肺炎2,4-8。
+人類實驗顯示濃度在 100 ppm 以上就會對眼睛及鼻子造成刺激，直接接觸眼睛會造成嚴重的眼睛灼傷。對皮膚而言，次乙亞胺是個很強的刺激物而且會導致水泡及激發敏感2。
+## 動物實驗
+### 毒性
+將次乙亞胺注射到大鼠可發現在許多器官中有退行性變化。將大鼠及狗注射次乙亞胺，會產生急性腎乳頭壞死。低劑量時，可看到大鼠有間質細胞、亨利氏環壞死，而集尿管則無壞死。高劑量時，則全部乳頭皆壞死1。
+### 致突變性
+過去研究發現次乙亞胺可與 Guanosine 作用而且可將 Salmonella typhimurium 及 CHO 細胞的基因突變1。
+### 致癌性
+以次乙亞胺餵食小鼠，可使肝細胞腫瘤及肺腫瘤發生增加。在一項大鼠的實驗中，以皮下注射次乙亞胺，則其注射處腫瘤發生率增加1。
+# 五、暴露證據收集方法
+動物實驗顯示次乙亞胺注射至腹膜內會分佈全身，在肝、小腸、脾及腎會有部份堆積，大約有一半會由尿液排出。目前人類並無此方面參考資料，所以暴露後，除了經由暴露史追蹤、臨床症狀評估外，應當至其工作場所實際調查使用之原料並監測次乙亞胺的濃度及其工作環境、保護措施等，才能確認其暴露證據。
+ACGIH 建議在暴露於含有次乙亞胺空氣環境下的工作八小時的容許濃度（TLV-TWA）為 0.88mg/m3 即 0.5ppm1
+目前尚無飲用水中次乙亞胺的容許濃度的標準1。
+# 六、結論
+診斷基準：急性暴露於次乙亞胺可引起眼、鼻及皮膚局部刺激、呼吸道刺激、肺水腫及肺炎，甚至可能導致死亡。
+## （一）主要基準：下列條件均需符合。
+> 1. 具有暴露史及時序性，此暴露證據可為意外事件、環境測定或物質安全資料表，且健康效應發生在暴露之後。
+> 2. 具有眼鼻刺激、皮膚紅腫及水泡、呼吸道黏膜刺激及肺水腫等客觀理學徵候，或有實驗室異常數據、肺功能異常、胸部放射線檢查異常等證據。
+> 3. 合理排除其他常見非次乙亞胺暴露所導致之致病原因。
+## （二）輔助基準
+如果對以上三條件之程度仍有疑問者，可用輔助基準支持此項診斷。
+> 1. 同一工作環境，其他工作者具有類似疾病。
+# 七、參考文獻
+> 1. IARC. Aziridine. IARC monographs on the evaluation of carcinogenic risks to humans. 1999;71 Pt 2:337-44.
+> 2. Hathaway GJ, Proctor NH, Hughes JP, Fischman ML. Proctor and Hughes' Chemical hazards of the workplace. 3rd ed. Van Nostrand Reinhold, New York, 1991.
+> 3. Verschaeve L, Kirsch-Volders M. Mutagenicity of ethyleneimine. Mutation Research. 1990; 238: 39-55.
+> 4. Leffler CT, Milton DK. Occupational asthma and contact dermatitis in a spray painter after introduction of an aziridine crosslinker. Environmental Health Perspectives. 1999; 107(7):599-601.
+> 5. Weightman J, Hoyle JP. Accidental exposure to ethylenimine and N-ethylethylenimine vapors. JAMA. 1964;189:543-5.
+> 6. Sanz P, Prat A. Toxicity in textile air-brushing in Spain. Lancet 1993;342:240.
+> 7. Kanerva L, Keskinen H, Autio P, Estlander T, Tuppurainen M, Jolanki R. Occupational respiratory and skin sensitization caused by polyfunctional aziridine hardener. Clinical Experimental Allergy. 1995;25:432-9.
+> 8. Reinhardt CF, Brittelli MR. Heterocyclic and miscellaneous nitrogen compounds. In Clayton GD, Clayton FE (eds): Patty's Industrial Hygiene and Toxicology, 3rd ed, rev, Vol 2A, Toxicology, pp2672-6. New York, Wiley-Interscience, 1981.
+> 9. Theiss AM et al. Aziridines. In International Labor Office: Encyclopaedia of Occupational Health and Safety, Vol I, A-K, pp228-30. New York, McGraw-Hill, 1983.

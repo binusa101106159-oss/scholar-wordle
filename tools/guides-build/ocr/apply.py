@@ -8,6 +8,7 @@ Transcription format (ocr/<id>.txt), one block per line:
   ## text       level-2 heading
   ### text      level-3 heading
   >> text       second-level list item
+  | a | b |     table row (first row is the header; optional first line '|w 20 40|' sets widths)
   > text        list item / indented paragraph
   anything else a body paragraph
 
@@ -22,8 +23,22 @@ ROOT = Path(__file__).resolve().parents[3] / 'guides'
 
 def parse(src):
     cover, blocks = [], []
+    table = None
     for raw in src.read_text(encoding='utf-8').splitlines():
         line = raw.strip()
+        if line.startswith('|'):
+            cells = [c.strip() for c in line.strip('|').split('|')]
+            if table is None:
+                table = dict(t='table', widths=[], rows=[], head=1)
+                blocks.append(table)
+            if cells[0].startswith('w '):
+                table['widths'] = [float(x) for x in cells[0][2:].split()]
+                continue
+            table['rows'].append([dict(c=i, rs=1, cs=1, text=c) for i, c in enumerate(cells)])
+            if not table['widths']:
+                table['widths'] = [100.0] * len(cells)
+            continue
+        table = None
         if not line:
             continue
         if line.startswith('@cover '):
