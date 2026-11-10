@@ -512,8 +512,8 @@
 "official": "異常氣壓作業意外事件認定參考指引",
 "pages": 19,
 "attach": [],
-"scan": true,
-"no": 10
+"no": 10,
+"ocr": true
 },
 {
 "id": "p11",
