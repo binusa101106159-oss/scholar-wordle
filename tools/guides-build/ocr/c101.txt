@@ -1,0 +1,75 @@
+@cover 二氯聯苯胺(Dichlorobenzidine)、鄰二甲基二胺基聯苯(O-Tolidine)、二甲氧苯胺(Dianisidine)及其鹽類中毒之認定基準
+@cover 江漢聲醫師
+# 一、導論
+3,3'-Dichlorobenzidine 由 o-Chloronitrobenzene 製造而來，其結構式為兩個苯環相連、各帶一個氯原子與一個胺基（NH2）。不溶於水，易溶於酒精和苯，鹽類為鹽酸鹽。在工業運用上都是用來製造 Azo 染料，特別是有機色料的中間產物。我國將二氯聯苯胺列為乙類特定化學物質，其致癌性目前尚不確定，也可能因其他染料的污染有關。
+O-Tolidine 則以甲基（CH3）取代二氯聯苯胺之氯原子。它被用做染料或染料中間產物，它是 trypan blue 之成分之一，也是水公司或游泳池測定氯氣（Chlorine test kits）之成分，由於 MOCA（4,4'-methylene bis(2-chloraniline)）是致癌物，O-Tolidine 被用於取代 MOCA 當做是聚眠樹脂的處理劑（curing agent）。
+Dianisidine 則為 OCH3 取代二氯聯苯胺之氯原子。用於製造染料如 Direct Black 91，Direct Blue 1，Direct Yellow 68，Direct Violet 93 等。
+# 二、具潛在暴露的職業
+## (一)、二氯聯苯胺暴露的職業
+> 1. 染料製造業
+## (二)、鄰二甲基二胺基聯苯暴露的職業
+> 1. 化學分析師
+> 2. 藝術家
+> 3. 染料製造業
+> 4. 林業化學工程師
+> 5. 葡萄糖檢驗試紙製造業
+> 6. 皮革染料工人
+> 7. 衛生人員
+> 8. 廢水處理工人
+> 9. 游泳池檢測試紙製造業
+> 10. 游泳池服務人員
+> 11. 紡織業染料工人
+> 12. 二異氰酸甲苯製造業
+> 13. 聚眠樹脂處理人員
+> 14. 水公司人員
+## (三)、二甲氧苯胺暴露的職業
+> 1. 染料製造業
+# 三、醫學評估與鑑別診斷
+由於這些化學物質也是芳香族的胺基衍生物，所以在常溫下是液體或固體，但在工作現場，通常大部分是暴露於其蒸氣或粉塵。需要特別留意的是，這些芳香族的胺基衍生物，很容易地經由皮膚吸收。
+## (一)、癌症
+### 1. 二氯聯苯胺
+Lipkin 在 1962 年報告蘇俄一家製造二氯聯苯胺的工廠(1)，由於安全衛生不佳，其勞工可能暴露於很高的濃度，但次年這家工廠即關閉。日本亦發現色料製造工廠工人的尿液中存有二氯聯苯胺(2)。但尚無一個流行病學研究能收集到暴露夠長時間的工人世代，且二氯聯苯胺暴露工人也同時暴露於其他染料如聯苯胺和貝他萘胺。因此二氯聯苯胺的致癌性完全是根據數種動物的實驗而來(3)，人類的致癌性尚缺乏資料。
+### 2. 鄰二甲基二胺基聯苯
+鄰二甲基二胺基聯苯最早在 1950 年被發現可引起動物耳道管的 Zymbal's 腺體腫瘤(4)，以後的動物實驗發現它可造成多數器官系統的腫瘤(5-9)。注射鄰二甲基二胺基聯苯可引起老鼠的 Zymbal's 腺體、乳腺、皮膚、肺、甲狀腺、胃、小腸、血液系統和子宮的腫瘤(6-9)。皮下注射亦可能造成老鼠全身性腫瘤(10)。
+另外二種鄰二甲二胺基聯苯鹽類染料，trypan blue 和 Evans blue，亦被發現會引起老鼠的腫瘤(11,12)。因此，IARC 認為 trypan blue 在腹腔注射和皮下注射均會造成老鼠的腫瘤，而 Evans blue 在腹腔注射則會引起老鼠之腫瘤(13)。
+### 3. 二甲氧苯胺
+二甲氧苯胺灌餵老鼠可引起 Zymbal's 腺體、皮膚、胃、腸胃道和膀胱腫瘤(14)。餵食 Syrian Golden hamster 0.1%或 1.0%的二甲氧苯胺可引起膀胱和前胃乳突瘤(15,16)。因此 IARC 認為經口餵食老鼠二甲氧苯胺會引發腫瘤(17)。
+二甲氧苯胺鹽類在動物和勞工均可代謝成二甲氧苯胺，因此其鹽類亦為動物致癌物。
+## (二)、變性血紅素症
+由其直接作用或以形成變性血紅素(methemoglobin)為中介，而見到如下面所列的症狀：起初為噁心、嘔吐、頭痛、發紺(cyanosis)等，繼而可發現呼吸困難、興奮、意識混亂、痙攣、意識喪失、失禁等。變性紅血素是血紅素的鐵由二價變成三價的一種不活性血紅素。如變性紅血素增加，生物體會陷入氧氣缺乏的狀態。
+## (三)、皮膚
+二氯聯苯胺對皮膚的刺激最為傷害，是刺激性或過敏性接觸皮膚炎的發病原因，尤其是暴露於過敏原強的物質時，有過敏性者會發生激烈的發炎症狀。另外，有的會有光過敏性的性質亦需要注意。於使用芳香族的胺基衍生物做二次反應過程的勞工，可看到過敏性接觸皮膚炎的發生，亦有很多發生濕疹化，不易治癒的情況。
+# 四、流行病學的證據
+二氯聯苯胺是乙類特定化學物質，沒有允許暴露的標準。這三種物質均為動物致癌物，但尚無流行病學研究資料。然而在台灣地區染料相關工廠的調查，仍然使用各種禁用的化學物質；在工人的調查中也有各種不同程度的職業暴露於可疑的膀胱致癌物中。由於這些化學物質的暴露要一段時間才會引起癌症病變，所以要更長期追蹤流行病學證據才會明顯。
+# 五、暴露證據收集的方法
+臨床上則是以工人調查問卷，必須要詳細的知道其工作的性質和工作的時間，其中工作的時間要詳細的列出他做同性質的工作，斷斷續續一共多久。譬如：工人換了好幾個工廠，斷斷續續從事染料相關職業，一共暴露了多久的時間。此外，他在從事工作時，有無按照規定作防護的措施，譬如：戴手套，戴防護的帽子或面罩，勤於洗手等等，也關係到是否有一定的染料暴露。這些因子的相乘，可以建立一個暴露指數，讓調查人員了解工人暴露的量和相對危險。
+另外，可測量勞工尿液中二氯聯苯胺、鄰二甲基二胺基聯苯和二甲氧苯胺之濃度，做為生物偵測的指標。
+# 六、結論
+## (一)、主要基準
+> 1. 確定的暴露證據，包括：職業史、暴露物質之致癌性和暴露的量。
+> 2. 暴露發生在疾病之前的時序性。
+> 3. 確定的臨床診斷，包括：病理切片證實為膀胱癌，其他臨床疾病包括變性血紅素症、過敏性皮膚炎。
+> 4. 合理排除其他的致癌因子。
+## (二)、輔助基準：
+> 1. 由暴露染料之工人尿液中分離出所暴露物質到一定的濃度。
+> 2. 同一工廠所有其他工人，具類似症狀。
+> 3. 病人離開原工作環境後，症狀改善。
+> 4. 改善原工作環境後，不再有類似病例發生。
+# 七、參考資料
+> 1. Lipkin IL. Carcinogenic substances in the aniline dye industry for prophylactic measures. Labor Hyg Occup Dis 1962;6:19.
+> 2. Akiyama T. The investigation of a plant manufacturing organic pigments. Jikeikae Med 1970;17:1.
+> 3. Scott TS. Carcinogenic and chronic toxic hazards of aromatic amines (New York: Elservier Publishing Company, 1962).
+> 4. Spitz S, Maguigan W, Dobriner K. The carcinogenic action of benzidine. Cancer 1950;3:789-804.
+> 5. Holland V, Saunders B, Rose F, Walpole A. A safer substitute for benzidine in the detection of blood. Tetrahedron 1974;30:3299-3302.
+> 6. Pliss G, Zabezhinsky M. Carcinogenic properties of orthotolidine (3,3'-dimethyl-benzidine). JNCI 1970;45:283-295.
+> 7. Pliss G. On some regular relationships between carcinogenicity of aminodiphenyl derivatives and the structure of substances. Acta Inter Union Cancer 1963;19:499-501.
+> 8. Pliss G. Carcinogenic properties of orthotolidine and dianisine. Gin Tr Prof Zabol 1965;21:9, 18-22.
+> 9. Griswold D, Casey A, Weisburger E, Weisburger J. The carcinogenicity of multiple intragastric doses of aromatic and heterocyclic nitro or amino derivatives in young female Sprague-Dawley rats. Cancer Res 1968;28:924-933.
+> 10. IARC Monographs on the Evaluation of Carcinogenic Risk of Chemicals to Man. IARC, Lyon, France, vol. 1, 80, 1972.
+> 11. Marshall A. The production of tumors of the reticular tissue by di-azo vital dyes. Acta Path et Microbiol Scand 1953;33:1-9.
+> 12. Gillman J, Gillman T. The pathogenesis of experimentally produced lymphomata in rats. Cancer 1952;5:792-846.
+> 13. IARC Monographs on the Evaluation of Carcinogenic Risk of Chemicals to Man. IARC, Lyon, France, vol. 8:91,151, and 267, 1975.
+> 14. Hadidian Z, Fredrickson T, Weisburger E, Weisburger J, Glass R, Mantel N. Tests for chemical carcinogens. Report on the activity of derivatives of aromatic amines, nitrosamines, quinolines, nitroalkanes, amides, epoxides, azirines and purine antimetabolites. JNCI 1968;41:985-1036.
+> 15. Saffiotti U, Cefis F, Monesano R, Sellkurmar A. Induction of bladder cancer in hamsters fed aromatic amines. In: Bladder cancer. A symposium. Duchman WB, Tampe (Eds), Aesculapius Publishing Co., Brimingham, Ala., 129-135, 1967.
+> 16. Sellakumar A, Montesano R, Saffiotti U. Aromatic amines carcinogenicity in hamsters: Proc Am Assoc Cancer Res 1969;10:78.
+> 17. IARC Monographs on the Evaluation of Carcinogenic Risk of Chemicals to Man. IARC, Lyon, France, vol. 4:41, 1974.
