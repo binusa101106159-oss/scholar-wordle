@@ -1,0 +1,70 @@
+@cover 尼古丁中毒及其續發症
+@cover 廖國棟 醫師
+# 一、導論
+尼古丁（Nicotine，化學名稱 1-Methyl-2-(3-pyridyl)pyrrolidine，CAS No. 54-11-5）分子式為 C10H14N2，是一種三級胺，它是少數液態的天然植物鹼之一，為無色到淡黃色油狀液體，暴露於空氣與光下會變成棕色且有煙草的味道。可溶於水中形成水溶性的鹽類1。為一弱鹼，pKa為 8.01。
+尼古丁可經由呼吸道、頰黏膜及皮膚吸收。經由皮膚吸收可導致嚴重的中毒。由於其為鹼性，所以由胃吸收者有限，小腸吸收反而較多。在正常生理 pH 值下，大約 31% 的尼古丁是非離子性的且可穩定地通過細胞膜及血腦障壁2。
+# 二、具潛在性暴露之職業
+尼古丁通常存在於菸葉中，因此在從事菸葉相關的職業皆有可能暴露。此外，有些殺蟲劑中也有尼古丁的成份。而鞣製皮革業也會用到尼古丁1-2。現在由於醫療上也會使用尼古丁成份的貼片、口香糖或口含錠等戒菸方法，因此使尼古丁中毒的可能性也增加。
+因此其潛在暴露的職業有下列數種：
+> 1. 菸葉採收業。
+> 2. 菸葉加工業。
+> 3. 殺蟲劑製造業。
+> 4. 鞣製皮革業。
+> 5. 戒菸貼片、口香糖或口含錠的製造業。
+> 6. 工作環境中有吸菸者。
+# 三、醫學評估與鑑別診斷
+大約 80-90%的尼古丁會分佈全身，主要在肝臟，但腎臟與肺臟也都有。大部分吸入的尼古丁都在肺臟代謝，主要代謝物為 cotinine 及 nicotine-1'-N-oxide。吸入或注射尼古丁的半衰期大約是 2 小時。尼古丁與其代謝物很快會由腎臟排出，尿液排出的速率視尿液的 pH 值而定，pH 愈高則排出愈少。吸菸的哺乳期婦女的乳汁中也會有尼古丁，吸菸重者的乳汁中每公升含有 0.5mg 的尼古丁。
+尼古丁可與自主神經節、腎上腺髓質部、神經肌肉聯合部及腦部的乙醯膽鹼接受體鍵結。此接受體可被低濃度的尼古丁激發，且與菸葉中尼古丁的活性有密切相關。其造成的生理效應通常很複雜且無法預測。小劑量的尼古丁會造成噁心、嘔吐、腹瀉、頭痛、頭暈及神經性的刺激，導致心悸、呼吸急促、流汗及流口水等。嚴重的中毒會有抽搐及心律不整等。死亡的病例報告顯示死亡幾乎都在 1 小時以內，甚至有數分鐘內者。通常認為因吸菸、嚼或吸食菸草而導致急性的生理反應是尼古丁的作用，而如肺癌、肺氣腫及心臟疾病等慢性的效應則被認為與焦油及一氧化碳有關1-4。
+經由皮膚吸收尼古丁可能會導致"綠菸葉病"（green tobacco sickness），其為一種自癒性疾病，有膚色蒼白、嘔吐及虛脫等症狀，常見於處理菸葉的工人5。
+尼古丁毒性的醫學評估包括病史、理學檢查及實驗室檢查。
+## 病史詢問
+病史詢問包括製程、現場尼古丁使用情形、通風排氣、防護具使用情形及現場工作人員吸菸的情況等，病史也應該包含其他化學物質使用及接觸情形。此外本身吸菸、家人吸菸狀況或本身是否有使用尼古丁貼片、口香糖或口含錠等也要一併詢問。
+## 理學檢查
+理學檢查與一般檢查相同，尤其應特別注意噁心、嘔吐、腹瀉、頭痛、頭暈、心悸、呼吸急促、皮膚蒼白、虛脫、流汗及流口水等症狀。
+## 實驗室檢查
+實驗室檢查除了一般性的檢查以外，還必須包含肺功能檢查、肝功能檢查、腎功能檢查。由於其代謝物為 cotinine，因此可由其血液、唾液或尿液中測量其 cotinine 之濃度，以作為實際吸收尼古丁劑量的參考。
+## 鑑別診斷
+尼古丁與其他神經節興奮劑（如 TMA 或 DMPP）所導致的症狀可由其最初的症狀區分，尼古丁造成的症狀會先出現明顯的抑制現象，然後才是興奮症狀。而其他神經節興奮劑則無初期抑制現象。
+此外，從暴露史及其代謝物的測定來區別也可作為很好的鑑別診斷。如能取得作業環境中的尼古丁濃度則可作為鑑別診斷的重要參考。
+# 四、流行病學證據
+## 1. 尼古丁中毒：
+尼古丁中毒最早被描述是因意外或自殺而服用含尼古丁的殺蟲劑及職業暴露於菸葉的病例5。大量的中毒病例報導主要是"綠菸葉病"研究6,7。而有關尼古丁口香糖的中毒，許多是非吸菸者（特別是小孩）誤食或想快速戒菸而一次服用多片而造成的8。誤將尼古丁口香糖吞入者並不會造成毒性反應，根據研究發現同時吞食 10 片 4mg 的口香糖導致血中尼古丁濃度上升小於 10ng/ml。
+## 2. 尼古丁與心血管疾病：
+嚼食尼古丁口香糖會使正常人的心肌收縮力增加，但會使有冠狀動脈疾病的病人缺血部份的心肌收縮力降低9。
+雖然吸菸及尼古丁本身都會使血壓升高，然而吸菸卻不是慢性高血壓的危險因子10，但是吸菸者卻常常會由慢性高血壓進展到惡性高血壓11。
+## 3. 尼古丁與癌症：
+尼古丁本身無致癌性，但是它會在吸菸時硝化形成 nitrosonornicotine 及其它相關化合物12。這些菸草特異的 N-nitrosamines 是高度致癌性的。至於尼古丁演變的 nitrosamines 的量是否足以使人類得癌症則仍未知。
+# 五、暴露證據收集方法
+ACGIH 的 8 小時工作時間內容許的暴露濃度（TLV-TWA）及 NIOSH 的建議暴露限值（REL）皆為 500μg/m3，OSHA 的允許暴露值（PEL）則為 5000μg/m3 13。
+## 暴露工作史
+個人工作史、工作時間、個人問卷、作業名稱及作業環境有暴露於尼古丁之可能性。
+## 環境採樣
+工作環境及個人之空氣採樣可用玻璃纖維過濾管收集，再用 ASTM 方法 D5075-90a 的室內空氣標準尼古丁檢查方法來分析尼古丁的濃度13。
+## 生物監測
+可以血、唾液、尿、頭髮中尼古丁及 cotinine 濃度之測定來反應尼古丁的暴露。
+# 六、結論
+急性暴露於尼古丁急性中毒可引起噁心、嘔吐、腹瀉、頭痛、頭暈、心悸、呼吸急促、皮膚蒼白、虛脫、流汗及流口水等症狀。
+## (一)主要基準：下列條件均需符合。
+> 1. 具有暴露史及時序性，此暴露證據可為意外事件、環境測定、生物監測濃度升高或物質安全資料表。
+> 2. 具有噁心、嘔吐、腹瀉、頭痛、頭暈、心悸、呼吸急促、皮膚蒼白、虛脫、流汗及流口水等症狀，或有實驗室異常數據，如肝腎功能異常等證據。
+> 3. 合理排除其他常見非尼古丁暴露所導致之致病原因。
+## (二)輔助基準：如果對以上三條件之程度仍有疑問者，可用輔助基準支持此項診斷。
+> 1. 同一工作環境，其他工作者具有類似臨床症狀。
+> 2. 離開工作場所後，症狀可改善或消失。
+至於慢性暴露於尼古丁而造成心血管疾病或癌症的診斷標準，因缺乏確切的流行病證據，故無法訂定其診斷基準。
+# 七、參考文獻
+> 1. Hathaway GJ, Proctor NH, Hughes JP, Fischman ML. Proctor and Hughes' Chemical hazards of the workplace. 3rd ed. pp.425. Van Nostrand Reinhold, New York, 1991.
+> 2. Gilman AG, Goodman LS, Rall TW, Murad F. Goodman and Gilman's The Pharmacological Basis of Therapeutics. 7th ed. pp. 216-218. MacMillan publishing company, New York, 1985.
+> 3. Benowitz NL. Pharmacologic aspects of cigarette smoking and nicotine addiction. The new Engl J Medicine. 1988;17:1318-30.
+> 4. Ritter JM, Lewis LD, Mant TGK. A Textbook of Clinical Pharmacology. 3rd ed. pp. 673-5. Edward Arnold publishing, London. 1995.
+> 5. Saxena K, Scheman A. Suicide plan by nicotine poisoning: a review of nicotine toxicity. Vet Hum Toxicol 1985;27:495-7.
+> 6. Gehlbach SH, Perry LD, Williams WA, Freeman JI. Nicotine absorption by workers harvesting green tobacco. The Lancet 1975;1(7905):478-80.
+> 7. CDC. Green tobacco sickness in tobacco harvesters－Kentucky, 1992. JAMA 1993; 269:2722.
+> 8. Brantmark B, Fredholm B. Absorption of nicotine from swallowed intact buffered Nicorette chewing gum. Hilsingborg, Swedem: AB Leo Research, 1974. (Report no, 897.)
+> 9. Bayer F, Bohn I, Strauer BE. Das Kontraktionsverhalten des linken Ventrikels unter Nikotinexposition. Therapiewoche 1985;35:1968-74.
+> 10. Green MS, Jucha E, Luz Y. Blood pressure in smokers and nonsmokers: epidemiologic findings. Am heart J 1986;111:932-40.
+> 11. Isles C, Brown JJ, Cumming AM, et al. Excess smoking in malignant-phase hypertension. Brit Medical J 1979;1:579-81.
+> 12. Hoffmann D, La Voie EJ, Hecht SS. Nicotine: a precursor for carcinogens. Cancer L 1985;26:67-75.
+> 13. Trout D, Decker J, Mueller C, Bernert JT, Pirkle J. Exposure of casino employees to environmental tobacco smoke. J Occup Environ Med 1998; 40(3):270-6.
+> 14. Repace JL, Jinot J, Bayard S, Emmons K, Hammond SK. Air nicotine and saliva cotinine as indicators of workplace passive smoking exposure and risk. Risk analysis 1998;18(1):71-83.
+> 15. Benowitz NL. Biomarkers of environmental tobacco smoke exposure. Environ Health Perspect 1999;107 suppl 2:349-55.

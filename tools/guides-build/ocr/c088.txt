@@ -1,0 +1,92 @@
+@cover 多氯聯苯(Chlorinated diphenyls)或同類物中毒之認定基準
+@cover 郭育良醫師
+# 一、導論
+多氯聯苯乃是一族相互類似的化合物，以二個相連的苯環（聯苯）為基本構造。苯環上的氫，可以由不同數目的氯來取代。而依氯取代數目及位置的不同，多氯聯苯共有 209 個可能的化合物。工業上所使用的則為這些化合物的不同百分比的混合物。
+引起多氯聯苯污染的來源，主要是工業上使用而殘留的多氯聯苯大量或廣泛的排放、或丟棄之結果，其來源最大的為電力公司等大量使用多氯聯苯的工業。使用過的多氯聯苯之廢棄是一個很難處理的問題。多氯聯苯由於其在環境中的穩定性以及對生物轉換的高抵抗性，可以極長的時間留在環境中，隨者時間而逐漸堆積。對於多氯聯苯，至今常使用的廢棄方法包括：掩埋、焚燒、倒入海中或河湖等其他水體中、等方法。然而這一些方法都有其缺失，而較安全的高溫氧化的方法則其花費十分昂貴，因還對已存在的多氯聯苯之廢棄，是今日環境學者必須仔細考慮、討論，以決定其方式的。
+多氯聯苯雖於 1970 年代在歐美國家禁止生產，然而目前全世界仍有超過一百萬噸之多氯聯苯分散各地，其中 57 %仍在反覆使用中、或已停止使用而尚未掩埋，27 %已被掩埋起來，16 %則污染於各地的土壤、湖泊、河川、海洋及空氣。所以，我們現在所面對的問題，仍只是所有人類曾經製造的多氯聯苯的一小部份而已。
+# 二、具潛在暴露的職業
+多氯聯苯的生產始於 1920 年代，可以固態或液態存在，其溶點、沸點及可燃燒度隨其含氯原子的多少而成正比，可耐強酸、強鹼及其他化學物質之侵蝕，因此穩定度極高，並有極佳的絕緣性，工業用途大。其最大的用途在於電力公司的變壓器與電容器，水力與熱轉換液的製造，馬達或引擎油漆，塑膠、印刷油墨、塑化劑、黏著劑、潤滑添加劑。
+因此，具潛在性暴露之高危險性行職業包括：
+> 1. 電力公司的勞工，尤其接觸變壓器與電容器者
+> 2. 水力與熱轉換液的製造勞工
+> 3. 機械工人，尤其負責維修馬達或引擎者
+> 4. 油漆工人或噴漆工人
+> 5. 塑膠業工人
+> 6. 印刷業，尤其接觸油墨之工人
+> 7. 農藥製造之工人
+> 8. 黏著劑使用之工人
+> 9. 五氯酚製造工人
+# 三、醫學評估與鑑別診斷
+## (一)、臨床症狀
+### 1. 皮膚毒性
+在人類暴露於多氯聯苯化合物之後，一週至三週之間會有痤瘡出現。這些痤瘡乃小而淺黃的囊腫，為皮脂腺基底細胞不正常地轉化成為皮膚色素細胞時所引起。氯痤瘡主要在臉上發生尤其在眼睛的週圍、鼻子的兩側、耳前、以及胸部與上背等部位。大部份的氯痤瘡都會在一至三年之間消失，然亦有極端持久的病例，至多有三十二年之久的報告。雖然多氯聯苯為文獻上所知最有名的致氯痤瘡的化學物質，類似的毒性如四氯苯（tetrachlorobenzene）、戴奧辛、多溴聯苯、chloronaphthalenes、bromonaphthalenes、及五氯酚（pentachlorophenol）等皆可以引起氯痤瘡的發生。
+雖然氯痤瘡的發生是在多氯聯苯暴露的人最常看到的臨床表現，未有氯痤瘡發生並不能斷定此人未暴露於多氯聯苯。氯痤瘡的發生與個人的體質及其他暴露因素皆有關，且暴露之後發生的時間長短亦不同，長者甚至可以到數月之後才發生。
+在日本及台灣的油症多氯聯苯／多氯夫喃中毒者亦有很明顯的皮膚症狀，其中最顯著的症狀為皮膚、指甲、黏膜等的色素沉著，眼睛分泌物增加，氯粉刺，虛弱等。日本學者於 1986 年重新追蹤研究多氯聯苯／多氯夫喃中毒患者，發現在 PCBs 中毒患者在中毒十八年後仍有皮膚、指甲、黏膜等的色素沉著。有趣的是福岡地區患者比長崎地區患者多指甲、結膜等之色素沉著，而長崎地區患者比福岡地區患者多口唇黏膜之色素沉著。
+除了氯痤瘡以外，其他的皮膚作用尚包括色素沈積、體毛增生、皮膚脆弱易受傷、容易造成皮膚感染、及在直接暴露的局部有小水泡產生。這些作用，是純然由多氯聯苯所引起，或是由同時暴露到的其他化學物質所引起，至今尚未能完全釐清。
+### 2. 神經系統作用
+雖然多氯聯苯在動物實驗可以引起神經系統的毒性作用，在人類的神經系統研究尚未有完全的定論。在台灣的多氯聯苯油症事件意外發生後，中毒者有週圍神經的傳導緩慢現象，然而尚未嚴重到有臨床上的週圍神經疾病的程度。
+### 3. 肝毒性
+肝臟是動物體內對多氯聯苯及類似的毒物最為敏感的器官之一。在日本與台灣暴露於多氯聯苯米糠油的患者中，研究顯示有肝臟機能異常的表現，尤其是 GOT(AST)、GPT（ALT）、ALP、及 LDH。
+這種肝機能的異常，在暴露停止之後，亦回復正常。毒性物質對肝臟的另一作用為肝臟酵素的改變，或稱『酵素引發』（Enzyme induction）。在暴露於一種多氯聯苯混合物 Aroclor1016 的工人中，血清中的 antipyrine 之半生期有顯著的降低。由於 antipyrine 乃由肝臟代謝，研究者認為在這些工人中其肝臟的 microsomal enzymes 有被激發的現象。其中 cytochrome P450 family I 族的酵素在許多動物體內是對多氯聯苯及類似的化學物質的暴露最敏感的指標。
+除了急性期可以產生肝傷害以外，多氯聯苯亦可能對於肝臟產生長期或慢性的傷害作用，如在台灣的油症患者已被報告其由於肝疾病或肝硬化而死亡之機會為一般人的三倍左右。
+### 4. 生殖系統毒性
+多氯聯苯中毒可以造成極明顯的生殖系統效應，在日本及台灣的中毒母親所生下的油症兒，出生時即有色素沉積、指甲及牙齒異常的現象。在成長的過程之中，都有智能發展遲緩的報告，在台灣的經胎盤中毒的油症兒，長至 4 至 7 歲時，其智力仍比正常兒小約 6 點。而這種智力的缺失，在使用比西智力量表測驗與使用魏氏兒童智力量表顯示相似的結果。在同一批油症兒之中，其身高至今仍比正常兒低約 2.8 公分。全身的肌肉含量亦比較低。現在有些兒童已將進入青春期，在男童有看到早期的發育遲緩的現象。
+### 5. 其他毒性或作用
+在暴露於多氯聯苯的勞工發現其血中之甲狀腺素（T4）會增加，然而此種增加，尚未造成臨床上甲狀腺機能過高的情形。
+## (二)、臨床和實驗室檢查
+臨床上，職業性多氯聯苯暴露病人之症狀可以包括皮膚（氯痤瘡）、肝功能的變化（主要為 AST 與 ALT 之上升）、週圍神經疾病、與非特異性症狀如極度疲勞等。通常，不一定在工作場所發生症狀，不過均是在暴露於工作場所後發生。
+職業性多氯聯苯暴露之病人，離開暴露源之後，並不一定可以完全恢復正常，一方面，多氯聯苯之血中半衰期相當長，可以到數年之久。另一方，在暴露期間所造成的作用可能仍繼續影響暴露者之健康。
+職業性多氯聯苯暴露之診斷，一般要有上述之病史及理學檢查之發現。然而以上之發現，除了氯痤瘡，一般由於含氯多環芳香烴之暴露所引起，故有比較好的症狀特異性之外，如肝功能的變化、週圍神經疾病、與非特異性症狀等並不是只在多氯聯苯中毒者方才發生。亦即以上之疾病表現特異性低。因此職業性多氯聯苯暴露之診斷，必須要有血液中多氯聯苯濃度之檢查資料方能進行確定的診斷。
+# 四、流行病學的證據
+多氯聯苯的污染是世界性的。美國、加拿大、挪威、以色列、日本、台灣均有一般人口中人體 PCBs 血液濃度的報告。最大規模的人類中毒事件有二：1968 年日本九州福岡的中毒事件稱為 Yusho，即日文之油症；以及 1979 年台灣台中、彰化一帶的米糠油中毒事件亦稱為油症（英文稱 Yucheng）皆引起學術界廣泛的注意，此乃因二者皆為急性大量之 PCBs 及其衍生物中毒事件，而為 PCBs 中毒之重要特例。1979 年台灣多氯聯苯米糠油中毒事件，則一般相信為一種混合物 Arochor 1254 所引起。Arochor 1254 內約含有 54 %重量的氯。此二個重大中毒事件提供了許多多氯聯苯中毒之人類流行病學上的資料。
+在日本及台灣之油症中毒者最顯著的症狀為皮膚、指甲、黏膜、等的色素沉著，眼睛分泌物增加，氯粉刺，虛弱等，在五大湖區較少見的症狀。有些研究者認為這些不同的健康效應，除了劑量不同之外，不同的多氯聯苯混合物內所含化合物各別百分比不同，或所含雜質不同所致。
+由於不同的多氯聯苯化合物在人體的吸收、代謝與滯留各異，在人血中、脂肪中、與人乳中多氯聯苯的成分和工業用品頗有差別。在血中最易分離出的 PCBs 化合物有 2,4,5,3',4'-pentachloro-,2,3,4,3',4'-pentachloro-,2,4,5,2',4',5'-hexachloro-,2,3,4,2',4',5'-hexachloro-,2,3,4,5,3',4'-hexachloro-,2,3,4,5,2',4',5'-heptachloro-及 2,3,4,5,2',3',4'-heptachloro biphenyls 等。
+# 五、暴露證據收集的方法
+至於一個患者有多氯聯苯之過度暴露是否為工作或職業所引起，其判斷之重點，在於在其工作場所，是否環境中有多氯聯苯存在。除以上所提之工作內容有可能潛在暴露於多氯聯苯之外，若不在此類之工作範圍內，或在此工作範圍內，而暴露與否尚有爭議者，則須進行工作環境之空氣採樣，或可能之皮膚接觸物質與皮膚接觸面之擦拭採樣。若有多氯聯苯在工作環境之中測到，其量足以造成過度暴露者，則可以判定該勞工之多氯聯苯為工作暴露所引起。我國的容許暴露標準為 0.01mg/m3。
+血液中多氯聯苯濃度之測定方法，一般以氣相色層分析儀（gas chromatography）－電子補捉偵測器（ECD）進行分析。根據日本在油症患者之研究，若患者血中濃度達到 2.7 ppb 以上者，則其有較高之臨床症狀表現。因此，若在急性期之中，以以氣相色層分析儀分析血中濃度達到 2.7 ppb 者，則可以認定該患者有多氯聯苯之過度暴露。
+# 六、結論
+職業性多氯聯苯暴露的正確診斷，可以幫助醫療人員與患者了解其病情的原因、處理方式、與定期追蹤檢查的必要性。因此雖至今無有效之解毒劑，患者的健康可以得到較佳的保護。最重要的是要早其診斷，且於確認後避免繼續露。
+## (一)、主要基準
+> 1. 有職業性作業環境暴露史，其証據可由
+>> a). 工作場所物質安全通識資料(MSDS)，或
+>> b). 其它資料証實工作場所環境中有多氯聯苯之可能暴露
+> 2. 必須在特定工作開始之後才發生相關之症狀，或臨床表現等。
+> 3. 有與多氯聯苯暴露相關之臨床疾病表現，包括皮膚、神經系統、肝功能、生殖系統或（若中毒者為女性）第二代的異常等。
+> 4. 患者之血清中多氯聯苯濃度為 2.7ppb 以上。
+> 5. 該患者之症狀或臨床表現可以合理地排除其他疾病所引起。
+## (二)、輔助基準
+> 1. 若由工作同事有類似疾病發生則加強其可能性。
+> 2. 若由工作場所之檢查資料顯示過高之空氣中或接觸表面多氯聯苯濃度亦為支持之證據。
+# 七、參考文獻
+> 1. Colborn T, vom Saal FS, Soto AM. Developmental effects of endocrine-disrupting chemicals in wildlife and humans. Environ Health Persp 1993;101:378-384.
+> 2. Gilbertson M. PCBs: Effects on fish and wildlife populations. In Kimbrough RD, Jensen AA (eds): Halogenated biphenyls, terphenyls, naphthalenes, dibenzodioxins and related products (2nd edition). Amsterdam: Elsevier, P. 103-127, 1989.
+> 3. De Voogt P, Brinkman UA: Production, properties and usuage of polychlorinated biphenyls. In Kimbrough RD, Jensen AA (eds): Halogenated biphenyls, terphenyls, naphthalenes, dibenzodioxins and related products (2nd edition). Amsterdam: Elsevier, P. 3-42, 1989.
+> 4. Schartz P, Jacobson S, Fein G, et al. Lake Michigan fish consumption as a source of polychlorinated biphenyl in human cord serum, maternal serum and milk. Am J Public Health 1983;73:293-296.
+> 5. Humphrey HE. Chemical contaminants in the Great Lakes: the human health aspect. In Evans M ed.: Toxic contaminants and ecosystem health: a Great Lake focus. New York: Wiley, 1988.
+> 6. Jacobson JL, Humphrey HE, Jacobson SW, et al. Determinants of polychlorinated biphenyls (PCBs), polybrominated biphenyls (PBBs), and dichlorodiphenyl trichloroethane (DDT) levels in the sera of young children. Am J. Public Health 1989;79:1401-1404.
+> 7. Ohgami T, Nonaka S, Murayama F, et al. A comparative study of polychlorinated biphenyls (PCBs) and polychlorinated quaterphenyls (PCQ) concentrations in subcutaneous fat tissue, blood and hair of patients with Yusho and normal control in Nagaski prefecture. Fukuoka Acta Medica 1989;80: 307-312.
+> 8. Skaare JU, Tuveng JM, Sande HA. Organochlorine pesticides, and polychlorinated biphenyls in maternal adipose tissue, blood, milk, and cord blood from mothers and their infants living in Norway. Arch Environ Contamin and Toxicology. 1988;17:55-63.
+> 9. Kreiss K. Studies on populations exposed to polychlorinated biphenyls. Environ Health Perspect. 1985;60:193-199.
+> 10. 劉尚修、葛應欽、黃東錄等 台灣中部一般人之血中多氯聯苯含量 台灣省衛生處研究學報 1982;269-275.
+> 11. 葛應欽、饒連財、許書刀等 多氯聯苯在中毒患者之血中濃度 台灣醫誌 1981;80:774-779.
+> 12. Taki I, Hisanaga S, Amagagase Y. Report on Yusho pregnant women and their fetuses. Fukuoka Acta Med 1969;68:471-474.
+> 13. Schartz P, Jacobson S, Fein G et al. Lake Michigan fish consumption as a source of polychlorinated biphenyl in human cord serum, maternal serum and milk. Am J Public Health 1983;73:293-296.
+> 14. Humphrey HE. Chemical contaminants in the Great Lakes: the human health aspect. In Evans M ed.: Toxic contaminants and ecosystem health: a Great Lake focus. New York: Wiley, 1988.
+> 15. Chen PH, Wong CK, Rappe C, et al. Polychlorinated biphenyls, dibenzofurans and quaterphenyls in toxic rice-bran oil and in the blood and tissues of patients with PCB poisoning in Taiwan. Environ Health Persp 1985;59:59-65.
+> 16. Masuda Y. Health status of Japanese and Taiwanese after exposure to contaminated rice oil. Environ. Health Perspect. 1985;60:321-325.
+> 17. Kashimoto T, Miyata H. Differences between Yusho and other kinds of poisoning involving only PCBs. In: Waid JS, ed. PCBs and the Environment Vol. III, Boca Raten, FL: CRC Press Inc.; 1987:1-26.
+> 18. Masuda Y, Kuroki H, Haraguchi K, et al. PCB and PCDF congeners in the blood and tissues of yusho and yu-cheng patients. Environ Health Persp 1985;59:53-58.
+> 19. Masuda Y. Health status of Japanese and Taiwanese after exposure to contaminated rice oil. Environ. Health Perspect. 1985;60: 321-325.
+> 20. Chen PH, Chang KT, Lu YD. Polychlorinated biphenyls and polychlorinated dibenzofurans in the toxic rice bran oil that caused PCB poisoning in Taichung. Bull. Environ. Contam. Toxicol 1981;26: 489-495.
+> 21. Phillips DL, Smith AB, Burse VW, et al. Half-life of polychlorinated biphenyls in occupationally exposed workers. Arch Environ Health 1989;44:P351-354.
+> 22. Kataoka K, Okubo A, Shinohara S, et al. Introduction of the information processing system of medical examinations of Yusho patients and some results obtained by the 1986 survey. Fukuoka Acta Med. 1989;80:331-341.
+> 23. Guo YL, Ryan JJ, Lau BPY, Yu ML, Hsu CC. Serum levels of PCB/PCDF congeners 14 years after accidental exposure to contaminated rice oil. Arch Environ Contamin Toxicol, accepted for publication.
+> 24. Ryan JJ, Hsu CC, Boyle MJ, Guo YL. Blood serum levels of PCDFs and PCBs in Yu-Cheng children perinatally exposed to a toxic rice oil. Chemosphere 1994;29:1263-1278.
+> 25. Guo YL, Yu ML, Ryan JJ. Different congeners of PCBs PCDFs may have contributed to different health outcomes in the Yucheng cohort. (Commentary) Neurotoxicol Tetratol 1996;18:1-2.
+> 26. Guo YL, Lambert GH, Hsu CC. Growth abnormalities in the population exposed in utero and early postnatally to polychlorinated biphenyls and dibenzofurans. Environ Health Persp 1995;103(Suppl 6):117-122.
+> 27. Guo YL, Lin CJ, Yao WJ, Ryan JJ, Hsu CC. Musculoskeletal changes in children prenatally exposed to polychlorinated biphenyls and related compounds (Yu-Cheng children). J Toxicol Environ Health 1994;41:83-93.
+> 28. Chao WY, Hsu CC, Guo YL. Increased prevalence of middle ear diseases in Yucheng children prenatally exposed to polychlorinated biphenyls and dibenzofurans. Arch Environ Health 1997; accepted for publication.
+> 29. Guo YL, Lai TJ, Yu ML, Hsu CC, Lambert GH. Sexual maturation in boys altered by in utero exposure to polychlorinated biphenyls and dibenzofurans. Submitted for publication.
+> 30. Lione A. Polychlorinated biphenyls and reproduction. Reprod Toxicol 1988;2:83-89.
+> 31. Korach KS, Sarver P, Chae K, McLachlan JA, McKinney JD. Estrogen receptor-binding activity of polychlorinated hydroxybiphenyls: Conformationally restricted structural probes. Molecular Pharmacol 1988;33:120-126.
+> 32. Platonow NS, Liptrap RM, Geissinger HD. The distribution and excretion of polychlorinated biphenyls (Aroclor 1254) and their effect on urinary gonadal steroid levels in the boar. Bull Environ Contam Toxicol 1972;7:358-365.
