@@ -2513,8 +2513,8 @@
 "official": "二代甲亞胺(奧黃)中毒及其續發症認定參考指引",
 "pages": 3,
 "attach": [],
-"scan": true,
-"no": 108
+"no": 108,
+"ocr": true
 },
 {
 "id": "c109",
@@ -2523,8 +2523,8 @@
 "official": "乙二醇醚類化合物中毒之認定參考指引",
 "pages": 5,
 "attach": [],
-"scan": true,
-"no": 109
+"no": 109,
+"ocr": true
 },
 {
 "id": "c110",
