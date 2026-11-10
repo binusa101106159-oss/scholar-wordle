@@ -14,7 +14,7 @@ Transcription format (ocr/<id>.txt), one block per line:
 The original page pictures stay in the guide as `pages`, so the reader can
 switch between the text and the scan. Re-running is safe.
 """
-import json, sys
+import json, re, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3] / 'guides'
@@ -28,12 +28,9 @@ def parse(src):
             continue
         if line.startswith('@cover '):
             cover.append(line[7:].strip())
-        elif line.startswith('### '):
-            blocks.append(dict(t='h', text=line[4:].strip(), lv=3))
-        elif line.startswith('## '):
-            blocks.append(dict(t='h', text=line[3:].strip(), lv=2))
-        elif line.startswith('# '):
-            blocks.append(dict(t='h', text=line[2:].strip(), lv=1))
+        elif re.match(r'#{1,4} ', line):
+            n = len(line) - len(line.lstrip('#'))
+            blocks.append(dict(t='h', text=line[n:].strip(), lv=min(n, 3)))
         elif line.startswith('>> '):
             blocks.append(dict(t='p', text=line[3:].strip(), ind=4.0, hang=-1.5))
         elif line.startswith('> '):
