@@ -1,0 +1,62 @@
+@cover 鋅中毒之認定基準
+@cover 王肇齡醫師/何啟功醫師
+# 一、導論
+鋅 Zinc (Zn)是在自然界廣泛存在的一種元素，在地殼組成的成份中鋅的比例約佔 0.02%。鋅在礦沙中主要與其他的金屬共同組成硫化物、碳化物或氧化物的狀態，由於鋅一旦暴露於空氣中，會形成氧化物，它可以阻止金屬受到進一步的氧化及腐蝕，所以鍍鋅或鋅化合物在煉鋼作業或電鍍作業中常被用到(1,2)。金屬鋅呈現銀白色，而鋅在常溫下則因化合物的不同而有不同的狀態，如液態、粉末狀、或是因加熱後而成氣態，常見的鋅化合物如氧化鋅(Zinc oxide)、硫酸鋅(Zinc Sulfate)、氯化鋅(Zinc Chloride)、鉻酸鋅(Zinc Chromate)等。(1)
+鋅對於人體也是一必要元素，許多酵素的作用須要它的存在才能發揮正常功能，而鋅在核酸代謝以及蛋白質合成的過程中都扮演重要角色。一般而言，每天由食物中攝取的鋅約是 10~15mg，而在一些疾病如營養不良(Malnutrition)、酒精中毒(Alcoholism)、慢性腎臟病(Chronic Renal disease)、嚴重燒傷(Extensive Burns)或長期使用 Penicillamine 控制 Wilson's Disease 的患者，可能會產生鋅缺乏的現象(3,4)，此時可口服鋅的營養補充製劑，以防止併發症如生長遲緩、智力障礙、男性性功能不全、傷口不易癒合等產生(3)。
+鋅被人體的吸收途徑可由呼吸道或胃腸道，食入的鋅約 20-50%會由胃腸道吸收，主要吸收處是十二指腸，而吸入的鋅來源主要是以燻煙(Fume)的方式存在。鋅進入血液中會與蛋白質結合(Albumin)，在細胞中會與 metallothioncin 形成化合物(complexes)，且存在於紅血球中，廣泛地被送到身體各組織中，尤其是橫紋肌(Striated Muscle)、脈絡膜、精原細胞、毛髮、指甲等處。鋅的排泄主要是由膽汁、胰液中排出，約 20%是由尿液排出(2,7)。
+# 二、具潛在暴露之職業
+金屬鋅主要應用是在煉鋼或其他金屬時鍍鋅(Galvanizing)的過程，電鍍作業中也會用到。純金屬鋅可以當作型板(Die Cast)，廣泛應用於汽車工業、電器、照明器材、玩具等製造，鋅與其他金屬混合，如銅、鎳、鋁或鎂，可以作成合金，其中又以與銅混合成為黃銅最為常見，例如：英國的錢幣便士(Penny)就是以鋅銅合金所鑄成，鋅佔 93.6%，銅佔 2.4%。
+> ※ 氧化鋅(Zinc oxide) 又稱鋅白，是煉鋅礦氧化的產物或是純鋅蒸發氧化而成，主要用於油漆的顏料或是橡膠的硬化處理。化粧品粉末、快乾接合劑以及一些藥品製劑中都可發現有氧化鋅的成份。其他如鏡片製造、輪胎或半導體製造業都有氧化鋅的使用。
+> ※ 鉻酸鋅(Zinc chromate) 又稱鋅黃，主要用於顏料、油漆、油布的製造，另外鉻酸鋅也有對於金屬的防腐蝕作用。
+> ※ 氰化鋅(Zinc cyanide) 一種收斂劑，可當做防腐劑，殺虫劑或瀉藥來使用。
+> ※ 氯化鋅(Zinc chloride) 閃亮橘黃色粉末，主要用於紡織工業染色用，另外玻璃蝕刻或瀝青製造也會使用到。
+> ※ 葡萄糖酸鋅(Zinc Gluconate) 白色粉末，常見的口服鋅補充製劑即為此成份。
+> ※ 醋酸鋅(Zinc Acetate) 無色結晶有醋及金屬刺鼻味，作用同硫酸鋅。
+# 三、流行病學報告
+由於鋅的危害以急性中毒為主，故歷年來的文獻發表大多以個案報告為主，較少有大型有職業流行病學的報告，目前的研究也指出慢性暴露鋅化合物並無致畸胎性亦無致癌性(5)，急性吸入鋅化合物或蒸氣可造成呼吸道反應急性間質性肺炎，職業性過敏性肺炎(Occupational Hypersensitivity pneumonitis)、氣喘，甚至肺水腫或呼吸窘迫症候群（ARDS）(6,7,8,9,10)，肺功能也會受到影響(7)，若是食入具腐蝕性的鋅鹽類，則會刺激口腔黏膜及喉嚨(11)，以及發生腐蝕性胃炎、腸炎、消化道狹窄、嘔吐、腹瀉的症狀(11,12,14)。另有報告指出在食入鋅 12g 之後二天產生嗜眠症(Somnolence)，病患有全身無力及走路不穩的現象(13)。至於對泌尿系統的影響，由於鋅由腎臟之排出率較少，故影響較小，亦曾有報告指出有發生腎炎及寡尿的情形(14)。
+鋅的慢性暴露主要是以長期服用大量鋅的營養補充劑個案為多，由於腸內大量的鋅影響到銅的吸收，造成體內銅的缺乏(Secondary copper deficiency)，而會有低色素小球型貧血的發生 (特別是 Sideroblastic Anemia)(15,16,17,18)。
+曾有動物實驗以 24 隻老鼠為對象，每日在其飲用水中加 1250~5000ppm 的 Zinc Sulfate，一年後，除了 5000ppm 的老鼠有嚴重的貧血之外，Zinc 並沒有產生嚴重的併發症，腫瘤的發生率與控制組亦無顯著差異(19)。ACGIH 認為 Zinc chromate 為人類致癌物質。
+# 四、臨床表徵及醫學評估
+一般而言，鋅鹽溶於水呈現弱酸性，通常在食入 20 分鐘到 10 個小時之後可能會產生發燒、嘔吐、噁心、腹痛、胃痙攣及腹瀉等情形，而除了食入之外，鋅也由呼吸道或皮膚被吸收，例如：氯化鋅(Zinc Chloride)若接觸到皮膚或眼睛會造成燒傷及潰瘍(Chemical Burns)，慢性皮膚變化則有濕疹或過敏的表現，可以 Patch test 來確定診斷。此外，在鍍鋅過程中所產生的霧氣(Mists)，內含硫酸鋅等酸性氣體也會刺激呼吸道或消化系統，甚至造成牙齒腐蝕 (Dental Erosion)。
+鋅所引起之疾病中，與職業密切相關且最常見情形是在暴露氧化鋅燻煙(Zinc Oxide Fumes)後，造成的金屬燻煙熱(Metal Fume Fever)，其臨床表徵包括吸入後數小時，工作者可能會覺得頭痛，口中有金屬味，緊接著肌肉關節酸痛、疲倦，8~12 小時之後，發燒、畏冷、咳嗽、大量流汗、胸痛等症狀會出現。通常在 24~48 小時之後症狀會完全消失，對於工作者而言，這個情形大多發生在每週剛開始工作的前幾天，逐漸會產生耐受性(Tolerance)。實驗室數據方面會有白血球上升，肺功能之 FEV1 及 FVC 短暫性下降，血清中 LDH 上升，胸部 X 光之表現大部份為正常，少數在肺部中葉有 hazy infiltration。此時實驗病人尿中或血中的鋅濃度則會有上升的情形。治療則以支持性療法即可。
+若是吸入氯化鋅(Zinc Chloride)蒸氣，則可能對呼吸道產生較嚴重的刺激，造成間質性肺炎、肺水腫，甚至呼吸衰竭的情形。
+由上述可知，鋅的中毒通常是急性暴露後產生，故確定的暴露證據(包括工廠內的物質安全資料表)及暴露後症狀發生的時序性，是臨床醫師在鑑別診斷時要特別注意的。
+# 五、暴露證據收集
+> 1. 個人工作史、工作時間、作業名稱、工作環境中之危害物質資料，可作為暴露的參考證據。
+> 2. 生物監測：血清的鋅含量(並無臨床使用的價值)
+> 3. 由於金屬鋅中毒常因意外所致，故 ACGIH 或 OSHA 均未設定工作場所容許濃度，而曾有個案報告指出食入金屬鋅 12g 的 16 歲男孩有一些中樞神經症狀，但並未致死。另有報告指出若誤食 Zinc Sulfate10~30g 則可能有致死的危險性。
+> 4. 關於鋅化合物燻煙或粉塵的容許濃度在 ACGIH 及 OSHA 之規定如下：
+>> Zinc Oxide Fume 5mg/m3 TWA、10 mg/m3 STEL
+>> Zinc Oxide Dust 10mg/m3 TWA
+>> Zinc Chloride Fume 1mg/m3 TWA、2mg/m3 STEL
+>> Zinc Chromate 0.1mg/m3 TWA、0.3mg/m3 STEL
+# 六、結論
+鋅或鋅化合物中毒職業病的認定基準，綜合以上的論述，可以包括下列幾點：
+## 主要基準：
+> 1. 確定的暴露證據：包括職業史、暴露物質的物質安全資料表。
+> 2. 暴露發生在疾病之前的時序性。
+> 3. 大致排除其他病因。
+## 輔助基準：
+> 1. 同一工作場所有其他同仁具有類似症狀。
+> 2. 病人離開原作業環境後症狀改善。
+> 3. 血清中鋅濃度偏高。
+# 七、參考資料
+> 1. ILO. Encyclopaedia of Occupational Health and Safety. 4th edition. 1998
+> 2. Joseph LaDou. Occupational and environmental medicine. 2nd edition. 1997
+> 3. Prasad AS Clinical manifestations of zinc deficiency. Annu Rev Nutr 1985; 5:341-
+> 4. Fraker PJ, Jardieu P, Cook J: Zinc defiency and immune function. Arch Dermatol 1987; 123(12):1699-1701
+> 5. Leonard A, Gerber GB, Leonard F: Mutagenicity, carcinogenicity and teratogenicity of zinc. Mutat Res 1986;168(3):343-53
+> 6. Hjortso E, Qvist J, Bud MI et al: ARDS after accidental inhalation of zinc chloride smoke. Intensive Care Med. 1988; 14(1):17-24
+> 7. Malo JL, Malo J, Cartier A & Dolovich J: Acute lung reaction due to zinc inhalation. Eur Respir J 1990;3(1):111-4
+> 8. Weir DC, Robertson AS, Jones S & Burge PS: Occupational asthma due to soft corrosive soldering fluxes containing zinc chloride and ammonium chloride. 1989;44(3):220-3
+> 9. Ameille J, Brechot JM, Brochard P et al: Occupational hypersensitivity pneumonitis in a smelter exposed to zinc fumes. Chest 1992;101(3):862-3
+> 10. Malo JL, Catier A, Dolovich J: Occupational asthma due to zinc. Eur Respir J 1993;6:447-450
+> 11. Eby GA, Davis DR & Halcomb WW: Reduction in duration of common colds by zinc gluconate lozenges in a double-blind study. Antimicrob Agents Chemother 1984;25:20-24
+> 12. Cowan G: Unusual case of poisoning by zinc sulfate. Br Med J 1947;1:451-2
+> 13. Murphy JV: Intoxication following ingestion of elemental zinc. JAMA 1970;2119-20
+> 14. Moore R: Bleeding gastric erosion after oral zinc sulfate. Br Med J 1978;1:754
+> 15. Simon S, Branda R, Tindle B & Burns S: Copper deficiency and sideroblastic anemia associated with zinc ingestion. Am J Hematol 1988;28:181-3
+> 16. Ramadurai J, Shapiro C, Koaloff M et al: Zinc abuse and sideroblastic anemia. Am J Hematol 1993;42:227-8
+> 17. Patterson WP, Winkelmann M & Perry MC: Zinc-induced copper deficiency: megamineral sideroblastic anemia. Ann Intern Med 1985;103:385-6
+> 18. Broun ER, Greist A, Tricot G et al: Excessive zinc ingestion: a reversible cause of sideroblastic anemia and bone marrow depression. JAMA 1990;264:1441-3
+> 19. Walters M, Roe FJC: A study of the effects of zinc and tin administered orally to mice over a prolonged period. Food and Cosmetics Toxicology 1965;3:271-6
