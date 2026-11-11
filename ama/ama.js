@@ -122,6 +122,8 @@
     return chars.map((char,i)=>char!==' '?char:(i<chars.length-1&&left[i+1]-left[i]>usual*1.6?' ':'')).join('').trim();
   }
   function readableCopy(copy) {
+    // Hyphens left by the book's line breaks stay in the data (saved highlights count them) but never in copied text.
+    copy.querySelectorAll('.ax-soft-break').forEach(n=>n.remove());
     copy.querySelectorAll('.ax-source-run').forEach(run=>{const text=spacedRunText(run);if(text!==null)run.textContent=text;});
     copy.querySelectorAll('h3 strong').forEach(mark=>{if(CHAPTER_MARK.test(mark.textContent))mark.textContent='CHAPTER '+mark.textContent.slice(14).replace(/ /g,'');});
     return copy;
@@ -462,6 +464,7 @@
   function copyChildren(node) { return Array.from(node.childNodes, copyText).join(''); }
   function prepareCopy(root) {
     root.querySelectorAll('button,.ax-page-label').forEach(n=>n.remove());
+    readableCopy(root);
     root.querySelectorAll('svg').forEach(svg=>{
       const labels=document.createElement('div');
       for (const text of svg.querySelectorAll('text')) {const line=document.createElement('p');line.textContent=text.textContent;labels.append(line);}
