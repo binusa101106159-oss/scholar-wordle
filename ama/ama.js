@@ -107,10 +107,40 @@
   }
   function sourcePages(source) { return !source.kind && source.label ? source.label : (source.sourcePages || [source.page]).join('–'); }
   function chapterLabel(chapter) { return chapter.type==='supplement' ? '補充資料' : 'Chapter '+chapter.no; }
+  // The book sets headings in letter-spaced capitals; the source keeps a space glyph between every letter.
+  const CHAPTER_MARK=/^C H A P T E R(?: \d)+$/;
+  function spacedRunText(run) {
+    const glyphs=[...run.children];
+    if(glyphs.length<7||glyphs.some(glyph=>glyph.children.length))return null;
+    const chars=glyphs.map(glyph=>glyph.textContent),left=glyphs.map(glyph=>parseFloat(glyph.style.left));
+    if(left.some(Number.isNaN))return null;
+    const gaps=[];for(let i=0;i<chars.length-1;i++)if(chars[i]===' ')gaps.push(left[i+1]-left[i]);
+    const solid=chars.filter(char=>char!==' ').length;
+    if(gaps.length<3||gaps.length<solid*.6)return null;
+    // Word breaks are the gaps clearly wider than the usual letter spacing.
+    const sorted=[...gaps].sort((a,b)=>a-b),usual=sorted[sorted.length>>1];
+    return chars.map((char,i)=>char!==' '?char:(i<chars.length-1&&left[i+1]-left[i]>usual*1.6?' ':'')).join('').trim();
+  }
+  function readableCopy(copy) {
+    copy.querySelectorAll('.ax-source-run').forEach(run=>{const text=spacedRunText(run);if(text!==null)run.textContent=text;});
+    copy.querySelectorAll('h3 strong').forEach(mark=>{if(CHAPTER_MARK.test(mark.textContent))mark.textContent='CHAPTER '+mark.textContent.slice(14).replace(/ /g,'');});
+    return copy;
+  }
+  function showChapterMarks(root) {
+    // Hide the letter gaps without changing the text length that saved highlights are checked against.
+    root.querySelectorAll('h3 strong').forEach(mark=>{
+      const text=mark.textContent;if(!CHAPTER_MARK.test(text))return;
+      mark.classList.add('ax-chapter-mark');mark.replaceChildren();
+      [...text].forEach((char,i)=>{
+        if(char!==' '||i===13){mark.append(char);return;}
+        const gap=document.createElement('span');gap.className='ax-letter-gap';gap.textContent=' ';mark.append(gap);
+      });
+    });
+  }
   function chapterText(node) {
     const copy = node.cloneNode(true);
     copy.querySelectorAll('button,.ax-page-label').forEach(n => n.remove());
-    return copy.textContent;
+    return readableCopy(copy).textContent;
   }
   function textNodes(root) {
     const walker = document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{
@@ -190,7 +220,7 @@
       if(version!==revision)return false;
       const source=data.pages[i],page=document.createElement('section');page.className='ax-page';page.id='ax-page-'+source.page;page.dataset.page=source.page;
       const label=document.createElement('div');label.className='ax-page-label';label.textContent='原書第 '+sourcePages(source)+' 頁';
-      const body=document.createElement('div');body.className='ax-page-content';body.innerHTML=source.html;
+      const body=document.createElement('div');body.className='ax-page-content';body.innerHTML=source.html;showChapterMarks(body);
       page.append(label,body);fragment.append(page);
       if(i===1 || performance.now()-started>12) {
         container.append(fragment);fragment=document.createDocumentFragment();
@@ -310,6 +340,15 @@
     body.scrollTop=0;
     } catch(_){if(request===objectRevision)by('ax-status').textContent='無法載入圖表，請檢查連線後再試。';}
   }
+  function cleanCaption(title,objectLabel) {
+    // The table number may sit before, after or inside the title, and continued tables repeat it.
+    const label=[...objectLabel.replace(/\s/g,'')].map(char=>/[-–—]/.test(char)?'[-–—]':char.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('\\s*');
+    title=title.replace(new RegExp(label+'(?!\\s*\\d)(?:\\s*\\(\\s*continued\\s*\\))?','gi'),' ')
+      .replace(/\s+/g,' ').trim().replace(/^[a-z] (?=[A-Z])/,'').replace(/ [a-z]$/,'');
+    const words=title.split(' '),half=words.length/2;
+    if(words.length>1&&Number.isInteger(half)&&words.slice(0,half).join(' ')===words.slice(half).join(' '))title=words.slice(0,half).join(' ');
+    return title;
+  }
   function tableCaption(object) {
     if(object.caption!==undefined)return object.caption;
     if (!tableCaptions.has(object.id)) {
@@ -321,10 +360,10 @@
         if (!title) {
           // Positioned headings can follow the grid in DOM order while sitting above it.
           const top=node=>{let y=0;for(let n=node;n&&n!==holder;n=n.parentElement)y+=parseFloat(n.style.top)||0;return y;};
+          readableCopy(holder);
           title=[...holder.querySelectorAll('.ax-source-run')].filter(run=>!run.closest('table')&&top(run)<top(table)-.5).sort((a,b)=>top(a)-top(b)).map(run=>run.textContent).join(' ').replace(/\s+/g,' ').trim();
         }
-        const label=[...object.label.replace(/\s/g,'')].map(char=>char.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('\\s*');
-        title=title.replace(new RegExp('^'+label+'\\s*','i'),'').trim();
+        title=cleanCaption(title,object.label);
       }
       tableCaptions.set(object.id,title.slice(0,180));
     }

@@ -49,6 +49,8 @@
 .ax-page h2 { margin: 1.15em 0 .65em; font-weight: 400; font-size: 1.4em; line-height: 1.4; color: #fff; }
 .ax-page h3 { margin: 1.1em 0 .45em; font: 600 1.05em/1.5 'Roboto',sans-serif; color: #fff; }
 .ax-page sup { font-size: .7em; line-height: 0; }
+.ax-chapter-mark { letter-spacing: .22em; }
+.ax-letter-gap { font-size: 0; letter-spacing: 0; }
 .ax-source-rule { border: 0; height: 1px; background: linear-gradient(90deg,#c7c7c7,transparent); margin: 12px 0; }
 .ax-note { border-left: 2px solid #d4b77b; padding: 4px 18px; margin: 1.3em 0; background: #d4b77b09; }
 .ax-object { background: var(--ax-paper); color: var(--ax-ink); border-radius: 12px; margin: 1.4em 0; padding: 16px; font-family: Arial,sans-serif; font-size: 14px; line-height: 1.5; overflow: hidden; }
