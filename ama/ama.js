@@ -128,6 +128,29 @@
     copy.querySelectorAll('h3 strong').forEach(mark=>{if(CHAPTER_MARK.test(mark.textContent))mark.textContent='CHAPTER '+mark.textContent.slice(14).replace(/ /g,'');});
     return copy;
   }
+  function tableHeadingText(run) {
+    if([...run.children].some(glyph=>[...glyph.textContent].length!==1))return null;
+    const text=spacedRunText(run);
+    if(text===null || !/^TABLE\s+\d/.test(text))return null;
+    return text.replace(/^TABLE\b/,'Table').replace(/\bSENSORY AND MOTOR SEVERITY\b/,'Sensory and Motor Severity');
+  }
+  function showTableHeadings(root) {
+    root.querySelectorAll('.ax-source-run').forEach(run=>{
+      if(run.closest('table'))return;
+      const title=tableHeadingText(run);if(title===null)return;
+      const letters=[...title.replace(/\s/g,'')],boundaries=new Set();let count=0;
+      for(const word of title.split(' ').slice(0,-1)){count+=word.length;boundaries.add(count);}
+      // Keep the original text length so saved highlight offsets remain valid.
+      let at=0,lastBoundary=-1;
+      for(const glyph of run.children) {
+        if(glyph.textContent===' ') {
+          const wordGap=boundaries.has(at)&&lastBoundary!==at;
+          glyph.classList.toggle('ax-letter-gap',!wordGap);if(wordGap)lastBoundary=at;
+        } else glyph.textContent=letters[at++];
+      }
+      run.classList.add('ax-readable-heading');
+    });
+  }
   function showChapterMarks(root) {
     // Hide the letter gaps without changing the text length that saved highlights are checked against.
     root.querySelectorAll('h3 strong').forEach(mark=>{
@@ -222,7 +245,7 @@
       if(version!==revision)return false;
       const source=data.pages[i],page=document.createElement('section');page.className='ax-page';page.id='ax-page-'+source.page;page.dataset.page=source.page;
       const label=document.createElement('div');label.className='ax-page-label';label.textContent='原書第 '+sourcePages(source)+' 頁';
-      const body=document.createElement('div');body.className='ax-page-content';body.innerHTML=source.html;showChapterMarks(body);
+      const body=document.createElement('div');body.className='ax-page-content';body.innerHTML=source.html;showChapterMarks(body);showTableHeadings(body);
       page.append(label,body);fragment.append(page);
       if(i===1 || performance.now()-started>12) {
         container.append(fragment);fragment=document.createDocumentFragment();
@@ -326,7 +349,7 @@
     }
     by('ax-dialog-title').textContent=object.label+' · 原書第 '+sourcePages(object)+' 頁';
     const body=by('ax-dialog-body'),reuse=body.dataset.chapter===chapter&&body.dataset.object===id&&body.childElementCount>0;
-    if(!reuse)body.innerHTML=object.html;body.dataset.chapter=chapter;body.dataset.object=id;
+    if(!reuse){body.innerHTML=object.html;showTableHeadings(body);}body.dataset.chapter=chapter;body.dataset.object=id;
     const tables=data.attachments.filter(item=>item.kind==='table'),index=tables.findIndex(item=>item.id===id);
     by('ax-table-nav').hidden=index<0;
     by('ax-table-prev').disabled=index<=0;by('ax-table-next').disabled=index<0||index===tables.length-1;
@@ -349,10 +372,10 @@
       .replace(/\s+/g,' ').trim().replace(/^[a-z] (?=[A-Z])/,'').replace(/ [a-z]$/,'');
     const words=title.split(' '),half=words.length/2;
     if(words.length>1&&Number.isInteger(half)&&words.slice(0,half).join(' ')===words.slice(half).join(' '))title=words.slice(0,half).join(' ');
-    return title;
+    return title.replace(/^SENSORY AND MOTOR SEVERITY$/,'Sensory and Motor Severity');
   }
   function tableCaption(object) {
-    if(object.caption!==undefined)return object.caption;
+    if(object.caption!==undefined)return cleanCaption(object.caption,object.label);
     if (!tableCaptions.has(object.id)) {
       const holder=document.createElement('div');holder.innerHTML=object.html;
       const table=holder.querySelector('table');let title='';
@@ -640,3 +663,4 @@
   });
   window.ScholarAMA={show};
 })();
+

@@ -170,6 +170,8 @@
 .ax-source-table td { padding:0!important; border:0!important; overflow:visible; }
 .ax-source-run { position:absolute; white-space:pre; line-height:1; }
 .ax-source-run > span { position:absolute; top:0; }
+.ax-source-run.ax-readable-heading{letter-spacing:normal;white-space:nowrap}
+.ax-source-run.ax-readable-heading>span{position:static}
 .ax-source-grid > svg { position:absolute; inset:0; width:100%; height:100%; }
 .ax-source-object .ax-table-wrap { margin:0; }
 /* Override the site's regular-weight Roboto rule only within source cells. */
@@ -280,3 +282,4 @@
 @media print { .ax-dialog-body .ax-source-object { content-visibility:visible; } }
 
 #ama-panel .ax-head{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}#ama-panel .ax-head .ax-sr{margin:0;padding:0}#ama-panel .ax-table-shortcuts{margin:0 0 12px}
+
