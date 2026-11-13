@@ -5,7 +5,7 @@
  const termsFor=q=>[...new Set(String(q).normalize('NFKC').toLowerCase().split(/\s+/).filter(Boolean))];
  function makeIndex(laws,corpus){
   const metas=new Map(laws.map((l,i)=>[l.id,{...l,order:i}])),out=[];
-  for(const law of metas.values())out.push({law:law.id,meta:law,kind:'law',where:'法規全文',text:'',norm:'',hay:fold(law.name)});
+  for(const law of metas.values())out.push({law:law.id,meta:law,kind:'law',where:law.guide?'指引全文':'法規全文',text:'',norm:'',hay:fold(law.name)});
   for(const d of corpus){const meta=metas.get(d.law);if(!meta)continue;const title=d.annex?meta.annexes.find(a=>a.id===d.annex)?.title||'':'';
    out.push({...d,meta,kind:d.annex?'annex':'article',title,hay:fold(meta.name+' '+d.where+' '+title+' '+d.norm)});
   }
@@ -39,7 +39,7 @@
    promise=(async()=>{await api.ready();const docs=await api.corpus();index=makeIndex(api.catalog(),docs);return index;})().catch(e=>{promise=null;throw e;});return promise;
   }
   function excerpt(hit,terms){
-   if(hit.kind==='law')return hit.meta.articles+'條條文'+(hit.meta.annexes.length?' · '+hit.meta.annexes.length+'個附表':'');
+   if(hit.kind==='law')return (hit.meta.guide?hit.meta.pages+'頁 · 認定參考指引':hit.meta.articles+'條條文')+(hit.meta.annexes.length?' · '+hit.meta.annexes.length+'個附表':'');
    const offsets=terms.map(t=>hit.norm.indexOf(t)).filter(n=>n>=0),target=offsets.length?Math.min(...offsets):0;let at=0,offset=0;
    while(at<hit.text.length&&offset<target){offset+=hit.text[at].normalize('NFKC').toLowerCase().length;at++;}
    const start=Math.max(0,at-28),end=Math.min(hit.text.length,at+125),piece=hit.text.slice(start,end).replace(/\s+/g,' ');
@@ -61,7 +61,7 @@
   function renderResults(){
    const terms=termsFor(committed),start=page*20,end=Math.min(start+20,results.length),pages=Math.ceil(results.length/20);
    let html='<div class="lx-results-head"><h1>搜尋結果</h1><p>「'+esc(committed)+'」 · 全部法規 · 共'+results.length+'筆'+(results.length?' · '+(start+1)+'–'+end:'')+'</p></div>';
-   html+=results.slice(start,end).map((hit,i)=>'<section class="lx-result"><p class="lx-result-path">'+esc(hit.meta.tier)+' › '+(hit.kind==='law'?'法規全文':hit.kind==='annex'?'附表':'條文')+'</p><h2><button type="button" data-result="'+(start+i)+'">'+heading(hit,terms)+'</button></h2><p class="lx-result-snippet">'+excerpt(hit,terms)+'</p></section>').join('');
+   html+=results.slice(start,end).map((hit,i)=>'<section class="lx-result"><p class="lx-result-path">'+esc(hit.meta.tier)+' › '+(hit.meta.guide?(hit.kind==='law'?'指引全文':'指引內文'):hit.kind==='law'?'法規全文':hit.kind==='annex'?'附表':'條文')+'</p><h2><button type="button" data-result="'+(start+i)+'">'+heading(hit,terms)+'</button></h2><p class="lx-result-snippet">'+excerpt(hit,terms)+'</p></section>').join('');
    if(!results.length)html+='<p class="lx-results-empty">找不到符合的法規、條文或附表。可試試較短的關鍵字，或用空格分開多個詞。</p>';
    if(pages>1)html+='<nav class="lx-results-pages" aria-label="搜尋結果分頁"><button type="button" data-result-page="'+(page-1)+'"'+(!page?' disabled':'')+'>上一頁</button><span>第'+(page+1)+'／'+pages+'頁</span><button type="button" data-result-page="'+(page+1)+'"'+(page+1===pages?' disabled':'')+'>下一頁</button></nav>';
    pane.innerHTML=html;scroll.scrollTop=0;document.title=committed+' · 法規搜尋';
@@ -88,3 +88,4 @@
  }
  root.ScholarLawSearch={mount,close:()=>closePage(),active:()=>visible,show:()=>refreshTitle()};
 })(typeof window==='undefined'?globalThis:window);
+

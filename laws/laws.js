@@ -1,6 +1,24 @@
 /* 法規 tab: native reader for the study-list laws and their 附表. Data lives in laws/*.json. */
 (() => {
   'use strict';
+  // Share the published guide data; reference documents do not become numbered law articles.
+  function adaptGuide(guide, meta) {
+    return {id:meta.id,name:meta.name,date:'',status:'',annexes:[],
+      notes:[...guide.cover,guide.credit],guidePages:guide.pages,kind:'guide',
+      items:guide.blocks.map((block,k)=>block.t==='h'
+        ? {t:'ch',text:block.text,lv:block.lv,no:String(k+1)}
+        : {t:'block',no:String(k+1),block})};
+  }
+  function guideCorpus(data){
+    let section='';
+    return data.items.map(it=>{
+      if(it.t==='ch')section=it.text;
+      const text=it.t==='ch'?it.text:annexText([it.block]);
+      return {law:data.id,art:it.no,where:section,text,norm:text.normalize('NFKC').toLowerCase()};
+    });
+  }
+  if(typeof document==='undefined') { if(typeof module==='object')module.exports={adaptGuide,guideCorpus};return; }
+
   const BASE = 'laws/';
   const STORE = 'scholar-laws-v1';
   const CHECK_STORE = 'scholar-laws-checked-v1', checkedArticles = new Map();
@@ -94,7 +112,12 @@
     if (!map.has(key)) map.set(key, fetchJSON(path).catch(err => { map.delete(key); throw err; }));
     return map.get(key);
   }
-  const getText = id => cached(state.texts, id, 'text/' + id + '.json');
+  function getText(id) {
+    const meta=state.byId.get(id);
+    if(!meta?.guide)return cached(state.texts,id,'text/'+id+'.json');
+    if(!state.texts.has(id))state.texts.set(id,fetchJSON('../guides/text/'+meta.guide+'.json').then(data=>adaptGuide(data,meta)).catch(err=>{state.texts.delete(id);throw err;}));
+    return state.texts.get(id);
+  }
   const getAnnex = id => cached(state.annexes, id, 'annex/' + id + '.json');
 
   /* ── text search helpers: NFKC + lower-case, mapped back to original positions ── */
@@ -361,6 +384,7 @@
       closeDrawer(Boolean(event.target.closest('[data-game-tab]')));
     });
     by('lx-doc').addEventListener('click', e => {
+      if(e.target.closest('[data-guide-scan]')){state.scanView=!state.scanView;renderDoc(state.current,false);by('lx-scroll').scrollTop=0;return;}
       const ref = e.target.closest('[data-annex]');
       if (ref) { e.preventDefault(); openAnnex(ref.dataset.annex); }
     });
@@ -452,7 +476,7 @@
     const tier = terms ? state.index.tiers.find(t => t.id === l.tier) : null;
     return '<button type="button" class="lx-law" data-law="' + l.id + '"' + (state.current && state.current.id === l.id ? ' aria-current="true"' : '') + '>' +
       '<span class="lx-law-no">' + n + '</span><span>' + (terms ? rich(l.name, null, terms) : esc(l.name)) + '</span>' +
-      '<span class="lx-law-meta">' + (tier ? esc([tier.id, tier.name].filter(Boolean).join(' ')) + ' · ' : '') + l.articles + ' 條' + (annexN ? ' · ' + annexN + ' 個附表' : '') + '</span></button>';
+      '<span class="lx-law-meta">' + (tier ? esc([tier.id, tier.name].filter(Boolean).join(' ')) + ' · ' : '') + (l.guide ? l.pages+' 頁 · 認定參考指引' : l.articles+' 條') + (annexN ? ' · ' + annexN + ' 個附表' : '') + '</span></button>';
   }
   /* title search: every term in the law's name */
   function titleHits(terms) {
@@ -474,7 +498,8 @@
     if (!state.query) {
       list.innerHTML = idx.tiers.map(t => {
         const laws = idx.laws.filter(l => l.tier === t.id);
-        const count = t.total && t.total > laws.length ? laws.length + ' / ' + t.total + ' 部' : laws.length + ' 部';
+        const unit=t.id==='職業病認定指引'?' 份':' 部';
+        const count = t.total && t.total > laws.length ? laws.length + ' / ' + t.total + unit : laws.length + unit;
         const open = tierOpen(t.id);
         return '<button type="button" class="lx-tier" data-tier="' + t.id + '" aria-expanded="' + open + '" aria-controls="lx-tier-' + t.id + '">' +
           '<span class="lx-tier-name">' + icon.right + '<b>' + t.id + '</b>' + esc(t.name) + '</span><span>' + count + '</span></button>' +
@@ -531,6 +556,7 @@
       const docs = [];
       await Promise.all(state.index.laws.map(async law => {
         const data = await getText(law.id);
+        if(data.kind==='guide'){docs.push(...guideCorpus(data));return;}
         data.items.forEach(it => {
           if (it.t !== 'art') return;
           const text = it.paras.map(p => p.lines.map(lineText).join('\n')).join('\n');
@@ -598,6 +624,7 @@
       let data;
       try { data = await getText(id); }
       catch (_) { by('lx-doc').innerHTML = '<p class="lx-loading">無法載入這部法規。請確認網路連線後再試一次。</p>'; return; }
+      state.scanView=false;
       state.current = Object.assign({}, data, { meta });
       setPrefs({ law: id });
       if (!opts.boot && !tierOpen(meta.tier)) setPrefs({ open: Object.assign({}, prefs().open, { [meta.tier]: true }) });
@@ -644,22 +671,28 @@
     const tierInfo = state.index.tiers.find(t => t.id === meta.tier) || {};
     let html = '<div class="lx-head sg-glass"><p class="sg-eyebrow">' + [meta.tier, esc(tierInfo.name || TIER_NAMES[meta.tier] || ''), (meta.no || tierLaws.indexOf(meta) + 1) + ' / ' + (tierInfo.total || tierLaws.length)].filter(Boolean).join(' · ') + '</p>' +
       '<h1 class="lx-title">' + rich(meta.name, null, terms) + '</h1>' +
-      '<p class="lx-meta">' + (law.date ? '<span>' + esc(law.dateLabel) + ' ' + esc(law.date) + '</span>' : '') + '<span>' + meta.articles + ' 條</span></p>' +
+      '<p class="lx-meta">' + (law.date ? '<span>' + esc(law.dateLabel) + ' ' + esc(law.date) + '</span>' : '') + '<span>' + (meta.guide ? meta.pages+' 頁 · 認定參考指引' : meta.articles+' 條') + '</span></p>' +
       (law.status ? '<p class="lx-status">' + esc(law.status) + '</p>' : '') +
       law.notes.map((n, i) => '<p class="lx-note">' + rich(n, (law.notesLinks || [])[i], terms) + '</p>').join('');
     if (law.annexes.length) {
       html += '<div class="lx-chips">' + law.annexes.map(a => '<button type="button" class="lx-chip" data-annex="' + a.id + '">' + esc(a.label) + (a.title ? '<span>' + esc(a.title) + '</span>' : '') + '</button>').join('') + '</div>';
     }
+    if(meta.guide)html+='<button type="button" class="sg-btn" data-guide-scan>'+ (state.scanView?'文字版':'原頁掃描')+'</button>';
     html += '</div>';
     const chapters = [];
-    law.items.forEach((it, k) => {
+    if(meta.guide&&state.scanView)html+=law.guidePages.map(page=>page.img.map(im=>'<p><img src="guides/attach/img/'+esc(im.src)+'" alt="原頁影像" loading="lazy" style="display:block;max-width:100%;height:auto;margin:auto"></p>').join('')).join('');
+    if(!meta.guide||!state.scanView)law.items.forEach((it, k) => {
       if (it.t === 'ch') {
         const kind = (it.text.match(/^第\s*\S+?\s*([編章節款目])/) || [])[1];
-        const level = kind === '節' ? 2 : kind === '款' || kind === '目' ? 3 : 1;
-        const hid = 'lx-ch-' + law.id + '-' + k;
+        const level = it.lv || (kind === '節' ? 2 : kind === '款' || kind === '目' ? 3 : 1);
+        const hid = meta.guide?'lx-a-'+law.id+'-'+it.no:'lx-ch-' + law.id + '-' + k;
         chapters.push({ id: hid, text: it.text, level });
         html += '<h2 class="lx-ch lx-ch-' + level + '" id="' + hid + '">' + rich(it.text, null, terms) + '</h2>';
         return;
+      }
+      if(it.t==='block'){
+        const b=it.block,style=b.ind?' style="padding-left:'+b.ind+'em;text-indent:'+(b.hang||0)+'em"':'';
+        html+='<div id="lx-a-'+law.id+'-'+it.no+'"'+style+'>'+blocksHTML([b],terms,false)+'</div>';return;
       }
       html += articleHTML(law, it, terms);
     });
@@ -669,8 +702,9 @@
     sel.hidden = !chapters.length;
     sel.innerHTML = '<option value="">章節</option>' + chapters.map(c => '<option value="' + c.id + '">' + '　'.repeat(c.level - 1) + esc(c.text.replace(/\s+/g, ' ')) + '</option>').join('');
     by('lx-jump').value = '';
+    by('lx-jump').closest('label').hidden=Boolean(meta.guide);
     updateCheckedControls();
-    paintMarks();
+    if(!meta.guide||!state.scanView)paintMarks();
     if (keepScroll) { sc.style.scrollBehavior = 'auto'; sc.scrollTop = top; sc.style.scrollBehavior = ''; }
     document.title = meta.name + ' · Scholar';
     if (!by('lx-panel').hidden && panelTab === 'marks') renderPanel();
@@ -1063,3 +1097,4 @@
   window.ScholarSync.subscribe(key=>{if(!state.current)return;if(key===READ_STORE||key===STORE){const next=JSON.stringify(style());if(next!==cloudStyle){cloudStyle=next;applyStyle();}}if(key===HL_STORE)paintMarks();});
   window.ScholarLaws = { show };
 })();
+
