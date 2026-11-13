@@ -128,16 +128,17 @@
     copy.querySelectorAll('h3 strong').forEach(mark=>{if(CHAPTER_MARK.test(mark.textContent))mark.textContent='CHAPTER '+mark.textContent.slice(14).replace(/ /g,'');});
     return copy;
   }
-  function tableHeadingText(run) {
+  function sourceHeadingText(run) {
     if([...run.children].some(glyph=>[...glyph.textContent].length!==1))return null;
     const text=spacedRunText(run);
-    if(text===null || !/^TABLE\s+\d/.test(text))return null;
-    return text.replace(/^TABLE\b/,'Table').replace(/\bSENSORY AND MOTOR SEVERITY\b/,'Sensory and Motor Severity');
+    if(text===null || !/^(?:TABLE|FIGURE)\s+\d/i.test(text))return null;
+    return text.replace(/^(?:TABLE|FIGURE)\b/i,label=>label[0].toUpperCase()+label.slice(1).toLowerCase())
+      .replace(/\bCONTINUED\b/g,'continued').replace(/\bSENSORY AND MOTOR SEVERITY\b/,'Sensory and Motor Severity');
   }
-  function showTableHeadings(root) {
+  function showSourceHeadings(root) {
     root.querySelectorAll('.ax-source-run').forEach(run=>{
       if(run.closest('table'))return;
-      const title=tableHeadingText(run);if(title===null)return;
+      const title=sourceHeadingText(run);if(title===null)return;
       const letters=[...title.replace(/\s/g,'')],boundaries=new Set();let count=0;
       for(const word of title.split(' ').slice(0,-1)){count+=word.length;boundaries.add(count);}
       // Keep the original text length so saved highlight offsets remain valid.
@@ -245,7 +246,7 @@
       if(version!==revision)return false;
       const source=data.pages[i],page=document.createElement('section');page.className='ax-page';page.id='ax-page-'+source.page;page.dataset.page=source.page;
       const label=document.createElement('div');label.className='ax-page-label';label.textContent='原書第 '+sourcePages(source)+' 頁';
-      const body=document.createElement('div');body.className='ax-page-content';body.innerHTML=source.html;showChapterMarks(body);showTableHeadings(body);
+      const body=document.createElement('div');body.className='ax-page-content';body.innerHTML=source.html;showChapterMarks(body);showSourceHeadings(body);
       page.append(label,body);fragment.append(page);
       if(i===1 || performance.now()-started>12) {
         container.append(fragment);fragment=document.createDocumentFragment();
@@ -349,7 +350,7 @@
     }
     by('ax-dialog-title').textContent=object.label+' · 原書第 '+sourcePages(object)+' 頁';
     const body=by('ax-dialog-body'),reuse=body.dataset.chapter===chapter&&body.dataset.object===id&&body.childElementCount>0;
-    if(!reuse){body.innerHTML=object.html;showTableHeadings(body);}body.dataset.chapter=chapter;body.dataset.object=id;
+    if(!reuse){body.innerHTML=object.html;showSourceHeadings(body);}body.dataset.chapter=chapter;body.dataset.object=id;
     const tables=data.attachments.filter(item=>item.kind==='table'),index=tables.findIndex(item=>item.id===id);
     by('ax-table-nav').hidden=index<0;
     by('ax-table-prev').disabled=index<=0;by('ax-table-next').disabled=index<0||index===tables.length-1;
