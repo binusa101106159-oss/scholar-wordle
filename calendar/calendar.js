@@ -45,6 +45,7 @@
       const data = JSON.parse(window.ScholarStorage.getItem('scholar-cases-v1') || '{"version":1,"records":[]}');
       if (data.version !== 1 || !Array.isArray(data.records)) throw Error('Invalid cases');
       for (const row of data.records) {
+        if (row.archived === true) continue;
         if (!row.followup?.trim()) continue;
         const date = window.ScholarCalculator.followupDate(row.followup);
         if (!date) { result.missing++; continue; }
@@ -320,3 +321,4 @@
   function hide() { if(!mounted)return;closeDayDetails();if(by('cal-dialog').open&&!saving)by('cal-dialog').close(); }
   window.ScholarCalendar = {show, hide};
 })();
+

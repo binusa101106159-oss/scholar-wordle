@@ -11,10 +11,21 @@
   const weekdayFor = typeof module === 'object' && module.exports
     ? require('../calculator/calculator.js').followupWeekday
     : raw => window.ScholarCalculator.followupWeekday(raw);
+  const dateFor = typeof module === 'object' && module.exports
+    ? require('../calculator/calculator.js').followupDate
+    : raw => window.ScholarCalculator.followupDate(raw);
+  function followupPreview(raw) {
+    const date = dateFor(raw);
+    if (!date) return '';
+    const [year, month, day] = date.split('-'), rocYear = Number(year) - 1911;
+    const roc = rocYear > 0 ? '民國 ' + rocYear : '民國前 ' + (1 - rocYear);
+    return '西元 ' + [year, month, day].join('/') + '（' + weekdayFor(raw) + '） · ' + roc + '/' + month + '/' + day;
+  }
   function followupText(row) {
     const raw = row.followup || '', label = periodLabels[row.followupPeriod], weekday = weekdayFor(raw);
     let text = label ? raw.replace(/上午|下午|\bAM\b|\bPM\b/gi, '').trim() : raw;
     if (weekday) {
+      text = text.replace(/^(\s*(?:民國\s*)?)([\d０-９]{3,4})([\d０-９]{2})([\d０-９]{2})(?:日|號)?/, '$1$2/$3/$4');
       const prefix = text.match(/^\s*(?:民國\s*)?[\d０-９]{3,4}\s*(?:年|[.／/－-])\s*[\d０-９]{1,2}\s*(?:月|[.／/－-])\s*[\d０-９]{1,2}(?:日|號)?/);
       if (prefix) {
         const rest = text.slice(prefix[0].length).replace(/^\s*[（(](?:星期|週|周)?[一二三四五六日天][）)]/, '');
@@ -32,6 +43,7 @@
       if (!row || typeof row.id !== 'string' || !row.id || ids.has(row.id) ||
           fields.some(([key]) => typeof row[key] !== 'string' && !(key === 'vs' && row[key] === undefined))) throw new Error('Invalid record');
       if (row.followupPeriod !== undefined && !['', 'AM', 'PM'].includes(row.followupPeriod)) throw new Error('Invalid follow-up period');
+      if (row.archived !== undefined && typeof row.archived !== 'boolean') throw new Error('Invalid archive status');
       ids.add(row.id);
     }
     const rows = data.records.map(row => row.vs === undefined ? { ...row, vs: '' } : row);
@@ -62,10 +74,17 @@
       return terms.every(term => haystack.includes(term));
     });
   }
-  if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords, moveRecord, followupText };
+  function recordsForView(records, archived = false) {
+    return records.filter(row => (row.archived === true) === archived);
+  }
+  function setArchived(records, id, archived) {
+    if (!records.some(row => row.id === id)) throw Error('此個案已在其他裝置刪除，未重新建立。');
+    return records.map(row => row.id === id ? { ...row, archived } : row);
+  }
+  if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords, moveRecord, followupText, followupPreview, recordsForView, setArchived };
   if (typeof document === 'undefined') return;
   const by = id => document.getElementById(id);
-  let booted = false, records = [], editing = null, editingBase = null, deleting = null, saving = false, readable = true, sorting = false, drag = null;
+  let booted = false, records = [], editing = null, editingBase = null, deleting = null, saving = false, readable = true, sorting = false, drag = null, archivedView = false, archiving = false;
   const read = () => parseRecords(window.ScholarStorage.getItem(STORE));
   function announce(message, error = false) {
     by('ct-status').textContent = message;
@@ -89,17 +108,25 @@
     records = next; render();
   }
   function render() {
-    const shown = filterRecords(records, by('ct-search').value);
+    by('ct-add').disabled = !readable || archiving;
+    const rows = recordsForView(records, archivedView), shown = filterRecords(rows, by('ct-search').value);
+    for (const [id, archived] of [['active', false], ['archive', true]]) {
+      const button = by('ct-tab-' + id), selected = archivedView === archived;
+      button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected ? 0 : -1;
+      button.disabled = sorting || archiving;
+      by('ct-' + id + '-count').textContent = recordsForView(records, archived).length;
+    }
+    by('ct-list').setAttribute('aria-labelledby', archivedView ? 'ct-tab-archive' : 'ct-tab-active');
     const body = by('ct-rows'); body.replaceChildren();
-    by('ct-count').textContent = shown.length === records.length ? records.length + ' 筆個案' : shown.length + ' / ' + records.length + ' 筆個案';
+    by('ct-count').textContent = shown.length === rows.length ? rows.length + ' 筆個案' : shown.length + ' / ' + rows.length + ' 筆個案';
     by('ct-table-wrap').hidden = !shown.length;
     by('ct-empty').hidden = Boolean(shown.length);
-    by('ct-empty').textContent = readable ? (records.length ? '找不到符合的個案。' : '尚無個案，按「新增個案」開始。') : '';
+    by('ct-empty').textContent = readable ? (rows.length ? '找不到符合的個案。' : archivedView ? '尚無結案個案。' : '尚無追蹤中的個案，按「新增個案」開始。') : '';
     for (const row of shown) {
       const tr = document.createElement('tr'); tr.dataset.id = row.id;
       const gripCell = document.createElement('td'); gripCell.className = 'ct-grip-cell';
       const grip = document.createElement('button'); grip.type = 'button'; grip.className = 'ct-grip';
-      grip.dataset.id = row.id; grip.textContent = '⠿'; grip.disabled = !readable || sorting;
+      grip.dataset.id = row.id; grip.textContent = '⠿'; grip.disabled = !readable || sorting || archiving;
       grip.title = '拖曳調整順序，或按上下方向鍵'; grip.setAttribute('aria-label', '調整' + row.name + '的順序');
       gripCell.append(grip); tr.append(gripCell);
       for (const [key, label] of fields) {
@@ -113,14 +140,29 @@
         tr.append(td);
       }
       const actions = document.createElement('td'); actions.className = 'ct-actions'; actions.dataset.label = '操作';
-      for (const [action, label] of [['edit', '編輯'], ['delete', '刪除']]) {
+      for (const [action, label] of [['edit', '編輯'], archivedView ? ['restore', '恢復追蹤'] : ['archive', '結案'], ['delete', '刪除']]) {
         const button = document.createElement('button');
         button.type = 'button'; button.className = 'sg-btn'; button.dataset.action = action; button.dataset.id = row.id;
-        button.textContent = label; button.disabled = !readable;
+        button.textContent = label; button.disabled = !readable || archiving;
         button.setAttribute('aria-label', label + row.name + '的個案'); actions.append(button);
       }
       tr.append(actions); body.append(tr);
     }
+  }
+  function selectView(archived, focus = false) {
+    if (sorting || archiving || drag) return;
+    archivedView = archived; render();
+    if (focus) by(archived ? 'ct-tab-archive' : 'ct-tab-active').focus();
+  }
+  async function archiveRecord(id, archived) {
+    if (saving || sorting || archiving || !readable) return;
+    archiving = true; render();
+    try {
+      await commit(setArchived(read(), id, archived));
+      announce(archived ? '已結案並移至 Archive。' : '已恢復追蹤。');
+    } catch (error) {
+      announce((archived ? '結案' : '恢復追蹤') + '未儲存成功，請重試。' + error.message, true);
+    } finally { archiving = false; render(); }
   }
   async function saveOrder(id, target, after) {
     if (sorting || !readable) return;
@@ -139,7 +181,7 @@
       const grip = event.target.closest('.ct-grip');
       if (!grip || !['ArrowUp','ArrowDown'].includes(event.key) || sorting || landing || drag) return;
       event.preventDefault();
-      const shown = filterRecords(records, by('ct-search').value), at = shown.findIndex(row=>row.id===grip.dataset.id);
+      const shown = filterRecords(recordsForView(records, archivedView), by('ct-search').value), at = shown.findIndex(row=>row.id===grip.dataset.id);
       const target = shown[at + (event.key === 'ArrowUp' ? -1 : 1)];
       if (target) saveOrder(grip.dataset.id, target.id, event.key==='ArrowDown').then(()=>{
         [...body.querySelectorAll('.ct-grip')].find(el=>el.dataset.id===grip.dataset.id)?.focus();
@@ -246,8 +288,11 @@
     by('ct-name').focus({ preventScroll: true });
   }
   function updateWeekday() {
-    const weekday = weekdayFor(by('ct-followup').value);
+    const raw = by('ct-followup').value, weekday = weekdayFor(raw);
     by('ct-followup-weekday').textContent = weekday ? '（' + weekday + '）' : '';
+    const preview = by('ct-followup-preview');
+    preview.textContent = followupPreview(raw);
+    preview.hidden = !preview.textContent;
   }
   async function closeEditor() {
     if (saving) return;
@@ -263,11 +308,13 @@
           <div class="ct-tools"><input id="ct-search" type="search" aria-label="搜尋個案" placeholder="搜尋姓名、病歷號、VS、回診目的、診斷或備註" autocomplete="off"><span id="ct-count"></span></div>
           <button class="sg-btn sg-primary" id="ct-add" type="button">＋ 新增個案</button>
           <p>登入後儲存至私人雲端，其他裝置使用同一帳號即可接續。儲存成功前請勿關閉此頁。</p></header>
+        <div class="ct-tabs" role="tablist" aria-label="個案狀態"><button id="ct-tab-active" type="button" role="tab" aria-controls="ct-list" aria-selected="true">追蹤中 <span id="ct-active-count">0</span></button><button id="ct-tab-archive" type="button" role="tab" aria-controls="ct-list" aria-selected="false" tabindex="-1">Archive（結案） <span id="ct-archive-count">0</span></button></div>
         <p id="ct-status" class="ct-status" role="status" aria-live="polite"></p>
+        <section id="ct-list" role="tabpanel" aria-labelledby="ct-tab-active">
         <p id="ct-empty" class="ct-empty"></p>
         <div class="ct-table-wrap" id="ct-table-wrap" hidden><table class="ct-table"><caption class="ct-sr">個案追蹤清單</caption><thead><tr>
           <th scope="col"><span class="ct-sr">排序</span></th>${fields.map(([, label]) => '<th scope="col">' + label + '</th>').join('')}<th scope="col">操作</th>
-        </tr></thead><tbody id="ct-rows"></tbody></table></div>
+        </tr></thead><tbody id="ct-rows"></tbody></table></div></section>
       </div>
       <dialog id="ct-editor" class="ct-dialog" aria-labelledby="ct-editor-title">
         <div class="ct-dialog-head"><h2 id="ct-editor-title">新增個案</h2><button type="button" class="sg-btn" id="ct-editor-close" aria-label="關閉">關閉</button></div>
@@ -275,8 +322,9 @@
           <label>姓名 <span class="ct-required">*</span><input id="ct-name" name="name" required maxlength="120" autocomplete="off"></label>
           <label>病歷號<input id="ct-mrn" name="mrn" maxlength="80" autocomplete="off" spellcheck="false"></label>
           <label>VS<input id="ct-vs" name="vs" maxlength="120" autocomplete="off"></label>
-          <div class="ct-full ct-followup-fields"><label>回診日期 <span id="ct-followup-weekday" aria-live="polite"></span><input id="ct-followup" name="followup" placeholder="例如 2026/11/18" maxlength="120" autocomplete="off"></label>
-            <label>回診時段 <span id="ct-period-required" class="ct-required">*</span><select id="ct-followupPeriod" name="followupPeriod" required><option value="">請選擇</option><option value="AM">上午 AM</option><option value="PM">下午 PM</option></select></label></div>
+          <div class="ct-full ct-followup-fields"><label>回診日期 <span id="ct-followup-weekday"></span><input id="ct-followup" name="followup" placeholder="20261113 或 1151113" aria-describedby="ct-followup-hint ct-followup-preview" maxlength="120" autocomplete="off"></label>
+            <label>回診時段 <span id="ct-period-required" class="ct-required">*</span><select id="ct-followupPeriod" name="followupPeriod" required><option value="">請選擇</option><option value="AM">上午 AM</option><option value="PM">下午 PM</option></select></label>
+            <div class="ct-full ct-date-help"><p id="ct-followup-hint">西元 8 碼（YYYYMMDD）／民國 7 碼（YYYMMDD），也可使用 / 分隔。</p><p id="ct-followup-preview" aria-live="polite" hidden></p></div></div>
           <label class="ct-full">回診目的<textarea id="ct-purpose" name="purpose" rows="2" maxlength="500"></textarea></label>
           <label class="ct-full">診斷<textarea id="ct-diagnosis" name="diagnosis" rows="2" maxlength="4000"></textarea></label>
           <label class="ct-full">備註<textarea id="ct-notes" name="notes" rows="3" maxlength="8000"></textarea></label>
@@ -286,7 +334,14 @@
       <dialog id="ct-delete" class="ct-dialog ct-confirm" aria-labelledby="ct-delete-title"><h2 id="ct-delete-title">刪除此個案？</h2><p>刪除後無法復原。</p>
         <p id="ct-delete-error" class="ct-error" role="alert"></p><div class="ct-form-actions"><button class="sg-btn" type="button" id="ct-delete-cancel">取消</button><button class="sg-btn ct-danger" type="button" id="ct-delete-confirm">刪除</button></div></dialog>`;
     setupReorder();
-    by('ct-add').addEventListener('click', () => edit());
+    by('ct-add').addEventListener('click', () => { if (archiving) return; selectView(false); edit(); });
+    for (const [id, archived] of [['active', false], ['archive', true]]) {
+      by('ct-tab-' + id).addEventListener('click', () => selectView(archived));
+      by('ct-tab-' + id).addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault(); selectView(event.key === 'Home' ? false : event.key === 'End' ? true : !archivedView, true);
+      });
+    }
     by('ct-search').addEventListener('input', render);
     by('ct-followup').addEventListener('input', updateWeekday);
     by('ct-editor-close').addEventListener('click', closeEditor); by('ct-cancel').addEventListener('click', closeEditor);
@@ -299,6 +354,7 @@
         try { await navigator.clipboard.writeText(row.mrn); announce('病歷號已複製。'); }
         catch (_) { announce('無法複製病歷號，請允許剪貼簿存取後再試。', true); }
       } else if (button.dataset.action === 'edit') edit(button.dataset.id);
+      else if (['archive', 'restore'].includes(button.dataset.action)) await archiveRecord(button.dataset.id, button.dataset.action === 'archive');
       else {
         deleting = button.dataset.id; by('ct-delete-error').textContent = '';
         const row = records.find(item => item.id === deleting);
@@ -353,3 +409,4 @@
   }
   window.ScholarCases = { show, hide, followupText };
 })();
+

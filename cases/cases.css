@@ -1,5 +1,6 @@
 body[data-game="cases"] #game-main,body[data-game="cases"] #wordle-toolbar{display:none!important}
 #cases-panel{color:#edf2f8;font-family:system-ui,'Noto Sans TC','Microsoft JhengHei',sans-serif}
+.ct-tabs{display:flex;gap:8px;margin:18px 0;flex-wrap:wrap}.ct-tabs button{display:inline-flex;align-items:center;gap:8px;border:1px solid #d2e4ff26;border-radius:999px;padding:10px 16px;min-height:42px;color:#aebdce;background:#ffffff04;font:inherit;font-size:14px;cursor:pointer}.ct-tabs button[aria-selected="true"]{color:#edf5ff;border-color:#9dc8ff70;background:#9dc8ff18}.ct-tabs button:focus-visible{outline:2px solid #9dc8ff;outline-offset:3px}.ct-tabs span{font-size:12px;font-variant-numeric:tabular-nums}.ct-tabs button:disabled{opacity:.6;cursor:wait}
 .ct-shell{width:min(100%,1500px);margin:0 auto;padding:30px 24px 60px;box-sizing:border-box}
 .ct-head{display:flex;gap:20px;justify-content:space-between;align-items:center;margin-bottom:24px}.ct-head h1{margin:0;font-size:28px;font-weight:600}.ct-head p{margin:10px 0 0;font-size:12px;color:#9ba9bd;line-height:1.8}.ct-head button{flex-shrink:0;min-height:40px}
 .ct-tools{display:flex;align-items:center;gap:16px}.ct-tools input{width:min(100%,520px);min-width:0;height:42px;border:1px solid #d2e4ff30;border-radius:24px;padding:0 18px;color:inherit;background:#ffffff08;font:inherit;font-size:14px}.ct-tools input::placeholder{color:#9aa7b9}#ct-count{white-space:nowrap;color:#a8b5c7;font-size:13px}.ct-status{min-height:20px;margin:12px 0;color:#a2c6b0;font-size:13px}.ct-empty{margin:36px 0;padding:38px 20px;border:1px dashed #ffffff22;border-radius:22px;color:#9eacbe;text-align:center;font-size:14px}
@@ -34,7 +35,10 @@ body[data-game="cases"] #game-main,body[data-game="cases"] #wordle-toolbar{displ
 @media(prefers-reduced-motion:reduce){.ct-reordering>tr{transition:none}}
 
 .ct-followup-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,.55fr);gap:16px;align-items:start}.ct-fields select{color-scheme:dark;cursor:pointer}.ct-fields select option{color:#edf2f8;background:#14202e}@media(max-width:480px){.ct-followup-fields{grid-template-columns:minmax(0,1fr) 110px;gap:10px}}
+.ct-date-help{grid-column:1/-1;margin-top:-8px;color:#9baac0;font-size:12px;line-height:1.7;overflow-wrap:anywhere}.ct-date-help p{margin:0}#ct-followup-preview{margin-top:4px;color:#c0d9f4}
 
 .ct-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px 22px}
+.ct-actions{min-width:160px}.ct-actions button[data-action="archive"]{color:#b8d8c5}@media(max-width:900px){.ct-table td.ct-actions{flex-wrap:wrap;min-width:0}}
 .ct-head>.ct-tools{padding:0;border:0;border-radius:0;background:none;box-shadow:none;min-width:0}.ct-head>p{grid-column:1/-1;margin:0;max-width:none}
 @media(max-width:900px){.ct-head{grid-template-columns:minmax(0,1fr) auto;gap:12px}.ct-head>h1{grid-column:1;grid-row:1}.ct-head>#ct-add{grid-column:2;grid-row:1}.ct-head>.ct-tools{grid-column:1/-1;grid-row:2;flex-wrap:nowrap}.ct-head>.ct-tools input{width:auto}.ct-head>p{grid-row:3}}
+

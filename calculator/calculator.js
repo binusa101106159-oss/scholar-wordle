@@ -38,7 +38,8 @@
  function dateKey(year,month,day){return year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');}
  function followupDate(raw){
   const text=String(raw||'').normalize('NFKC').trim();
-  const match=text.match(/^(民國\s*)?(\d{3,4})\s*(?:年|[./-])\s*(\d{1,2})\s*(?:月|[./-])\s*(\d{1,2})(?:日|號)?(.*)$/);
+  const match=text.match(/^(民國\s*)?(\d{3,4})\s*(?:年|[./-])\s*(\d{1,2})\s*(?:月|[./-])\s*(\d{1,2})(?:日|號)?(.*)$/)
+   ||text.match(/^(民國\s*)?(\d{3,4})(\d{2})(\d{2})(?:日|號)?(.*)$/);
   if(!match)return null;
   let year=Number(match[2]);const month=Number(match[3]),day=Number(match[4]),rest=match[5];
   if(/^\d/.test(rest)||/(?:取消|改|或|待定|未定|\d+[./-]\d+)/.test(rest))return null;
@@ -93,6 +94,7 @@
     const data=JSON.parse(root.ScholarStorage.getItem('scholar-cases-v1')||'{"version":1,"records":[]}');
     if(data.version!==1||!Array.isArray(data.records))throw Error('Invalid cases');
     for(const row of data.records){
+     if(row.archived===true)continue;
      if(!row.followup?.trim())continue;
      const key=followupDate(row.followup);if(!key){missingDates++;continue;}
      if(!appointments.has(key))appointments.set(key,[]);appointments.get(key).push(row);
@@ -232,3 +234,4 @@
  }
  root.ScholarCalculator={show,followupDate,followupWeekday,dayInfo,monthWeek,weekDates};
 })(typeof window==='undefined'?globalThis:window);
+

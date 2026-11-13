@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const {fields,parseRecords,upsert,filterRecords,moveRecord,followupText}=require('../cases/cases.js');
+const {fields,parseRecords,upsert,filterRecords,moveRecord,followupText,followupPreview,recordsForView,setArchived}=require('../cases/cases.js');
 const row=(id,extra={})=>Object.assign(Object.fromEntries(fields.map(([key])=>[key,''])),{id,name:'測試個案',mrn:'00001234',followupPeriod:'AM'},extra);
 test('case records preserve the seven fields, leading zeroes and multiline notes',()=>{
   assert.deepEqual(fields.map(([,label])=>label),['姓名','病歷號','VS','回診目的','診斷','回診時間','備註']);
@@ -91,3 +91,42 @@ test('follow-up weekdays support Gregorian, ROC and full-width dates without gue
   const record={followup};assert.equal(followupText(record),expected);assert.equal(record.followup,followup);
  }
 });
+test('compact dates display readable weekdays and retain their original saved input',()=>{
+ for(const [followup,expected] of [
+  ['20261113','2026/11/13（五）'],['1151113','115/11/13（五）'],
+  ['民國1151113','民國115/11/13（五）'],['２０２６１１１３','２０２６/１１/１３（五）'],
+  ['20261113（一）','2026/11/13（五）'],['1151113 上午','115/11/13（五）'],
+  ['20260229','20260229'],['1151113取消','1151113取消']
+ ]){
+  const record=row('compact',{followup,followupPeriod:'PM'});
+  assert.equal(followupText(record),expected+' · 下午',followup);
+  const stored=upsert([],record);
+  assert.equal(parseRecords(JSON.stringify({version:1,records:stored}))[0].followup,followup);
+  if(followup==='20261113')assert.deepEqual(filterRecords(stored,'11/13 下午'),stored);
+ }
+});
+test('date entry previews both calendars and clears incomplete or uncertain dates',()=>{
+ for(const raw of ['20261113','1151113','2026/11/13','民國115年11月13日','１１５１１１３'])assert.equal(followupPreview(raw),'西元 2026/11/13（五） · 民國 115/11/13',raw);
+ assert.equal(followupPreview('1130229'),'西元 2024/02/29（四） · 民國 113/02/29');
+ assert.equal(followupPreview('1900/1/1'),'西元 1900/01/01（一） · 民國前 12/01/01');
+ for(const raw of ['', '2026111','115111','20260229','1151131','11/13','待定','20261113取消'])assert.equal(followupPreview(raw),'',raw);
+});
+test('closing and restoring a case move it between views without deleting or changing its fields',()=>{
+ const original=[row('one',{notes:'保留備註',followup:'1151113',sortOrder:0}),row('two',{sortOrder:1})];
+ const archived=setArchived(original,'one',true);
+ assert.equal(original[0].archived,undefined);
+ assert.deepEqual(archived[0],{...original[0],archived:true});
+ assert.deepEqual(recordsForView(archived).map(r=>r.id),['two']);
+ assert.deepEqual(recordsForView(archived,true).map(r=>r.id),['one']);
+ assert.deepEqual(filterRecords(recordsForView(archived,true),'保留備註'),[archived[0]]);
+ const saved=parseRecords(JSON.stringify({version:1,records:archived}));
+ assert.deepEqual(recordsForView(saved,true),[archived[0]]);
+ const edited=upsert(saved,row('one',{notes:'更新備註'}));
+ assert.equal(edited[0].archived,true);
+ const restored=setArchived(edited,'one',false);
+ assert.equal(recordsForView(restored).length,2);assert.equal(recordsForView(restored,true).length,0);
+ assert.equal(restored[0].notes,'更新備註');assert.equal(restored[0].sortOrder,0);
+ assert.throws(()=>setArchived([], 'deleted', true),/已在其他裝置刪除/);
+ for(const value of ['true',null,1])assert.throws(()=>parseRecords(JSON.stringify({version:1,records:[row('bad',{archived:value})]})),/archive/);
+});
+

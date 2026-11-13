@@ -28,6 +28,11 @@ test('follow-up markers accept explicit Gregorian or ROC dates without guessing 
  assert.equal(followupDate('2024/2/29'),'2024-02-29');
  for(const text of ['11/18 上午','下週','2026/2/29','2026/13/1','2026/11/18取消','2026/11/18改11/19','2026/11/180'])assert.equal(followupDate(text),null,text);
 });
+test('compact Gregorian and ROC follow-up dates identify the same calendar day',()=>{
+ for(const text of ['20261113','1151113','２０２６１１１３','１１５１１１３','民國1151113',' 20261113 ', '1151113 下午', '20261113（五）', '20261113T09:00'])assert.equal(followupDate(text),'2026-11-13',text);
+ for(const [text,date] of [['20240229','2024-02-29'],['1130229','2024-02-29'],['0990101','2010-01-01'],['0010101','1912-01-01'],['20261231','2026-12-31'],['1160101','2027-01-01']])assert.equal(followupDate(text),date,text);
+ for(const text of ['20260229','1150229','20260431','1151131','20260013','1151301','20261100','0001113','202611','115111','202611130','11511130','20261113取消','1151113改11/14','20261113或20261114'])assert.equal(followupDate(text),null,text);
+});
 test('official Taiwan calendar distinguishes holidays, substitute days and working Saturdays',()=>{
  const data=require('../calculator/taiwan-calendar.json');
  assert.deepEqual(data.years,[2023,2024,2025,2026,2027]);
@@ -41,3 +46,4 @@ test('official Taiwan calendar distinguishes holidays, substitute days and worki
  assert.equal(dayInfo('2028-01-01',data).known,false);
  for(const item of data.sources){assert.match(item.url,/^https:\/\/www\.dgpa\.gov\.tw\//);assert.match(item.sha256,/^[a-f0-9]{64}$/);}
 });
+

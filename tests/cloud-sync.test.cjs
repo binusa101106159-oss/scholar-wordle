@@ -151,3 +151,16 @@ test('case manual order survives cloud hydration and merges with concurrent note
  const base=records[0],local={...base,sortOrder:2},remote={...base,notes:'other device'};
  assert.deepEqual(JSON.parse(S.reconcile(str(base),str(local),str(remote),'scholar-cases-v1')),{...local,notes:'other device'});
 });
+test('case archive state survives cloud hydration, concurrent edits and rejected writes',async()=>{
+ const base={id:'case',createdAt:1,name:'虛構個案',notes:'原始',followup:'1151113'},local={...base,archived:true},remote={...base,notes:'另一裝置更新'};
+ const merged=JSON.parse(S.reconcile(str(base),str(local),str(remote),'scholar-cases-v1'));
+ assert.deepEqual(merged,{...remote,archived:true});
+ const payload={version:1,records:[merged]};
+ assert.deepEqual(JSON.parse(S.join('scholar-cases-v1',S.split('scholar-cases-v1',str(payload)))),payload);
+ const restored={...merged,archived:false};
+ assert.deepEqual(JSON.parse(S.reconcile(str(merged),str({...merged,notes:'同步備註'}),str(restored),'scholar-cases-v1')),{...restored,notes:'同步備註'});
+ const h=harness();h.sync.connect({uid:'one'},{commit:async()=>{throw Error('offline')}},S.split('scholar-cases-v1',str({version:1,records:[base]})));
+ await assert.rejects(h.store.setConfirmed('scholar-cases-v1',str({version:1,records:[local]})));
+ assert.deepEqual(JSON.parse(h.store.getItem('scholar-cases-v1')).records,[base]);
+});
+
