@@ -21,6 +21,21 @@
  // IWH QuickDASH Information for Users, p.4: at least 10/11 responses;
  // disability/symptom score = (mean of completed 1-5 responses - 1) * 25.
  // https://dash.iwh.on.ca/sites/dash/files/downloads/QuickDASH_scoring_2010.pdf
+ // AMA Guides 6e, Table 15-7, p.406: a functional-history reference, not WPI.
+ const quickDASHBands=[
+  {min:0,max:20,grade:0,label:'No problem'},
+  {min:21,max:40,grade:1,label:'Mild'},
+  {min:41,max:60,grade:2,label:'Moderate'},
+  {min:61,max:80,grade:3,label:'Severe'},
+  {min:81,max:100,grade:4,label:'Very severe'}
+ ];
+ function quickDASHSeverity(score){
+  if(typeof score!=='number'||!Number.isFinite(score)||score<0||score>100)throw Error('QuickDASH分數須為0–100。');
+  // The book lists integer bands. This interface explicitly rounds only the
+  // lookup score to the nearest integer; the calculated score is kept intact.
+  const lookupScore=round(score),band=quickDASHBands.find(item=>lookupScore>=item.min&&lookupScore<=item.max);
+  return {...band,lookupScore};
+ }
  function scoreQuickDASH(answers){
   if(!Array.isArray(answers)||answers.length!==11)throw Error('需要11題答案。');
   let valid=0,sum=0;
@@ -30,9 +45,10 @@
    if(!['number','string'].includes(typeof raw)||(typeof raw==='string'&&!/^[1-5]$/.test(raw))||!Number.isInteger(Number(raw))||Number(raw)<1||Number(raw)>5)throw Error('Q'+(i+1)+'：1–5');
    valid++;sum+=Number(raw);
   });
-  return {valid,ready:valid>=10,score:valid>=10?(sum/valid-1)*25:null};
+  const ready=valid>=10,score=ready?(sum/valid-1)*25:null;
+  return {valid,ready,score,severity:ready?quickDASHSeverity(score):null};
  }
- if(typeof module!=='undefined'&&module.exports)module.exports={scoreAAOS,severityFor,round,scoreQuickDASH};
+ if(typeof module!=='undefined'&&module.exports)module.exports={scoreAAOS,severityFor,round,scoreQuickDASH,quickDASHSeverity};
  root.ScholarQuestionnaireScores={scoreAAOS,scoreQuickDASH};
  if(typeof document==='undefined')return;
  let data=null,promise=null;
@@ -102,14 +118,15 @@
  function mountQuickDASH(){
   const host=document.getElementById('cl-quickdash');if(!host||host.dataset.ready)return;
   host.dataset.ready='true';
-  host.innerHTML='<section class="qd-compact" aria-label="QuickDASH計算器"><h2 class="qd-label">QuickDASH</h2><form id="qd-form" autocomplete="off" novalidate><div class="qd-inputs">'+Array.from({length:11},(_,i)=>'<label><input id="qd-q'+(i+1)+'" name="q'+(i+1)+'" type="text" inputmode="numeric" maxlength="1" pattern="[1-5]" aria-label="QuickDASH Q'+(i+1)+'，1至5" placeholder="—" spellcheck="false"></label>').join('')+'</div></form><p id="qd-error" role="status"></p><output id="qd-result" aria-live="polite" aria-atomic="true"><span id="qd-score">—</span><span class="qd-unit">／100</span></output><button type="button" id="qd-reset" title="重設 QuickDASH" aria-label="重設 QuickDASH">↺</button></section>';
-  const fields=[...host.querySelectorAll('input')],previous=fields.map(()=>''),score=document.getElementById('qd-score'),error=document.getElementById('qd-error'),key='scholar-quickdash-v1';
+  host.innerHTML='<section class="qd-compact" aria-label="QuickDASH計算器"><h2 class="qd-label">QuickDASH</h2><form id="qd-form" autocomplete="off" novalidate><div class="qd-inputs">'+Array.from({length:11},(_,i)=>'<label><input id="qd-q'+(i+1)+'" name="q'+(i+1)+'" type="text" inputmode="numeric" maxlength="1" pattern="[1-5]" aria-label="QuickDASH Q'+(i+1)+'，1至5" placeholder="—" spellcheck="false"></label>').join('')+'</div></form><p id="qd-error" role="status"></p><output id="qd-result" aria-live="polite" aria-atomic="true"><span id="qd-score">—</span><span class="qd-unit">／100</span><span id="qd-severity" title="AMA Guides 6e，Table 15-7，第406頁。分級以原始分數四捨五入至整數對照，保留原始計算分數。QuickDASH用於輔助功能史評估，並非障害百分比。">—</span></output><button type="button" id="qd-reset" title="重設 QuickDASH" aria-label="重設 QuickDASH">↺</button></section>';
+  const fields=[...host.querySelectorAll('input')],previous=fields.map(()=>''),score=document.getElementById('qd-score'),severity=document.getElementById('qd-severity'),error=document.getElementById('qd-error'),key='scholar-quickdash-v1';
   let persisted='';
   function update(save=true){
    fields.forEach(field=>{const invalid=String(field.value!==''&&!/^[1-5]$/.test(field.value));if(field.getAttribute('aria-invalid')!==invalid)field.setAttribute('aria-invalid',invalid);});
-   let value='—',message='';
-   try{const result=scoreQuickDASH(fields.map(f=>f.value));if(result.ready)value=result.score.toLocaleString('en-US',{maximumFractionDigits:2});}catch(e){message=e.message;}
+   let value='—',degree='—',message='';
+   try{const result=scoreQuickDASH(fields.map(f=>f.value));if(result.ready){value=result.score.toLocaleString('en-US',{maximumFractionDigits:2});degree=result.severity.label+' · GM '+result.severity.grade;}}catch(e){message=e.message;}
    if(score.textContent!==value)score.textContent=value;
+   if(severity.textContent!==degree)severity.textContent=degree;
    if(error.textContent!==message)error.textContent=message;
    const raw=JSON.stringify(Object.fromEntries(fields.map(f=>[f.name,f.value])));
    if(save&&raw!==persisted)root.ScholarStorage.setItem(key,raw);
@@ -152,3 +169,4 @@
  root.ScholarAAOS={mount};
  root.ScholarQuickDASH={mount:mountQuickDASH};
 })(typeof window==='undefined'?globalThis:window);
+
