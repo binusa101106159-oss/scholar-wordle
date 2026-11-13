@@ -20,7 +20,7 @@ test('AAOS requires four valid items for every missing-answer pattern',()=>{
 });
 test('AAOS severity uses the rounded standardized score, never the normative score',()=>{
  const expected=[[0,'Near-total to total deficit'],[24,'Near-total to total deficit'],[25,'Severe deficit'],[49,'Severe deficit'],[50,'Moderate deficit'],[74,'Moderate deficit'],[75,'Mild deficit'],[99,'Mild deficit'],[100,'Normal']];
- for(const [n,label]of expected)assert.equal(severityFor(n,data).original,label);
+ for(const [n,label]of expected){const band=severityFor(n,data);assert.equal(band.original,label);assert.equal(band.grade,n===100?0:n>=75?1:n>=50?2:n>=25?3:4);}
  assert.equal(severityFor(round(74.5),data).original,'Mild deficit');assert.equal(round(-15.5),-16);
 });
 test('AAOS rejects malformed and out-of-range answers',()=>{
@@ -31,3 +31,4 @@ test('AAOS data preserves source options, references and merged pain-answer colu
  for(const q of data.questions){assert.ok(q.original&&q.sourceCell);assert.equal(q.options.length,q.max);for(const o of q.options)assert.ok(o.original&&o.sourceCell);}
  for(const q of data.questions.slice(2,5)){assert.equal(q.missingCode,7);assert.equal(q.options[6].original,'Could not do because of other');assert.equal(q.options[6].sourceCell,'D9');}
 });
+
