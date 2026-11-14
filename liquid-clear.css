@@ -13,7 +13,7 @@ html.dark body .pg-overlay > .lg-surface {
 }
 html.dark body :is(.pg-dialog,.ax-dialog)::backdrop,
 html.dark body .pg-overlay::before {background:rgba(4,9,17,.16);-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-.pg-glass-plane {position:fixed;pointer-events:none;background:rgba(200,225,255,.015);-webkit-backdrop-filter:blur(12px) saturate(135%);backdrop-filter:blur(12px) saturate(135%);will-change:transform}
+.pg-glass-plane {position:fixed;pointer-events:none;background:rgba(200,225,255,.015);-webkit-backdrop-filter:blur(12px) saturate(135%);backdrop-filter:blur(12px) saturate(135%);transform-origin:center;}
 /* Keep this optical layer stable during clicks, selection and scrolling.
    Removing it during interaction exposes sharp background text and flashes. */
 html.dark body .pg-dialog :is(.lx-dialog-head,.gx-dialog-head),

@@ -1,4 +1,4 @@
-/* Lightweight static glass with a 3px stationary backdrop. */
+/* Fast sheet motion over a separate optical surface. */
 .pg-dialog.pg-dialog,html.dark .pg-overlay > div {
   border:1px solid rgba(220,235,255,.24)!important;
   background:linear-gradient(145deg,rgba(205,225,255,.10),rgba(180,205,240,.025) 48%),rgba(24,33,47,.64)!important;
@@ -9,16 +9,16 @@
 .pg-dialog.pg-dialog::backdrop,.pg-overlay::before {
   background:rgba(8,14,24,.14);
   -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
-  animation:pg-glass-in .18s cubic-bezier(.2,.7,.2,1) both;
+  animation:pg-glass-in .22s cubic-bezier(.16,.8,.22,1) both;
 }
 html.dark .pg-overlay { background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important; }
 .pg-overlay::before { content:'';position:absolute;inset:0;pointer-events:none; }
 .pg-overlay > div { position:relative; }
-.pg-dialog.pg-closing::backdrop,.pg-overlay.pg-closing::before { animation:pg-glass-out .12s cubic-bezier(.25,.1,.25,1) forwards; }
+.pg-dialog.pg-closing::backdrop,.pg-overlay.pg-closing::before { animation:pg-glass-out .15s cubic-bezier(.4,0,.8,.4) forwards; }
 .pg-dialog.pg-moving,.pg-overlay.pg-moving > div { will-change:transform,opacity; }
 .pg-dialog :is(.lx-dialog-head,.gx-dialog-head),html.dark .pg-overlay > div > div:first-child { background:rgba(205,225,255,.035)!important; }
 .pg-dialog :is(.lx-table,.gx-table) { background:rgba(14,21,31,.24); }
-@keyframes pg-glass-in { from { opacity:0; } to { opacity:1; } }
+@keyframes pg-glass-in { from { opacity:var(--pg-glass-start,0); } to { opacity:1; } }
 @keyframes pg-glass-out { from { opacity:var(--pg-glass-opacity,1); } to { opacity:0; } }
 @media(prefers-reduced-motion:reduce) {
   .pg-dialog.pg-dialog::backdrop,.pg-overlay::before,.pg-dialog.pg-closing::backdrop,.pg-overlay.pg-closing::before { animation:none; }
@@ -50,3 +50,8 @@ html.dark .pg-overlay > .lg-surface > div:first-child { background:#ffffff05!imp
 /* A bright meniscus and a soft lower reflection give the moving lens depth. */
 .lg-tab-lens{background:linear-gradient(165deg,#ffffff42,#d8ecff0a 44%,#c7e2ff24),rgba(140,170,200,.1);box-shadow:inset 0 1px 0 #ffffff85,inset 0 -1px 0 #d0eaff3d,0 2px 7px #00000018}
 .lg-tab-lens::before{content:'';position:absolute;inset:2px 9% 55%;border-radius:inherit;background:linear-gradient(180deg,#ffffff20,transparent);pointer-events:none}
+
+/* AMA uses this same sheet/backdrop timeline as the other readers. */
+.pg-dialog.pg-dialog::backdrop {animation:pg-glass-in .22s cubic-bezier(.16,.8,.22,1) both;}
+.pg-dialog.pg-closing::backdrop {animation:pg-glass-out .15s cubic-bezier(.4,0,.8,.4) forwards;}
+@media(prefers-reduced-motion:reduce){.pg-dialog.pg-dialog::backdrop{animation:none;}}

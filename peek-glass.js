@@ -1,52 +1,77 @@
-/* Shared lightweight glass motion for existing non-AMA popups. */
+/* Shared compositor motion for reader dialogs and overlay sheets. */
 (() => {
   'use strict';
   const states=new WeakMap(),reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const frames=[{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'none'}];
+  const OPEN_MS=220,CLOSE_MS=150;
   function glass(card) {if(!card.classList.contains('lg-surface'))card.classList.add('lg-surface');window.ScholarGlass.watch(card);}
+  const cardOf=(el,s)=>s.native?el:el.firstElementChild;
+  function stop(el,s) {
+    if(s.motion)s.motion.cancel();s.motion=null;
+    window.ScholarGlass.cancel(cardOf(el,s));
+    el.classList.remove('pg-moving','pg-closing');
+  }
   function setup(el) {
     if(states.has(el))return states.get(el);
     const native=el instanceof HTMLDialogElement,state={native,motion:null,closing:false};
-    el.classList.add(native?'pg-dialog':'pg-overlay');glass(native?el:el.firstElementChild);states.set(el,state);
+    el.classList.add(native?'pg-dialog':'pg-overlay');glass(cardOf(el,state));states.set(el,state);
     if(native) {
       el.addEventListener('cancel',e=>{e.preventDefault();close(el);});
-      el.addEventListener('close',()=>{if(state.motion)state.motion.cancel();state.motion=null;state.closing=false;el.classList.remove('pg-closing','pg-moving');});
+      // Native close events are queued. A rapid reopen may already be visible.
+      el.addEventListener('close',()=>{if(el.open)return;stop(el,state);state.closing=false;window.ScholarGlass.hide(el);});
     }
     return state;
+  }
+  function play(el,s,frames,options) {
+    const card=cardOf(el,s);el.classList.add('pg-moving');
+    // Measure only the final, untransformed sheet, then move both layers with
+    // the same compositor animation. Never animate blur or table layout.
+    window.ScholarGlass.show(card);window.ScholarGlass.sync(card,true);
+    const motion=card.animate(frames,options);s.motion=motion;
+    window.ScholarGlass.animate(card,frames,options);
+    motion.finished.then(()=>{if(s.motion===motion&&!s.closing){s.motion=null;el.classList.remove('pg-moving');}},()=>{});
+    return motion;
   }
   function open(el) {
     const s=setup(el),visible=s.native?el.open:!el.classList.contains('hidden');
     if(visible&&!s.closing)return;
-    s.closing=false;
-    if(s.motion)s.motion.cancel();
-    el.classList.remove('pg-closing');
+    const card=cardOf(el,s),current=visible?getComputedStyle(card):null;
+    const start=current?{opacity:current.opacity,transform:current.transform}:{opacity:0,transform:'translateY(12px) scale(.955)'};
+    el.style.setProperty('--pg-glass-start',visible?getComputedStyle(el,s.native?'::backdrop':'::before').opacity:'0');
+    s.closing=false;stop(el,s);
     if(s.native){if(!el.open)el.showModal();}
     else{el.classList.remove('hidden');el.classList.add('flex');}
-    const card=s.native?el:el.firstElementChild;
     window.ScholarGlass.show(card);
     if(reduced())return;
-    el.classList.add('pg-moving');
-    const motion=card.animate(frames,{duration:180,easing:'cubic-bezier(.2,.65,.25,1)'});s.motion=motion;
-    motion.finished.then(()=>{if(s.motion===motion)el.classList.remove('pg-moving');},()=>{});
+    play(el,s,[
+      {...start,offset:0,easing:'cubic-bezier(.16,.8,.22,1)'},
+      {opacity:1,transform:'translateY(-1px) scale(1.006)',offset:.76,easing:'cubic-bezier(.25,.1,.3,1)'},
+      {opacity:1,transform:'none',offset:1}
+    ],{duration:OPEN_MS,easing:'linear'});
+  }
+  function resize(el,before) {
+    const s=setup(el);if(!el.open)return open(el);
+    const opacity=getComputedStyle(cardOf(el,s)).opacity;
+    s.closing=false;stop(el,s);
+    const card=cardOf(el,s);window.ScholarGlass.show(card);
+    if(reduced())return;
+    const after=card.getBoundingClientRect();
+    const initial=`translate(${before.left+before.width/2-after.left-after.width/2}px,${before.top+before.height/2-after.top-after.height/2}px) scale(${before.width/after.width},${before.height/after.height})`;
+    play(el,s,[{opacity,transform:initial},{opacity:1,transform:'none'}],{duration:200,easing:'cubic-bezier(.16,.8,.22,1)'});
   }
   async function close(el) {
     const s=setup(el);
     if(s.closing||!(s.native?el.open:!el.classList.contains('hidden')))return false;
-    s.closing=true;
-    const card=s.native?el:el.firstElementChild,style=getComputedStyle(card);
-    const start={opacity:style.opacity,transform:style.transform};
-    const glass=getComputedStyle(el,s.native?'::backdrop':'::before');
-    el.style.setProperty('--pg-glass-opacity',glass.opacity);
-    if(s.motion)s.motion.cancel();
-    el.classList.add('pg-closing','pg-moving');
+    const card=cardOf(el,s),style=getComputedStyle(card),start={opacity:style.opacity,transform:style.transform};
+    const backdrop=getComputedStyle(el,s.native?'::backdrop':'::before');
+    el.style.setProperty('--pg-glass-opacity',backdrop.opacity);
+    stop(el,s);s.closing=true;el.classList.add('pg-closing');
     if(!reduced()) {
-      const motion=card.animate([start,{opacity:0,transform:'translateY(2px)'}],{duration:120,easing:'cubic-bezier(.25,.1,.25,1)',fill:'forwards'});s.motion=motion;
+      const motion=play(el,s,[start,{opacity:0,transform:'translateY(8px) scale(.965)'}],{duration:CLOSE_MS,easing:'cubic-bezier(.4,0,.8,.4)',fill:'forwards'});
       try{await motion.finished;}catch(_){return false;}
+      if(!s.closing||s.motion!==motion)return false;
     }
     if(s.native)el.close();else{el.classList.add('hidden');el.classList.remove('flex');}
-    window.ScholarGlass.hide(card);
-    if(s.motion)s.motion.cancel();s.motion=null;s.closing=false;
-    el.classList.remove('pg-closing','pg-moving');return true;
+    window.ScholarGlass.hide(card);stop(el,s);s.closing=false;return true;
   }
   function liquidTabs(nav) {
     if(!nav)return;
@@ -89,5 +114,5 @@
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
   liquidTabs(document.getElementById('scholar-game-tabs'));
   liquidTabs(document.getElementById('study-nav'));
-  window.ScholarPeek={open,close,glass};
+  window.ScholarPeek={open,close,resize,glass};
 })();

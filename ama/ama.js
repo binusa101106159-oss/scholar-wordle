@@ -331,41 +331,14 @@
       });
     } catch (_) { if (version===revision) by('ax-body').textContent='無法載入本章，請稍後再試。'; }
   }
-  let popupMotion=null, popupClosing=false;
-  const reducePopupMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
   function presentPopup(before) {
-    const dialog=by('ax-dialog'),opening=!dialog.open;
-    window.ScholarPeek?.glass(dialog);
-    popupClosing=false;dialog.classList.remove('ax-closing');
-    if (popupMotion) { popupMotion.cancel();popupMotion=null; }
-    if (opening) dialog.showModal();
-    if (reducePopupMotion()) {dialog.classList.remove('ax-animating');return;}
-    const after=dialog.getBoundingClientRect();
-    const initial=before ? `translate(${before.left+before.width/2-after.left-after.width/2}px,${before.top+before.height/2-after.top-after.height/2}px) scale(${before.width/after.width},${before.height/after.height})` : 'none';
-    const frames=opening ? [{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'none'}] : before ? [{transform:initial},{transform:'none'}] : null;
-    if (!frames) return;
-    dialog.classList.add('ax-animating');
-    const motion=dialog.animate(frames,{duration:180,easing:'cubic-bezier(.2,.65,.25,1)'});
-    popupMotion=motion;
-    motion.finished.then(()=>{if(popupMotion===motion)dialog.classList.remove('ax-animating');},()=>{});
+    const dialog=by('ax-dialog');
+    if(dialog.open && before)window.ScholarPeek.resize(dialog,before);
+    else window.ScholarPeek.open(dialog);
   }
   async function dismissPopup() {
-    const dialog=by('ax-dialog');
-    if (!dialog.open || popupClosing) return;
-    popupClosing=true;objectRevision++;
-    const style=getComputedStyle(dialog),start={opacity:style.opacity,transform:style.transform};
-    if (popupMotion) {popupMotion.cancel();popupMotion=null;}
-    if (!reducePopupMotion()) {
-      const glass=getComputedStyle(dialog,'::backdrop');
-      dialog.style.setProperty('--ax-glass-opacity',glass.opacity);
-      dialog.classList.add('ax-closing');
-      const motion=dialog.animate([start,{opacity:0,transform:'translateY(2px)'}],{duration:120,easing:'cubic-bezier(.25,.1,.25,1)',fill:'forwards'});
-      popupMotion=motion;
-      try { await motion.finished; } catch (_) { return; }
-    }
-    dialog.close();dialog.classList.remove('ax-closing','ax-animating');
-    if (popupMotion) {popupMotion.cancel();popupMotion=null;}
-    popupClosing=false;
+    objectRevision++;
+    return window.ScholarPeek.close(by('ax-dialog'));
   }
   async function openObject(id,chapterId,options={}) {
     const request=++objectRevision;by('ax-status').textContent='載入圖表…';

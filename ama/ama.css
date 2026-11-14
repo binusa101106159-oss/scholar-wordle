@@ -242,7 +242,7 @@
   background:rgba(8,14,24,.14);
   -webkit-backdrop-filter:blur(3px);
   backdrop-filter:blur(3px);
-  animation:ax-glass-in .18s cubic-bezier(.2,.7,.2,1) both;
+  animation:none;
 }
 .ax-dialog.ax-peek.ax-popped { width:min(1120px,94vw); max-height:90dvh; }
 .ax-dialog .ax-dialog-bar,.ax-dialog .ax-table-nav {
@@ -258,13 +258,9 @@
 .ax-dialog :is(.ax-dialog-bar,.ax-table-nav) button:hover { background:rgba(220,235,255,.14); }
 .ax-dialog .ax-table,.ax-dialog .ax-ca-sheet { background:rgba(14,21,31,.24); }
 #ax-peek-expand { margin-left:auto; }
-.ax-dialog.ax-closing::backdrop { animation:ax-glass-out .12s cubic-bezier(.25,.1,.25,1) forwards; }
-/* Only opacity animates: the fixed, lighter frost can stay composited. */
-.ax-dialog.ax-animating { will-change:transform,opacity; }
-@keyframes ax-glass-in { from { opacity:0; } to { opacity:1; } }
-@keyframes ax-glass-out { from { opacity:var(--ax-glass-opacity,1); } to { opacity:0; } }
+/* Shared ScholarPeek owns opening and closing motion. */
 @media(max-width:600px) { .ax-table-shortcut { min-height:44px; padding:10px 12px; } }
-@media(prefers-reduced-motion:reduce) { .ax-dialog,.ax-dialog::backdrop,.ax-dialog.ax-peek::backdrop,.ax-dialog.ax-closing::backdrop { animation:none; transition:none; }.ax-table-shortcut { transition:none; } }
+@media(prefers-reduced-motion:reduce) { .ax-dialog,.ax-dialog::backdrop,.ax-dialog.ax-peek::backdrop { animation:none; transition:none; }.ax-table-shortcut { transition:none; } }
 
 .ax-font-control { display:inline-flex; align-items:center; gap:6px; color:#cbd5e1; font-size:11px; }
 .ax-font-control select { flex:0 1 auto; width:150px; padding:6px 8px; font-size:11px; }
