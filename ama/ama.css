@@ -57,6 +57,7 @@
 .ax-object { background: var(--ax-paper); color: var(--ax-ink); border-radius: 12px; margin: 1.4em 0; padding: 16px; font-family: Arial,sans-serif; font-size: 14px; line-height: 1.5; overflow: hidden; }
 .ax-object p { margin: .4em 0; }
 .ax-page .ax-object p,.ax-dialog-body p,.ax-table td { font-family: Arial,sans-serif !important; }
+.ax-page-content .ax-table p { font-family:Arial,sans-serif!important; }
 /* Invert the source vector ink as well as its paper; keep all labels selectable. */
 .ax-vector { width: 100%; height: auto; display: block; background: #eae4dc; filter:invert(1); }
 .ax-vector text { font-family: Arial,sans-serif !important; white-space: pre; }
@@ -68,6 +69,8 @@
 .ax-table td { vertical-align: top; border: 1px solid var(--ax-rule); padding: 6px; overflow-wrap: break-word; }
 .ax-table td p { margin: 0 0 .45em; }
 .ax-table td p:last-child { margin-bottom: 0; }
+.ax-table:not(.ax-positioned) td { letter-spacing:normal; word-spacing:normal; font-kerning:normal; line-height:1.5; }
+:where(.ax-table:not(.ax-hearing-table):not(.ax-spread-table):has(col:nth-child(5))) { min-width:760px; }
 .ax-list-table td { border-left: 0; border-right: 0; }
 .ax-grid-ornament { padding: 0 !important; }
 #t1-5 .ax-table { min-width: 760px; }
@@ -158,10 +161,10 @@
 .ax-hearing-table td { padding:5px 4px; white-space:nowrap; }
 .ax-hearing-table td p { margin:0; }
 
-.ax-reading-acuity { min-width:1300px; }
+.ax-reading-acuity { min-width:1600px; table-layout:auto; }
 .ax-reading-acuity td { padding:5px; white-space:nowrap; }
 
-.ax-reading-acuity td:last-child { white-space:normal; overflow-wrap:anywhere; }
+.ax-reading-acuity td:last-child { white-space:normal; overflow-wrap:normal; min-width:80px; }
 .ax-source-overlay { min-width:700px; }
 .ax-object:has(.ax-source-overlay) { overflow-x:auto; }
 .ax-dialog-body .ax-source-overlay { max-height:none; }
@@ -265,7 +268,7 @@
 
 .ax-font-control { display:inline-flex; align-items:center; gap:6px; color:#cbd5e1; font-size:11px; }
 .ax-font-control select { flex:0 1 auto; width:150px; padding:6px 8px; font-size:11px; }
-#ama-panel[data-reading-font]:not([data-reading-font="default"]) .ax-page-content :is(p,h2,h3,li,blockquote):not(.ax-object *) { font-family:var(--ax-reading-font)!important; }
+#ama-panel[data-reading-font]:not([data-reading-font="default"]) .ax-page-content :is(p,h2,h3,li,blockquote):not(.ax-object *):not(.ax-table *) { font-family:var(--ax-reading-font)!important; }
 
 /* Keep native selectable content; skip off-screen layout until it is needed. */
 @supports(content-visibility:auto) {

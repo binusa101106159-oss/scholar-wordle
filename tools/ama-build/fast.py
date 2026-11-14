@@ -9,7 +9,7 @@ def packed(name,value):
 async def main():
  OUT.mkdir(exist_ok=True);js=(ROOT/'ama/ama.js').read_text(encoding='utf8')
  extract=lambda start,end:js[js.index(start):js.index(end,js.index(start))]
- helpers='const tableCaptions=new Map();'+extract('  function chapterText(','  function textNodes(')+extract('  function tableCaption(','  async function openTableIndex(')
+ helpers='const tableCaptions=new Map();'+extract('  const CHAPTER_MARK=','  function textNodes(')+extract('  function cleanCaption(','  async function openTableIndex(')
  manifest={'version':1,'chapters':{}};search=[];stats=[]
  async with async_playwright() as p:
   browser=await p.chromium.launch();page=await browser.new_page();await page.goto('http://127.0.0.1:8766/ama/index.json')

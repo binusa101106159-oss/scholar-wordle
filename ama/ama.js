@@ -124,6 +124,7 @@
   function readableCopy(copy) {
     // Hyphens left by the book's line breaks stay in the data (saved highlights count them) but never in copied text.
     copy.querySelectorAll('.ax-soft-break').forEach(n=>n.remove());
+    copy.querySelectorAll('.ax-flow-heading').forEach(n=>{n.textContent=n.dataset.readableTitle;});
     copy.querySelectorAll('.ax-source-run').forEach(run=>{const text=spacedRunText(run);if(text!==null)run.textContent=text;});
     copy.querySelectorAll('h3 strong').forEach(mark=>{if(CHAPTER_MARK.test(mark.textContent))mark.textContent='CHAPTER '+mark.textContent.slice(14).replace(/ /g,'');});
     return copy;
@@ -136,9 +137,22 @@
       .replace(/\bCONTINUED\b/g,'continued').replace(/\bSENSORY AND MOTOR SEVERITY\b/,'Sensory and Motor Severity');
   }
   function showSourceHeadings(root) {
+    root.querySelectorAll('.ax-flow-heading').forEach(run=>{
+      if(!run.dataset?.readableTitle)return;
+      const title=run.dataset.readableTitle,letters=[...title.replace(/\s/g,'')],boundaries=new Set();let count=0;
+      for(const word of title.split(' ').slice(0,-1)){count+=word.length;boundaries.add(count);}
+      const raw=run.dataset.sourceText||run.textContent;run.dataset.sourceText=raw;run.replaceChildren();let at=0,lastBoundary=-1;
+      for(const char of raw){
+        if(/\s/.test(char)){
+          const gap=document.createElement('span'),visible=boundaries.has(at)&&lastBoundary!==at;
+          gap.textContent=char;if(!visible)gap.className='ax-letter-gap';else lastBoundary=at;run.append(gap);
+        }else run.append(letters[at++]||char);
+      }
+    });
     root.querySelectorAll('.ax-source-run').forEach(run=>{
       if(run.closest('table'))return;
       const title=sourceHeadingText(run);if(title===null)return;
+      if(run.dataset&&!run.dataset.sourceText)run.dataset.sourceText=run.textContent;
       const letters=[...title.replace(/\s/g,'')],boundaries=new Set();let count=0;
       for(const word of title.split(' ').slice(0,-1)){count+=word.length;boundaries.add(count);}
       // Keep the original text length so saved highlight offsets remain valid.
@@ -192,6 +206,20 @@
       node.replaceWith(fragment);
     }
   }
+  function migratedRanges(stored,length,migration) {
+    if(!stored)return [];
+    if(!migration||stored.textVersion===2)return stored.length===length?stored.ranges:[];
+    if(stored.length===length&&stored.length!==migration.fromLength)return stored.ranges;
+    if(stored.length!==migration.fromLength||length!==migration.toLength)return [];
+    const mapped=[];
+    for(const range of stored.ranges){
+      for(const [before,after,size] of migration.blocks){
+        const start=Math.max(range.start,before),end=Math.min(range.end,before+size);
+        if(end>start)mapped.push({...range,start:after+start-before,end:after+end-before});
+      }
+    }
+    return mapped;
+  }
   function restoreMarks() {
     const previous=by('ax-body').querySelectorAll('mark.ax-highlight');
     previous.forEach(mark=>mark.replaceWith(...mark.childNodes));
@@ -199,7 +227,7 @@
     const entries = highlights[current] || {};
     by('ax-body').querySelectorAll('.ax-page').forEach(page => {
       const stored = entries[page.dataset.page];
-      if (stored && textNodes(page).reduce((n,node)=>n+node.length,0)===stored.length) applyMarks(page,stored.ranges);
+      applyMarks(page,migratedRanges(stored,textNodes(page).reduce((n,node)=>n+node.length,0),page.amaTextMigration));
     });
   }
   function markSelection() {
@@ -218,7 +246,8 @@
     }
     if (start<0 || end<=start) return;
     highlights[current] ||= {};
-    const entry = highlights[current][page.dataset.page] ||= {length:offset,ranges:[]};
+    let entry=highlights[current][page.dataset.page];
+    if(!entry||entry.textVersion!==2)entry=highlights[current][page.dataset.page]={length:offset,textVersion:2,ranges:migratedRanges(entry,offset,page.amaTextMigration),...(entry?{legacy:entry}:{})};
     entry.ranges.push({id:crypto.randomUUID(),start,end});
     try { window.ScholarStorage.setItem(MARKS,JSON.stringify(highlights)); } catch (_) { /* Optional storage. */ }
     applyMarks(page,[{start,end}]); selection.removeAllRanges(); by('ax-status').textContent='已儲存標記。';
@@ -245,6 +274,7 @@
     for(let i=0;i<data.pages.length;i++) {
       if(version!==revision)return false;
       const source=data.pages[i],page=document.createElement('section');page.className='ax-page';page.id='ax-page-'+source.page;page.dataset.page=source.page;
+      page.amaTextMigration=source.textMigration;
       const label=document.createElement('div');label.className='ax-page-label';label.textContent='原書第 '+sourcePages(source)+' 頁';
       const body=document.createElement('div');body.className='ax-page-content';body.innerHTML=source.html;showChapterMarks(body);showSourceHeadings(body);
       page.append(label,body);fragment.append(page);

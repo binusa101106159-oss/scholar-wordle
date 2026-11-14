@@ -461,6 +461,12 @@ class Page:
                     value = self.rich(selected,lines=True) if owner in ("table-12-11","table-17-8") or (owner=="table-17-7" and ri==4) else self.flow(self.paragraphs_preview(selected))
                     if owner=="table-17-7" and ri==4 and ci>0:value='<br>'+value
                 attrs = (f' colspan="{cs}"' if cs>1 else "")+(f' rowspan="{rs}"' if rs>1 else "")
+                if not self.precise_tables and not positioned and selected:
+                    lines=defaultdict(list)
+                    for char in selected:
+                        if canon(char['text']):lines[char['line']].append(char)
+                    center=(match[0]+match[2])/2
+                    if lines and all(abs((extent(line)[0]+extent(line)[2])/2-center)<3 for line in lines.values()):attrs+=' style="text-align:center"'
                 cls = ' class="ax-grid-ornament"' if decorated and ri == 0 else ""
                 row.append(f'<td{attrs}{cls}>{value}</td>')
                 specs.append(dict(row=ri, col=ci, rowspan=rs, colspan=cs, box=match,
@@ -523,7 +529,19 @@ class Page:
         groups = defaultdict(list)
         for c in chars:
             groups[c["block"]].append(c)
-        return [dict(box=extent(v), html="<p>"+self.rich(v)+"</p>") for v in groups.values() if canon("".join(c["text"] for c in v))]
+        blocks=list(groups.values())
+        # A superscript can make the PDF split one printed numeric line into
+        # separate blocks. Coalesce only single-line blocks sharing a baseline
+        # before sorting paragraphs, so e.g. a leading zero stays before its note.
+        for i,a in enumerate(blocks):
+            if not a or len({c['line'] for c in a})!=1:continue
+            for j in range(i+1,len(blocks)):
+                b=blocks[j]
+                if not b or len({c['line'] for c in b})!=1:continue
+                ay=max(c['origin'][1]for c in a);by=max(c['origin'][1]for c in b)
+                if abs(ay-by)<max(c['size']for c in a+b)*.55:
+                    a.extend(b);a.sort(key=lambda c:c['uid']);blocks[j]=[]
+        return [dict(box=extent(v), html="<p>"+self.rich(v)+"</p>") for v in blocks if v and canon("".join(c["text"] for c in v))]
 
     def formal_table(self, chars, ident, mode, bodybox):
         owner = "table-"+ident
@@ -815,9 +833,14 @@ class Page:
         regions = [("table", ident, box, body, mode) for ident,box,mode,body in TABLES.get(self.number, [])]
         regions += [("figure", ident, box, art, None) for ident,box,art in FIGURES.get(self.number, [])]
         for ident,box in EXTRA_GRIDS.get(self.number,[]):
+            repaired=None
+            if '-calc-' in ident:
+                from flow_tables import calculation_grid
+                repaired=calculation_grid(self.page,box)
+                if repaired:box=repaired.bbox
             selected=self.select(remaining,box);remaining=[c for c in remaining if c not in selected]
             if not selected:continue
-            table=printed_grid(self.number,ident) if self.number>=383 else coordinate_grid(self.number,ident)
+            table=repaired or (printed_grid(self.number,ident) if self.number>=383 else coordinate_grid(self.number,ident))
             nodes.append(dict(box=box,html=self.grid(selected,table,'table-'+ident)))
         if self.number in (43,44,45):
             regions.append(("appendix", f"3-{self.number-42}", (71, 93 if self.number==43 else 70, 542, 735), None, None))
@@ -973,8 +996,9 @@ def main():
     parser.add_argument("--output", type=Path, default=ROOT/"ama")
     parser.add_argument("--audit", type=Path, default=ROOT/".local"/"ama-part1"/"audit.json")
     parser.add_argument('--precise-tables',action='store_true',default=True,help='Preserve PDF glyph positions and physical table geometry in native HTML (default)')
+    parser.add_argument("--flow-tables",action="store_true",help="Use native flowing cell text rather than PDF glyph coordinates")
     args=parser.parse_args()
-    Page.precise_tables=args.precise_tables
+    Page.precise_tables=args.precise_tables and not args.flow_tables
     doc=pdf.open(args.source)
     index=json.loads((args.output/"index.json").read_text(encoding="utf-8"))
     chapters, audits, known = {}, [], {}

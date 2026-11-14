@@ -34,14 +34,14 @@ async def main(args):
         async def select_chapter(ident):
             if not await page.locator('#ax-tab-'+ident).is_visible(): await page.locator('#ax-menu').click()
             await page.locator('#ax-tab-'+ident).click()
-        for ident in args.ids:
+        for ident in ([] if args.layout_only else args.ids):
             source_cache={}
             data=json.loads((ROOT/'ama'/(ident+'.json')).read_text(encoding='utf-8'))
             await select_chapter(ident)
             await page.locator(f'.ax-page[data-page="{data["pages"][-1]["page"]}"]').wait_for()
             for source in data['pages']:
                 number=source['page']; native=page.locator(f'.ax-page[data-page="{number}"] .ax-page-content')
-                actual=await native.evaluate("""el=>{const c=el.cloneNode(true);c.querySelectorAll('button').forEach(n=>n.remove());return c.textContent;}""")
+                actual=await native.evaluate("""el=>{const c=el.cloneNode(true);c.querySelectorAll('button').forEach(n=>n.remove());c.querySelectorAll('[data-source-text]').forEach(n=>{n.textContent=n.dataset.sourceText;});return c.textContent;}""")
                 originals=[Page(doc,n) for n in source.get('sourcePages',[number])]; text=''.join(c['text'] for original in originals for c in original.chars)
                 assert Counter(canon(text))==Counter(canon(actual)),f'p{number}: native DOM character mismatch'
                 assert await native.locator('img,iframe,object,embed,canvas').count()==0
@@ -117,6 +117,7 @@ async def main(args):
                                         if a['id']==part['id'] or a['id'].startswith(part['id']+'-p')))
                     checked=await page.locator('#ax-dialog-body').evaluate("""(el,{sources,spread})=>{
                         const nodes=sources.map(html=>{const d=document.createElement('div');d.innerHTML=html;return d;});
+                        const restored=el.cloneNode(true);restored.querySelectorAll('[data-source-text]').forEach(n=>{n.textContent=n.dataset.sourceText;});el=restored;
                         const canon=s=>s.replace(/\s+/g,'');
                         const frequency=s=>{const counts={};for(const c of canon(s))counts[c]=(counts[c]||0)+1;return JSON.stringify(Object.entries(counts).sort());};
                         if(frequency(nodes.map(n=>n.textContent).join(''))!==frequency(el.textContent))throw Error('Popup missing or doubled source text');
@@ -156,6 +157,16 @@ async def main(args):
         await context.close()
         for width in (1400,390,320):
             context=await browser.new_context(viewport=dict(width=width,height=900),service_workers='block')
+            # The application now uses cloud-only storage. Replay this test's
+            # synthetic snapshot at the production hydration point on reload,
+            # rather than incorrectly expecting guest data on the local disk.
+            snapshot=[]
+            client_source=(ROOT/'sync/client.js').read_text(encoding='utf8')
+            async def test_client(route):
+                code=client_source.replace('\nsync.connect(null,null);\nstartApps()', '\nsync.connect(null,null,new Map('+json.dumps(snapshot)+'));\nstartApps()',1)
+                await route.fulfill(status=200,content_type='text/javascript',body=code)
+            await context.route('**/sync/client.js',test_client)
+            await context.route('https://www.gstatic.com/firebasejs/**',lambda route:route.abort())
             page=await context.new_page();page.on('pageerror',lambda error:errors.append(str(error)))
             await page.goto(args.url+'index.html#ama');await page.locator('.ax-page').first.wait_for()
             catalogue=json.loads((ROOT/'ama/index.json').read_text(encoding='utf-8'))['chapters']
@@ -177,6 +188,7 @@ async def main(args):
             await page.locator('#ax-body .ax-page-content > p').evaluate_all("""elements=>{for(const el of elements){const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode())){if(n.length<16)continue;const r=document.createRange();r.setStart(n,0);r.setEnd(n,12);const s=getSelection();s.removeAllRanges();s.addRange(r);return;}}throw Error('No selectable source paragraph');}""")
             await page.locator('#ax-mark').click();assert await page.locator('mark.ax-highlight').count()>0
             await page.locator('#ax-scroll').evaluate('el=>{el.scrollTop=800;}');await page.wait_for_timeout(300)
+            snapshot=await page.evaluate("""()=>['scholar-ama-v1','scholar-ama-marks-v1'].flatMap(key=>[...ScholarSyncState.split(key,ScholarStorage.getItem(key))])""")
             await page.reload();await page.locator('.ax-page[data-page="18"]').wait_for();await page.wait_for_timeout(150)
             assert await page.locator('mark.ax-highlight').count()>0
             assert await page.locator('#ax-scroll').evaluate('el=>el.scrollTop')>700
@@ -192,7 +204,11 @@ async def main(args):
             assert dimensions['width']<=width,dimensions
             assert dimensions['bottom']<=dimensions['height']+2,dimensions
             for game in ('laws','guides','crossword','sudoku','wordle','ama'):
-                await page.locator('#game-tab-'+game).click()
+                tab=page.locator('#game-tab-'+game)
+                if game in ('wordle','crossword','sudoku') and not await tab.is_visible():
+                    await page.locator('#game-group-button').click()
+                    await page.locator('#game-group-menu button').nth(('wordle','crossword','sudoku').index(game)).click()
+                else:await tab.click()
                 assert await page.locator('body').get_attribute('data-game')==game
             print(f'{width}px: 17 chapters, keyboard, search, highlight, restore, existing tabs, layout: OK',flush=True)
             await context.close()
@@ -209,5 +225,7 @@ if __name__=='__main__':
     parser.add_argument('--output',type=Path,default=ROOT/'.local'/'ama45'/'review')
     parser.add_argument('--source',type=Path,default=DEFAULT_SOURCE);parser.add_argument('--images',action='store_true')
     parser.add_argument('--precise-tables',action='store_true',default=True)
-    args=parser.parse_args();Page.precise_tables=args.precise_tables
+    parser.add_argument('--flow-tables',action='store_true')
+    parser.add_argument('--layout-only',action='store_true',help='Run responsive navigation and synthetic cloud-restoration checks only')
+    args=parser.parse_args();Page.precise_tables=args.precise_tables and not args.flow_tables
     asyncio.run(main(args))
