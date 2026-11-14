@@ -66,7 +66,9 @@ function mount() {
   };
 }
 function prepareApps() {
-  const nodes = [...document.querySelectorAll('script[data-cloud-src], script[data-cloud-inline]')];
+  const all=[...document.querySelectorAll('script[data-cloud-src], script[data-cloud-inline]')];
+  window.ScholarAppLoader.install(all);
+  const nodes=all.filter(node=>!node.dataset.lazy);
   return Promise.all(nodes.map(async node => {
     if (!node.dataset.cloudSrc) return node.textContent;
     const response = await fetch(new URL(node.dataset.cloudSrc, location.href));

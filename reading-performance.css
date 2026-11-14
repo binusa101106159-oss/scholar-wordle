@@ -32,3 +32,14 @@ html.dark #board-grid > div > div,html.dark #keyboard-container button {will-cha
 /* Old saved positions contain pixels only; preserve their original layout until
    the next position save records a content anchor. */
 #lx-doc.reader-exact-position > .lx-art,.reader-exact-position > :is(.gx-body,.hx-body) > :is(.gx-p,.hx-p,.gx-tblock,.hx-tblock){content-visibility:visible}
+
+/* Defer whole source table blocks, never individual rows or merged cells.
+   Search-highlighted popups keep exact eager geometry for their target. */
+@supports(content-visibility:auto){
+  #lx-annex-body:not(:has(mark)) > .lx-twrap,
+  #gx-att-body:not(:has(mark)) > .gx-tblock,
+  #hx-att-body:not(:has(mark)) > .hx-tblock{content-visibility:auto;contain-intrinsic-size:auto 600px;overflow-clip-margin:4px}
+}
+@media print{
+  #lx-annex-body>.lx-twrap,#gx-att-body>.gx-tblock,#hx-att-body>.hx-tblock{content-visibility:visible}
+}

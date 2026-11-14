@@ -170,7 +170,7 @@
         label('tr') + label('mid') + label('bl') + '</' + tag + '>';
     }
     let inner = scientific(c.text || '', c.sup, terms, c.sub);
-    (c.img || []).forEach(im => { inner += '<img src="' + BASE + 'annex/img/' + im.src + '" width="' + Math.round(im.w * 1.25) + '" height="' + Math.round(im.h * 1.25) + '" alt="" loading="lazy">'; });
+    (c.img || []).forEach(im => { inner += '<img src="' + BASE + 'annex/img/' + im.src + '" width="' + Math.round(im.w * 1.25) + '" height="' + Math.round(im.h * 1.25) + '" alt="" loading="lazy" decoding="async">'; });
     if (c.blocks) inner += blocksHTML(c.blocks, terms, true);
     const span = (c.rs > 1 ? ' rowspan="' + c.rs + '"' : '') + (c.cs > 1 ? ' colspan="' + c.cs + '"' : '');
     // centre short entries in narrow columns (numbers, codes, grades); forms and prose stay left-aligned
@@ -206,7 +206,7 @@
       if (b.t === 'diagram') return '<svg viewBox="0 0 ' + b.w + ' ' + b.h + '" width="' + (b.w * 1.4) + '" height="' + (b.h * 1.4) + '" style="display:block;max-width:100%;margin:10px 0" xmlns="http://www.w3.org/2000/svg">' +
         (b.paths || []).map(p => '<path d="' + p.d + '" stroke="' + (p.stroke === false ? 'none' : 'currentColor') + '" stroke-width="' + p.width + '" fill="' + (p.fill ? 'currentColor' : 'none') + '"' + (p.dash ? ' stroke-dasharray="' + p.dash + '"' : '') + '/>').join('') +
         b.runs.map(r => '<text x="' + r.x + '" y="' + r.y + '" font-size="' + r.size + '" style="font-family:' + (r.font || 'Times New Roman,serif') + '!important' + (r.italic ? ';font-style:italic' : '') + '" fill="currentColor">' + esc(r.text) + '</text>').join('') + '</svg>';
-      if (b.t === 'img') return b.img.map(im => '<img class="lx-annex-img" src="' + BASE + 'annex/img/' + im.src + '" width="' + Math.round(im.w * 1.4) + '" alt="">').join('');
+      if (b.t === 'img') return b.img.map(im => '<img class="lx-annex-img" loading="lazy" decoding="async" src="' + BASE + 'annex/img/' + im.src + '" width="' + Math.round(im.w * 1.4) + '" alt="">').join('');
       return '';
     }).join('');
   }

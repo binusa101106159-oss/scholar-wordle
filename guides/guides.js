@@ -100,7 +100,7 @@
         label('tr') + label('mid') + label('bl') + '</' + tag + '>';
     }
     let inner = rich(c.text || '', null, terms);
-    (c.img || []).forEach(im => { inner += '<img src="' + BASE + 'attach/img/' + im.src + '" width="' + Math.round(im.w * 1.25) + '" height="' + Math.round(im.h * 1.25) + '" alt="" loading="lazy">'; });
+    (c.img || []).forEach(im => { inner += '<img src="' + BASE + 'attach/img/' + im.src + '" width="' + Math.round(im.w * 1.25) + '" height="' + Math.round(im.h * 1.25) + '" alt="" loading="lazy" decoding="async">'; });
     if (c.blocks) inner += blocksHTML(c.blocks, terms, { inCell: true });
     const span = (c.rs > 1 ? ' rowspan="' + c.rs + '"' : '') + (c.cs > 1 ? ' colspan="' + c.cs + '"' : '');
     let share = 1;
@@ -137,11 +137,11 @@
       const aid = opts.anchor ? ' id="gx-b-' + opts.anchor + '-' + k + '"' : '';
       if (b.t === 'img' && b.scan) {
         flush();
-        out.push('<div class="gx-scan"' + aid + '>' + b.img.map(im => '<img src="' + BASE + 'attach/img/' + im.src + '" width="' + Math.round(im.w * 1.4) + '" height="' + Math.round(im.h * 1.4) + '" alt="原頁影像" loading="lazy">').join('') + '</div>');
+        out.push('<div class="gx-scan"' + aid + '>' + b.img.map(im => '<img src="' + BASE + 'attach/img/' + im.src + '" width="' + Math.round(im.w * 1.4) + '" height="' + Math.round(im.h * 1.4) + '" alt="原頁影像" loading="lazy" decoding="async">').join('') + '</div>');
         return;
       }
       if (b.t === 'img') {
-        (figure = figure || []).push(b.img.map(im => '<img src="' + BASE + 'attach/img/' + im.src + '" width="' + Math.round(im.w * 1.4) + '" height="' + Math.round(im.h * 1.4) + '" alt="" loading="lazy"' + aid + '>').join(''));
+        (figure = figure || []).push(b.img.map(im => '<img src="' + BASE + 'attach/img/' + im.src + '" width="' + Math.round(im.w * 1.4) + '" height="' + Math.round(im.h * 1.4) + '" alt="" loading="lazy" decoding="async"' + aid + '>').join(''));
         return;
       }
       // one row of labels printed under a row of pictures: put each label under its picture
