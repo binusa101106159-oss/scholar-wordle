@@ -365,7 +365,7 @@
       if (ref) { e.preventDefault(); openAnnex(ref.dataset.annex); }
     });
     by('lx-chapters').addEventListener('change', e => {
-      const el = by(e.target.value); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const el = by(e.target.value); if (el) window.ScholarReaderScroll.to(by('lx-scroll'),el,10);
     });
     const jump = by('lx-jump');
     jump.addEventListener('keydown', e => {
@@ -443,7 +443,9 @@
     if (!state.current || state.checkedView || window.ScholarLawSearch?.active()) return;
     const pos = Object.assign({}, prefs().pos);
     pos[state.current.id] = Math.round(by('lx-scroll').scrollTop);
-    setPrefs({ law: state.current.id, pos });
+    const anchors=Object.assign({},prefs().anchors),anchor=window.ScholarReaderScroll.capture(by('lx-scroll'));
+    if(anchor)anchors[state.current.id]=anchor;else delete anchors[state.current.id];
+    setPrefs({ law: state.current.id, pos, anchors });
   }
 
   /* ── sidebar ── */
@@ -604,10 +606,12 @@
       renderDoc(state.current, false);
       renderSide();
       const saved = (prefs().pos || {})[id];
+      const anchor=(prefs().anchors||{})[id];
       const sc = by('lx-scroll');
       sc.style.scrollBehavior = 'auto';
       if(!window.ScholarLawSearch?.active())sc.scrollTop = opts.art ? 0 : (saved || 0);
       sc.style.scrollBehavior = '';
+      if(!opts.art)window.ScholarReaderScroll.restore(sc,anchor);
     }
     if (opts.art) scrollToArticle(opts.art, opts.flash);
   }
@@ -615,10 +619,7 @@
     const el = by('lx-a-' + state.current.id + '-' + no);
     if (!el) return false;
     const sc = by('lx-scroll');
-    const target = el.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 6;
-    sc.style.scrollBehavior = 'auto';
-    sc.scrollTo({ top: target, behavior: Math.abs(target - sc.scrollTop) > 2500 ? 'auto' : 'smooth' });
-    sc.style.scrollBehavior = '';
+    window.ScholarReaderScroll.to(sc,el,6);
     if (flash) { el.classList.add('lx-flash'); setTimeout(() => el.classList.remove('lx-flash'), 1400); }
     return true;
   }
@@ -640,6 +641,8 @@
   function renderDoc(law, keepScroll) {
     const terms = state.resultTerms || state.terms, meta = law.meta;
     const sc = by('lx-scroll'), top = sc.scrollTop;
+    const viewAnchor=keepScroll?window.ScholarReaderScroll.capture(sc):null;
+    by('lx-doc').classList.toggle('reader-exact-position',!viewAnchor&&(prefs().pos||{})[law.id]>0&&!(prefs().anchors||{})[law.id]);
     const tierLaws = state.index.laws.filter(l => l.tier === meta.tier);
     const tierInfo = state.index.tiers.find(t => t.id === meta.tier) || {};
     let html = '<div class="lx-head sg-glass"><p class="sg-eyebrow">' + [meta.tier, esc(tierInfo.name || TIER_NAMES[meta.tier] || ''), (meta.no || tierLaws.indexOf(meta) + 1) + ' / ' + (tierInfo.total || tierLaws.length)].filter(Boolean).join(' · ') + '</p>' +
@@ -671,7 +674,7 @@
     by('lx-jump').value = '';
     updateCheckedControls();
     paintMarks();
-    if (keepScroll) { sc.style.scrollBehavior = 'auto'; sc.scrollTop = top; sc.style.scrollBehavior = ''; }
+    if (keepScroll) { sc.style.scrollBehavior = 'auto'; sc.scrollTop = top; sc.style.scrollBehavior = '';window.ScholarReaderScroll.restore(sc,viewAnchor); }
     document.title = meta.name + ' · Scholar';
     if (!by('lx-panel').hidden && panelTab === 'marks') renderPanel();
   }
@@ -694,7 +697,7 @@
     dlg.querySelector('[data-step="-1"]').disabled = pos <= 0;
     dlg.querySelector('[data-step="1"]').disabled = pos >= list.length - 1;
     const body=by('lx-annex-body'),key=id+'|'+JSON.stringify(state.resultTerms || state.terms);
-    if(body.dataset.renderKey===key) {
+    if(window.ScholarPopupCache?.restore(body,key) || body.dataset.renderKey===key) {
       window.ScholarPeek.open(dlg);body.scrollTop=0;
       const mark=body.querySelector('mark.lx-mark');if(mark)mark.scrollIntoView({block:'center'});
       return;

@@ -319,7 +319,7 @@
       if (ref) { e.preventDefault(); openAtt(ref.dataset.att); }
     });
     by('hx-chapters').addEventListener('change', e => {
-      const el = by(e.target.value); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const el = by(e.target.value); if (el) window.ScholarReaderScroll.to(by('hx-scroll'),el,10);
       e.target.value = '';
     });
     by('hx-conclusion').addEventListener('click', () => {
@@ -394,7 +394,9 @@
     if (!state.current) return;
     const pos = Object.assign({}, prefs().pos);
     pos[state.current.id] = Math.round(by('hx-scroll').scrollTop);
-    setPrefs({ guide: state.current.id, pos });
+    const anchors=Object.assign({},prefs().anchors),anchor=window.ScholarReaderScroll.capture(by('hx-scroll'));
+    if(anchor)anchors[state.current.id]=anchor;else delete anchors[state.current.id];
+    setPrefs({ guide: state.current.id, pos, anchors });
   }
 
   /* ── sidebar ── */
@@ -571,10 +573,12 @@
       renderDoc(state.current, false);
       renderSide();
       const saved = (prefs().pos || {})[id];
+      const anchor=(prefs().anchors||{})[id];
       const sc = by('hx-scroll');
       sc.style.scrollBehavior = 'auto';
       sc.scrollTop = opts.block != null ? 0 : (saved || 0);
       sc.style.scrollBehavior = '';
+      if(opts.block == null)window.ScholarReaderScroll.restore(sc,anchor);
     }
     if (opts.block != null) scrollToBlock(opts.block, opts.flash);
   }
@@ -583,10 +587,7 @@
     if (!el) return false;
     if (el.tagName === 'IMG') el = el.parentElement;
     const sc = by('hx-scroll');
-    const target = el.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 10;
-    sc.style.scrollBehavior = 'auto';
-    sc.scrollTo({ top: target, behavior: Math.abs(target - sc.scrollTop) > 2500 ? 'auto' : 'smooth' });
-    sc.style.scrollBehavior = '';
+    window.ScholarReaderScroll.to(sc,el,10);
     if (flash) { el.classList.add('hx-flash'); setTimeout(() => el.classList.remove('hx-flash'), 1400); }
     return true;
   }
@@ -612,6 +613,8 @@
   function renderDoc(guide, keepScroll) {
     const terms = state.terms, meta = guide.meta;
     const sc = by('hx-scroll'), top = sc.scrollTop;
+    const viewAnchor=keepScroll?window.ScholarReaderScroll.capture(sc):null;
+    by('hx-doc').classList.toggle('reader-exact-position',!viewAnchor&&(prefs().pos||{})[guide.id]>0&&!(prefs().anchors||{})[guide.id]);
     by('hx-version').textContent = meta.cat === 'full' ? '簡明版速查' : '查看完整版';
     const cat = state.index.cats.find(c => c.id === meta.cat) || {};
     let html = '<div class="hx-head sg-glass"><p class="sg-eyebrow">' + esc(cat.name || '') + ' · ' + meta.no + ' / ' + (cat.total || '') + '</p>' +
@@ -635,7 +638,7 @@
     sel.hidden = !chapters.length;
     sel.innerHTML = '<option value="">章節</option>' + chapters.map(c => '<option value="' + c.id + '">' + '　'.repeat(c.lv - 1) + esc(c.text.replace(/\s+/g, ' ')) + '</option>').join('');
     paintMarks();
-    if (keepScroll) { sc.style.scrollBehavior = 'auto'; sc.scrollTop = top; sc.style.scrollBehavior = ''; }
+    if (keepScroll) { sc.style.scrollBehavior = 'auto'; sc.scrollTop = top; sc.style.scrollBehavior = '';window.ScholarReaderScroll.restore(sc,viewAnchor); }
     document.title = meta.name + ' · Scholar';
     if (!by('hx-panel').hidden && panelTab === 'marks') renderPanel();
   }
@@ -657,7 +660,7 @@
     dlg.querySelector('[data-step="-1"]').disabled = pos <= 0;
     dlg.querySelector('[data-step="1"]').disabled = pos >= list.length - 1;
     const body=by('hx-att-body'),key=id+'|'+JSON.stringify(state.terms);
-    if(body.dataset.renderKey===key) {
+    if(window.ScholarPopupCache?.restore(body,key) || body.dataset.renderKey===key) {
       window.ScholarPeek.open(dlg);body.scrollTop=0;
       const mark=body.querySelector('mark.hx-mark');if(mark)mark.scrollIntoView({block:'center'});
       return;

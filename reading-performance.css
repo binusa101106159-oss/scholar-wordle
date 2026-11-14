@@ -18,3 +18,17 @@ html.dark #board-grid > div > div,html.dark #keyboard-container button {will-cha
 @media(pointer:coarse) {
   .lx-scroll,.gx-scroll,.hx-scroll,.ax-scroll {scroll-behavior:auto;}
 }
+
+/* Retain native text/anchors for find, copy and marks; defer off-screen layout. */
+@supports(content-visibility:auto){
+  #lx-doc > .lx-art{content-visibility:auto;contain-intrinsic-size:auto 240px}
+  :is(.gx-body,.hx-body) > :is(.gx-p,.hx-p){content-visibility:auto;contain-intrinsic-size:auto 80px}
+  :is(.gx-body,.hx-body) > :is(.gx-tblock,.hx-tblock){content-visibility:auto;contain-intrinsic-size:auto 500px}
+}
+@media print{
+  #lx-doc > .lx-art,:is(.gx-body,.hx-body) > :is(.gx-p,.hx-p,.gx-tblock,.hx-tblock){content-visibility:visible}
+}
+
+/* Old saved positions contain pixels only; preserve their original layout until
+   the next position save records a content anchor. */
+#lx-doc.reader-exact-position > .lx-art,.reader-exact-position > :is(.gx-body,.hx-body) > :is(.gx-p,.hx-p,.gx-tblock,.hx-tblock){content-visibility:visible}

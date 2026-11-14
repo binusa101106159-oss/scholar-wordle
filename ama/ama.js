@@ -248,9 +248,11 @@
       const label=document.createElement('div');label.className='ax-page-label';label.textContent='原書第 '+sourcePages(source)+' 頁';
       const body=document.createElement('div');body.className='ax-page-content';body.innerHTML=source.html;showChapterMarks(body);showSourceHeadings(body);
       page.append(label,body);fragment.append(page);
-      if(i===1 || performance.now()-started>12) {
+      if(i===1 || performance.now()-started>6) {
         container.append(fragment);fragment=document.createDocumentFragment();
-        await new Promise(resolve=>setTimeout(resolve,0));started=performance.now();
+        if(globalThis.scheduler?.yield)await globalThis.scheduler.yield();
+        else await new Promise(resolve=>setTimeout(resolve,0));
+        started=performance.now();
       }
     }
     if(version!==revision)return false;
@@ -349,8 +351,8 @@
       by('ax-dialog').classList.remove('ax-peek','ax-popped');by('ax-peek-expand').hidden=true;
     }
     by('ax-dialog-title').textContent=object.label+' · 原書第 '+sourcePages(object)+' 頁';
-    const body=by('ax-dialog-body'),reuse=body.dataset.chapter===chapter&&body.dataset.object===id&&body.childElementCount>0;
-    if(!reuse){body.innerHTML=object.html;showSourceHeadings(body);}body.dataset.chapter=chapter;body.dataset.object=id;
+    const body=by('ax-dialog-body'),key='ama|'+chapter+'|'+id,reuse=window.ScholarPopupCache?.restore(body,key) || body.dataset.chapter===chapter&&body.dataset.object===id&&body.childElementCount>0;
+    if(!reuse){body.innerHTML=object.html;showSourceHeadings(body);}body.dataset.chapter=chapter;body.dataset.object=id;body.dataset.renderKey=key;
     const tables=data.attachments.filter(item=>item.kind==='table'),index=tables.findIndex(item=>item.id===id);
     by('ax-table-nav').hidden=index<0;
     by('ax-table-prev').disabled=index<=0;by('ax-table-next').disabled=index<0||index===tables.length-1;
@@ -403,6 +405,7 @@
     const chapter=catalogue.chapters.find(item=>item.id===chapterId),body=by('ax-dialog-body');
     by('ax-dialog').classList.remove('ax-peek','ax-popped');by('ax-peek-expand').hidden=true;
     by('ax-dialog-title').textContent=chapterLabel(chapter)+' · 本章表格';by('ax-table-nav').hidden=true;
+    window.ScholarPopupCache?.release(body);delete body.dataset.renderKey;
     body.replaceChildren();body.dataset.chapter=chapterId;delete body.dataset.object;
     const intro=document.createElement('p');intro.className='ax-table-intro';intro.textContent=chapter.title+' · '+tables.length+' 張表格';
     const label=document.createElement('label');label.className='ax-table-filter';label.textContent='搜尋表號或標題';
