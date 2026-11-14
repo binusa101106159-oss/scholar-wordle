@@ -177,6 +177,7 @@
 .ax-source-run.ax-readable-heading>span{position:static}
 .ax-natural-run,.ax-natural-label,.ax-natural-svg { letter-spacing:normal; word-spacing:normal; font-kerning:normal; }
 .ax-source-run > .ax-natural-label { position:absolute; top:0; white-space:pre; width:max-content; }
+.ax-source-run > .ax-vertical-label { transform:rotate(-90deg) translateX(-100%); transform-origin:0 0; }
 /* The site's global font rule also targets SVG children. Keep each complete
    label in the same typeface/weight as its source text element. */
 .ax-natural-svg tspan { font-family:inherit!important; font-weight:inherit!important; font-style:inherit!important; }

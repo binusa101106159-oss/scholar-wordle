@@ -179,7 +179,18 @@
       if(!glyphs.length||glyphs.some(g=>g.children.length||!Number.isFinite(parseFloat(g.style.left))))return;
       const groups=sourceGlyphGroups(glyphs.map(g=>({x:parseFloat(g.style.left),text:g.textContent})),parseFloat(run.style.fontSize));
       const fragment=document.createDocumentFragment();
-      for(const group of groups){const label=document.createElement('span');label.className='ax-natural-label';label.style.left=group[0].x+'px';label.textContent=group.map(g=>g.text).join('');fragment.append(label);}
+      for(const group of groups){
+        const label=document.createElement('span');label.className='ax-natural-label';label.style.left=group[0].x+'px';label.textContent=group.map(g=>g.text).join('');
+        if(group.length>2&&group.every(g=>g.x===group[0].x))label.classList.add('ax-vertical-label');
+        // HTML labels also need room for a substitute font (not only SVG).
+        // Use the source advances plus the final glyph, retaining the anchor.
+        const size=parseFloat(run.style.fontSize);sourceTextMeasure ||= document.createElement('canvas').getContext('2d');
+        sourceTextMeasure.font=`${run.style.fontStyle||'normal'} ${run.style.fontWeight||'normal'} ${size}px Arial,sans-serif`;
+        const width=sourceTextMeasure.measureText(label.textContent).width,last=group.at(-1);
+        const space=last.x-group[0].x+sourceTextMeasure.measureText(last.text).width,fit=last.x>group[0].x&&space>0&&width>0?Math.min(1,space/(width*1.02)):1;
+        if(fit<1){label.style.setProperty('font-size',size*fit+'px','important');label.dataset.labelFit=fit.toFixed(4);}
+        fragment.append(label);
+      }
       run.replaceChildren(fragment);run.classList.add('ax-natural-run');
     });
     const svgLabels=[];

@@ -41,7 +41,7 @@ CHECK=r'''({html,pages,label,ident})=>{
  if(residual.length)throw Error(ident+': residual letter-spaced words in copied text: '+residual.slice(0,3).join(' | '));
  const fits=[...d.querySelectorAll('[data-label-fit]')].filter(n=>n.textContent.trim()).map(n=>+n.dataset.labelFit);
  result.minimumLabelScale=fits.length?Math.min(...fits):1;
- if(result.minimumLabelScale<.75)throw Error('Label excessively reduced');
+ if(result.minimumLabelScale<.75)throw Error(ident+': Label excessively reduced '+JSON.stringify([...d.querySelectorAll('[data-label-fit]')].filter(n=>n.textContent.trim()&&+n.dataset.labelFit<.75).map(n=>[n.textContent,n.dataset.labelFit])));
  d.remove();return result;
 }'''
 
@@ -85,6 +85,11 @@ def main():
      page.locator('#ax-tab-c12').dispatch_event('click');page.locator('.ax-page[data-page="319"]').wait_for()
      page.locator('#ax-body button[data-open="f12-9"]').first.dispatch_event('click');page.locator('#ax-dialog[open]').wait_for()
      if width==1440 and engine=='chromium':page.locator('#ax-dialog-body').screenshot(path=str(OUTPUT/'figure12-9.png'))
+     page.locator('#ax-dialog-close').dispatch_event('click');page.locator('#ax-tab-c15').dispatch_event('click')
+     page.locator('#ax-body button[data-open="f15-20"]').first.dispatch_event('click');page.locator('#ax-dialog[open]').wait_for()
+     vertical=page.locator('#ax-dialog-body .ax-vertical-label').bounding_box()
+     assert vertical and vertical['height']>vertical['width']*4,vertical
+     if width==1440 and engine=='chromium':page.locator('#ax-dialog-body').screenshot(path=str(OUTPUT/'figure15-20.png'))
      assert not errors,errors
      results.append({'engine':engine,'width':width,**counts,'overlaps':0,'unhandled':0,'minimumLabelScale':minimumScale,'sourceText':'unchanged','copy':'PASS'})
      print(engine,width,counts,'source text / natural labels / overlaps / actual popup copy PASS',flush=True)
