@@ -19,7 +19,7 @@ function mount() {
   const render = () => {
     const state = sync.status();bar.dataset.state = state.phase;
     bar.hidden = state.phase === 'synced' && Boolean(state.user) && !state.pending && !state.error && !signingIn;
-    by('cloud-status').textContent = state.phase === 'loading' ? 'Connecting…' : state.phase === 'guest' ? 'Not signed in · not saved' : state.phase === 'error' ? 'Not synced · retry' : state.pending ? (state.background?'Saving position…':'Syncing…') : 'Synced';
+    by('cloud-status').textContent = state.phase === 'loading' ? 'Connecting…' : state.phase === 'guest' ? 'Not signed in · not saved' : state.phase === 'error' ? 'Not synced · retry' : state.pending ? (state.paused?'Editing · save pending':state.background?'Saving position…':'Syncing…') : 'Synced';
     by('cloud-status').title = state.error || (state.user ? state.user.email : 'Sign in to save across devices. Guest changes last only for this visit.');
     by('cloud-signin').hidden = Boolean(state.user);by('cloud-account').hidden = !state.user;
     by('cloud-signin').disabled = signingIn;

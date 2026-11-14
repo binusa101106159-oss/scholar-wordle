@@ -9,7 +9,7 @@
   const ready = new Promise(resolve => { resolveReady = resolve; });
   const allowed = key => /^(?:scholar[-_]|oxford_wordle_v1$|epi-pbl:)/.test(key) && !/(?:api.?key|token|secret|credential)/i.test(key);
   const quiet = key => /^scholar-(?:navigation|calendar|laws|guides|health|ama|notes|review|ilo-views)-v1$/.test(key);
-  const status = () => ({user, phase, pending: queue.size + Number(confirming), background: !confirming && queue.size > 0 && [...queue.values()].every(op=>quiet(op.key)), error: failure});
+  const status = () => ({user, phase, paused: Boolean(queue.size && editing()), pending: queue.size + Number(confirming), background: !confirming && queue.size > 0 && [...queue.values()].every(op=>quiet(op.key)), error: failure});
   let previousStatus;
   const notify = () => {
     const next=status(), signature=JSON.stringify(next);
@@ -36,11 +36,13 @@
     for(const [key,oldValue] of pending)emit(key,oldValue);
     // Leaving the input/dialog ends the editing action and releases its outbox.
     if(queue.size)schedule(true);
+    notify();
   }
   if(typeof document !== 'undefined'){
     // Server state can advance immediately, but redrawing a live editor can
     // destroy its caret, IME composition, dropdown or unsaved dialog draft.
     const later=()=>setTimeout(drainUpdates,0);
+    document.addEventListener('focusin',notify);
     document.addEventListener('focusout',later);
     document.addEventListener('compositionend',later);
     document.addEventListener('close',later,true);
