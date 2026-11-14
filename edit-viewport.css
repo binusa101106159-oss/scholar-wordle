@@ -1,0 +1,2 @@
+@media(pointer:coarse){.ct-fields :is(input,textarea,select){font-size:16px}.ct-dialog,.cal-dialog{scroll-padding-block:16px;overscroll-behavior:contain}}
+html[data-soft-keyboard] :is(.ct-dialog,.cal-dialog)[open]{top:var(--edit-top);bottom:auto;margin-block:0;max-height:calc(var(--edit-vh) - 16px);scroll-padding-block:16px}

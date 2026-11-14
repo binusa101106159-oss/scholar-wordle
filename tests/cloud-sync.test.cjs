@@ -278,3 +278,27 @@ test('progressive public startup hydrates cloud data without replacing a live in
  h.sync.connect({uid:'owner'},{commit:async op=>op.next},new Map([...S.split('scholar-calculator-v1',str({input:'old'})),...S.split('scholar-reading-v1',str({size:22}))]),true);
  assert.equal(JSON.parse(h.store.getItem('scholar-calculator-v1')).input,'new draft');assert.equal(JSON.parse(h.store.getItem('scholar-reading-v1')).size,22);assert.ok(h.sync.status().pending);await h.sync.flush();
 });
+
+function twoDeviceServer(initial){
+ const entries=new Map(initial);let chain=Promise.resolve();
+ const adapter=()=>({commit(op){const result=chain.then(()=>{const value=S.reconcile(op.base,op.next,entries.get(op.id)??null,op.id);if(op.key==='scholar-cases-v1'&&op.next!==null&&value===null)throw Error('deleted remotely');if(value===null)entries.delete(op.id);else entries.set(op.id,value);return value});chain=result.catch(()=>{});return result}});
+ return {entries,adapter};
+}
+test('two device patient saves preserve changes to separate fields',async()=>{
+ const key='scholar-cases-v1',row={id:'fixture',name:'Original',notes:'old'},raw=record=>str({version:1,records:[record]}),server=twoDeviceServer(S.split(key,raw(row))),a=harness(),b=harness();
+ for(const h of [a,b])h.sync.connect({uid:'owner'},server.adapter(),server.entries);
+ await Promise.all([a.store.setConfirmed(key,raw({...row,name:'Device A'})),b.store.setConfirmed(key,raw({...row,notes:'Device B'}))]);
+ const record=JSON.parse(S.join(key,server.entries)).records[0];assert.equal(record.name,'Device A');assert.equal(record.notes,'Device B');
+});
+test('a stale second device cannot resurrect a patient deleted by the first device',async()=>{
+ const key='scholar-cases-v1',row={id:'fixture',name:'Fictional',notes:'old'},raw=record=>str({version:1,records:[record]}),server=twoDeviceServer(S.split(key,raw(row))),a=harness(),b=harness();
+ for(const h of [a,b])h.sync.connect({uid:'owner'},server.adapter(),server.entries);
+ await a.store.setConfirmed(key,str({version:1,records:[]}));await assert.rejects(b.store.setConfirmed(key,raw({...row,notes:'stale edit'})),/deleted remotely/);assert.equal(server.entries.size,0);
+});
+test('offline typing and another device preference update both survive reconnection',async()=>{
+ const key='scholar-calculator-v1',initial=str({input:'old',previous:'before'}),server=twoDeviceServer(S.split(key,initial)),a=harness(),b=harness();let offline=true;
+ const network=server.adapter();a.sync.connect({uid:'owner'},{commit:async op=>{if(offline)throw Error('network offline');return network.commit(op)}},server.entries);b.sync.connect({uid:'owner'},server.adapter(),server.entries);
+ for(let i=0;i<100;i++)a.store.setItem(key,str({input:'typing '+i,previous:'before'}));await assert.rejects(a.sync.flush());
+ b.store.setItem(key,str({input:'old',previous:'other device'}));await b.sync.flush();a.sync.receive(server.entries);offline=false;await a.sync.flush();
+ assert.deepEqual(JSON.parse(S.join(key,server.entries)),{input:'typing 99',previous:'other device'});
+});

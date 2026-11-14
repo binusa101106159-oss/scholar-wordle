@@ -84,7 +84,7 @@
   if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords, moveRecord, followupText, followupPreview, recordsForView, setArchived };
   if (typeof document === 'undefined') return;
   const by = id => document.getElementById(id);
-  let booted = false, records = [], editing = null, editingBase = null, deleting = null, saving = false, readable = true, sorting = false, drag = null, archivedView = false, archiving = false;
+  let booted = false, records = [], editing = null, editingBase = null, deleting = null, saving = false, readable = true, sorting = false, drag = null, archivedView = false, archiving = false, suspendedDraft = null;
   const read = () => parseRecords(window.ScholarStorage.getItem(STORE));
   function announce(message, error = false) {
     by('ct-status').textContent = message;
@@ -345,7 +345,7 @@
     by('ct-search').addEventListener('input', render);
     by('ct-followup').addEventListener('input', updateWeekday);
     by('ct-editor-close').addEventListener('click', closeEditor); by('ct-cancel').addEventListener('click', closeEditor);
-    by('ct-editor').addEventListener('close', () => { by('ct-form').reset(); editing = null; });
+    by('ct-editor').addEventListener('close', () => { if(suspendedDraft||by('ct-editor').open)return;by('ct-form').reset(); editing = null; });
     by('ct-rows').addEventListener('click', async event => {
       const button = event.target.closest('[data-action]'); if (!button || !readable) return;
       if (button.dataset.action === 'copy-mrn') {
@@ -395,7 +395,7 @@
     let identity=window.ScholarSync.status().user?.uid;
     window.addEventListener('scholar-sync-status',()=>{const next=window.ScholarSync.status().user?.uid;if(identity!==next){identity=next;refresh();}});
     window.addEventListener('beforeunload', event => {
-      if (by('ct-editor').open && recordFields.some(key=>by('ct-'+key).value.trim() !== (editingBase?.[key] || ''))) {
+      if ((by('ct-editor').open||suspendedDraft) && recordFields.some(key=>by('ct-'+key).value.trim() !== (editingBase?.[key] || ''))) {
         event.preventDefault();event.returnValue='';
       }
     });
@@ -403,9 +403,16 @@
   function show() {
     if (!booted) { shell(); booted = true; }
     refresh();
+    if(suspendedDraft&&readable){
+      const draft=suspendedDraft;suspendedDraft=null;
+      window.ScholarPeek.open(by('ct-editor'));
+      const field=by(draft.focus)||by('ct-name');field.focus({preventScroll:true});
+      if(draft.start!==null&&field.setSelectionRange)try{field.setSelectionRange(draft.start,draft.end);}catch(_){}
+    }
   }
   function hide() {
     if (!booted) return;
+    if(by('ct-editor').open&&!saving){const field=document.activeElement;suspendedDraft={focus:field?.id,start:field?.selectionStart??null,end:field?.selectionEnd??null};}
     for (const id of ['ct-editor', 'ct-delete']) if (by(id).open) by(id).close();
     deleting = null;
   }
