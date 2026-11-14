@@ -175,6 +175,12 @@
 .ax-source-run > span { position:absolute; top:0; }
 .ax-source-run.ax-readable-heading{letter-spacing:normal;white-space:nowrap}
 .ax-source-run.ax-readable-heading>span{position:static}
+.ax-natural-run,.ax-natural-label,.ax-natural-svg { letter-spacing:normal; word-spacing:normal; font-kerning:normal; }
+.ax-source-run > .ax-natural-label { position:absolute; top:0; white-space:pre; width:max-content; }
+/* The site's global font rule also targets SVG children. Keep each complete
+   label in the same typeface/weight as its source text element. */
+.ax-natural-svg tspan { font-family:inherit!important; font-weight:inherit!important; font-style:inherit!important; }
+.ax-plain-caption { margin-inline-end:.35em; }
 .ax-source-grid > svg { position:absolute; inset:0; width:100%; height:100%; }
 .ax-source-object .ax-table-wrap { margin:0; }
 /* Override the site's regular-weight Roboto rule only within source cells. */

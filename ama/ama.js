@@ -122,21 +122,114 @@
     return chars.map((char,i)=>char!==' '?char:(i<chars.length-1&&left[i+1]-left[i]>usual*1.6?' ':'')).join('').trim();
   }
   function readableCopy(copy) {
+    printedSourceHeadings(copy);
     // Hyphens left by the book's line breaks stay in the data (saved highlights count them) but never in copied text.
     copy.querySelectorAll('.ax-soft-break').forEach(n=>n.remove());
-    copy.querySelectorAll('.ax-flow-heading').forEach(n=>{n.textContent=n.dataset.readableTitle;});
+    copy.querySelectorAll('.ax-flow-heading').forEach(n=>{n.textContent=n.dataset.readableTitle+(n.classList.contains('ax-plain-caption')&&n.nextSibling&&!/^\s/.test(n.nextSibling.textContent)?' ':'');});
     copy.querySelectorAll('.ax-source-run').forEach(run=>{const text=spacedRunText(run);if(text!==null)run.textContent=text;});
+    copy.querySelectorAll('svg text').forEach(n=>{const title=continuedHeading(n.textContent);if(title)n.textContent=title;});
     copy.querySelectorAll('h3 strong').forEach(mark=>{if(CHAPTER_MARK.test(mark.textContent))mark.textContent='CHAPTER '+mark.textContent.slice(14).replace(/ /g,'');});
     return copy;
   }
   function sourceHeadingText(run) {
     if([...run.children].some(glyph=>[...glyph.textContent].length!==1))return null;
     const text=spacedRunText(run);
+    const continued=continuedHeading(text||'');if(continued)return continued;
     if(text===null || !/^(?:TABLE|FIGURE)\s+\d/i.test(text))return null;
     return text.replace(/^(?:TABLE|FIGURE)\b/i,label=>label[0].toUpperCase()+label.slice(1).toLowerCase())
       .replace(/\bCONTINUED\b/g,'continued').replace(/\bSENSORY AND MOTOR SEVERITY\b/,'Sensory and Motor Severity');
   }
-  function showSourceHeadings(root) {
+  function continuedHeading(text) {
+    const compact=text.replace(/\s/g,'');
+    return compact==='CONTINUED'?'continued':compact==='(CONTINUED)'?'(continued)':null;
+  }
+  function printedSourceHeadings(root,objectLabel) {
+    root.querySelectorAll('p,h3,strong,b').forEach(paragraph=>{
+      if(!['p','h3','strong','b'].includes(paragraph.localName)||paragraph.closest('table')||paragraph.querySelector('.ax-source-run,.ax-flow-heading'))return;
+      const object=paragraph.closest('.ax-object'),id=object?.id?.match(/^([tf])(\d+-[\dA-Z]+)(?:-|$)/i);
+      let label=id?(id[1].toLowerCase()==='t'?'Table ':'Figure ')+id[2].replace(/-[a-z]$/i,s=>s.toUpperCase()):objectLabel;
+      if(!label)return;
+      const continued=continuedHeading(paragraph.textContent);if(continued)label=continued;
+      const pattern=[...label.replace(/\s/g,'')].map(c=>c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('\\s*');
+      const match=continued?[paragraph.textContent]:paragraph.textContent.match(new RegExp('^\\s*'+pattern+'(?!\\s*\\d)','i'));if(!match)return;
+      const walker=document.createTreeWalker(paragraph,NodeFilter.SHOW_TEXT),nodes=[];let n;while(n=walker.nextNode())nodes.push(n);
+      const bold=nodes[0]?.parentElement.closest('strong,b'),range=document.createRange();range.setStart(paragraph,0);let remaining=match[0].length;
+      for(const node of nodes){if(remaining<=node.length){range.setEnd(node,remaining);break;}remaining-=node.length;}
+      const span=document.createElement('span');span.className='ax-flow-heading ax-plain-caption';span.dataset.readableTitle=label;span.textContent=match[0];
+      if(bold)span.style.setProperty('font-weight','700','important');range.deleteContents();range.insertNode(span);
+    });
+  }
+  function sourceGlyphGroups(glyphs,size) {
+    const groups=[];let previous;
+    const tokens=glyphs.map(g=>g.text).join('').trim().split(/\s+/);
+    const values=tokens.length>=3&&tokens.every(t=>/^[\d/.,%°±+−<>≤≥-]+$/.test(t)||/^[A-E]$/.test(t)||/^[IVX]+$/.test(t));
+    for(const glyph of glyphs){
+      // A large jump denotes a separate diagram label or numeric column.
+      // Preserve those anchors; normal words use the browser's own kerning.
+      if(!previous||glyph.x-previous.x>size*1.35||glyph.x<previous.x-.1||(values&&/\s$/.test(previous.text)&&!/^\s/.test(glyph.text)))groups.push([]);
+      groups.at(-1).push(glyph);previous=glyph;
+    }
+    return groups;
+  }
+  let sourceTextMeasure;
+  function naturalSourceLabels(root) {
+    root.querySelectorAll('.ax-source-run').forEach(run=>{
+      if(!run.style?.fontSize||run.closest('.ax-ca-sheet')||run.classList.contains('ax-readable-heading')||run.classList.contains('ax-natural-run'))return;
+      const glyphs=[...run.children];
+      if(!glyphs.length||glyphs.some(g=>g.children.length||!Number.isFinite(parseFloat(g.style.left))))return;
+      const groups=sourceGlyphGroups(glyphs.map(g=>({x:parseFloat(g.style.left),text:g.textContent})),parseFloat(run.style.fontSize));
+      const fragment=document.createDocumentFragment();
+      for(const group of groups){const label=document.createElement('span');label.className='ax-natural-label';label.style.left=group[0].x+'px';label.textContent=group.map(g=>g.text).join('');fragment.append(label);}
+      run.replaceChildren(fragment);run.classList.add('ax-natural-run');
+    });
+    const svgLabels=[];
+    root.querySelectorAll('svg text').forEach(text=>{
+      if(text.localName!=='text'||text.closest('.ax-ca-sheet')||text.classList.contains('ax-natural-svg'))return;
+      text.dataset.sourceText=text.textContent;
+      const continued=continuedHeading(text.textContent);
+      const glyphs=[...text.children],size=parseFloat(text.getAttribute('font-size'));
+      if(glyphs.length&&Number.isFinite(size)&&glyphs.every(g=>g.localName==='tspan'&&[...g.textContent].length===1&&/^[-\d.]+$/.test(g.getAttribute('x')||''))){
+        const original=glyphs.map(g=>({x:+g.getAttribute('x'),width:+g.getAttribute('textLength')||0,text:g.textContent,y:g.getAttribute('y')}));
+        const groups=continued?[original]:sourceGlyphGroups(original,size);
+        const fragment=document.createDocumentFragment();
+        for(const group of groups){
+          const label=document.createElementNS('http://www.w3.org/2000/svg','tspan');label.setAttribute('x',group[0].x);if(group[0].y!==null)label.setAttribute('y',group[0].y);label.textContent=continued||group.map(g=>g.text).join('');fragment.append(label);
+          const piece={el:label,text:label.textContent,size,family:(text.getAttribute('font-family')||'').startsWith('Georgia')?'Georgia,serif':'Arial,sans-serif',weight:text.getAttribute('font-weight')||'normal',style:text.getAttribute('font-style')||'normal'};
+          svgLabels.push({el:label,owner:text,x:group[0].x,y:parseFloat(group[0].y??text.getAttribute('y'))||0,end:group.at(-1).x+group.at(-1).width,raw:label.textContent,size,pieces:[piece]});
+        }
+        text.replaceChildren(fragment);
+      }else if(glyphs.length)return;
+      else if(continued)text.textContent=continued;
+      text.removeAttribute('textLength');text.removeAttribute('lengthAdjust');text.classList.add('ax-natural-svg');
+    });
+    // Font changes inside a word or sentence are not independent coordinates.
+    // Let their continuation flow naturally, while spaced numeric columns stay
+    // anchored to their source positions (including visual-acuity score rows).
+    let previous;
+    for(const label of svgLabels){
+      const size=Math.max(previous?.size||0,label.size),gap=label.x-(previous?.end||0);
+      const numeric=s=>/^[\d/.,%°±+−<>≤≥-]+$/.test(s.trim());
+      const spacedValues=previous&&(/\s$/.test(previous.raw)||/^\s/.test(label.raw))&&(numeric(previous.raw)||numeric(label.raw));
+      if(previous&&previous.owner!==label.owner&&previous.owner.parentNode===label.owner.parentNode&&Math.abs(label.y-previous.y)<size*.18&&gap>=-size*.2&&gap<=size*.35&&!spacedValues){
+        label.el.removeAttribute('x');label.el.removeAttribute('y');
+        if(label.y!==previous.y)label.el.setAttribute('dy',label.y-previous.y);
+        for(const [css,attr,fallback]of [['font-family','font-family','Arial,sans-serif'],['font-weight','font-weight','normal'],['font-style','font-style','normal'],['font-size','font-size',label.size]])label.el.style.setProperty(css,(label.owner.getAttribute(attr)||fallback)+(css==='font-size'?'px':''),'important');
+        previous.el.append(label.el);previous.raw+=label.raw;previous.end=label.end;previous.y=label.y;previous.size=label.size;previous.pieces.push(...label.pieces);label.joined=true;
+      }else previous=label;
+    }
+    // Substitute fonts can be wider than the PDF font. Fit the complete label
+    // isotropically to its original allotted width, never stretch individual
+    // letters or move the label's clinical/diagram anchor.
+    for(const label of svgLabels){
+      if(label.joined)continue;
+      sourceTextMeasure ||= document.createElement('canvas').getContext('2d');
+      const width=label.pieces.reduce((total,piece)=>{sourceTextMeasure.font=`${piece.style} ${piece.weight} ${piece.size}px ${piece.family}`;return total+sourceTextMeasure.measureText(piece.text).width;},0);
+      const space=label.end-label.x,fit=space>0&&width>0?Math.min(1,space/(width*1.02)):1;
+      if(fit<1){for(const piece of label.pieces)piece.el.style.setProperty('font-size',piece.size*fit+'px','important');label.el.dataset.labelFit=fit.toFixed(4);}
+    }
+  }
+  function showSourceHeadings(root,objectLabel) {
+    printedSourceHeadings(root,objectLabel);
     root.querySelectorAll('.ax-flow-heading').forEach(run=>{
       if(!run.dataset?.readableTitle)return;
       const title=run.dataset.readableTitle,letters=[...title.replace(/\s/g,'')],boundaries=new Set();let count=0;
@@ -146,7 +239,8 @@
         if(/\s/.test(char)){
           const gap=document.createElement('span'),visible=boundaries.has(at)&&lastBoundary!==at;
           gap.textContent=char;if(!visible)gap.className='ax-letter-gap';else lastBoundary=at;run.append(gap);
-        }else run.append(letters[at++]||char);
+        }else if(boundaries.has(at)&&lastBoundary!==at){const word=document.createElement('span');word.style.marginLeft='.25em';word.textContent=letters[at++]||char;lastBoundary=at-1;run.append(word);}
+        else run.append(letters[at++]||char);
       }
     });
     root.querySelectorAll('.ax-source-run').forEach(run=>{
@@ -165,6 +259,7 @@
       }
       run.classList.add('ax-readable-heading');
     });
+    naturalSourceLabels(root);
   }
   function showChapterMarks(root) {
     // Hide the letter gaps without changing the text length that saved highlights are checked against.
@@ -355,7 +450,7 @@
     }
     by('ax-dialog-title').textContent=object.label+' · 原書第 '+sourcePages(object)+' 頁';
     const body=by('ax-dialog-body'),key='ama|'+chapter+'|'+id,reuse=window.ScholarPopupCache?.restore(body,key) || body.dataset.chapter===chapter&&body.dataset.object===id&&body.childElementCount>0;
-    if(!reuse){body.innerHTML=object.html;showSourceHeadings(body);}body.dataset.chapter=chapter;body.dataset.object=id;body.dataset.renderKey=key;
+    if(!reuse){body.innerHTML=object.html;showSourceHeadings(body,object.label);}body.dataset.chapter=chapter;body.dataset.object=id;body.dataset.renderKey=key;
     const tables=data.attachments.filter(item=>item.kind==='table'),index=tables.findIndex(item=>item.id===id);
     by('ax-table-nav').hidden=index<0;
     by('ax-table-prev').disabled=index<=0;by('ax-table-next').disabled=index<0||index===tables.length-1;
@@ -500,7 +595,7 @@
       for (const text of svg.querySelectorAll('text')) {const line=document.createElement('p');line.textContent=text.textContent;labels.append(line);}
       svg.replaceWith(labels);
     });
-    // Source glyphs stay positioned on screen; clipboard words use their text order.
+    // Diagram labels retain their anchors; clipboard words use their text order.
     root.querySelectorAll('.ax-source-run').forEach(run=>{
       let text=document.createTextNode(run.textContent);
       if (run.style.fontStyle==='italic') {const wrapper=document.createElement('em');wrapper.append(text);text=wrapper;}
