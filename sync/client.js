@@ -4,6 +4,10 @@ const sync = window.ScholarSync;
 let auth, db, A, F, stop, initialized = false, started = false;
 let preparedApps, signingIn = false, accountRequest = 0;
 const ownerEmail = 'binusa101106159@gmail.com';
+const privatePanels=['calculator','forms','cases','calendar','wordle','crossword','sudoku'];
+let accountReady=false;
+function accountInputs(ready){accountReady=ready;for(const id of privatePanels){const panel=document.getElementById(id+'-panel');if(panel)panel.inert=!ready;}}
+
 async function timed(promise) {
   let timer;
   try { return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Cloud connection timed out. Public reading is available; retry to reconnect.')),8000);})]); }
@@ -24,6 +28,7 @@ function mount() {
     by('cloud-signin').hidden = Boolean(state.user);by('cloud-account').hidden = !state.user;
     by('cloud-signin').disabled = signingIn;
     by('cloud-signin').textContent = signingIn ? 'Signing in…' : 'Sign in';
+    if(!accountReady)by('cloud-status').textContent='Connecting account…';
     if (signingIn) by('cloud-status').textContent = 'Continue in the Google sign-in window';
     by('cloud-error').hidden = !state.error || signingIn;
     by('cloud-error').textContent = state.error || '';
@@ -74,7 +79,7 @@ async function startApps() {
   // Files download alongside auth/cloud reads; execution still waits for hydration.
   const {nodes,sources}=await preparedApps;
   for (let i=0;i<nodes.length;i++) {
-    if(nodes[i].hasAttribute('data-cloud-seed')&&sync.status().user)continue;
+    if(nodes[i].hasAttribute('data-cloud-seed'))continue;
     const script = document.createElement('script');
     script.textContent = sources[i] + '\n//# sourceURL=' + (nodes[i].dataset.cloudSrc || 'scholar-inline-'+i+'.js');
     document.body.append(script);
@@ -104,7 +109,7 @@ async function accountChanged(user, retry = false) {
   if (stop) { stop();stop = null; }
   // Clear displayed personal data immediately during sign-out/account changes.
   if (initialized && previous !== user?.uid) { document.body.hidden=true;location.reload();return; }
-  if (!user) { sync.connect(null, null);initialized = true;await startApps();return; }
+  if (!user) { if(sync.status().user)sync.connect(null,null);initialized = true;accountInputs(true);await startApps();return; }
   try {
     const state = F.collection(db, 'users', user.uid, 'state');
     const snapshot = await timed(F.getDocsFromServer(state));
@@ -134,7 +139,7 @@ async function accountChanged(user, retry = false) {
         return results.map(result=>result.merged);
       }
     };
-    sync.connect({uid: user.uid, email: user.email}, adapter, readSnapshot(snapshot));initialized = true;
+    sync.connect({uid: user.uid, email: user.email}, adapter, readSnapshot(snapshot), true);initialized = true;accountInputs(true);
     stop = F.onSnapshot(state, {includeMetadataChanges: true}, next => {
       // Local optimistic snapshots are not server acknowledgements.
       if (!next.metadata.fromCache && !next.metadata.hasPendingWrites) {
@@ -163,12 +168,15 @@ async function accountChanged(user, retry = false) {
     sync.error(error.message);
     document.getElementById('cloud-status').textContent = 'Cloud unavailable · retry';
     // A failed read must never become an empty, writable authenticated account.
-    sync.connect(null,null);initialized=true;sync.error(error.message);await startApps();
+    initialized=true;accountInputs(true);sync.error(error.message);await startApps();
   }
 }
 if (document.readyState === 'loading') await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve, {once:true}));
-mount();
+mount();accountInputs(false);
 preparedApps=prepareApps();preparedApps.catch(()=>{});
+// Public UI starts independently; owner data hydrates through normal notifications.
+sync.connect(null,null);
+startApps().catch(error=>sync.error(error.message));
 try {
   const base = 'https://www.gstatic.com/firebasejs/13.2.0/';
   const [app, authModule, firestoreModule] = await timed(Promise.all([
@@ -183,7 +191,7 @@ try {
   await A.getRedirectResult(auth);
   A.onAuthStateChanged(auth, user => { accountChanged(user).catch(error => sync.error(error.message)); });
 } catch (error) {
-  sync.connect(null, null);sync.error(error.message);
+  accountInputs(true);sync.error(error.message);
   await startApps(); // Public reading remains available if Firebase cannot load.
 }
 

@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const chunks = new Map(), queue = new Map(), listeners = new Set();
-  const groups = new Map(), cache = new Map(), keyCache = new Map();
+  const groups = new Map(), cache = new Map(), keyCache = new Map(), guestEdits = new Set();
   const S = window.ScholarSyncState;
   let transport = null, user = null, sequence = 0, flushing = null, confirming = false, failure = null, phase = 'loading';
   let resolveReady;
@@ -77,7 +77,7 @@
     }
     if(!changed)return;
     if (user) { phase = failure?'error':queue.size||confirming?'pending':'synced'; notify(); if(queue.size)schedule();else clearTimeout(timer); }
-    else { phase = 'guest'; notify(); }
+    else { if(editing())guestEdits.add(key);phase = 'guest'; notify(); }
   }
   let timer, queuedSince = null, retryAt = 0, retryCount = 0;
   const offline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -165,7 +165,10 @@
     for(const [key,raw]of before)emit(key,raw);
     if(!queue.size&&phase!=='error')phase='synced';notify();
   }
-  function connect(identity, adapter, entries) {
+  function connect(identity, adapter, entries, resumeGuest = false) {
+    const resume=resumeGuest&&identity&&!user;
+    const previous=resume?new Map([...groups.keys()].map(key=>[key,getItem(key)])):new Map();
+    const drafts=resume?new Map([...guestEdits].map(key=>[key,getItem(key)])):new Map();
     // Reconnecting the same account is not an account reset. Keep drafts and
     // in-flight operations; merge the server snapshot around pending edits.
     if (identity && user?.uid === identity.uid) {
@@ -177,7 +180,12 @@
     clearTimeout(timer);queuedSince=null;retryAt=0;retryCount=0;
     user = identity; transport = adapter; failure = null; deferred.clear();chunks.clear(); queue.clear();groups.clear();cache.clear();keyCache.clear();
     if (entries) for (const [id, value] of entries) if (value !== null) put(id,value);
-    phase = identity ? 'synced' : 'guest'; notify(); resolveReady();
+    guestEdits.clear();
+    if(resume){
+      for(const [key,raw]of drafts)if(raw!==null)setItem(key,raw);
+      for(const key of new Set([...previous.keys(),...groups.keys()]))emit(key,previous.get(key)??null);
+    }
+    phase = queue.size?'pending':identity ? 'synced' : 'guest'; notify(); resolveReady();
   }
   async function setConfirmed(key, raw) {
     if (!user || !transport) throw Error('Please sign in before saving patient records.');

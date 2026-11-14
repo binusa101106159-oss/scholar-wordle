@@ -193,7 +193,7 @@ test('Firebase duplicate auth callbacks keep the listener; stale server echoes c
  const doc=(revision,value)=>({id:encoded,exists:()=>true,data:()=>({revision,value:JSON.stringify({data:JSON.stringify(value)})})});
  const F={collection:()=>({}),doc:()=>({id:encoded}),getDocsFromServer:async()=>{reads++;return {docs:[doc(1,'old')]}},onSnapshot:(state,opts,fn)=>{callback=fn;return ()=>stops++},serverTimestamp:()=>0,runTransaction:async(db,fn)=>fn({get:async()=>doc(1,'old'),set(){}})};
  const source=fs.readFileSync(require.resolve('../sync/client.js'),'utf8').replace(/^import[^\n]+\n/,'').split("if (document.readyState === 'loading')")[0];
- const context={window:{ScholarSync:h.sync,ScholarSyncState:S},document:{body:{}},location:{reload(){throw Error('unexpected reload')}},setTimeout,clearTimeout,Promise,Map,JSON,Math,Error,decodeURIComponent,encodeURIComponent,escape,unescape,atob:s=>Buffer.from(s,'base64').toString('binary'),btoa:s=>Buffer.from(s,'binary').toString('base64')};
+ const context={window:{ScholarSync:h.sync,ScholarSyncState:S},document:{body:{},getElementById:()=>null},location:{reload(){throw Error('unexpected reload')}},setTimeout,clearTimeout,Promise,Map,JSON,Math,Error,decodeURIComponent,encodeURIComponent,escape,unescape,atob:s=>Buffer.from(s,'base64').toString('binary'),btoa:s=>Buffer.from(s,'binary').toString('base64')};
  vm.createContext(context);vm.runInContext(source+'\n globalThis.setup=(f)=>{F=f;A={};db={};started=true;};globalThis.changed=accountChanged;',context);context.setup(F);
  const user={uid:'one',email:'binusa101106159@gmail.com',emailVerified:true};await context.changed(user);
  h.store.setItem(key,str({draft:'new typing'}));await h.sync.flush();
@@ -270,4 +270,11 @@ test('an already-running background batch stops sending later edits once typing 
  h.store.setItem('scholar-calculator-v1',str({input:'first'}));await clock.run();focused=true;h.store.setItem('scholar-calculator-v1',str({input:'typing'}));release();for(let i=0;i<12;i++)await Promise.resolve();
  assert.equal(calls,1);assert.equal(h.sync.status().pending,1);assert.equal(clock.pending.size,0);
  focused=false;handlers.focusout();await clock.run();await clock.run();assert.equal(calls,2);assert.equal(h.sync.status().pending,0);
+});
+
+test('progressive public startup hydrates cloud data without replacing a live input draft',async()=>{
+ const document={activeElement:{matches:()=>true},querySelector:()=>null,addEventListener(){}};
+ const h=harness(S,{document});h.sync.connect(null,null);h.store.setItem('scholar-calculator-v1',str({input:'new draft'}));
+ h.sync.connect({uid:'owner'},{commit:async op=>op.next},new Map([...S.split('scholar-calculator-v1',str({input:'old'})),...S.split('scholar-reading-v1',str({size:22}))]),true);
+ assert.equal(JSON.parse(h.store.getItem('scholar-calculator-v1')).input,'new draft');assert.equal(JSON.parse(h.store.getItem('scholar-reading-v1')).size,22);assert.ok(h.sync.status().pending);await h.sync.flush();
 });

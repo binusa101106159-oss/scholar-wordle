@@ -4,7 +4,7 @@ function mount(signInWithPopup){
  const nodes=new Map(),listeners=new Map();let status={phase:'guest',user:null,pending:0,error:null};
  const document={createElement(){return {dataset:{},setAttribute(){}}},body:{append(){}},getElementById(id){if(!nodes.has(id))nodes.set(id,{});return nodes.get(id)}};
  const sync={status:()=>status,error(message){status={...status,phase:'error',error:message};listeners.get('scholar-sync-status')()}};
- const context={document,window:{addEventListener:(name,fn)=>listeners.set(name,fn)},sync,signingIn:false,auth:{},A:{GoogleAuthProvider:class{},signInWithPopup}};
+ const context={document,window:{addEventListener:(name,fn)=>listeners.set(name,fn)},sync,signingIn:false,accountReady:true,auth:{},A:{GoogleAuthProvider:class{},signInWithPopup}};
  vm.createContext(context);vm.runInContext(client.slice(client.indexOf('function mount()'),client.indexOf('function prepareApps()'))+';mount();',context);
  return {nodes,click:()=>nodes.get('cloud-signin').onclick(),context};
 }
@@ -22,3 +22,4 @@ test('missing auth and dismissed popups display the reason without trapping the 
  const h=mount(async()=>{throw Object.assign(Error('closed'),{code:'auth/popup-closed-by-user'})});await h.click();assert.match(h.nodes.get('cloud-error').textContent,/closed/);
  h.context.auth=null;await h.click();assert.match(h.nodes.get('cloud-error').textContent,/not loaded/);assert.equal(h.nodes.get('cloud-signin').disabled,false);
 });
+

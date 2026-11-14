@@ -392,6 +392,8 @@
       } catch (_) { by('ct-delete-error').textContent = '無法儲存刪除結果，個案仍保留。'; }
     });
     window.addEventListener('storage', event => { if (event.key === STORE || event.key === null) refresh(); });
+    let identity=window.ScholarSync.status().user?.uid;
+    window.addEventListener('scholar-sync-status',()=>{const next=window.ScholarSync.status().user?.uid;if(identity!==next){identity=next;refresh();}});
     window.addEventListener('beforeunload', event => {
       if (by('ct-editor').open && recordFields.some(key=>by('ct-'+key).value.trim() !== (editingBase?.[key] || ''))) {
         event.preventDefault();event.returnValue='';

@@ -38,7 +38,7 @@ test('S, B and C tiers are present in the study order, and every law shows its d
   const a = index.laws.filter(l => l.tier === 'A');
   assert.deepEqual(a.map(l => l.name), A_ORDER.filter(n => a.some(l => l.name === n)));
   a.forEach(l => assert.equal(l.no, A_ORDER.indexOf(l.name) + 1, l.name));
-  assert.deepEqual(index.tiers.map(t => t.id), ['S', 'A', 'B', 'C', '公保', '醫療法規', '基本法規']);
+  assert.deepEqual(index.tiers.map(t => t.id), ['S', 'A', 'B', 'C', '公保', '醫療法規', '基本法規', '農保']);
   for (const l of index.laws) assert.match(l.date, /^民國 \d+ 年 \d\d 月 \d\d 日$/, l.name);
 });
 
@@ -134,8 +134,10 @@ test('radiation tables preserve every column across page joins', () => {
 test('medical and general laws appear last with supplied annexes and complete code sections',()=>{
  const medical=['醫師懲戒辦法','醫師法','醫師法施行細則','醫師獎勵辦法','醫療法'];
  const basic=['中華民國刑法','中華民國憲法','刑事訴訟法','民事訴訟法','民法'];
- assert.deepEqual(index.laws.slice(-10).map(l=>l.name),[...medical,...basic]);
- assert.deepEqual(index.laws.slice(-10).map(l=>l.articles),[25,69,25,6,132,422,175,712,800,1439]);
+ const legal=index.laws.filter(l=>['醫療法規','基本法規'].includes(l.tier));
+ assert.deepEqual(index.laws.filter(l=>l.tier==='農保').map(l=>l.name),['農民健康保險條例']);
+ assert.deepEqual(legal.map(l=>l.name),[...medical,...basic]);
+ assert.deepEqual(legal.map(l=>l.articles),[25,69,25,6,132,422,175,712,800,1439]);
  assert.deepEqual(read('text/med03.json').annexes.map(a=>a.label),['附表一','附表二','附表三']);
  const constitution=read('text/base02.json');assert.equal(constitution.items.find(a=>a.no==='48').paras[0].n,1);
  for(const [id,heading] of [['base01','第 五 章之一 沒收'],['base03','第 七 編之一 協商程序'],['base05','第 八 節之一 旅遊']]){
