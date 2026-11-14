@@ -25,7 +25,30 @@
     cache.delete(key);return true;
   }
   const getItem = key => {if(!cache.has(key))cache.set(key,S.join(key,groups.get(key)||new Map()));return cache.get(key);};
+  const deferred = new Map();
+  const editing = () => typeof document !== 'undefined' && (
+    document.activeElement?.matches?.('input:not([type=button]):not([type=submit]):not([type=reset]),textarea,select,[contenteditable="true"]') ||
+    document.querySelector?.('dialog[open] form')
+  );
+  function drainUpdates() {
+    if(editing())return;
+    const pending=[...deferred];deferred.clear();
+    for(const [key,oldValue] of pending)emit(key,oldValue);
+  }
+  if(typeof document !== 'undefined'){
+    // Server state can advance immediately, but redrawing a live editor can
+    // destroy its caret, IME composition, dropdown or unsaved dialog draft.
+    const later=()=>setTimeout(drainUpdates,0);
+    document.addEventListener('focusout',later);
+    document.addEventListener('compositionend',later);
+    document.addEventListener('close',later,true);
+  }
   function emit(key, oldValue) {
+    if(editing()){
+      if(!deferred.has(key))deferred.set(key,oldValue);
+      return;
+    }
+    if(deferred.has(key)){oldValue=deferred.get(key);deferred.delete(key);}
     const newValue = getItem(key);
     if (newValue === oldValue) return;
     // The existing case/checklist listeners use the standard storage event.
@@ -126,7 +149,7 @@
       if (queue.size && !flushing) schedule();
       notify();return;
     }
-    user = identity; transport = adapter; failure = null; chunks.clear(); queue.clear();groups.clear();cache.clear();keyCache.clear();
+    user = identity; transport = adapter; failure = null; deferred.clear();chunks.clear(); queue.clear();groups.clear();cache.clear();keyCache.clear();
     if (entries) for (const [id, value] of entries) if (value !== null) put(id,value);
     phase = identity ? 'synced' : 'guest'; notify(); resolveReady();
   }

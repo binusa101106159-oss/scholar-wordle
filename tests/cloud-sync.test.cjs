@@ -42,6 +42,7 @@ function harness(state=S,timers={}){
  const events=[],handlers={};class E{constructor(type,init={}){this.type=type;Object.assign(this,init)}}
  const window={ScholarSyncState:state,addEventListener(t,fn){(handlers[t]||=[]).push(fn)},dispatchEvent(e){events.push(e);for(const fn of handlers[e.type]||[])fn(e)}};
  const context={window,Symbol,Map,Set,Promise,Error,JSON,String,Number,Object,TextEncoder,CustomEvent:E,StorageEvent:E,setTimeout:timers.setTimeout||setTimeout,clearTimeout:timers.clearTimeout||clearTimeout};
+ if(timers.document)context.document=timers.document;
  vm.runInNewContext(fs.readFileSync(require.resolve('../sync/store.js'),'utf8'),context);
  return {window,store:window.ScholarStorage,sync:window.ScholarSync,events};
 }
@@ -200,4 +201,24 @@ test('Firebase duplicate auth callbacks keep the listener; stale server echoes c
  callback({metadata:{fromCache:false,hasPendingWrites:false},docChanges:()=>[{type:'modified',doc:doc(3,'other device')}]});assert.equal(JSON.parse(h.store.getItem(key)).draft,'other device');
  h.store.setItem(key,str({draft:'unsent after disconnect'}));F.getDocsFromServer=async()=>{throw Error('still offline')};await context.changed(user,true);assert.equal(JSON.parse(h.store.getItem(key)).draft,'unsent after disconnect');assert.equal(h.sync.status().pending,1);assert.equal(h.sync.status().user.uid,'one');
  await h.sync.flush();
+});
+
+
+test('cloud notifications defer while typing or editing a dialog, then deliver the latest state once',async()=>{
+ const handlers={};let focused=true,dialog=false;
+ const document={activeElement:{matches:()=>focused},querySelector:()=>dialog?{}:null,addEventListener(type,fn){handlers[type]=fn}};
+ const h=harness(S,{document}),key='scholar-calculator-v1',seen=[];
+ h.sync.connect({uid:'one'},{commit:async op=>op.next},S.split(key,str({input:'old'})));h.sync.subscribe((k,v)=>seen.push([k,v]));
+ h.sync.receiveChanges(S.split(key,str({input:'remote one'})));h.sync.receiveChanges(S.split(key,str({input:'remote two'})));
+ assert.equal(seen.length,0);assert.equal(JSON.parse(h.store.getItem(key)).input,'remote two');
+ handlers.compositionend();await new Promise(r=>setTimeout(r,5));assert.equal(seen.length,0);
+ focused=false;dialog=true;handlers.focusout();await new Promise(r=>setTimeout(r,5));assert.equal(seen.length,0);
+ dialog=false;handlers.close();await new Promise(r=>setTimeout(r,5));assert.equal(seen.length,1);assert.equal(JSON.parse(seen[0][1]).input,'remote two');
+});
+
+test('typing after a deferred remote update delivers current local text rather than the stale notification payload',async()=>{
+ let focused=true;const handlers={},document={activeElement:{matches:()=>focused},querySelector:()=>null,addEventListener(t,fn){handlers[t]=fn}};
+ const h=harness(S,{document}),key='scholar-calculator-v1',seen=[];h.sync.connect({uid:'one'},{commit:async op=>op.next},S.split(key,str({input:'old'})));h.sync.subscribe((k,v)=>seen.push(v));
+ h.sync.receiveChanges(S.split(key,str({input:'remote'})));h.store.setItem(key,str({input:'latest typing'}));await h.sync.flush();
+ assert.equal(seen.length,0);focused=false;handlers.focusout();await new Promise(r=>setTimeout(r,5));assert.equal(JSON.parse(seen.at(-1)).input,'latest typing');
 });
