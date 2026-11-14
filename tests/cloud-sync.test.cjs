@@ -164,3 +164,40 @@ test('case archive state survives cloud hydration, concurrent edits and rejected
  assert.deepEqual(JSON.parse(h.store.getItem('scholar-cases-v1')).records,[base]);
 });
 
+
+test('same-account reconnect retains unsent edits, merges other fields and retries the outbox',async()=>{
+ const h=harness(),key='scholar-reading-v1';let fail=true;
+ const adapter={commit:async op=>{if(fail)throw Error('offline');return op.next}};
+ h.sync.connect({uid:'one'},adapter,S.split(key,str({draft:'old',size:16})));
+ h.store.setItem(key,str({draft:'typing now',size:16}));await assert.rejects(h.sync.flush());
+ h.sync.connect({uid:'one'},adapter,S.split(key,str({draft:'old',size:20})));
+ assert.deepEqual(JSON.parse(h.store.getItem(key)),{draft:'typing now',size:20});assert.equal(h.sync.status().pending,1);
+ fail=false;await h.sync.flush();assert.equal(JSON.parse(h.store.getItem(key)).draft,'typing now');
+});
+
+test('reconnecting during an in-flight save keeps newer typing and does not reset the queue',async()=>{
+ const h=harness(),key='scholar-reading-v1';let release,first=true;
+ const adapter={commit:async op=>{if(first){first=false;await new Promise(r=>release=r)}return op.next}};
+ h.sync.connect({uid:'one'},adapter,S.split(key,str({draft:'old'})));
+ h.store.setItem(key,str({draft:'first'}));const saving=h.sync.flush();h.store.setItem(key,str({draft:'latest typing'}));
+ h.sync.connect({uid:'one'},adapter,S.split(key,str({draft:'old'})));
+ assert.equal(JSON.parse(h.store.getItem(key)).draft,'latest typing');release();await saving;
+ assert.equal(JSON.parse(h.store.getItem(key)).draft,'latest typing');assert.equal(h.sync.status().pending,0);
+});
+
+test('Firebase duplicate auth callbacks keep the listener; stale server echoes cannot revert acknowledged typing',async()=>{
+ const h=harness(),key='scholar-reading-v1',id=JSON.stringify([key,'draft']),encoded=Buffer.from(id).toString('base64url');let callback,reads=0,stops=0;
+ const doc=(revision,value)=>({id:encoded,exists:()=>true,data:()=>({revision,value:JSON.stringify({data:JSON.stringify(value)})})});
+ const F={collection:()=>({}),doc:()=>({id:encoded}),getDocsFromServer:async()=>{reads++;return {docs:[doc(1,'old')]}},onSnapshot:(state,opts,fn)=>{callback=fn;return ()=>stops++},serverTimestamp:()=>0,runTransaction:async(db,fn)=>fn({get:async()=>doc(1,'old'),set(){}})};
+ const source=fs.readFileSync(require.resolve('../sync/client.js'),'utf8').replace(/^import[^\n]+\n/,'').split("if (document.readyState === 'loading')")[0];
+ const context={window:{ScholarSync:h.sync,ScholarSyncState:S},document:{body:{}},location:{reload(){throw Error('unexpected reload')}},setTimeout,clearTimeout,Promise,Map,JSON,Math,Error,decodeURIComponent,encodeURIComponent,escape,unescape,atob:s=>Buffer.from(s,'base64').toString('binary'),btoa:s=>Buffer.from(s,'binary').toString('base64')};
+ vm.createContext(context);vm.runInContext(source+'\n globalThis.setup=(f)=>{F=f;A={};db={};started=true;};globalThis.changed=accountChanged;',context);context.setup(F);
+ const user={uid:'one',email:'binusa101106159@gmail.com',emailVerified:true};await context.changed(user);
+ h.store.setItem(key,str({draft:'new typing'}));await h.sync.flush();
+ callback({metadata:{fromCache:false,hasPendingWrites:false},docChanges:()=>[{type:'modified',doc:doc(1,'old')}]});
+ assert.equal(JSON.parse(h.store.getItem(key)).draft,'new typing');
+ await context.changed(user);assert.equal(reads,1);assert.equal(stops,0);assert.equal(JSON.parse(h.store.getItem(key)).draft,'new typing');
+ callback({metadata:{fromCache:false,hasPendingWrites:false},docChanges:()=>[{type:'modified',doc:doc(3,'other device')}]});assert.equal(JSON.parse(h.store.getItem(key)).draft,'other device');
+ h.store.setItem(key,str({draft:'unsent after disconnect'}));F.getDocsFromServer=async()=>{throw Error('still offline')};await context.changed(user,true);assert.equal(JSON.parse(h.store.getItem(key)).draft,'unsent after disconnect');assert.equal(h.sync.status().pending,1);assert.equal(h.sync.status().user.uid,'one');
+ await h.sync.flush();
+});

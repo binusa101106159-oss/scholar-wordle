@@ -2,7 +2,7 @@ import {firebaseConfig} from './firebase-config.js';
 
 const sync = window.ScholarSync;
 let auth, db, A, F, stop, initialized = false, started = false;
-let preparedApps, signingIn = false;
+let preparedApps, signingIn = false, accountRequest = 0;
 const ownerEmail = 'binusa101106159@gmail.com';
 async function timed(promise) {
   let timer;
@@ -54,7 +54,11 @@ function mount() {
     try { if (sync.status().pending) await sync.flush();await A.signOut(auth); }
     catch (error) { sync.error(error.message); }
   };
-  by('cloud-retry').onclick = () => sync.status().pending ? sync.flush().catch(() => {}) : location.reload();
+  by('cloud-retry').onclick = () => {
+    if(sync.status().pending)return sync.flush().catch(()=>{});
+    if(auth?.currentUser)return accountChanged(auth.currentUser,true).catch(error=>sync.error(error.message));
+    location.reload();
+  };
 }
 function prepareApps() {
   const nodes = [...document.querySelectorAll('script[data-cloud-src], script[data-cloud-inline]')];
@@ -88,25 +92,31 @@ function readSnapshot(snapshot) {
   }
   return entries;
 }
-async function accountChanged(user) {
-  if (stop) { stop();stop = null; }
+async function accountChanged(user, retry = false) {
   if (user && (!user.emailVerified || user.email !== ownerEmail)) {
     await A.signOut(auth);sync.error('This private site is restricted to its owner account.');return;
   }
   const previous = sync.status().user?.uid;
+  // Firebase can repeat the same account notification. Its live listener already
+  // reconnects itself; restarting hydration here would erase unsent edits.
+  if (initialized && user && previous === user.uid && stop && !retry) return;
+  const request = ++accountRequest;
+  if (stop) { stop();stop = null; }
   // Clear displayed personal data immediately during sign-out/account changes.
   if (initialized && previous !== user?.uid) { document.body.hidden=true;location.reload();return; }
   if (!user) { sync.connect(null, null);initialized = true;await startApps();return; }
   try {
     const state = F.collection(db, 'users', user.uid, 'state');
     const snapshot = await timed(F.getDocsFromServer(state));
+    if(request !== accountRequest)return;
+    const revisions=new Map(snapshot.docs.map(item=>[item.id,item.data().revision]));
     const adapter = {
       async commit(op) {
         return (await this.commitMany([op]))[0];
       },
       async commitMany(ops) {
         const refs=ops.map(op=>F.doc(state,docID(op.id)));
-        return F.runTransaction(db, async transaction => {
+        const results = await F.runTransaction(db, async transaction => {
           const current=await Promise.all(refs.map(ref=>transaction.get(ref)));
           const next=ops.map((op,i)=>{
             const data=current[i].exists()?current[i].data():null,remote=data?JSON.parse(data.value).data:null;
@@ -115,11 +125,15 @@ async function accountChanged(user) {
             return {merged,data:{value:JSON.stringify({data:merged}),revision:(data?.revision||0)+1,updatedAt:F.serverTimestamp()}};
           });
           next.forEach((result,i)=>transaction.set(refs[i],result.data));
-          return next.map(result=>result.merged);
+          return next;
         });
+        results.forEach((result,i)=>{
+          const id=refs[i].id;
+          revisions.set(id,Math.max(revisions.get(id)||0,result.data.revision));
+        });
+        return results.map(result=>result.merged);
       }
     };
-    const revisions=new Map(snapshot.docs.map(item=>[item.id,item.data().revision]));
     sync.connect({uid: user.uid, email: user.email}, adapter, readSnapshot(snapshot));initialized = true;
     stop = F.onSnapshot(state, {includeMetadataChanges: true}, next => {
       // Local optimistic snapshots are not server acknowledgements.
@@ -132,7 +146,7 @@ async function accountChanged(user) {
               const id=decodeURIComponent(escape(atob(item.id.replaceAll('-','+').replaceAll('_','/'))));
               delta.set(id,null);revisions.delete(item.id);
             }else{
-              const revision=item.data().revision;if(revisions.get(item.id)===revision)continue;
+              const revision=item.data().revision;if(revisions.has(item.id)&&revision<=revisions.get(item.id))continue;
               for(const pair of readSnapshot({docs:[item]}))delta.set(...pair);
               revisions.set(item.id,revision);
             }
@@ -143,6 +157,9 @@ async function accountChanged(user) {
     }, error => sync.error(error.message));
     await startApps();
   } catch (error) {
+    if(request !== accountRequest)return;
+    // A reconnect failure must leave the authenticated in-memory draft intact.
+    if(sync.status().user?.uid === user.uid){sync.error(error.message);return;}
     sync.error(error.message);
     document.getElementById('cloud-status').textContent = 'Cloud unavailable · retry';
     // A failed read must never become an empty, writable authenticated account.
@@ -170,4 +187,5 @@ try {
   await startApps(); // Public reading remains available if Firebase cannot load.
 }
 
-window.addEventListener('pageshow',event=>{if(event.persisted){document.body.hidden=true;location.reload();}});
+// Restoring a suspended page must preserve its inputs and in-memory outbox.
+window.addEventListener('pageshow',event=>{if(event.persisted&&sync.status().pending)sync.flush().catch(()=>{});});

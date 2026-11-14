@@ -292,7 +292,18 @@
    if(!selectedJob()){named('jobId').value='';if(search.validGroup(named('group').value))named('groupQuery').value=named('group').value;}
    populateNumbers(String(saved.number??''));populateRatings(named('ratings').value);basisCode='';populateBasis();named('basis').value=String(saved.basis??'');update();persisted=JSON.stringify(read());
   }
-  root.ScholarSync.subscribe(key=>{if(key===KEY)hydrate();});hydrate();
+  let hydrationPending=false;
+  root.ScholarSync.subscribe(key=>{
+   if(key!==KEY)return;
+   // A server acknowledgement must not dismiss the open occupation search or
+   // replace its query/caret while the user is typing (including IME input).
+   if(form.contains(document.activeElement)){hydrationPending=true;return;}
+   hydrate();
+  });
+  form.addEventListener('focusout',()=>setTimeout(()=>{
+   if(hydrationPending&&!form.contains(document.activeElement)){hydrationPending=false;hydrate();}
+  },0));
+  hydrate();
  }
  root.ScholarCalifornia={...api,mount};
 })(typeof window==='undefined'?globalThis:window);

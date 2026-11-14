@@ -118,6 +118,14 @@
     if(!queue.size&&phase!=='error')phase='synced';notify();
   }
   function connect(identity, adapter, entries) {
+    // Reconnecting the same account is not an account reset. Keep drafts and
+    // in-flight operations; merge the server snapshot around pending edits.
+    if (identity && user?.uid === identity.uid) {
+      user = identity; transport = adapter;
+      if (entries) receive(entries);
+      if (queue.size && !flushing) schedule();
+      notify();return;
+    }
     user = identity; transport = adapter; failure = null; chunks.clear(); queue.clear();groups.clear();cache.clear();keyCache.clear();
     if (entries) for (const [id, value] of entries) if (value !== null) put(id,value);
     phase = identity ? 'synced' : 'guest'; notify(); resolveReady();
