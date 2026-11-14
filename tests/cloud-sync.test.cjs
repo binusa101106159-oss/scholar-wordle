@@ -43,6 +43,8 @@ function harness(state=S,timers={}){
  const window={ScholarSyncState:state,addEventListener(t,fn){(handlers[t]||=[]).push(fn)},dispatchEvent(e){events.push(e);for(const fn of handlers[e.type]||[])fn(e)}};
  const context={window,Symbol,Map,Set,Promise,Error,JSON,String,Number,Object,TextEncoder,CustomEvent:E,StorageEvent:E,setTimeout:timers.setTimeout||setTimeout,clearTimeout:timers.clearTimeout||clearTimeout};
  if(timers.document)context.document=timers.document;
+ if(timers.navigator)context.navigator=timers.navigator;
+ if(timers.Date)context.Date=timers.Date;
  vm.runInNewContext(fs.readFileSync(require.resolve('../sync/store.js'),'utf8'),context);
  return {window,store:window.ScholarStorage,sync:window.ScholarSync,events};
 }
@@ -221,4 +223,51 @@ test('typing after a deferred remote update delivers current local text rather t
  const h=harness(S,{document}),key='scholar-calculator-v1',seen=[];h.sync.connect({uid:'one'},{commit:async op=>op.next},S.split(key,str({input:'old'})));h.sync.subscribe((k,v)=>seen.push(v));
  h.sync.receiveChanges(S.split(key,str({input:'remote'})));h.store.setItem(key,str({input:'latest typing'}));await h.sync.flush();
  assert.equal(seen.length,0);focused=false;handlers.focusout();await new Promise(r=>setTimeout(r,5));assert.equal(JSON.parse(seen.at(-1)).input,'latest typing');
+});
+
+
+function fakeClock(){
+ let now=100000,id=0;const pending=new Map();
+ return {timers:{Date:class extends Date{static now(){return now}},setTimeout(fn,ms){pending.set(++id,{fn,at:now+ms,ms});return id},clearTimeout(id){pending.delete(id)}},pending,advance(ms){now+=ms},async run(){const entry=[...pending].sort((a,b)=>a[1].at-b[1].at)[0];assert.ok(entry);pending.delete(entry[0]);now=Math.max(now,entry[1].at);entry[1].fn();for(let i=0;i<12;i++)await Promise.resolve();},nextDelay(){return Math.min(...[...pending.values()].map(x=>x.at-now))}};
+}
+test('typing is coalesced but continuous editing has a five-second maximum wait',async()=>{
+ const clock=fakeClock(),h=harness(S,clock.timers),sent=[];h.sync.connect({uid:'one'},{commit:async op=>{sent.push(op.next);return op.next}});
+ for(let i=0;i<10;i++){h.store.setItem('scholar-calculator-v1',str({input:String(i)}));if(i<9)clock.advance(500);}
+ assert.equal(clock.nextDelay(),500);assert.equal(sent.length,0);await clock.run();assert.deepEqual(sent,['"9"']);assert.equal(h.sync.status().pending,0);
+});
+test('transient failures back off without dropping newer text and recover automatically',async()=>{
+ const clock=fakeClock(),h=harness(S,clock.timers);let fail=true,calls=0;
+ h.sync.connect({uid:'one'},{commit:async op=>{calls++;if(fail)throw Error('network offline');return op.next}});
+ h.store.setItem('scholar-calculator-v1',str({input:'one'}));await assert.rejects(h.sync.flush());assert.equal(clock.nextDelay(),2000);
+ h.store.setItem('scholar-calculator-v1',str({input:'two'}));assert.equal(clock.nextDelay(),2000);await clock.run();assert.equal(calls,2);assert.equal(clock.nextDelay(),4000);
+ fail=false;await clock.run();assert.equal(calls,3);assert.equal(h.sync.status().pending,0);assert.equal(h.store.getItem('scholar-calculator-v1'),str({input:'two'}));
+});
+test('offline edits do not start requests and an online event flushes the latest text',async()=>{
+ const clock=fakeClock(),navigator={onLine:false},h=harness(S,{...clock.timers,navigator});let calls=0;
+ h.sync.connect({uid:'one'},{commit:async op=>{calls++;return op.next}});h.store.setItem('scholar-calculator-v1',str({input:'latest'}));assert.equal(clock.pending.size,0);await assert.rejects(h.sync.flush());assert.equal(calls,0);
+ navigator.onLine=true;h.window.dispatchEvent({type:'online'});for(let i=0;i<12;i++)await Promise.resolve();assert.equal(calls,1);assert.equal(h.sync.status().pending,0);
+});
+test('permission errors are not automatically retried and explicit patient saves bypass typing delay',async()=>{
+ const clock=fakeClock(),h=harness(S,clock.timers);let deny=true,calls=0;
+ h.sync.connect({uid:'one'},{commit:async op=>{calls++;if(deny)throw Object.assign(Error('denied'),{code:'permission-denied'});return op.next}});
+ h.store.setItem('scholar-calculator-v1',str({input:'retain'}));await assert.rejects(h.sync.flush());assert.equal(clock.pending.size,0);deny=false;
+ await h.store.setConfirmed('scholar-cases-v1',str({version:1,records:[{id:'fixture',name:'test'}]}));assert.equal(calls,2);assert.equal(h.sync.status().pending,1);await h.sync.flush();
+});
+
+test('background writes stay paused for the entire editing action and resume on leaving the input',async()=>{
+ const clock=fakeClock(),handlers={};let focused=true,calls=0;
+ const document={activeElement:{matches:()=>focused},querySelector:()=>null,addEventListener(t,fn){handlers[t]=fn}};
+ const h=harness(S,{...clock.timers,document});h.sync.connect({uid:'one'},{commit:async op=>{calls++;return op.next}});
+ for(let i=0;i<30;i++){h.store.setItem('scholar-calculator-v1',str({input:String(i)}));clock.advance(1000);}
+ assert.equal(clock.pending.size,0);assert.equal(calls,0);h.window.dispatchEvent({type:'online'});for(let i=0;i<12;i++)await Promise.resolve();assert.equal(calls,0);
+ focused=false;handlers.focusout();await clock.run();await clock.run();assert.equal(calls,1);assert.equal(h.sync.status().pending,0);assert.equal(h.store.getItem('scholar-calculator-v1'),str({input:'29'}));
+});
+
+test('an already-running background batch stops sending later edits once typing begins',async()=>{
+ const clock=fakeClock(),handlers={};let focused=false,release,calls=0;
+ const document={activeElement:{matches:()=>focused},querySelector:()=>null,addEventListener(t,fn){handlers[t]=fn}};
+ const h=harness(S,{...clock.timers,document});h.sync.connect({uid:'one'},{commit:async op=>{calls++;if(calls===1)await new Promise(r=>release=r);return op.next}});
+ h.store.setItem('scholar-calculator-v1',str({input:'first'}));await clock.run();focused=true;h.store.setItem('scholar-calculator-v1',str({input:'typing'}));release();for(let i=0;i<12;i++)await Promise.resolve();
+ assert.equal(calls,1);assert.equal(h.sync.status().pending,1);assert.equal(clock.pending.size,0);
+ focused=false;handlers.focusout();await clock.run();await clock.run();assert.equal(calls,2);assert.equal(h.sync.status().pending,0);
 });

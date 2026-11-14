@@ -34,6 +34,8 @@
     if(editing())return;
     const pending=[...deferred];deferred.clear();
     for(const [key,oldValue] of pending)emit(key,oldValue);
+    // Leaving the input/dialog ends the editing action and releases its outbox.
+    if(queue.size)schedule(true);
   }
   if(typeof document !== 'undefined'){
     // Server state can advance immediately, but redrawing a live editor can
@@ -72,16 +74,30 @@
       }
     }
     if(!changed)return;
-    if (user) { phase = queue.size||confirming?'pending':'synced'; notify(); if(queue.size)schedule();else clearTimeout(timer); }
+    if (user) { phase = failure?'error':queue.size||confirming?'pending':'synced'; notify(); if(queue.size)schedule();else clearTimeout(timer); }
     else { phase = 'guest'; notify(); }
   }
-  let timer;
-  function schedule() { clearTimeout(timer); const delay=[...queue.values()].every(op=>quiet(op.key))?1600:450;timer = setTimeout(() => flush().catch(() => {}), delay); }
-  async function flush() {
+  let timer, queuedSince = null, retryAt = 0, retryCount = 0;
+  const offline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
+  const transient = error => /(?:unavailable|deadline-exceeded|aborted|resource-exhausted|network|offline|connection|timeout)/i.test(error.code || error.message || '');
+  function schedule(finished = false) {
     clearTimeout(timer);
+    if(!queue.size||offline()||editing())return;
+    const now=Date.now();if(queuedSince===null)queuedSince=now;
+    // Active editors pause background sends. Other queued actions coalesce
+    // with a maximum five-second wait; leaving the editor releases them.
+    const idle=finished?0:[...queue.values()].every(op=>quiet(op.key))?1600:1200;
+    const delay=Math.max(0,Math.max(Math.min(now+idle,queuedSince+5000),retryAt)-now);
+    timer=setTimeout(()=>flush(true).catch(()=>{}),delay);
+  }
+  async function flush(automatic = false) {
+    clearTimeout(timer);
+    if(automatic&&editing())return;
     if (!user || !transport) throw Error('Sign in to save to the cloud.');
     if (flushing) return flushing;
     if(!queue.size)return;
+    if(offline()){failure='Offline. Pending changes are retained until your connection returns.';phase='error';notify();throw Error(failure);}
+    queuedSince=null;
     const identity = user.uid;
     let resolveFlush,rejectFlush;
     const run=new Promise((resolve,reject)=>{resolveFlush=resolve;rejectFlush=reject;});
@@ -109,11 +125,18 @@
           });
           for(const [key,raw]of previous)emit(key,raw);
           // Allow input, painting and network events between acknowledged batches.
+          if(automatic&&editing()&&queue.size)break;
           if(queue.size)await new Promise(resolve=>setTimeout(resolve,0));
         }
-        failure = null;phase = 'synced';
-      } catch (error) { failure = error.message || String(error); phase = 'error'; throw error; }
-      finally { clearTimeout(watchdog);flushing = null; notify(); }
+        failure = null;phase = queue.size?'pending':'synced';retryAt=0;retryCount=0;
+      } catch (error) {
+        failure = error.message || String(error);phase = 'error';
+        if(user?.uid===identity&&queue.size&&transient(error)){
+          retryAt=Date.now()+Math.min(30000,2000*2**Math.min(retryCount++,4));schedule();
+        }
+        throw error;
+      }
+      finally { clearTimeout(watchdog);flushing = null; notify();if(queue.size&&!failure)schedule(); }
     })().then(resolveFlush,rejectFlush);
     return run;
   }
@@ -149,6 +172,7 @@
       if (queue.size && !flushing) schedule();
       notify();return;
     }
+    clearTimeout(timer);queuedSince=null;retryAt=0;retryCount=0;
     user = identity; transport = adapter; failure = null; deferred.clear();chunks.clear(); queue.clear();groups.clear();cache.clear();keyCache.clear();
     if (entries) for (const [id, value] of entries) if (value !== null) put(id,value);
     phase = identity ? 'synced' : 'guest'; notify(); resolveReady();
@@ -191,8 +215,9 @@
     requireAccount() { if (!user || phase === 'loading') throw Error('Please sign in before saving patient records.'); },
     get transport() { return transport; }
   };
-  window.addEventListener('online', () => { if (queue.size) flush().catch(() => {}); });
-  if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{if(document.hidden&&queue.size)flush().catch(()=>{});});
+  window.addEventListener('offline',()=>clearTimeout(timer));
+  window.addEventListener('online', () => { retryAt=0;retryCount=0;if(queue.size)flush(true).catch(()=>{}); });
+  if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{if(document.hidden&&queue.size&&!editing())flush(true).catch(()=>{});});
   window.addEventListener('beforeunload', event => {
     if (queue.size || confirming) { event.preventDefault(); event.returnValue = ''; }
   });
