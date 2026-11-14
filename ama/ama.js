@@ -215,7 +215,7 @@
     for(const range of stored.ranges){
       for(const [before,after,size] of migration.blocks){
         const start=Math.max(range.start,before),end=Math.min(range.end,before+size);
-        if(end>start)mapped.push({...range,start:after+start-before,end:after+end-before});
+        if(end>start)mapped.push({...range,id:range.id+':flow:'+start+':'+end,start:after+start-before,end:after+end-before});
       }
     }
     return mapped;

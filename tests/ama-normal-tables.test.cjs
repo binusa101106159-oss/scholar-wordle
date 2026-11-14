@@ -19,7 +19,8 @@ test('legacy highlights follow the same letters across changed PDF whitespace',(
  const migration={fromLength:7,toLength:5,blocks:[[0,0,2],[3,2,2],[6,4,1]]};
  const old={length:7,ranges:[{id:'original',start:1,end:7}]};
  const mapped=context.map(old,5,migration);
- assert.deepEqual(JSON.parse(JSON.stringify(mapped)),[{id:'original',start:1,end:2},{id:'original',start:2,end:4},{id:'original',start:4,end:5}]);
+ assert.deepEqual(JSON.parse(JSON.stringify(mapped)),[{id:'original:flow:1:2',start:1,end:2},{id:'original:flow:3:5',start:2,end:4},{id:'original:flow:6:7',start:4,end:5}]);
+ assert.equal(new Set(mapped.map(r=>r.id)).size,mapped.length,'cloud merging must not collapse separate mapped fragments with the same ID');
  assert.equal(old.ranges[0].end,7,'the original cloud record is never mutated by rendering');
  assert.equal(context.map(old,8,migration).length,0,'mismatching content cannot receive stale offsets');
  assert.equal(context.map({length:5,textVersion:2,ranges:[{start:2,end:4}]},5,migration)[0].start,2,'new marks are not migrated twice');
