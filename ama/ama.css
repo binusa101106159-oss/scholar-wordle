@@ -208,6 +208,9 @@
 .ax-source-run[style*="font-style:italic"],.ax-source-run[style*="font-style:italic"] > span { font-style:italic!important; }
 .ax-dialog-body .ax-source-grid > svg,.ax-dialog-body .ax-positioned-cell > svg { max-height:none; }
 .ax-dialog-body .ax-source-object .ax-vector { max-height:none; }
+.ax-form-figure .ax-source-table { min-width:0!important; table-layout:fixed; }
+.ax-form-figure .ax-table-wrap { overflow:visible; }
+.ax-dialog-body .ax-form-figure .ax-vector { max-height:none; }
 .ax-table-wrap:has(> .ax-source-grid) { padding-bottom:4px; }
 .ax-object:has(.ax-source-object),.ax-object:has(.ax-source-table) { overflow-x:auto; }
 
@@ -251,6 +254,8 @@
 .ax-table-shortcuts { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
 .ax-table-shortcuts[hidden] { display:none; }
 .ax-table-shortcut { min-height:36px; padding:8px 12px; border:1px solid #93c5fd38; border-radius:10px; background:#8ebfff0b; color:#c4d9f5; font-size:12px; line-height:1.4; cursor:pointer; transition:background .15s,transform .15s; }
+#ax-table-shortcuts [data-object-kind="figure"]{flex:1 1 220px;text-align:left}
+#ax-table-shortcuts .reader-table-caption{display:block;margin-top:4px;color:#bac6d6;line-height:1.5}
 .ax-table-shortcut:hover { background:#8ebfff20; border-color:#93c5fd80; transform:translateY(-1px); }
 .ax-table-shortcut:focus-visible { outline:2px solid #93c5fd; outline-offset:2px; }
 /* The modal and its backdrop share a translucent, gradually frosted surface. */

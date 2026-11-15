@@ -743,13 +743,17 @@ class Page:
     def region(self, chars, box, kind, ident, body=None, mode=None):
         anchor = ("t" if kind=="table" else "f" if kind=="figure" else "ap")+ident
         if (kind=='figure' or ident=='16-A') and 383<=self.number<=556:
-            value=self.source_figure(chars,box,ident)
+            previous=self.precise_tables;self.precise_tables=True
+            try:value=self.source_figure(chars,box,ident)
+            finally:self.precise_tables=previous
         elif kind=='figure' and self.number==600:
             value=self.pdq(chars)
         elif kind=='figure' and self.number in (561,598):
             table=printed_grid(self.number,'form');selected=self.select(chars,table.bbox)
             nodes=self.paragraphs([c for c in chars if c not in selected],'figure-'+ident,headings=False)
-            value=self.grid(selected,table,'figure-'+ident+'-grid',positioned=True)
+            previous=self.precise_tables;self.precise_tables=True
+            try:value=self.grid(selected,table,'figure-'+ident+'-grid',positioned=True)
+            finally:self.precise_tables=previous
             value=value.replace('font-size:','line-height:1;font-size:')
             nodes.append(dict(box=table.bbox,html=value))
             value=self.flow(nodes)
@@ -784,6 +788,8 @@ class Page:
             value = self.pdq(chars)
         else:
             value = self.flow(self.paragraphs(chars, "appendix-"+ident, headings=False))
+        if kind=='figure' and '<table' in value and 'ax-positioned-cell' in value:
+            value=f'<div class="ax-form-figure" style="width:{(box[2]-box[0])*1.8:.3f}px">'+value+'</div>'
         label = ("Table " if kind=="table" else "Figure " if kind=="figure" else "Appendix ")+ident
         self.attachments.append(dict(id=anchor, label=label, page=self.number, html=value, kind=kind))
         return dict(box=box, html=f'<section class="ax-object ax-object-{kind}" id="{anchor}" data-attachment="{anchor}">{value}<button type="button" class="ax-expand" data-open="{anchor}" aria-label="放大 {label}">放大檢視</button></section>')

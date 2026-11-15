@@ -28,6 +28,7 @@ jobs:
       - run: python tools/resilience-browser.py
       - run: python tools/peek-browser.py
       - run: python tools/ama-tabs-browser.py
+      - run: python tools/ama-forms-browser.py
       - run: python tools/ama-build/labels-review.py
       - run: python tools/build-public.py
       - uses: actions/upload-pages-artifact@v4

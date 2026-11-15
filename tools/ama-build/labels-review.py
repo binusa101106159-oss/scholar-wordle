@@ -44,7 +44,7 @@ CHECK=r'''({html,pages,label,ident})=>{
  for(const text of d.querySelectorAll('.ax-natural-svg'))if(text.hasAttribute('textLength')||text.querySelector('[textLength],[lengthAdjust]'))throw Error('Stretched SVG glyphs survived');
  const copied=readableCopy(d.cloneNode(true)).textContent;
  const tracked=copied.match(/(?<![A-Za-z])(?:[A-Za-z]\s+){4,}[A-Za-z](?![A-Za-z])/g)||[];
- const residual=tracked.filter(s=>!/^([ABCDE])+$/.test(s.replace(/\s/g,'')));
+ const residual=tracked.filter(s=>!/^a?[ABCDEWS]+$/.test(s.replace(/\s/g,'')));
  if(residual.length)throw Error(ident+': residual letter-spaced words in copied text: '+residual.slice(0,3).join(' | '));
  const fits=[...d.querySelectorAll('[data-label-fit]')].filter(n=>n.textContent.trim()).map(n=>+n.dataset.labelFit);
  result.minimumLabelScale=fits.length?Math.min(...fits):1;

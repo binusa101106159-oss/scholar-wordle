@@ -43,7 +43,7 @@
   for(const original of buttons){
    if(prefix==='ax'&&original.hidden)continue;
    const button=original.cloneNode(true);button.removeAttribute('id');button.classList.add('reader-table-shortcut');button.setAttribute('aria-haspopup','dialog');
-   if(prefix==='ax'&&original.title&&original.title!==original.textContent){const caption=document.createElement('span');caption.className='reader-table-caption';caption.textContent=original.title;button.append(caption);}
+   if(prefix==='ax'&&original.title&&original.title!==original.textContent&&!button.querySelector('.reader-table-caption')){const caption=document.createElement('span');caption.className='reader-table-caption';caption.textContent=original.title;button.append(caption);}
    button.addEventListener('click',()=>{if(original.isConnected)original.click();});fragment.append(button);
   }
   if(prefix==='ax'&&!fragment.childElementCount){const empty=document.createElement('p');empty.className='reader-table-empty';empty.textContent=state.kind==='figure'?'本章沒有 Figure。':'本章沒有 Table。';fragment.append(empty);}

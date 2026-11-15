@@ -4,12 +4,12 @@ const source=fs.readFileSync(require.resolve('../ama/ama.js'),'utf8');
 const start=source.indexOf('  function migratedRanges('),end=source.indexOf('  function restoreMarks(',start),context={};
 vm.runInNewContext(source.slice(start,end)+';this.map=migratedRanges;',context);
 
-test('all 17 chapters use normal cell text without per-letter PDF spans',()=>{
+test('all ordinary chapter tables use normal cell text; source figure forms retain geometry',()=>{
  let tables=0;
  for(let i=1;i<=17;i++){
   const id='c'+String(i).padStart(2,'0'),data=JSON.parse(fs.readFileSync(require.resolve('../ama/'+id+'.json'),'utf8'));
   for(const item of [...data.pages,...data.attachments])for(const table of item.html.match(/<table\b[\s\S]*?<\/table>/g)||[]){
-   tables++;assert.equal(table.includes('ax-source-run'),false,id+' '+(item.id||item.page));
+   tables++;if(table.includes('ax-source-table')){assert.ok(item.html.includes('ax-form-figure'),id+' only figure forms may retain source grids');continue;}assert.equal(table.includes('ax-source-run'),false,id+' '+(item.id||item.page));
   }
  }
  assert.ok(tables>500,'check the complete set, including popup and inline representations');
@@ -24,6 +24,18 @@ test('legacy highlights follow the same letters across changed PDF whitespace',(
  assert.equal(old.ranges[0].end,7,'the original cloud record is never mutated by rendering');
  assert.equal(context.map(old,8,migration).length,0,'mismatching content cannot receive stale offsets');
  assert.equal(context.map({length:5,textVersion:2,ranges:[{start:2,end:4}]},5,migration)[0].start,2,'new marks are not migrated twice');
+});
+
+test('form repair migrates version 2 marks and composes older migrations without applying twice',()=>{
+ const previous={fromLength:7,toLength:5,blocks:[[0,0,2],[3,2,2],[6,4,1]]};
+ const repair={fromVersion:2,toVersion:3,fromLength:5,toLength:6,blocks:[[0,3,2],[2,0,3]],previous};
+ const v2={length:5,textVersion:2,ranges:[{id:'v2',start:0,end:2}]};
+ assert.deepEqual(JSON.parse(JSON.stringify(context.map(v2,6,repair))).map(r=>[r.start,r.end]),[[3,5]]);
+ const legacy={length:7,ranges:[{id:'v1',start:3,end:5}]};
+ assert.deepEqual(JSON.parse(JSON.stringify(context.map(legacy,6,repair))).map(r=>[r.start,r.end]),[[0,2]]);
+ const current={length:6,textVersion:3,ranges:[{id:'v3',start:3,end:5}]};
+ assert.equal(context.map(current,6,repair),current.ranges);
+ assert.equal(v2.ranges[0].start,0,'rendering leaves the original stored record intact');
 });
 
 test('thumb motion cells use ordinary HTML paragraphs instead of positioned PDF glyphs',()=>{

@@ -42,3 +42,17 @@ test('AMA compact search index covers every source page in study order',()=>{
   assert.ok(chapter.pages.every(p=>typeof p.text==='string'),chapter.id+' searchable text');
  }
 });
+
+test('every Figure shortcut includes its complete source caption',()=>{
+ const captions={};
+ for(const entry of Object.values(manifest.chapters))for(const object of packed(entry.file).attachments){
+  if(object.kind!=='figure')continue;
+  assert.equal(typeof object.caption,'string',object.id);assert.ok(object.caption.trim(),object.id+' missing caption');
+  assert.ok(!/^Figure\b/i.test(object.caption),object.id+' duplicates the figure number');captions[object.id]=object.caption;
+ }
+ assert.equal(captions['f15-13'],'Upper Extremity Range of Motion Record');
+ assert.equal(captions['f15-31'],'Upper Extremity Impairment Evaluation Example');
+ assert.equal(captions['f16-1'],'Lower Extremity Regions');
+ assert.ok(captions['f15-6'].endsWith('of the Digit Length'),'long captions must not be cut off');
+ assert.equal(captions['f12-10'],'Overlay Grid for Goldman Fields');
+});

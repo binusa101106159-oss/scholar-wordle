@@ -21,3 +21,8 @@ test('dense visual-acuity values retain individual positions instead of growing 
 test('numbered text labels are not mistaken for a row of independent values',()=>{
  assert.equal(groups('Grade 1 motor deficit').length,1);
 });
+
+test('two-letter form choices retain separate anchors for source selection circles',()=>{
+ assert.deepEqual(groups('F M',[0,7,25]).map(g=>g.map(n=>n.text).join('')),['F ','M']);
+ assert.deepEqual(groups('R L',[0,7,24]).map(g=>g[0].x),[0,24]);
+});

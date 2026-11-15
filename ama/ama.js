@@ -200,7 +200,8 @@
   function sourceGlyphGroups(glyphs,size) {
     const groups=[];let previous;
     const tokens=glyphs.map(g=>g.text).join('').trim().split(/\s+/);
-    const values=tokens.length>=3&&tokens.every(t=>/^[\d/.,%°±+−<>≤≥-]+$/.test(t)||/^[A-E]$/.test(t)||/^[IVX]+$/.test(t));
+    const choices=tokens.length>=2&&tokens.every(t=>/^[A-Z]$/.test(t));
+    const values=choices||tokens.length>=3&&tokens.every(t=>/^[\d/.,%°±+−<>≤≥-]+$/.test(t)||/^[A-E]$/.test(t)||/^[IVX]+$/.test(t));
     for(const glyph of glyphs){
       // A large jump denotes a separate diagram label or numeric column.
       // Preserve those anchors; normal words use the browser's own kerning.
@@ -368,14 +369,18 @@
   }
   function migratedRanges(stored,length,migration) {
     if(!stored)return [];
-    if(!migration||stored.textVersion===2)return stored.length===length?stored.ranges:[];
+    const targetVersion=migration?.toVersion||2;
+    if(!migration||stored.textVersion===targetVersion)return stored.length===length?stored.ranges:[];
+    if(migration.previous&&(stored.textVersion||1)<(migration.fromVersion||2)){
+      stored={length:migration.fromLength,textVersion:migration.fromVersion||2,ranges:migratedRanges(stored,migration.fromLength,migration.previous)};
+    }
     if(stored.length===length&&stored.length!==migration.fromLength)return stored.ranges;
     if(stored.length!==migration.fromLength||length!==migration.toLength)return [];
     const mapped=[];
     for(const range of stored.ranges){
       for(const [before,after,size] of migration.blocks){
         const start=Math.max(range.start,before),end=Math.min(range.end,before+size);
-        if(end>start)mapped.push({...range,id:range.id+':flow:'+start+':'+end,start:after+start-before,end:after+end-before});
+        if(end>start)mapped.push({...range,id:range.id+(targetVersion===2?':flow:':':form'+targetVersion+':')+start+':'+end,start:after+start-before,end:after+end-before});
       }
     }
     return mapped;
@@ -407,7 +412,8 @@
     if (start<0 || end<=start) return;
     highlights[current] ||= {};
     let entry=highlights[current][page.dataset.page];
-    if(!entry||entry.textVersion!==2)entry=highlights[current][page.dataset.page]={length:offset,textVersion:2,ranges:migratedRanges(entry,offset,page.amaTextMigration),...(entry?{legacy:entry}:{})};
+    const textVersion=page.amaTextMigration?.toVersion||2;
+    if(!entry||entry.textVersion!==textVersion)entry=highlights[current][page.dataset.page]={length:offset,textVersion,ranges:migratedRanges(entry,offset,page.amaTextMigration),...(entry?{legacy:entry}:{})};
     entry.ranges.push({id:crypto.randomUUID(),start,end});
     try { window.ScholarStorage.setItem(MARKS,JSON.stringify(highlights)); } catch (_) { /* Optional storage. */ }
     applyMarks(page,[{start,end}]); selection.removeAllRanges(); by('ax-status').textContent='已儲存標記。';
@@ -425,8 +431,9 @@
     for (const object of data.attachments.filter(item=>item.kind==='table'||item.kind==='figure')) {
       const button=document.createElement('button');button.type='button';button.className='ax-table-shortcut';button.dataset.tableOpen=object.id;
       button.dataset.objectKind=object.kind;
-      const caption=object.kind==='table'?tableCaption(object):'原書第 '+sourcePages(object)+' 頁';
+      const caption=object.kind==='table'?tableCaption(object):figureCaption(object);
       button.textContent=object.label;button.title=caption;button.setAttribute('aria-label',object.label+' '+caption);button.setAttribute('aria-haspopup','dialog');shortcuts.append(button);
+      if(object.kind==='figure'&&caption){const subtitle=document.createElement('span');subtitle.className='reader-table-caption';subtitle.textContent=caption;button.append(subtitle);}
     }
     by('ax-table-shortcuts').replaceChildren(shortcuts);by('ax-table-shortcuts').hidden=!by('ax-table-shortcuts').childElementCount;window.ScholarReaderTables?.sync('ax');
     by('ax-section').replaceChildren(...choices.map(section => {
@@ -556,6 +563,36 @@
       tableCaptions.set(object.id,title.slice(0,180));
     }
     return tableCaptions.get(object.id);
+  }
+  function figureCaption(object) {
+    if(object.caption!==undefined)return cleanCaption(object.caption,object.label);
+    if(!object.html)return '';
+    const holder=document.createElement('div');holder.innerHTML=object.html;
+    readableCopy(holder);
+    holder.querySelectorAll('sup').forEach(n=>{if(/^[a-z]$/.test(n.textContent.trim()))n.remove();});
+    const top=node=>{let y=0;for(let n=node;n&&n!==holder;n=n.parentElement)y+=parseFloat(n.style.top)||0;return y;};
+    const runs=[...holder.querySelectorAll('.ax-source-run,span[style*="position:absolute"]')].filter(n=>!n.closest('table')&&!n.closest('svg')&&!n.parentElement.closest('.ax-source-run'));
+    if(runs.length){
+      const compact=s=>s.replace(/\s/g,'').toUpperCase(),label=compact(object.label),ordered=runs.sort((a,b)=>top(a)-top(b));
+      const heading=ordered.find(n=>compact(n.textContent).startsWith(label));
+      if(heading){
+        const candidates=ordered.filter(n=>top(n)>=top(heading)-.5&&cleanCaption(n.textContent,object.label)&&n!==heading);
+        if(candidates.length){
+          const size=parseFloat(candidates[0].style.fontSize)||0,lines=[];let previous=top(candidates[0]);
+          for(const n of candidates){if((parseFloat(n.style.fontSize)||0)<size*.95||top(n)-previous>size*1.7)break;lines.push(n.textContent);previous=top(n);}
+          if(lines.length)return cleanCaption(lines.join(' '),object.label);
+        }
+      }
+    }
+    const compact=s=>s.replace(/\s/g,'').toUpperCase(),label=compact(object.label);
+    for(const p of holder.querySelectorAll('p,h3')){
+      if(!compact(p.textContent).startsWith(label))continue;
+      let title=cleanCaption(p.textContent,object.label),next=p.nextElementSibling;
+      while(!title&&next&&['P','H3'].includes(next.tagName)){title=cleanCaption(next.textContent,object.label);next=next.nextElementSibling;}
+      if(!title&&holder.querySelector('svg text'))title=holder.querySelector('svg text').textContent;
+      if(title)return title;
+    }
+    return '';
   }
   async function openTableIndex(chapterId=current) {
     const request=++objectRevision;

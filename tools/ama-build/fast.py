@@ -16,11 +16,11 @@ async def main():
   for chapter in json.loads((ROOT/'ama/index.json').read_text(encoding='utf8'))['chapters']:
    if not chapter.get('ready'):continue
    id=chapter['id'];source=(ROOT/'ama'/f'{id}.json').read_bytes();data=json.loads(source)
-   derived=await page.evaluate('async id=>{const data=await(await fetch(id+".json")).json();'+helpers+';return {captions:Object.fromEntries(data.attachments.filter(a=>a.kind==="table").map(a=>[a.id,tableCaption(a)])),pages:data.pages.map(p=>{const el=document.createElement("div");el.innerHTML=p.html;return {page:p.page,label:p.label,sourcePages:p.sourcePages,text:chapterText(el).replace(/\\s+/g," ")};})};}',id)
+   derived=await page.evaluate('async id=>{const data=await(await fetch(id+".json")).json();'+helpers+';return {captions:Object.fromEntries(data.attachments.filter(a=>a.kind==="table"||a.kind==="figure").map(a=>[a.id,a.kind==="figure"?figureCaption(a):tableCaption(a)])),pages:data.pages.map(p=>{const el=document.createElement("div");el.innerHTML=p.html;return {page:p.page,label:p.label,sourcePages:p.sourcePages,text:chapterText(el).replace(/\\s+/g," ")};})};}',id)
    objects=[]
    for obj in data['attachments']:
     meta={k:v for k,v in obj.items() if k!='html'};meta['file']=packed(obj['id'],obj)
-    if obj['kind']=='table':meta['caption']=derived['captions'][obj['id']]
+    if obj['kind'] in ('table','figure'):meta['caption']=derived['captions'][obj['id']]
     objects.append(meta)
    reader={**data,'attachments':objects};file=packed(id,reader);manifest['chapters'][id]={'file':file,'sourceSHA256':hashlib.sha256(source.replace(b'\r\n',b'\n')).hexdigest()};search.append({'id':id,'pages':derived['pages']})
    size=(ROOT/file).stat().st_size;stats.append({'id':id,'original':len(source),'initial':size,'pages':len(data['pages']),'attachments':len(objects)})
