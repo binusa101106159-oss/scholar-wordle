@@ -328,7 +328,7 @@
       if (!law) return;
       const annex = law.dataset.openAnnex;
       if (annex) { openAnnex(annex); return; }
-      openLaw(law.dataset.law, { art: law.dataset.art, flash: Boolean(law.dataset.art) });
+      openLaw(law.dataset.law, { art: law.dataset.art, flash: Boolean(law.dataset.art), tier:law.closest('.lx-tier-list')?.id.slice(8) });
       if (compactLayout.matches) state.closeDrawer();
     });
     // the drawer gets its own history entry, so the phone's back gesture closes it instead of leaving the page
@@ -461,10 +461,14 @@
     return state.index.laws.filter(l => { const t = normMap(l.name).s; return terms.every(x => t.includes(x)); });
   }
   /* a tier is open when the reader opened it, or (until they choose) when it holds the law being read */
+  function tierLaws(id) {
+    const tier=state.index.tiers.find(t=>t.id===id);
+    return tier?.laws?tier.laws.map(id=>state.byId.get(id)).filter(Boolean):state.index.laws.filter(l=>l.tier===id);
+  }
   function tierOpen(id) {
     const saved = (prefs().open || {})[id];
     if (saved != null) return saved;
-    return Boolean(state.current && state.current.meta.tier === id);
+    return Boolean(state.current && (state.group||state.current.meta.tier) === id);
   }
   function renderSide() {
     const list = by('lx-list');
@@ -475,12 +479,12 @@
     by('lx-scope').querySelectorAll('[data-scope]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.scope === state.scope)));
     if (!state.query) {
       list.innerHTML = idx.tiers.map(t => {
-        const laws = idx.laws.filter(l => l.tier === t.id);
+        const laws = tierLaws(t.id);
         const count = t.total && t.total > laws.length ? laws.length + ' / ' + t.total + ' 部' : laws.length + ' 部';
         const open = tierOpen(t.id);
         return '<button type="button" class="lx-tier" data-tier="' + t.id + '" aria-expanded="' + open + '" aria-controls="lx-tier-' + t.id + '">' +
           '<span class="lx-tier-name">' + icon.right + '<b>' + t.id + '</b>' + esc(t.name) + '</span><span>' + count + '</span></button>' +
-          '<div class="lx-tier-list" id="lx-tier-' + t.id + '"' + (open ? '' : ' hidden') + '>' + laws.map((l, i) => lawButton(l, l.no || i + 1)).join('') + '</div>';
+          '<div class="lx-tier-list" id="lx-tier-' + t.id + '"' + (open ? '' : ' hidden') + '>' + laws.map((l, i) => lawButton(l, t.laws?i+1:l.no || i + 1)).join('') + '</div>';
       }).join('');
       return;
     }
@@ -591,9 +595,13 @@
     if(!opts.boot)window.ScholarLawSearch?.close();
     const meta = state.byId.get(id);
     if (!meta) return;
+    const requestedGroup=opts.tier||(opts.boot?prefs().group:null);
+    const group=requestedGroup&&tierLaws(requestedGroup).some(l=>l.id===id)?requestedGroup:meta.tier;
+    const changedGroup=state.group!==group;
+    if(state.current?.id===id){state.group=group;setPrefs({group});}
     if (state.checkedView) setCheckedView(false);
     const oldTerms=state.resultTerms;state.resultTerms=opts.searchTerms||null;
-    if(state.current?.id===id && JSON.stringify(oldTerms)!==JSON.stringify(state.resultTerms))renderDoc(state.current,true);
+    if(state.current?.id===id && (changedGroup||JSON.stringify(oldTerms)!==JSON.stringify(state.resultTerms))){renderDoc(state.current,true);renderSide();}
     if (!state.current || state.current.id !== id) {
       rememberPosition();
       by('lx-doc').innerHTML = '<p class="lx-loading">載入中…</p>';window.ScholarReaderTables?.sync('lx');
@@ -601,8 +609,8 @@
       try { data = await getText(id); }
       catch (_) { by('lx-doc').innerHTML = '<p class="lx-loading">無法載入這部法規。請確認網路連線後再試一次。</p>'; return; }
       state.current = Object.assign({}, data, { meta });
-      setPrefs({ law: id });
-      if (!opts.boot && !tierOpen(meta.tier)) setPrefs({ open: Object.assign({}, prefs().open, { [meta.tier]: true }) });
+      state.group=group;setPrefs({ law: id, group });
+      if (!opts.boot && !tierOpen(group)) setPrefs({ open: Object.assign({}, prefs().open, { [group]: true }) });
       renderDoc(state.current, false);
       renderSide();
       const saved = (prefs().pos || {})[id];
@@ -643,11 +651,11 @@
     const sc = by('lx-scroll'), top = sc.scrollTop;
     const viewAnchor=keepScroll?window.ScholarReaderScroll.capture(sc):null;
     by('lx-doc').classList.toggle('reader-exact-position',!viewAnchor&&(prefs().pos||{})[law.id]>0&&!(prefs().anchors||{})[law.id]);
-    const tierLaws = state.index.laws.filter(l => l.tier === meta.tier);
-    const tierInfo = state.index.tiers.find(t => t.id === meta.tier) || {};
-    let html = '<div class="lx-head sg-glass"><p class="sg-eyebrow">' + [meta.tier, esc(tierInfo.name || TIER_NAMES[meta.tier] || ''), (meta.no || tierLaws.indexOf(meta) + 1) + ' / ' + (tierInfo.total || tierLaws.length)].filter(Boolean).join(' · ') + '</p>' +
+    const group=state.group||meta.tier,groupLaws=tierLaws(group);
+    const tierInfo = state.index.tiers.find(t => t.id === group) || {};
+    let html = '<div class="lx-head sg-glass"><p class="sg-eyebrow">' + [group, esc(tierInfo.name || TIER_NAMES[group] || ''), (tierInfo.laws?groupLaws.indexOf(meta)+1:meta.no || groupLaws.indexOf(meta) + 1) + ' / ' + (tierInfo.total || groupLaws.length)].filter(Boolean).join(' · ') + '</p>' +
       '<h1 class="lx-title">' + rich(meta.name, null, terms) + '</h1>' +
-      '<p class="lx-meta">' + (law.date ? '<span>' + esc(law.dateLabel) + ' ' + esc(law.date) + '</span>' : '') + '<span>' + meta.articles + ' 條</span></p>' +
+      '<p class="lx-meta">' + (law.date ? '<span>' + esc(law.dateLabel) + ' ' + esc(law.date) + '</span>' : '') + '<span>' + meta.articles + ' 條</span>'+(meta.sourceURL?'<a href="'+esc(meta.sourceURL)+'" target="_blank" rel="noopener noreferrer">官方原文</a>':'')+'</p>' +
       (law.status ? '<p class="lx-status">' + esc(law.status) + '</p>' : '') +
       law.notes.map((n, i) => '<p class="lx-note">' + rich(n, (law.notesLinks || [])[i], terms) + '</p>').join('');
     if (law.annexes.length) {

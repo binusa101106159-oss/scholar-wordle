@@ -10,7 +10,7 @@ import re
 from catalog import LAWS
 
 NUMS = '一二三四五六七八九十'
-REF = re.compile(rf'附表(?:[{NUMS}]+(?:之[{NUMS}]+)?)?')
+REF = re.compile(rf'附[表件](?:[{NUMS}]+(?:之[{NUMS}]+)?)?')
 LAWNAME = re.compile(r'[一-鿿]{2,}?(?:法|規則|標準|辦法|準則|條例|細則)$')
 ARTREF = re.compile(rf'(?:第[{NUMS}百零〇\d\s-]+條(?:第[{NUMS}\d\s]+[項款])*(?:[、及][第]?[{NUMS}百零〇\d\s-]+條?)*)?(?:及其|之|所定之?|規定之?)?$')
 SELF = ('本法', '本規則', '本標準', '本辦法', '本準則', '本條例', '本細則')

@@ -66,3 +66,16 @@ python review.py med01 med02 med03 med04 med05 base01 base02 base03 base04 base0
 build.py會重建全部資料，不可漏掉既有分類。若out不存在而只新增這兩組，先由已發布laws/text、laws/annex播種既有資料與圖片，out/annex/index.json依laws/index.json各法規annexes產生；不可將缺少原始PDF誤當成要刪除既有資料。新資料先在獨立目錄建置，確認所有既有資料與目錄紀錄一致後才安裝。
 
 增訂章節（章之一、編之二、節之一）保留為獨立標題；PDF實際印出的單獨項號也必須保留。完整來源盤點及337個章節清單見 [QA-medical-general.md](QA-medical-general.md)。
+
+## 官方農保／漁保來源
+
+`official-insurance-sources.json`記錄19部法規與15份官方附件的原文網址、下載網址及SHA-256。農保收錄7部；漁保分類收錄12部，其中6部沿用原有法規ID，畫線、勾選與搜尋資料不重複。新增12部全文及12份原生文字附件（共59頁），既有共用法規全文與附件亦已對照官方版本。農職保傷病審查辦法使用現行名稱。
+
+```sh
+python tools/laws-build/verify_official_insurance.py --download
+python tools/insurance-browser.py
+```
+
+驗證程式會完整讀取每份PDF，檢查雜湊、全文字序、附件文字與第一／末行，並將章節及頁數盤點寫到`.local/farm-fish/verified-inventory.json`。下載檔如已改版會停止，不能靜默覆蓋現有文字與畫線位置。勞保條例職業病附表原有的印刷頁碼（-27-至-39-）未列於畫面，但在來源紀錄明確列出並納入逐字核對，不會將內容數字當作頁碼刪除。
+
+漁保分類用`tiers[].laws`參照共用法規，保留既有主要分類；目錄依指定順序顯示，從漁保開啟時保留漁保標題。直接更動資料時須保留這些參照與附件ID，不可複製出同名全文。本文與附表來源連結均可由官方原文核對。

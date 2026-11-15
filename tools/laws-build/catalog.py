@@ -57,6 +57,7 @@ TIERS.append(("公保", ""))
 LAWS += [('pub01', '公保', '公教人員保險法', '公教人員保險法'), ('pub02', '公保', '公教人員保險法施行細則', '公教人員保險法施行細則'), ('pub03', '公保', '公教人員保險失能給付標準', '公教人員保險失能給付標準'), ('pub04', '公保', '公務人員退休資遣撫卹法', '公務人員退休資遣撫卹法'), ('pub05', '公保', '公務人員退休資遣撫卹法施行細則', '公務人員退休資遣撫卹法施行細則'), ('pub06', '公保', '公務人員請假規則', '公務人員請假規則'), ('pub07', '公保', '公務人員執行職務意外傷亡慰問金發給辦法', '公務人員執行職務意外傷亡慰問金發給辦法')]
 PUBLIC_SRC = os.environ.get("PUBLIC_LAWS_SRC", os.path.join(os.path.expanduser("~"), "Downloads", "公保"))
 def source_dir(lid):
+    if lid.startswith(('farm','fish')):return os.environ.get('OFFICIAL_LAWS_SRC',SRC)
     return PUBLIC_SRC if lid.startswith("pub") else SRC
 
 EXTRA_ANNEX_FILES = {"pub01": ["附表 公教人員保險被保險人於本法修正施行前保險年資養老給付月數標準表.PDF"]}
@@ -75,3 +76,10 @@ LAWS += [
  ("base04", "基本法規", "民事訴訟法", "民事訴訟法"),
  ("base05", "基本法規", "民法", "民法"),
 ]
+
+# Official MOJ exports; shared laws retain their canonical IDs and saved marks.
+TIERS += [('農保',''),('漁保','')]
+FARM_NAMES=['農民健康保險條例','農民健康保險條例施行細則','農民職業災害保險試辦辦法','農民職業災害保險職業傷病審查辦法','農民健康保險身心障礙給付標準','農民健康保險及農民職業災害保險爭議事項審議辦法','從事農業工作農民申請參加農民健康保險認定標準及資格審查辦法']
+LAWS += [(f'farm{i:02}','農保',name,name)for i,name in enumerate(FARM_NAMES,1)]
+LAWS += [(id,'漁保',name,name)for id,name in [('fish02','勞工保險條例施行細則'),('fish07','漁會法'),('fish08','漁船船員管理規則'),('fish09','區漁會會員資格審查及認定辦法'),('fish10','漁會法施行細則'),('fish12','勞工保險爭議事項審議辦法')]]
+TIER_MEMBERS={'漁保':['a05','fish02','s03','a06','s10','s04','fish07','fish08','fish09','fish10','s11','fish12']}

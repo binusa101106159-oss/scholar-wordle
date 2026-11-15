@@ -1,5 +1,6 @@
 /* Shared wide-screen article navigation. Compact windows retain each reader's mobile controls. */
 @media(min-width:1100px) and (orientation:landscape){
+  body:has(#cloud-bar:not([hidden])) #lx-layout[data-sidebar-collapsed="false"] #lx-sidebar{margin-bottom:72px}
   #lx-layout[data-sidebar-collapsed="false"] {grid-template-columns:292px minmax(0,1fr);gap:22px;}
   #lx-layout[data-sidebar-collapsed="false"] .lx-reader {grid-column:2;grid-row:1;min-width:0;}
   #lx-layout[data-sidebar-collapsed="false"] #lx-sidebar {position:relative;grid-column:1;grid-row:1;left:auto;right:auto;top:auto;bottom:auto;width:auto;height:auto;max-height:none;min-height:0;margin:0 0 18px;visibility:visible;opacity:1;pointer-events:auto;transform:none;transition:none;backdrop-filter:none;box-shadow:inset 0 1px 0 #ffffff12;}

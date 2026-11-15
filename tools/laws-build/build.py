@@ -1,6 +1,6 @@
 """Assemble site data: laws/index.json, laws/text/<id>.json, laws/annex/<id>.json (+ img/)."""
 import json, os, shutil, sys, re
-from catalog import LAWS, TIERS
+from catalog import LAWS, TIERS, TIER_MEMBERS
 from links import resolve, aliases
 
 BUILD = os.path.dirname(os.path.abspath(__file__))
@@ -47,9 +47,13 @@ def main(repo, tiers):
         no = [l[0] for l in LAWS if l[1] == tier].index(lid) + 1      # number in the full study list
         catalog.append(dict(id=lid, tier=tier, no=no, name=name, dateLabel=law['dateLabel'], date=law['date'],
                             status=law['status'], articles=arts, annexes=annexes))
+        if law.get('sourceURL'):catalog[-1]['sourceURL']=law['sourceURL']
         stats[lid] = nlinks
     present = {l['tier'] for l in catalog}
     index = dict(tiers=[dict(id=t, name=n, total=sum(1 for l in LAWS if l[1] == t)) for t, n in TIERS if t in present], laws=catalog)
+    for tier in index['tiers']:
+        if tier['id']in TIER_MEMBERS:
+            tier['laws']=[id for id in TIER_MEMBERS[tier['id']]if any(l['id']==id for l in catalog)];tier['total']=len(tier['laws'])
     json.dump(index, open(os.path.join(dest, 'index.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     for lid, n in stats.items(): print(lid, 'links:', n)
 

@@ -38,7 +38,7 @@ test('S, B and C tiers are present in the study order, and every law shows its d
   const a = index.laws.filter(l => l.tier === 'A');
   assert.deepEqual(a.map(l => l.name), A_ORDER.filter(n => a.some(l => l.name === n)));
   a.forEach(l => assert.equal(l.no, A_ORDER.indexOf(l.name) + 1, l.name));
-  assert.deepEqual(index.tiers.map(t => t.id), ['S', 'A', 'B', 'C', '公保', '醫療法規', '基本法規', '農保']);
+  assert.deepEqual(index.tiers.map(t => t.id), ['S', 'A', 'B', 'C', '公保', '醫療法規', '基本法規', '農保', '漁保']);
   for (const l of index.laws) assert.match(l.date, /^民國 \d+ 年 \d\d 月 \d\d 日$/, l.name);
 });
 
@@ -77,7 +77,7 @@ test('every 附表 link points at an annex that exists, and every annex image is
     for (const l of all) for (const [s, e, id] of l.links || []) {
       links++;
       assert.ok(annexIds.has(id), id);
-      assert.match(l.text.slice(s, e), /^(附表|表)/);
+      assert.match(l.text.slice(s, e), /^(附表|附件|表)/);
     }
   }
   assert.ok(links >= 80, 'links found: ' + links);
@@ -135,7 +135,7 @@ test('medical and general laws appear last with supplied annexes and complete co
  const medical=['醫師懲戒辦法','醫師法','醫師法施行細則','醫師獎勵辦法','醫療法'];
  const basic=['中華民國刑法','中華民國憲法','刑事訴訟法','民事訴訟法','民法'];
  const legal=index.laws.filter(l=>['醫療法規','基本法規'].includes(l.tier));
- assert.deepEqual(index.laws.filter(l=>l.tier==='農保').map(l=>l.name),['農民健康保險條例']);
+ assert.equal(index.laws.filter(l=>l.tier==='農保').length,7);
  assert.deepEqual(legal.map(l=>l.name),[...medical,...basic]);
  assert.deepEqual(legal.map(l=>l.articles),[25,69,25,6,132,422,175,712,800,1439]);
  assert.deepEqual(read('text/med03.json').annexes.map(a=>a.label),['附表一','附表二','附表三']);
@@ -143,4 +143,20 @@ test('medical and general laws appear last with supplied annexes and complete co
  for(const [id,heading] of [['base01','第 五 章之一 沒收'],['base03','第 七 編之一 協商程序'],['base05','第 八 節之一 旅遊']]){
   assert.ok(read('text/'+id+'.json').items.some(item=>item.t==='ch'&&item.text===heading),heading);
  }
+});
+
+test('farm and fish insurance include current names, qualification rules and shared canonical laws',()=>{
+ const farm=index.laws.filter(l=>l.tier==='農保');
+ assert.deepEqual(farm.map(l=>l.id),['farm01','farm02','farm03','farm04','farm05','farm06','farm07']);
+ assert.equal(farm[3].name,'農民職業災害保險職業傷病審查辦法');
+ assert.equal(farm[3].date,'民國 115 年 10 月 20 日');
+ assert.equal(farm[4].annexes.length,1);assert.equal(farm[6].annexes.length,3);
+ const fish=index.tiers.find(t=>t.id==='漁保');
+ assert.deepEqual(fish.laws,['a05','fish02','s03','a06','s10','s04','fish07','fish08','fish09','fish10','s11','fish12']);
+ assert.equal(fish.total,fish.laws.length);
+ assert.equal(new Set(index.laws.map(l=>l.id)).size,index.laws.length);
+ assert.equal(index.laws.filter(l=>l.name==='勞工保險條例').length,1,'shared categories keep original highlights and checks');
+ for(const id of [...farm.map(l=>l.id),...fish.laws])assert.match(index.laws.find(l=>l.id===id).sourceURL,/^https:\/\/law\.moj\.gov\.tw\/LawClass\/LawAll\.aspx\?pcode=/);
+ assert.equal(read('text/fish08.json').annexes.length,6);
+ assert.ok(read('text/farm05.json').items.some(it=>it.t==='art'&&it.paras.some(p=>p.lines.some(l=>l.links?.some(x=>x[2]==='farm05-1')))));
 });

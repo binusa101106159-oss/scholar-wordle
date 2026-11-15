@@ -1,0 +1,338 @@
+{
+  "checkedAt": "2026-11-15",
+  "laws": [
+    {
+      "id": "farm01",
+      "tier": "農保",
+      "pcode": "D0050084",
+      "name": "農民健康保險條例",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=D0050084",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=D0050084&md=m",
+      "sha256": "efcf6a290d3a602ed7ead85a6891ba479a5f52ab9da35bd55150023d13aed2c6",
+      "attachments": []
+    },
+    {
+      "id": "farm02",
+      "tier": "農保",
+      "pcode": "D0050085",
+      "name": "農民健康保險條例施行細則",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=D0050085",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=D0050085&md=m",
+      "sha256": "4a66316a16e97095a135f9a2df31c742d4d8a1501027be344bf0ddd85819f763",
+      "attachments": []
+    },
+    {
+      "id": "farm03",
+      "tier": "農保",
+      "pcode": "M0090030",
+      "name": "農民職業災害保險試辦辦法",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=M0090030",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=M0090030&md=m",
+      "sha256": "fe4ac351381bb994b2d5c20e3d1252232b098867fadf3aedab9a65c7152006dd",
+      "attachments": [
+        {
+          "label": "附件  縣（市）鄉（鎮、市、區）農民參加農民職業災害保險申請表.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000335381&lan=C",
+          "file": "農民職業災害保險試辦辦法 附件  縣（市）鄉（鎮、市、區）農民參加農民職業災害保險申請表.PDF",
+          "sha256": "89068a13d6fed59a78678f08d0b44fedd95ecd70c531d11b389be46d416ca3ad",
+          "annexId": "farm03-1",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        }
+      ]
+    },
+    {
+      "id": "farm04",
+      "tier": "農保",
+      "pcode": "M0090031",
+      "name": "農民職業災害保險職業傷病審查辦法",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=M0090031",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=M0090031&md=m",
+      "sha256": "ebb9f64ea58147306277d307765eb744798a9912452934326d7c2d8684f63706",
+      "attachments": []
+    },
+    {
+      "id": "farm05",
+      "tier": "農保",
+      "pcode": "D0050177",
+      "name": "農民健康保險身心障礙給付標準",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=D0050177",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=D0050177&md=m",
+      "sha256": "f7c3fcf3511e781f013c70db05c3d06b561dc9356908e0cea4a73e19ae747f64",
+      "attachments": [
+        {
+          "label": "附表.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000328781&lan=C",
+          "file": "農民健康保險身心障礙給付標準 附表.PDF",
+          "sha256": "bb6539c26a41f2471f7d2348ac2a79ea4721e930aadb5e92c81796dc8ecded56",
+          "annexId": "farm05-1",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        }
+      ]
+    },
+    {
+      "id": "farm06",
+      "tier": "農保",
+      "pcode": "M0090032",
+      "name": "農民健康保險及農民職業災害保險爭議事項審議辦法",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=M0090032",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=M0090032&md=m",
+      "sha256": "1afecf6c59e5a704f995ecb4b05ff7778f29e59229a5e1f78a1f6f2a05c1176c",
+      "attachments": [
+        {
+          "label": "附表  農民健康保險及農民職業災害保險爭議審議申請書.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000366748&lan=C",
+          "file": "農民健康保險及農民職業災害保險爭議事項審議辦法 附表  農民健康保險及農民職業災害保險爭議審議申請書.PDF",
+          "sha256": "efff957af04acba0c655d834f2f8a07f84a35af1eaa2c7f2ebebffde12a9445b",
+          "annexId": "farm06-1",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        }
+      ]
+    },
+    {
+      "id": "farm07",
+      "tier": "農保",
+      "pcode": "M0090017",
+      "name": "從事農業工作農民申請參加農民健康保險認定標準及資格審查辦法",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=M0090017",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=M0090017&md=m",
+      "sha256": "581b7e88102db101228b68a90f19a4fa822249087b8b24271721461a324d91a6",
+      "attachments": [
+        {
+          "label": "附件一  縣（市） 鄉（鎮、市、區）農民參加農民健康保險申請表.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000379330&lan=C",
+          "file": "從事農業工作農民申請參加農民健康保險認定標準及資格審查辦法 附件一  縣（市） 鄉（鎮、市、區）農民參加農民健康保險申請表.PDF",
+          "sha256": "00b8905d8dd6d7f2b33e966615cfcc479799516d001fda5db4148e70217a92cb",
+          "annexId": "farm07-1",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        },
+        {
+          "label": "附件二  農民申請參加農民健康保險出售農產品切結書.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000379331&lan=C",
+          "file": "從事農業工作農民申請參加農民健康保險認定標準及資格審查辦法 附件二  農民申請參加農民健康保險出售農產品切結書.PDF",
+          "sha256": "be6bc4ca5599c1a3a79174b412127cfa90f2062e93be052ab87ef92cad3d57db",
+          "annexId": "farm07-2",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        },
+        {
+          "label": "附件三  農會審查農民參加農民健康保險資格現地勘查紀錄表.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000379332&lan=C",
+          "file": "從事農業工作農民申請參加農民健康保險認定標準及資格審查辦法 附件三  農會審查農民參加農民健康保險資格現地勘查紀錄表.PDF",
+          "sha256": "9a736f8bbc3c5c7cded1d05dafc9e60f3f03e86d3c6aedee2bbb1fabe530c311",
+          "annexId": "farm07-3",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        }
+      ]
+    },
+    {
+      "id": "a05",
+      "tier": "漁保",
+      "pcode": "N0050001",
+      "name": "勞工保險條例",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=N0050001",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=N0050001&md=m",
+      "sha256": "96005512a2bca5aebfded530f2054dd53dcbee7d65f5717792b3f1e4f95d9447",
+      "attachments": [
+        {
+          "label": "附表一勞工保險職業病種類表.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000233127&lan=C",
+          "file": "勞工保險條例 附表一勞工保險職業病種類表.PDF",
+          "sha256": "1cfddee45b8b1755dac80e49e38793f4736249ff6be4b5c03a80a00118f2e4d1",
+          "annexId": "a05-1",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": "-27--28--29--30--31--32--33--34--35--36--37--38--39-"
+        }
+      ]
+    },
+    {
+      "id": "fish02",
+      "tier": "漁保",
+      "pcode": "N0050002",
+      "name": "勞工保險條例施行細則",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=N0050002",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=N0050002&md=m",
+      "sha256": "dc6cb6841bfcd6126dc4aef226ea6c8be4ff6a5840491808b3b25b67c2148320",
+      "attachments": []
+    },
+    {
+      "id": "s03",
+      "tier": "漁保",
+      "pcode": "N0050031",
+      "name": "勞工職業災害保險及保護法",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=N0050031",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=N0050031&md=m",
+      "sha256": "068d27425ba88531e9f76ec96132ce262c0d4cc6ad6852d7b8c3d64926241a68",
+      "attachments": []
+    },
+    {
+      "id": "a06",
+      "tier": "漁保",
+      "pcode": "N0050039",
+      "name": "勞工職業災害保險及保護法施行細則",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=N0050039",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=N0050039&md=m",
+      "sha256": "c8c716cb6887aceabb2741e0e4174c6d5a34d53e43c3a17bc77a3a76386b71ed",
+      "attachments": []
+    },
+    {
+      "id": "s10",
+      "tier": "漁保",
+      "pcode": "N0050033",
+      "name": "勞工職業災害保險失能給付標準",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=N0050033",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=N0050033&md=m",
+      "sha256": "2303eeabbe7f0287a0033a28ce89905a8932c4ca0123ae8d25030d45df419bd9",
+      "attachments": []
+    },
+    {
+      "id": "s04",
+      "tier": "漁保",
+      "pcode": "N0050008",
+      "name": "勞工職業災害保險職業傷病審查準則",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=N0050008",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=N0050008&md=m",
+      "sha256": "7aa8f274561f38d10981218dc6c6a386e9be6108199892424689ae44be04122c",
+      "attachments": [
+        {
+          "label": "附表  勞工職業災害保險職業病種類表.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000396946&lan=C",
+          "file": "勞工職業災害保險職業傷病審查準則 附表  勞工職業災害保險職業病種類表.PDF",
+          "sha256": "8e622b33f093eec713abc136d0bd4265f85c1a604fc31f919610dbff2c61788d",
+          "annexId": "s04-0",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        }
+      ]
+    },
+    {
+      "id": "fish07",
+      "tier": "漁保",
+      "pcode": "M0050026",
+      "name": "漁會法",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=M0050026",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=M0050026&md=m",
+      "sha256": "ed6d4d4350c76cd11171c1aa4b231af917a874aa8bac7908455dd38fcbe24cb6",
+      "attachments": []
+    },
+    {
+      "id": "fish08",
+      "tier": "漁保",
+      "pcode": "M0050006",
+      "name": "漁船船員管理規則",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=M0050006",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=M0050006&md=m",
+      "sha256": "aa00f1218cd2783a3a517d6fcf7ef0e3ae511dce3bd70425bbc220eaebd28ef8",
+      "attachments": [
+        {
+          "label": "附表一  漁船船員體格檢查證明書.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000378321&lan=C",
+          "file": "漁船船員管理規則 附表一  漁船船員體格檢查證明書.PDF",
+          "sha256": "ffe2f3e7266d954e758e58144d08d3ae43712ed2b6a9745aeee7f07babd8854e",
+          "annexId": "fish08-1",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        },
+        {
+          "label": "附表二  幹部船員專業訓練受訓資格及應繳（驗）證明文件等相關事項表.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000328651&lan=C",
+          "file": "漁船船員管理規則 附表二  幹部船員專業訓練受訓資格及應繳（驗）證明文件等相關事項表.PDF",
+          "sha256": "faf29ba0d9a4fcebf87a82f115cbbef9b4f0a8426ac0ba307638e7f31e6ff36c",
+          "annexId": "fish08-2",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        },
+        {
+          "label": "附表三  申請幹部船員執業證書應繳（驗）證明文件等相關事項表.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000328652&lan=C",
+          "file": "漁船船員管理規則 附表三  申請幹部船員執業證書應繳（驗）證明文件等相關事項表.PDF",
+          "sha256": "7183adfab0bebbe7b452fa78d931d54cae7d55d72f93ddfb7e0f7f8602479bb2",
+          "annexId": "fish08-3",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        },
+        {
+          "label": "附表三之一  漁船幹部船員相關類科同等訓練認定資格.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000328653&lan=C",
+          "file": "漁船船員管理規則 附表三之一  漁船幹部船員相關類科同等訓練認定資格.PDF",
+          "sha256": "7d052775c85d700ea08f793858c24e748b9e4e4c3e1a6cbda83a44071c14b159",
+          "annexId": "fish08-4",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        },
+        {
+          "label": "附表四申請換發新制幹部船員執業證書資格、程序及應檢附文件等相關事項表.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000234641&lan=C",
+          "file": "漁船船員管理規則 附表四申請換發新制幹部船員執業證書資格、程序及應檢附文件等相關事項表.PDF",
+          "sha256": "21346b7b8e86d1e7d88cc812e54490f008a6501d961c26810cbc1a2c7bf1df44",
+          "annexId": "fish08-5",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        },
+        {
+          "label": "附表五  總噸位二十以上漁船出海船員及幹部船員最低員額配置對照表.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000328654&lan=C",
+          "file": "漁船船員管理規則 附表五  總噸位二十以上漁船出海船員及幹部船員最低員額配置對照表.PDF",
+          "sha256": "015dad679291afcffd0ee37e39293304f4805805272ce03cd5a66d4ed475bcae",
+          "annexId": "fish08-6",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        }
+      ]
+    },
+    {
+      "id": "fish09",
+      "tier": "漁保",
+      "pcode": "M0050020",
+      "name": "區漁會會員資格審查及認定辦法",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=M0050020",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=M0050020&md=m",
+      "sha256": "e95bc744da84cd3f8a3f2c0ac02911564477a4028bfaaccb2183cffac82b8db7",
+      "attachments": []
+    },
+    {
+      "id": "fish10",
+      "tier": "漁保",
+      "pcode": "M0050027",
+      "name": "漁會法施行細則",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=M0050027",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=M0050027&md=m",
+      "sha256": "ce343aaf931561dc974bbec8f178cfc9485a5f7da51fe6864b3ad8907a9c09d8",
+      "attachments": []
+    },
+    {
+      "id": "s11",
+      "tier": "漁保",
+      "pcode": "N0050023",
+      "name": "勞工保險失能給付標準",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=N0050023",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=N0050023&md=m",
+      "sha256": "0e1f29f7ad11d5610a608263900ce74c839b5faad3152f4470cc195e651f34c9",
+      "attachments": [
+        {
+          "label": "附表.PDF",
+          "url": "https://law.moj.gov.tw/LawClass/LawGetFile.ashx?FileId=0000312401&lan=C",
+          "file": "勞工保險失能給付標準 附表.PDF",
+          "sha256": "9631ade0e4fc5079a02912e7ff5b3b09746f9e9bd28ba4fba914e419002b6ac2",
+          "annexId": "s11-0",
+          "nativeTextCheck": "PASS",
+          "omittedPrintedPageFooters": ""
+        }
+      ]
+    },
+    {
+      "id": "fish12",
+      "tier": "漁保",
+      "pcode": "N0050012",
+      "name": "勞工保險爭議事項審議辦法",
+      "url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=N0050012",
+      "pdfURL": "https://law.moj.gov.tw/LawClass/FilesType.aspx?DataId=N0050012&md=m",
+      "sha256": "c9e67a54d4b11050874bd8ed18b522b87f8a80c699e06769a6bc9e2eec36a514",
+      "attachments": []
+    }
+  ]
+}
