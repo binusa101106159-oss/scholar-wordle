@@ -194,7 +194,7 @@
  if(typeof document==='undefined')return;
  let ready=false,calendar;
  function show(){
-  if(ready){calendar?.refresh();root.ScholarQuickDASH?.mount();root.ScholarAAOS?.mount();root.ScholarCalifornia?.mount();root.ScholarOverload?.mount();return;}ready=true;
+  if(ready){root.ScholarImpairment?.mount();calendar?.refresh();root.ScholarQuickDASH?.mount();root.ScholarAAOS?.mount();root.ScholarCalifornia?.mount();root.ScholarOverload?.mount();return;}ready=true;
   const panel=document.getElementById('calculator-panel');
   panel.innerHTML='<div class="cl-calculators"><div id="cl-basic"><section class="cl-card" aria-labelledby="cl-title"><div class="cl-heading"><h1 id="cl-title">計算機</h1><span>Calculator</span></div><div class="cl-display"><p id="cl-previous">基本運算</p><input id="cl-input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="0" maxlength="500" aria-label="算式" aria-describedby="cl-help"><p id="cl-status" role="status" aria-live="polite"></p></div><div class="cl-edit" role="group" aria-label="編輯算式"><button type="button" data-key="(">(</button><button type="button" data-key=")">)</button><button type="button" data-action="delete" aria-label="刪除一個字元">⌫</button><button type="button" id="cl-copy" disabled>複製結果</button></div><div class="cl-keys" role="group" aria-label="計算按鍵">'+[
    ['AC','clear','function','清除'],['±','sign','function','整個算式變號'],['%','%','function','百分比'],['÷','÷','operator','除'],
@@ -209,6 +209,7 @@
   const aaos=document.getElementById('cl-aaos');aaos.before(specialty);
   const functionRow=document.createElement('div');functionRow.className='cl-functional-row';specialty.append(functionRow);
   const quickdash=document.createElement('div');quickdash.id='cl-quickdash';functionRow.append(quickdash,aaos);root.ScholarQuickDASH?.mount();
+  const impairment=document.createElement('div');impairment.id='cl-impairment';specialty.append(impairment);root.ScholarImpairment?.mount();
   const california=document.createElement('div');california.id='cl-california';specialty.append(california);root.ScholarCalifornia?.mount();
   const overload=document.createElement('div');overload.id='cl-overload';specialty.append(overload);root.ScholarOverload?.mount();
   const input=document.getElementById('cl-input'),previous=document.getElementById('cl-previous'),status=document.getElementById('cl-status'),copy=document.getElementById('cl-copy');let evaluated=false,result='';

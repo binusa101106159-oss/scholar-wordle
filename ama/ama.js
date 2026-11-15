@@ -395,6 +395,40 @@
       applyMarks(page,migratedRanges(stored,textNodes(page).reduce((n,node)=>n+node.length,0),page.amaTextMigration));
     });
   }
+  function layoutExamples(container) {
+    let active=null,fieldName='',analysis=false;
+    const field=/^(Subject|History|Current Symptoms|Physical Exam(?:ination)?|Clinical Studies|Diagnosis|Impairment Rating|Comments?|Discussion|Treatment|Results|Conclusion):/i;
+    for(const wrapper of container.children){
+      const page=wrapper.querySelector('.ax-page-content')||wrapper;
+      let section=null,columns=null,column=null,card=null;
+      const create=()=>{
+        section=document.createElement('section');section.className='ax-example';section.dataset.example=active;
+        section.setAttribute('aria-label','Example '+active);columns=document.createElement('div');columns.className='ax-example-columns';
+        column=document.createElement('div');column.className='ax-example-column';columns.append(column);
+        page.insertBefore(section,node);section.append(columns);
+      };
+      // Wrapping only: preserve IDs, text order, source characters and saved
+      // highlight offsets, including cases that continue onto the next page.
+      let node;
+      for(node of [...page.children]){
+        const text=node.textContent.trim(),heading=text.match(/^EXAMPLE\s+(\d+-\d+[a-z]?)(?=[:.\s]|$)/i),label=text.match(field);
+        if(heading){
+          active=heading[1];fieldName='';analysis=false;section=null;card=null;create();section.prepend(node);node.classList.add('ax-example-title');continue;
+        }
+        if(!active)continue;
+        const boundary=!label&&(/^H[1-3]$/.test(node.tagName)||node.classList.contains('ax-object')||/^CLASS\s+\d\b/.test(text)||/^\d+\.\d+\s/.test(text));
+        if(boundary){active=null;fieldName='';analysis=false;section=null;card=null;continue;}
+        if(!section){create();section.classList.add('ax-example-continuation');}
+        if(label){
+          fieldName=label[1];const nextAnalysis=/^(Impairment Rating|Comments?|Discussion|Conclusion)$/i.test(fieldName);
+          if(nextAnalysis&&!analysis){analysis=true;if(column.childElementCount){column=document.createElement('div');column.className='ax-example-column';columns.append(column);}}
+          card=document.createElement('div');card.className='ax-example-field';card.dataset.field=fieldName;column.append(card);
+        }
+        if(!card){card=document.createElement('div');card.className='ax-example-field';if(fieldName)card.setAttribute('aria-label',fieldName+' continued');column.append(card);}
+        card.append(node);
+      }
+    }
+  }
   function markSelection() {
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed || !selection.rangeCount) return;
@@ -455,7 +489,7 @@
       }
     }
     if(version!==revision)return false;
-    container.append(fragment);restoreMarks();renderedChapter=current;
+    container.append(fragment);layoutExamples(container);restoreMarks();renderedChapter=current;
     pageObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting)visiblePages.set(entry.target,true);else visiblePages.delete(entry.target);}},{root:by('ax-scroll'),threshold:0});
     for(const page of container.children)pageObserver.observe(page);
     return true;
@@ -576,7 +610,7 @@
       const compact=s=>s.replace(/\s/g,'').toUpperCase(),label=compact(object.label),ordered=runs.sort((a,b)=>top(a)-top(b));
       const heading=ordered.find(n=>compact(n.textContent).startsWith(label));
       if(heading){
-        const candidates=ordered.filter(n=>top(n)>=top(heading)-.5&&cleanCaption(n.textContent,object.label)&&n!==heading);
+        const candidates=ordered.filter(n=>top(n)>=top(heading)-(parseFloat(heading.style.fontSize)||14)&&cleanCaption(n.textContent,object.label)&&n!==heading);
         if(candidates.length){
           const size=parseFloat(candidates[0].style.fontSize)||0,lines=[];let previous=top(candidates[0]);
           for(const n of candidates){if((parseFloat(n.style.fontSize)||0)<size*.95||top(n)-previous>size*1.7)break;lines.push(n.textContent);previous=top(n);}

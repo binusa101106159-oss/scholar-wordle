@@ -32,6 +32,10 @@
 #ax-table-shortcuts>.reader-object-tabs{flex-basis:100%;max-width:300px;margin-left:0}
 #ax-table-shortcuts [data-table-open][hidden]{display:none}
 .reader-table-empty{margin:8px;color:#b9c6d8;font-size:13px}
+.reader-table-heading{display:flex;flex:none;align-items:center;justify-content:space-between;gap:8px;margin:0 4px 12px}
+.reader-table-heading>h2{margin:0;font-size:14px;color:#c4d2e4;white-space:nowrap}
+.reader-table-heading>.reader-object-tabs{margin:0;gap:2px;padding:2px;min-width:0}
+.reader-table-heading>.reader-object-tabs>[role="tab"]{min-height:32px;padding:4px 7px;font-size:12px}
 @media(min-width:1100px) and (orientation:landscape){
   #lx-layout{width:100%;max-width:none;margin:0;padding-left:16px;padding-right:16px;box-sizing:border-box;gap:16px}
   #lx-layout[data-sidebar-collapsed="false"]{grid-template-columns:clamp(220px,18vw,280px) minmax(0,1fr)}

@@ -24,7 +24,7 @@
    const heading=document.createElement('h2');heading.textContent=prefix==='lx'?'附表':prefix==='ax'?'表格快覽':'表格與附件';
    const list=document.createElement('nav');list.className='reader-table-list';list.setAttribute('aria-label',heading.textContent);rail.append(heading,list);layout.append(rail);
    state={layout,rail,list,kind:'table'};states.set(prefix,state);
-   if(prefix==='ax'){list.id='ax-rail-objects';list.setAttribute('role','tabpanel');state.tabs=tabs(state,'rail',list);rail.insertBefore(state.tabs,list);}
+   if(prefix==='ax'){list.id='ax-rail-objects';list.setAttribute('role','tabpanel');state.tabs=tabs(state,'rail',list);const head=document.createElement('div');head.className='reader-table-heading';heading.replaceWith(head);head.append(heading,state.tabs);}
    if(doc)new MutationObserver(()=>sync(prefix)).observe(doc,{attributes:true,attributeFilter:['hidden']});
   }
   const buttons=source?[...source.querySelectorAll(prefix==='ax'?'button[data-table-open]':'button')]:[];

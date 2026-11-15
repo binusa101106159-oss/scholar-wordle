@@ -53,6 +53,10 @@ test('every Figure shortcut includes its complete source caption',()=>{
  assert.equal(captions['f15-13'],'Upper Extremity Range of Motion Record');
  assert.equal(captions['f15-31'],'Upper Extremity Impairment Evaluation Example');
  assert.equal(captions['f16-1'],'Lower Extremity Regions');
+ assert.equal(captions['f15-16'],'Flexion of Thumb MCP Joint');
+ assert.equal(captions['f15-17'],'Neutral Position of Thumb MCP Joint');
+ assert.equal(captions['f15-18'],'Thumb Radial Abduction');
+ assert.equal(captions['f15-19'],'Adduction of Thumb');
  assert.ok(captions['f15-6'].endsWith('of the Digit Length'),'long captions must not be cut off');
  assert.equal(captions['f12-10'],'Overlay Grid for Goldman Fields');
 });
