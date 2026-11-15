@@ -19,7 +19,7 @@ try:
    for cycle in range(15):
     for route,selector in [('forms','#fm-bsrs'),('calculator','#ca-group-input'),('laws','#lx-doc .lx-art'),('ama','#ax-body .ax-page')]:
      page.evaluate('(r)=>location.hash=r',route);page.locator(selector).first.wait_for()
-    page.locator('#ax-table-shortcuts button').first.evaluate('(e)=>e.click()');page.wait_for_function('document.querySelector("#ax-dialog").open');page.keyboard.press('Escape');page.wait_for_function('!document.querySelector("#ax-dialog").open');page.wait_for_function('document.querySelectorAll(".pg-glass-plane").length===0')
+    page.locator('#ax-table-shortcuts button[data-table-open]').first.evaluate('(e)=>e.click()');page.wait_for_function('document.querySelector("#ax-dialog").open');page.keyboard.press('Escape');page.wait_for_function('!document.querySelector("#ax-dialog").open');page.wait_for_function('document.querySelectorAll(".pg-glass-plane").length===0')
     if cycle in [3,14]:
      counts.append(page.locator('body *').count())
      if cdp:cdp.send('HeapProfiler.collectGarbage');heaps.append(cdp.send('Runtime.getHeapUsage')['usedSize'])

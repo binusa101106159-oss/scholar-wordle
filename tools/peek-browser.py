@@ -9,7 +9,7 @@ class Quiet(http.server.SimpleHTTPRequestHandler):
 server=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Quiet,directory=str(ROOT)))
 threading.Thread(target=server.serve_forever,daemon=True).start()
 URL=f'http://127.0.0.1:{server.server_port}'
-READERS=[('laws','#lx-doc .lx-art','#lx-doc [data-annex]','#lx-annex'),('guides','#gx-doc h1','#gx-doc [data-att]','#gx-att'),('health','#hx-doc h1','#hx-doc [data-att]','#hx-att'),('ama','#ax-body .ax-page','#ax-table-shortcuts button','#ax-dialog')]
+READERS=[('laws','#lx-doc .lx-art','#lx-doc [data-annex]','#lx-annex'),('guides','#gx-doc h1','#gx-doc [data-att]','#gx-att'),('health','#hx-doc h1','#hx-doc [data-att]','#hx-att'),('ama','#ax-body .ax-page','#ax-table-shortcuts button[data-table-open]','#ax-dialog')]
 FREEZE='''({id,fraction})=>{
  const card=document.querySelector(id),plane=document.querySelector('.pg-glass-plane');
  const moving=el=>el.getAnimations().find(a=>a.effect.target===el&&a.effect.getKeyframes().some(k=>k.transform!==undefined));

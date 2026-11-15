@@ -4,6 +4,7 @@
   const STORE = 'scholar-ama-v1', MARKS = 'scholar-ama-marks-v1';
   const mobile = matchMedia('(max-width:1099px), (orientation:portrait)'), by = id => document.getElementById(id), chapters = new Map();
   const tableCaptions=new Map(), tableQueries=new Map(), objects=new Map();
+  const chapterSearchText=new Map();let chapterSearchRevision=0,pageJumpRevision=0;
   let fastIndex, searchIndex, renderedChapter, objectRevision=0, anchorRevision=0;
   const readingFonts={default:'',georgia:"Georgia,'Times New Roman',serif",times:"'Times New Roman',Times,serif",arial:'Arial,Helvetica,sans-serif',system:"system-ui,'Noto Sans TC','Microsoft JhengHei',sans-serif"};
   let catalogue, loading, current, menuOpen = false, revision = 0, scrollTimer, searchRevision = 0;
@@ -122,6 +123,7 @@
     return chars.map((char,i)=>char!==' '?char:(i<chars.length-1&&left[i+1]-left[i]>usual*1.6?' ':'')).join('').trim();
   }
   function readableCopy(copy) {
+    normalizeFlowTables(copy);
     printedSourceHeadings(copy);
     // Hyphens left by the book's line breaks stay in the data (saved highlights count them) but never in copied text.
     copy.querySelectorAll('.ax-soft-break').forEach(n=>n.remove());
@@ -157,6 +159,42 @@
       for(const node of nodes){if(remaining<=node.length){range.setEnd(node,remaining);break;}remaining-=node.length;}
       const span=document.createElement('span');span.className='ax-flow-heading ax-plain-caption';span.dataset.readableTitle=label;span.textContent=match[0];
       if(bold)span.style.setProperty('font-weight','700','important');range.deleteContents();range.insertNode(span);
+    });
+  }
+  function normalizeFlowTables(root) {
+    const numeric=text=>/^(?:[<>≤≥±−+]?\s*\d+(?:[.,]\d+)?%?(?:\s*[–—−-]\s*\d+(?:[.,]\d+)?%?)?|[A-E])$/.test(text.trim());
+    root.querySelectorAll('table.ax-table').forEach(table=>{
+      if(table.closest('.ax-source-table,.ax-positioned,.ax-ca-sheet')||table.dataset.flowAligned)return;
+      const columns=[],cells=[],occupied=[];
+      // Resolve the real column through row/column spans, rather than guessing
+      // alignment separately from each short word's original PDF coordinates.
+      [...table.rows].forEach((row,index)=>{
+        let col=0;
+        for(const cell of row.cells){
+          while((occupied[col]||0)>index)col++;
+          const width=cell.colSpan||1;
+          for(let n=col;n<col+width;n++)occupied[n]=index+(cell.rowSpan||1);
+          cells.push({cell,col,width,header:index===0||cell.localName==='th'});
+          const text=cell.textContent.trim();
+          if(width===1&&index>0&&cell.localName!=='th'&&text){const stats=columns[col]||={numbers:0,total:0};stats.total++;if(numeric(text))stats.numbers++;}
+          col+=width;
+        }
+      });
+      const numericColumn=col=>columns[col]?.numbers>=2&&columns[col].numbers/columns[col].total>=.7;
+      for(const {cell,col,width,header}of cells){
+        const center=(width===1||header)&&Array.from({length:width},(_,n)=>col+n).every(numericColumn);
+        cell.dataset.flowAlign=center?'center':'left';
+      }
+      // Source PDF page 490 splits "average" across two printed lines.
+      // Preserve the source character for saved highlights, hide/copy it as a
+      // line-break hyphen only in this verified range-of-motion summary table.
+      const header=table.rows[0]?.textContent.replace(/\s/g,'');
+      if(header==='GradeModifierSeverityRangeofMotion'){
+        const walker=document.createTreeWalker(table,NodeFilter.SHOW_TEXT),nodes=[];let node;
+        while(node=walker.nextNode())if(node.textContent.includes('aver-age:'))nodes.push(node);
+        for(const node of nodes){const [before,after]=node.textContent.split('aver-age:');const hyphen=document.createElement('span');hyphen.className='ax-soft-break';hyphen.textContent='-';node.replaceWith(document.createTextNode(before+'aver'),hyphen,document.createTextNode('age:'+after));}
+      }
+      table.dataset.flowAligned='true';
     });
   }
   function sourceGlyphGroups(glyphs,size) {
@@ -255,6 +293,7 @@
     }
   }
   function showSourceHeadings(root,objectLabel) {
+    normalizeFlowTables(root);
     printedSourceHeadings(root,objectLabel);
     root.querySelectorAll('.ax-flow-heading').forEach(run=>{
       if(!run.dataset?.readableTitle)return;
@@ -383,9 +422,11 @@
     const sections=supplement ? data.sections : data.sections.filter(section=>/^\d+\.\d+(?=\s|$)/.test(section.title));
     const choices = [{id:'',title:'本章小節'},...sections];
     const shortcuts=document.createDocumentFragment();
-    for (const object of data.attachments.filter(item=>item.kind==='table')) {
+    for (const object of data.attachments.filter(item=>item.kind==='table'||item.kind==='figure')) {
       const button=document.createElement('button');button.type='button';button.className='ax-table-shortcut';button.dataset.tableOpen=object.id;
-      button.textContent=object.label;button.title=tableCaption(object);button.setAttribute('aria-label',object.label+' '+tableCaption(object));button.setAttribute('aria-haspopup','dialog');shortcuts.append(button);
+      button.dataset.objectKind=object.kind;
+      const caption=object.kind==='table'?tableCaption(object):'原書第 '+sourcePages(object)+' 頁';
+      button.textContent=object.label;button.title=caption;button.setAttribute('aria-label',object.label+' '+caption);button.setAttribute('aria-haspopup','dialog');shortcuts.append(button);
     }
     by('ax-table-shortcuts').replaceChildren(shortcuts);by('ax-table-shortcuts').hidden=!by('ax-table-shortcuts').childElementCount;window.ScholarReaderTables?.sync('ax');
     by('ax-section').replaceChildren(...choices.map(section => {
@@ -419,6 +460,7 @@
   async function selectChapter(id,options={}) {
     const chapter=catalogue.chapters.find(c=>c.id===id);
     if (!chapter) return;
+    chapterSearchRevision++;pageJumpRevision++;by('ax-chapter-results').hidden=true;by('ax-chapter-results').replaceChildren();by('ax-chapter-query').value='';
     clearTimeout(scrollTimer);
     rememberReaderPosition();renderedChapter=undefined;objectRevision++;
     current=id; const version=++revision;
@@ -574,6 +616,49 @@
     const status=document.createElement('p');status.textContent=count?count+' 頁符合（已匯入章節）':'已匯入章節中沒有符合的內容。';
     results.replaceChildren(status,fragment);
   }
+  async function jumpBookPage() {
+    const number=Number(by('ax-page-query').value),version=revision,request=++pageJumpRevision;
+    if(!Number.isInteger(number)||number<1)return;
+    const chapter=catalogue.chapters.find(c=>c.ready&&c.type!=='supplement'&&number>=c.start&&number<=c.end);
+    if(!chapter){by('ax-status').textContent='找不到原書第 '+number+' 頁。';return;}
+    try {
+      const data=await content(chapter.id);if(version!==revision||request!==pageJumpRevision)return;
+      const page=data.pages.find(p=>(p.sourcePages||[p.page]).some(n=>Number(n)===number));
+      if(!page){by('ax-status').textContent='找不到原書第 '+number+' 頁。';return;}
+      if(current===chapter.id)scrollToId('ax-page-'+page.page);else await selectChapter(chapter.id,{anchor:'ax-page-'+page.page});
+      if(current===chapter.id&&renderedChapter===chapter.id)by('ax-status').textContent='原書第 '+number+' 頁';
+    }catch(_){if(version===revision&&request===pageJumpRevision)by('ax-status').textContent='無法載入頁面，請再試一次。';}
+  }
+  async function searchChapter() {
+    const query=by('ax-chapter-query').value.trim(),needle=query.toLocaleLowerCase(),chapterId=current,version=++chapterSearchRevision,results=by('ax-chapter-results');
+    results.replaceChildren();results.hidden=!query;if(!query)return;
+    results.textContent='本章搜尋中…';
+    try {
+      const data=await content(chapterId);if(version!==chapterSearchRevision)return;
+      let pages=chapterSearchText.get(chapterId);
+      if(!pages){
+        pages=[];
+        for(let i=0;i<data.pages.length;i++){
+          const p=data.pages[i],holder=document.createElement('div');holder.innerHTML=p.html;
+          pages.push({page:p.page,label:sourcePages(p),text:chapterText(holder).replace(/\s+/g,' ')});
+          if(i%8===7){await new Promise(resolve=>setTimeout(resolve,0));if(version!==chapterSearchRevision)return;}
+        }
+        chapterSearchText.set(chapterId,pages);
+      }
+      const fragment=document.createDocumentFragment();let count=0;
+      for(const page of pages){
+        const index=page.text.toLocaleLowerCase().indexOf(needle);if(index<0)continue;
+        const button=document.createElement('button');button.type='button';button.className='ax-result';button.dataset.page=page.page;
+        const label=document.createElement('strong');label.textContent='原書第 '+page.label+' 頁';
+        const excerpt=document.createElement('span'),hit=document.createElement('mark');hit.className='ax-find-hit';hit.textContent=page.text.slice(index,index+needle.length);
+        excerpt.append(document.createTextNode((index>45?'…':'')+page.text.slice(Math.max(0,index-45),index)),hit,document.createTextNode(page.text.slice(index+needle.length,index+needle.length+90)+'…'));button.append(label,excerpt);
+        button.addEventListener('click',()=>{if(current===chapterId){results.hidden=true;scrollToId('ax-page-'+page.page);by('ax-status').textContent='「'+query+'」· 原書第 '+page.label+' 頁';}});
+        fragment.append(button);count++;
+      }
+      const status=document.createElement('p');status.setAttribute('role','status');status.textContent=count?'本章 '+count+' 頁符合':'本章沒有符合的文字。';
+      results.replaceChildren(status,fragment);
+    }catch(_){if(version===chapterSearchRevision)results.textContent='無法搜尋本章，請再試一次。';}
+  }
   function fontSize(delta=0) {
     saved.fontSize=Math.max(15,Math.min(24,(Number(saved.fontSize)||18)+delta));
     by('ama-panel').style.setProperty('--ax-font-size',saved.fontSize+'px');persist();
@@ -691,7 +776,7 @@
       '<aside id="ax-side" class="ax-side sg-glass" aria-label="AMA 章節選單"><div class="ax-side-head"><button id="ax-sidebar-toggle" class="ax-sidebar-toggle" type="button" aria-label="收合側欄" title="收合側欄" aria-controls="ax-sidebar-content" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><div class="ax-side-heading"><p>AMA Guides · Sixth Edition</p><h2>章節<span id="ax-count"></span></h2></div></div><div id="ax-sidebar-content" class="ax-side-content">'+
       '<form id="ax-search" class="ax-search"><label class="ax-sr" for="ax-query">搜尋已匯入章節</label><input id="ax-query" type="search" placeholder="搜尋已匯入章節" autocomplete="off"><button type="submit" class="sg-btn">搜尋</button></form>'+
       '<div id="ax-results" class="ax-results" aria-live="polite" hidden></div><div id="ax-list" class="ax-list" role="tablist" aria-label="AMA 章節" aria-orientation="vertical"></div></div></aside>'+
-      '<div class="ax-reader"><div class="ax-bar"><button id="ax-menu" class="ax-sidebar-toggle" type="button" aria-controls="ax-sidebar-content" aria-expanded="false" aria-label="展開側欄" title="展開側欄"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><span id="ax-location" class="ax-location"></span></div>'+
+      '<div class="ax-reader"><div class="ax-bar"><button id="ax-menu" class="ax-sidebar-toggle" type="button" aria-controls="ax-sidebar-content" aria-expanded="false" aria-label="展開側欄" title="展開側欄"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M5.5 8h1M5.5 11.5h1M5.5 15h1"/></svg></button><span id="ax-location" class="ax-location"></span><div class="ax-local-tools"><form id="ax-page-search" class="ax-page-search"><label class="ax-sr" for="ax-page-query">原書頁碼</label><input id="ax-page-query" type="number" min="1" step="1" placeholder="原書頁碼" required><button type="submit">跳頁</button></form><form id="ax-chapter-search" class="ax-chapter-search"><label class="ax-sr" for="ax-chapter-query">本章文字搜尋</label><input id="ax-chapter-query" type="search" placeholder="本章文字搜尋" autocomplete="off"><button type="submit">搜尋</button></form></div></div><div id="ax-chapter-results" class="ax-chapter-results" hidden></div>'+
       '<div id="ax-tools" class="ax-tools" hidden><label class="ax-sr" for="ax-section">本章小節</label><select id="ax-section"></select><div class="ax-reading-controls"><label class="ax-font-control" for="ax-font">正文字型<select id="ax-font"><option value="default">預設</option><option value="georgia">Georgia</option><option value="times">Times New Roman</option><option value="arial">Arial</option><option value="system">系統字型</option></select></label><button id="ax-smaller" type="button" aria-label="縮小文字">A−</button><button id="ax-larger" type="button" aria-label="放大文字">A＋</button><button id="ax-mark" type="button">標記選取</button><button id="ax-copy-chapter" type="button">複製本章</button><button id="ax-copy-all" type="button">複製已匯入全文</button><button id="ax-clear-marks" type="button">清除本章標記</button></div></div><div id="ax-status" class="ax-status" role="status"></div>'+
       '<div id="ax-scroll" class="ax-scroll"><article id="ax-content" role="tabpanel" tabindex="0"><div class="ax-head"><p id="ax-kicker" class="ax-kicker ax-sr"></p><h1 id="ax-title" class="ax-title ax-sr" tabindex="-1"></h1><nav id="ax-table-shortcuts" class="ax-table-shortcuts" aria-label="本章表格快覽" hidden></nav></div><div id="ax-body"></div></article></div></div></div>'+
       '<dialog id="ax-dialog" class="ax-dialog" aria-labelledby="ax-dialog-title"><div class="ax-dialog-bar"><h2 id="ax-dialog-title"></h2><button id="ax-peek-expand" type="button" hidden>展開</button><button id="ax-dialog-close" type="button" aria-label="關閉圖表">關閉</button></div><div id="ax-table-nav" class="ax-table-nav" hidden><button id="ax-table-prev" type="button">上一張</button><button id="ax-table-index" type="button">表格目錄</button><button id="ax-table-next" type="button">下一張</button><span id="ax-table-position" aria-live="polite"></span></div><div id="ax-dialog-body" class="ax-dialog-body"></div></dialog>';
@@ -752,6 +837,11 @@
     by('ax-dialog').addEventListener('cancel',event=>{event.preventDefault();dismissPopup();});
     by('ax-dialog').addEventListener('click',event=>{if(event.target!==by('ax-dialog'))return;const r=by('ax-dialog').getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dismissPopup();});
     by('ax-search').addEventListener('submit',event=>{event.preventDefault();search();});
+    by('ax-page-search').addEventListener('submit',event=>{event.preventDefault();jumpBookPage();});
+    by('ax-page-query').addEventListener('input',()=>{pageJumpRevision++;});
+    by('ax-chapter-search').addEventListener('submit',event=>{event.preventDefault();searchChapter();});
+    by('ax-chapter-query').addEventListener('input',()=>{chapterSearchRevision++;if(!by('ax-chapter-query').value){by('ax-chapter-results').hidden=true;by('ax-chapter-results').replaceChildren();}});
+    by('ax-chapter-query').addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();chapterSearchRevision++;by('ax-chapter-results').hidden=true;}});
     by('ax-query').addEventListener('input',()=>{if(!by('ax-query').value){searchRevision++;by('ax-results').hidden=true;}});
     by('ax-smaller').addEventListener('click',()=>fontSize(-1));by('ax-larger').addEventListener('click',()=>fontSize(1));
     by('ax-font').addEventListener('change',()=>readingFont(by('ax-font').value));

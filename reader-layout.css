@@ -24,6 +24,14 @@
 
 /* Table shortcuts have their own scrolling column on wide readers. */
 .reader-table-rail{display:none}
+.reader-object-tabs{display:flex;flex:none;gap:4px;padding:4px;border:1px solid #bdd8ff26;border-radius:12px;background:#ffffff05;margin:0 4px 12px}
+.reader-object-tabs>[role="tab"]{flex:1;min-height:40px;border:1px solid transparent;border-radius:9px;background:transparent;color:#b9c6d8;cursor:pointer;font:inherit}
+.reader-object-tabs>[aria-selected="true"]{border-color:#e2c58a60;background:#e2c58a18;color:#e2c58a}
+.reader-object-tabs>[role="tab"]:focus-visible{outline:2px solid #bcd8ff;outline-offset:2px}
+.reader-inline-objects{display:flex;flex-wrap:wrap;gap:8px;width:100%}
+#ax-table-shortcuts>.reader-object-tabs{flex-basis:100%;max-width:300px;margin-left:0}
+#ax-table-shortcuts [data-table-open][hidden]{display:none}
+.reader-table-empty{margin:8px;color:#b9c6d8;font-size:13px}
 @media(min-width:1100px) and (orientation:landscape){
   #lx-layout{width:100%;max-width:none;margin:0;padding-left:16px;padding-right:16px;box-sizing:border-box;gap:16px}
   #lx-layout[data-sidebar-collapsed="false"]{grid-template-columns:clamp(220px,18vw,280px) minmax(0,1fr)}

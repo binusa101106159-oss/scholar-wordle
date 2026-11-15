@@ -19,7 +19,7 @@ test('Table 16-11 displays normal heading spacing and case without shifting save
  const run=fixtureRun(glyphs),before=run.textContent.length;
  assert.equal(api.sourceHeadingText(run),'Table 16-11 Sensory and Motor Severity');
  const cell=fixtureRun(glyphs);cell.closest=()=>({tagName:'TABLE'});const cellBefore=cell.textContent;
- api.showSourceHeadings({querySelectorAll:()=>[run,cell]});
+ api.showSourceHeadings({querySelectorAll:selector=>selector==='table.ax-table'?[]:[run,cell]});
  assert.equal(run.children.filter(glyph=>!glyph.classList.contains('ax-letter-gap')).map(glyph=>glyph.textContent).join(''),'Table 16-11 Sensory and Motor Severity');
  assert.equal(run.textContent.length,before,'existing highlight ranges keep the same text length');
  assert.equal(api.spacedRunText(run),'Table 16-11 Sensory and Motor Severity','clipboard text stays readable');
@@ -43,7 +43,7 @@ test('all 318 letter-spaced table and figure headings from the complete AMA scan
  for(const item of fixtures.cases){
   const run=fixtureRun(item.glyphs),before=run.textContent.length,label=item.chapter+' '+item.object+' p'+item.page;
   assert.equal(api.sourceHeadingText(run),item.expected,label);
-  api.showSourceHeadings({querySelectorAll:()=>[run]});
+  api.showSourceHeadings({querySelectorAll:selector=>selector==='table.ax-table'?[]:[run]});
   assert.equal(run.children.filter(glyph=>!glyph.classList.contains('ax-letter-gap')).map(glyph=>glyph.textContent).join(''),item.expected,label);
   assert.equal(run.textContent.length,before,label+' highlight offsets');
   assert.equal(api.spacedRunText(run),item.expected,label+' clipboard');
@@ -53,7 +53,7 @@ test('diagram labels, percentages, clinical abbreviations and appendix body text
  for(const item of fixtures.untouched){
   const run=fixtureRun(item.glyphs),before=run.textContent;
   assert.equal(api.sourceHeadingText(run),null,item.text);
-  api.showSourceHeadings({querySelectorAll:()=>[run]});
+  api.showSourceHeadings({querySelectorAll:selector=>selector==='table.ax-table'?[]:[run]});
   assert.equal(run.textContent,before,item.text);
   assert.equal(run.classList.contains('ax-readable-heading'),false,item.text);
  }
