@@ -9,7 +9,7 @@ test('all ordinary chapter tables use normal cell text; source figure forms reta
  for(let i=1;i<=17;i++){
   const id='c'+String(i).padStart(2,'0'),data=JSON.parse(fs.readFileSync(require.resolve('../ama/'+id+'.json'),'utf8'));
   for(const item of [...data.pages,...data.attachments])for(const table of item.html.match(/<table\b[\s\S]*?<\/table>/g)||[]){
-   tables++;if(table.includes('ax-source-table')){assert.ok(item.html.includes('ax-form-figure'),id+' only figure forms may retain source grids');continue;}assert.equal(table.includes('ax-source-run'),false,id+' '+(item.id||item.page));
+   tables++;if(table.includes('ax-source-table')){assert.ok(item.html.includes('ax-form-figure')||item.id==='ap16-A'||item.page===555,id+' only figure forms and the lower-limb source questionnaire retain source grids');continue;}assert.equal(table.includes('ax-source-run'),false,id+' '+(item.id||item.page));
   }
  }
  assert.ok(tables>500,'check the complete set, including popup and inline representations');

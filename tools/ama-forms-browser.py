@@ -22,7 +22,9 @@ def main():
       scope=page.locator('#ax-table-rail'if width==1440 else'#ax-table-shortcuts');scope.get_by_role('tab',name='Figure',exact=True).click()
       shortcut=scope.locator('[data-table-open="'+form['id']+'"]');shortcut.wait_for()
       subtitle=shortcut.locator('.reader-table-caption');assert subtitle.count()==1 and subtitle.inner_text().strip(),form['id']+' missing/duplicate visible caption'
-      shortcut.click();page.locator('#ax-dialog[open]').wait_for();body=page.locator('#ax-dialog-body');frames=body.locator('.ax-form-figure');assert frames.count()==len(form['parts']),(form['id'],'missing source continuation')
+      shortcut.click();page.locator('#ax-dialog[open]').wait_for();body=page.locator('#ax-dialog-body')
+      if body.locator('[data-form-view="source"]').count():body.locator('[data-form-view="source"]').click()
+      frames=body.locator('.ax-form-figure');assert frames.count()==len(form['parts']),(form['id'],'missing source continuation')
       for index,part in enumerate(form['parts']):
        metrics=frames.nth(index).evaluate('''el=>{const r=el.getBoundingClientRect();return {width:r.width,height:r.height,grids:[...el.querySelectorAll('.ax-source-grid')].map(n=>{const g=n.getBoundingClientRect(),t=n.querySelector('table').getBoundingClientRect();return {left:g.left-r.left,top:g.top-r.top,width:g.width,height:g.height,tableWidth:t.width};}),natural:el.querySelectorAll('.ax-natural-label').length};}''')
        assert abs(metrics['width']-part['width'])<2,(form['id'],metrics,part)

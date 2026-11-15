@@ -4,7 +4,7 @@ const source=fs.readFileSync(require.resolve('../ama/ama.js'),'utf8'),context={}
 vm.runInNewContext(source.slice(source.indexOf('  function normalizeFlowTables('),source.indexOf('  function sourceGlyphGroups('))+';this.normalize=normalizeFlowTables;',context);
 const cell=(text,colSpan=1,rowSpan=1)=>({textContent:text,colSpan,rowSpan,localName:'td',dataset:{}});
 const row=cells=>({cells,get textContent(){return cells.map(c=>c.textContent).join('');}});
-const table=rows=>({rows,dataset:{},closest:()=>null});
+const table=rows=>({rows,dataset:{},classList:{contains:()=>false},closest:()=>null});
 const normalize=t=>context.normalize({querySelectorAll:()=>[t]});
 
 test('short and long numeric row labels align alike while a text column remains left aligned',()=>{

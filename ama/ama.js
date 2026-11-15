@@ -123,6 +123,7 @@
     return chars.map((char,i)=>char!==' '?char:(i<chars.length-1&&left[i+1]-left[i]>usual*1.6?' ':'')).join('').trim();
   }
   function readableCopy(copy) {
+    copy.querySelectorAll('.ax-form-view-tools,.ax-form-source[hidden],.ax-form-reader[hidden]').forEach(n=>n.remove());
     normalizeFlowTables(copy);
     printedSourceHeadings(copy);
     // Hyphens left by the book's line breaks stay in the data (saved highlights count them) but never in copied text.
@@ -184,6 +185,7 @@
       for(const {cell,col,width,header}of cells){
         const center=(width===1||header)&&Array.from({length:width},(_,n)=>col+n).every(numericColumn);
         cell.dataset.flowAlign=center?'center':'left';
+        if(table.classList.contains('ax-hearing-table')&&/^ANSI\s+\d/.test(cell.textContent.trim()))cell.dataset.flowWrap='true';
       }
       // Source PDF page 490 splits "average" across two printed lines.
       // Preserve the source character for saved highlights, hide/copy it as a
@@ -566,6 +568,7 @@
     by('ax-table-position').textContent=index<0?'':(index+1)+'／'+tables.length;
     if(!reuse)scopeObjectIds(body);
     presentPopup(before);
+    window.ScholarFormReader?.mount(body,id);
     body.scrollTop=0;
     } catch(_){if(request===objectRevision)by('ax-status').textContent='無法載入圖表，請檢查連線後再試。';}
   }
@@ -582,8 +585,19 @@
     if(object.caption!==undefined)return cleanCaption(object.caption,object.label);
     if (!tableCaptions.has(object.id)) {
       const holder=document.createElement('div');holder.innerHTML=object.html;
+      readableCopy(holder);
+      holder.querySelectorAll('sup').forEach(n=>{if(/^(?:[a-z]|\*)$/.test(n.textContent.trim()))n.remove();});
       const table=holder.querySelector('table');let title='';
-      if (table) {
+      const compact=s=>s.replace(/\s/g,'').toUpperCase(),label=compact(object.label);
+      for(const p of holder.querySelectorAll('p,h3')){
+        if(!p.closest('table')&&compact(p.textContent).startsWith(label)){
+          title=cleanCaption(p.textContent,object.label);let next=p.nextElementSibling;
+          while(title&&next?.localName==='p'&&(/[,，]$/.test(title)||(title.match(/\(/g)||[]).length>(title.match(/\)/g)||[]).length)){title+=' '+next.textContent.trim();next=next.nextElementSibling;}
+          title=title.replace(/\s+Note:\s[\s\S]*$/i,'');
+          if(title)break;
+        }
+      }
+      if (!title&&table) {
         const range=document.createRange();range.setStart(holder,0);range.setEndBefore(table);
         title=chapterText(range.cloneContents()).replace(/\s+/g,' ').trim();
         if (!title) {
@@ -594,7 +608,7 @@
         }
         title=cleanCaption(title,object.label);
       }
-      tableCaptions.set(object.id,title.slice(0,180));
+      tableCaptions.set(object.id,title);
     }
     return tableCaptions.get(object.id);
   }

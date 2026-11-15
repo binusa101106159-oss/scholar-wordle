@@ -60,3 +60,16 @@ test('every Figure shortcut includes its complete source caption',()=>{
  assert.ok(captions['f15-6'].endsWith('of the Digit Length'),'long captions must not be cut off');
  assert.equal(captions['f12-10'],'Overlay Grid for Goldman Fields');
 });
+
+test('Table captions exclude field labels and footnote markers without cutting continuation lines',()=>{
+ const titles={};for(const entry of Object.values(manifest.chapters))for(const a of packed(entry.file).attachments)if(a.kind==='table')titles[a.id]=a.caption;
+ assert.equal(titles['t1-4'],'Sample Impairment Functional Classification');
+ assert.equal(titles['t4-1'],'NYHA Functional Classification of Cardiac Disease');
+ assert.equal(titles['t9-5'],'Criteria for Rating Permanent Impairment due to Anemia');
+ assert.equal(titles['t15-12'],'Impairment Values Calculated From Digit Impairment');
+ assert.equal(titles['t15-37'],'Activities of Daily Living Questionnaire');
+ assert.equal(titles['t16-18'],'Lesser Toe Impairments');
+ assert.equal(titles['t16-23'],'Knee Motion Impairments');
+ assert.ok(titles['t6-4'].endsWith('Stomach and Duodenum, Small Intestine, and Pancreas) Disease'));
+ assert.ok(titles['t13-8'].endsWith('Cognition, and Highest Integrative Function (MSCHIF)'));
+});
