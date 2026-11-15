@@ -172,6 +172,21 @@
     return groups;
   }
   let sourceTextMeasure;
+  function scopeObjectIds(root) {
+    const ids=new Map();
+    root.querySelectorAll('[id]').forEach(node=>{const old=node.id;node.id='ax-popup-'+old;ids.set(old,node.id);});
+    // A stencil image, clip, gradient and marker must all follow their renamed
+    // definition. Updating clip-path alone leaves masks pointing at the page
+    // behind the popup, or at nothing when that page has been virtualized.
+    root.querySelectorAll('*').forEach(node=>{
+      for(const attr of [...node.attributes]){
+        if(attr.localName==='id')continue;
+        let value=attr.value.replace(/url\(\s*(['"]?)#([^\s)'" ]+)\1\s*\)/g,(match,quote,id)=>ids.has(id)?'url(#'+ids.get(id)+')':match);
+        if(attr.localName==='href'&&value.startsWith('#')&&ids.has(value.slice(1)))value='#'+ids.get(value.slice(1));
+        if(value!==attr.value)node.setAttributeNS(attr.namespaceURI,attr.name,value);
+      }
+    });
+  }
   function naturalSourceLabels(root) {
     root.querySelectorAll('.ax-source-run').forEach(run=>{
       if(!run.style?.fontSize||run.closest('.ax-ca-sheet')||run.classList.contains('ax-readable-heading')||run.classList.contains('ax-natural-run'))return;
@@ -466,13 +481,7 @@
     by('ax-table-nav').hidden=index<0;
     by('ax-table-prev').disabled=index<=0;by('ax-table-next').disabled=index<0||index===tables.length-1;
     by('ax-table-position').textContent=index<0?'':(index+1)+'／'+tables.length;
-    if(!reuse) {
-    const ids=new Map();
-    body.querySelectorAll('[id]').forEach(node=>{const old=node.id;node.id='ax-popup-'+old;ids.set(old,node.id);});
-    body.querySelectorAll('[clip-path]').forEach(node=>{
-      node.setAttribute('clip-path',node.getAttribute('clip-path').replace(/url\(#([^)]+)\)/g,(_,old)=>'url(#'+(ids.get(old)||old)+')'));
-    });
-    }
+    if(!reuse)scopeObjectIds(body);
     presentPopup(before);
     body.scrollTop=0;
     } catch(_){if(request===objectRevision)by('ax-status').textContent='無法載入圖表，請檢查連線後再試。';}

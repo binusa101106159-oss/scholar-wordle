@@ -4,7 +4,7 @@ Source JSON, source characters, artwork and clinical label anchors are unchanged
 Outputs are local QA artifacts, never public assets or patient data.
 """
 from pathlib import Path
-import functools,http.server,json,threading
+import base64,functools,http.server,json,threading
 from playwright.sync_api import sync_playwright
 
 ROOT=Path(__file__).resolve().parents[2]
@@ -17,6 +17,13 @@ CHECK=r'''({html,pages,label,ident})=>{
  d.style.cssText='position:absolute;left:0;top:0;width:'+Math.min(innerWidth,1100)+'px;max-height:none;background:#151b23;overflow:visible;content-visibility:visible';
  d.innerHTML=html;document.querySelector('#ama-panel').append(d);
  const before=d.textContent;showChapterMarks(d);showSourceHeadings(d,label);
+ if(!pages)scopeObjectIds(d);
+ const definitions=new Set([...d.querySelectorAll('[id]')].map(n=>n.id));let references=0;
+ for(const n of d.querySelectorAll('svg *'))for(const a of n.attributes){
+  const refs=[...a.value.matchAll(/url\(\s*['"]?#([^\s)'" ]+)['"]?\s*\)/g)].map(m=>m[1]);
+  if(a.localName==='href'&&a.value.startsWith('#'))refs.push(a.value.slice(1));
+  for(const id of refs){references++;if(!definitions.has(id))throw Error(ident+': missing SVG definition '+id);}
+ }
  const restored=d.cloneNode(true);restored.querySelectorAll('[data-source-text]').forEach(n=>n.textContent=n.dataset.sourceText);
  if(restored.textContent!==before)throw Error('Source characters changed');
  const labels=[...d.querySelectorAll('.ax-natural-label,.ax-readable-heading,svg .ax-natural-svg')].filter(n=>!n.closest('defs')&&n.textContent.trim()).map(n=>{
@@ -31,7 +38,7 @@ CHECK=r'''({html,pages,label,ident})=>{
  }
  const result={runs:d.querySelectorAll('.ax-natural-run').length,svg:d.querySelectorAll('.ax-natural-svg').length,
   unhandled:d.querySelectorAll('.ax-source-run:not(.ax-natural-run):not(.ax-readable-heading)').length+d.querySelectorAll('svg text:not(.ax-natural-svg)').length,
-  labels:labels.length,overlaps};
+  labels:labels.length,overlaps,references};
  // Exact original per-character coordinates remain in the source assets only.
  for(const run of d.querySelectorAll('.ax-natural-run'))for(const child of run.children)if(child.childElementCount)throw Error('Per-character HTML spans survived');
  for(const text of d.querySelectorAll('.ax-natural-svg'))if(text.hasAttribute('textLength')||text.querySelector('[textLength],[lengthAdjust]'))throw Error('Stretched SVG glyphs survived');
@@ -61,7 +68,7 @@ def main():
      page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
      page.route('https://www.gstatic.com/firebasejs/**',lambda route:route.abort());page.goto(url+'#ama');page.locator('.ax-page').first.wait_for()
      page.evaluate('()=>{'+helpers+'window.checkAMALabels='+CHECK+';}')
-     counts={'objects':0,'pages':0,'sourcePages':0,'runs':0,'svg':0,'labels':0};issues=[];minimumScale=1
+     counts={'objects':0,'pages':0,'sourcePages':0,'runs':0,'svg':0,'labels':0,'references':0};issues=[];minimumScale=1
      for chapter in chapters:
       items=[('object',a)for a in chapter['attachments']]
       if engine=='chromium':items += [('page',a)for a in chapter['pages']]
@@ -70,7 +77,7 @@ def main():
        if result['unhandled']or result['overlaps']:issues.append({'chapter':chapter['id'],'kind':kind,'id':item.get('id',item['page']),**result})
        counts['objects'if kind=='object'else'pages']+=1
        if kind=='page':counts['sourcePages']+=len(item.get('sourcePages',[item['page']]))
-       for key in ['runs','svg','labels']:counts[key]+=result[key]
+       for key in ['runs','svg','labels','references']:counts[key]+=result[key]
        minimumScale=min(minimumScale,result['minimumLabelScale'])
      assert not issues,(engine,width,issues[:5])
      # Exercise the actual popup and copy handler for the reported figure.
@@ -90,6 +97,18 @@ def main():
      vertical=page.locator('#ax-dialog-body .ax-vertical-label').bounding_box()
      assert vertical and vertical['height']>vertical['width']*4,vertical
      if width==1440 and engine=='chromium':page.locator('#ax-dialog-body').screenshot(path=str(OUTPUT/'figure15-20.png'))
+     page.locator('#ax-dialog-close').dispatch_event('click')
+     page.locator('#ax-body button[data-open="f15-3"]').first.dispatch_event('click');page.locator('#ax-dialog[open]').wait_for()
+     # Source pages are virtualized. A popup must own all stencil definitions.
+     page.locator('#ax-body svg').evaluate_all('nodes=>nodes.forEach(n=>n.remove())')
+     for repeat in range(2):
+      if repeat:
+       page.locator('#ax-dialog-close').dispatch_event('click');page.locator('#ax-body button[data-open="f15-3"]').first.dispatch_event('click');page.locator('#ax-dialog[open]').wait_for()
+      art=page.locator('#ax-dialog-body .ax-source-object');png=art.screenshot()
+      fixture=json.loads((ROOT/'tests/fixtures/ama-figure15-3-art.json').read_text())
+      pixels=page.evaluate('''async ({png,fixture})=>{const im=new Image();im.src='data:image/png;base64,'+png;await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d');ctx.drawImage(im,0,0);const d=ctx.getImageData(0,0,c.width,c.height).data;let ink=0,inkOK=0,paper=0,paperOK=0;for(const [x,y,on]of fixture.points){let bright=false;for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){const at=((y+dy)*c.width+x+dx)*4;if(Math.min(d[at],d[at+1],d[at+2])>130)bright=true;}if(on){ink++;if(bright)inkOK++;}else{paper++;if(!bright)paperOK++;}}return {ink:inkOK/ink,paper:paperOK/paper,width:c.width,height:c.height};}''',{'png':base64.b64encode(png).decode(),'fixture':fixture})
+      assert pixels['ink']>.9 and pixels['paper']>.95,(engine,width,'Figure 15-3 source artwork missing',pixels)
+     if width==1440 and engine=='chromium':art.screenshot(path=str(OUTPUT/'figure15-3.png'))
      assert not errors,errors
      results.append({'engine':engine,'width':width,**counts,'overlaps':0,'unhandled':0,'minimumLabelScale':minimumScale,'sourceText':'unchanged','copy':'PASS'})
      print(engine,width,counts,'source text / natural labels / overlaps / actual popup copy PASS',flush=True)

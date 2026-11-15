@@ -60,6 +60,11 @@
 .ax-page-content .ax-table p { font-family:Arial,sans-serif!important; }
 /* Invert the source vector ink as well as its paper; keep all labels selectable. */
 .ax-vector { width: 100%; height: auto; display: block; background: #eae4dc; filter:invert(1); }
+/* Printed white paper knockouts must match the SVG paper after inversion.
+   Never recolor mask definitions: their white pixels control opacity. */
+.ax-vector :is(path,rect,polygon)[fill="#ffffff" i]:not(defs *),
+.ax-vector :is(path,rect,polygon)[fill="#fff" i]:not(defs *),
+.ax-vector :is(path,rect,polygon)[fill="white" i]:not(defs *) { fill:#eae4dc; }
 .ax-vector text { font-family: Arial,sans-serif !important; white-space: pre; }
 .ax-vector text[font-family^="Georgia"] { font-family: Georgia,serif !important; }
 .ax-vector text[font-weight="bold"] { font-weight: 700 !important; }
