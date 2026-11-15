@@ -17,7 +17,13 @@ def main():
     for width in [1440,390]:
      page=browser.new_page(viewport={'width':width,'height':1100},service_workers='block',reduced_motion='reduce');errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.route('https://www.gstatic.com/firebasejs/**',lambda route:route.abort());page.goto(f'http://127.0.0.1:{server.server_port}/#ama');page.locator('.ax-page').first.wait_for()
      for chapter,ident,name,final in [('c15','f15-31','John Sample','9%WPI'),('c16','f16-13','Jane Doe','10%WPI'),('c17','f17-7','John Smith','6%')]:
-      page.locator('#ax-tab-'+chapter).dispatch_event('click');scope=page.locator('#ax-table-rail'if width==1440 else'#ax-table-shortcuts');scope.get_by_role('tab',name='Figure',exact=True).click();scope.locator('[data-table-open="'+ident+'"]').click();page.locator('#ax-dialog[open]').wait_for();body=page.locator('#ax-dialog-body');reader=body.locator('.ax-form-reader');reader.wait_for(state='visible')
+      page.locator('#ax-tab-'+chapter).dispatch_event('click');page.locator('#ax-body .ax-page').first.wait_for()
+      scope=page.locator('#ax-table-rail'if width==1440 else'#ax-table-shortcuts');scope.get_by_role('tab',name='Figure',exact=True).click()
+      shortcut=scope.locator('[data-table-open="'+ident+'"]');shortcut.scroll_into_view_if_needed()
+      # Font layout and the chapter's scheduled position restoration must
+      # settle before a native pointer click, especially in mobile WebKit.
+      page.evaluate('async()=>{await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(r))));}')
+      shortcut.click();page.locator('#ax-dialog[open]').wait_for();body=page.locator('#ax-dialog-body');reader=body.locator('.ax-form-reader');reader.wait_for(state='visible')
       assert body.locator('[data-form-view="reading"]').get_attribute('aria-pressed')=='true';assert reader.evaluate('e=>e.innerText.replace(/\\s/g,"")').find(final)>=0
       assert body.evaluate('e=>e.scrollWidth<=e.clientWidth+3'),'reading mode requires horizontal scrolling'
       # Blank source templates are deferred until opened. Verify every source

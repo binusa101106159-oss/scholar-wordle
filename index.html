@@ -3225,7 +3225,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     if (activeGame === 'forms' || activeGame === 'calendar' || activeGame === 'iarc' || activeGame === 'cases' || activeGame === 'health' || activeGame === 'calculator' || activeGame === 'wordle' || activeGame === 'laws' || activeGame === 'guides' || activeGame === 'ama' || activeGame === 'review' || activeGame === 'notes' || activeGame === 'ilo' || by('scholar-new-dialog').open || event.altKey) return;
     const target = event.target;
     if (target && target.closest && target.closest('input,select,textarea,[contenteditable="true"]')) return;
-    if (event.key === 'Escape') { event.preventDefault(); by('game-tab-' + activeGame).focus(); return; }
+    if (event.key === 'Escape') { event.preventDefault(); const tab=by('game-tab-' + activeGame);(tab.hidden?by('game-group-button'):tab).focus(); return; }
     if (event.ctrlKey || event.metaKey) {
       if (activeGame === 'sudoku' && event.key.toLowerCase() === 'z') { event.preventDefault(); sudokuAction('undo'); }
       return;
