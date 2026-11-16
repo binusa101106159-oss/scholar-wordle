@@ -111,7 +111,7 @@
     by('ct-add').disabled = !readable || archiving;
     const rows = recordsForView(records, archivedView), shown = filterRecords(rows, by('ct-search').value);
     for (const [id, archived] of [['active', false], ['archive', true]]) {
-      const button = by('ct-tab-' + id), selected = archivedView === archived;
+      const button = by('ct-tab-' + id), selected = archivedView === archived && by('ct-tab-maternal')?.getAttribute('aria-selected') !== 'true';
       button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected ? 0 : -1;
       button.disabled = sorting || archiving;
       by('ct-' + id + '-count').textContent = recordsForView(records, archived).length;
@@ -151,6 +151,11 @@
   }
   function selectView(archived, focus = false) {
     if (sorting || archiving || drag) return;
+    window.ScholarMaternalCalls.hide();
+    by('ct-m-panel').hidden = true;
+    by('ct-list').hidden = false; by('ct-status').hidden = false;
+    by('cases-panel').querySelector('.ct-head').hidden = false;
+    by('ct-tab-maternal').setAttribute('aria-selected', 'false'); by('ct-tab-maternal').tabIndex = -1;
     archivedView = archived; render();
     if (focus) by(archived ? 'ct-tab-archive' : 'ct-tab-active').focus();
   }
@@ -333,6 +338,33 @@
       </dialog>
       <dialog id="ct-delete" class="ct-dialog ct-confirm" aria-labelledby="ct-delete-title"><h2 id="ct-delete-title">刪除此個案？</h2><p>刪除後無法復原。</p>
         <p id="ct-delete-error" class="ct-error" role="alert"></p><div class="ct-form-actions"><button class="sg-btn" type="button" id="ct-delete-cancel">取消</button><button class="sg-btn ct-danger" type="button" id="ct-delete-confirm">刪除</button></div></dialog>`;
+    const maternalTab = document.createElement('button');
+    maternalTab.id = 'ct-tab-maternal'; maternalTab.type = 'button'; maternalTab.setAttribute('role', 'tab');
+    maternalTab.setAttribute('aria-controls', 'ct-m-panel'); maternalTab.setAttribute('aria-selected', 'false'); maternalTab.tabIndex = -1;
+    maternalTab.textContent = '母性保護回電 ';
+    const maternalCount = document.createElement('span'); maternalCount.id = 'ct-maternal-count'; maternalTab.append(maternalCount);
+    by('ct-tab-archive').after(maternalTab);
+    window.ScholarMaternalCalls.mount();
+    function selectMaternal(focus = false) {
+      if (sorting || archiving || drag) return;
+      by('ct-list').hidden = true; by('ct-status').hidden = true;
+      by('cases-panel').querySelector('.ct-head').hidden = true;
+      by('ct-m-panel').hidden = false;
+      for (const id of ['active', 'archive', 'maternal']) {
+        by('ct-tab-'+id).setAttribute('aria-selected', String(id === 'maternal'));
+        by('ct-tab-'+id).tabIndex = id === 'maternal' ? 0 : -1;
+      }
+      window.ScholarMaternalCalls.show();
+      if (focus) maternalTab.focus();
+    }
+    maternalTab.addEventListener('click', () => selectMaternal());
+    by('cases-panel').querySelector('.ct-tabs').addEventListener('keydown', event => {
+      if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+      event.preventDefault(); event.stopImmediatePropagation();
+      const tabs = ['active','archive','maternal'], at = tabs.findIndex(id => by('ct-tab-'+id).getAttribute('aria-selected') === 'true');
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? 2 : (at + (event.key === 'ArrowRight' ? 1 : 2)) % 3;
+      if (next === 2) selectMaternal(true); else selectView(next === 1, true);
+    }, true);
     setupReorder();
     by('ct-add').addEventListener('click', () => { if (archiving) return; selectView(false); edit(); });
     for (const [id, archived] of [['active', false], ['archive', true]]) {
@@ -403,6 +435,10 @@
   function show() {
     if (!booted) { shell(); booted = true; }
     refresh();
+    if (by('ct-tab-maternal').getAttribute('aria-selected') === 'true') {
+      for (const id of ['active','archive']) { by('ct-tab-'+id).setAttribute('aria-selected','false'); by('ct-tab-'+id).tabIndex=-1; }
+      window.ScholarMaternalCalls.show();
+    }
     if(suspendedDraft&&readable){
       const draft=suspendedDraft;suspendedDraft=null;
       window.ScholarPeek.open(by('ct-editor'));
@@ -412,10 +448,11 @@
   }
   function hide() {
     if (!booted) return;
+    window.ScholarMaternalCalls.hide();
     if(by('ct-editor').open&&!saving){const field=document.activeElement;suspendedDraft={focus:field?.id,start:field?.selectionStart??null,end:field?.selectionEnd??null};}
     for (const id of ['ct-editor', 'ct-delete']) if (by(id).open) by(id).close();
     deleting = null;
   }
-  window.ScholarCases = { show, hide, followupText };
+  window.ScholarCases = { show, hide, followupText, followupPreview };
 })();
 

@@ -190,6 +190,7 @@
   async function setConfirmed(key, raw) {
     if (!user || !transport) throw Error('Please sign in before saving patient records.');
     if (confirming) throw Error('A save is already in progress.');
+    const identity = user.uid;
     const before = S.split(key, getItem(key)), after = S.split(key, String(raw));
     confirming = true;phase = 'pending';failure = null;notify();
     try {
@@ -198,6 +199,7 @@
         if (base === next) continue;
         if (new TextEncoder().encode(JSON.stringify({data: next})).length > 800000) throw Error('This record is too large.');
         const result = await transport.commit({id, key, base, next});
+        if (key === 'scholar-maternal-calls-v1' && user?.uid !== identity) throw Error('Account changed during save.');
         const previous = getItem(key);
         put(id,result);
         emit(key, previous);

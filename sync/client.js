@@ -128,7 +128,7 @@ async function accountChanged(user, retry = false) {
           const next=ops.map((op,i)=>{
             const data=current[i].exists()?current[i].data():null,remote=data?JSON.parse(data.value).data:null;
             const merged=window.ScholarSyncState.reconcile(op.base,op.next,remote,op.id);
-            if(op.key==='scholar-cases-v1'&&op.next!==null&&merged===null)throw Error('This patient was deleted on another device. Your draft has been retained.');
+            if(['scholar-cases-v1','scholar-maternal-calls-v1'].includes(op.key)&&op.next!==null&&merged===null)throw Error('This patient was deleted on another device. Your draft has been retained.');
             return {merged,data:{value:JSON.stringify({data:merged}),revision:(data?.revision||0)+1,updatedAt:F.serverTimestamp()}};
           });
           next.forEach((result,i)=>transaction.set(refs[i],result.data));
