@@ -32,3 +32,15 @@ Google登入後，以ScholarSync與Firestore儲存，每位病人為獨立且具
 
 驗證：`tests/maternal-calls.test.cjs` 涵蓋解析、題目轉換與保留、搜尋、排序、期限與合併；`tests/cloud-sync.test.cjs` 另測未登入、拒絕寫入、帳號切換。`tools/maternal-calls-browser.cjs` 使用隔離頁面與模擬 transaction，檢查兩裝置 CRUD、回覆合併、失敗保留、刪除防復活、純文字顯示，以及 1440／390／320 表格與卡片、表單溢出及標頭重疊。安裝 Playwright 後可執行 `node tools/maternal-calls-browser.cjs [截圖輸出目錄]`。所有測試員工資料均虛構，測試不接觸正式 Firebase；正式帳號登入及跨裝置讀回須由擁有者驗證。
 
+## 母保罐頭
+
+位於母性保護回電之後，沿用 ct-、sg-btn 與表單的靜態 JSON 資料驅動呈現。`cases/maternal-snippets.json` 的 `sections → groups → snippets` 收錄使用者提供的五區、58 則通用原文；情境標示只放 label，其餘文字、全形標點與【】佔位符原樣保留。此資料為提供文字的逐字匯入，不另行改寫內容。`tests/fixtures/maternal-snippets-source.txt` 保留原文供測試依序逐條比對 text 與 label，另檢查全部 text 串接一致及 ID 不重複。
+
+左側依基本資料、工作內容、風險評估、工作建議、結尾分區，各組可收合，搜尋涵蓋所有片段文字。每張卡片可直接複製或加入右側組合區；經常／偶爾、站立／靜坐等選項可用小標籤切換，僅影響這次複製／加入的文字，不改靜態原文。組合區每則文字可直接編輯，可重複加入同一來源、以拖曳把手、上下方向鍵或上移／下移按鈕排序，並刪除單則或清空。
+
+預覽依加入及調整後的順序組合，只對相鄰片段決定連接方式：同組以「；」連接，跨組以「。」連接；開頭原有「，」「：」直接銜接下一則，內文標點原樣保留，避免重複句尾標點，結尾補「。」（既有「。」「！」「？」不重複補句點）。預覽以底色標出尚未替換的【】（包含空白【】），全部複製前先提示確認。編輯後即時更新預覽；剪貼簿失敗會顯示錯誤，仍可手動選取預覽複製。
+
+組合內容不會儲存，離開頁面即清除。組合文字及選項只存在頁面記憶體，完全不呼叫 ScholarStorage，不寫 localStorage，也不上傳雲端；離開此 subtab、切換網站 tab、登出／帳號變更或 pagehide 時清除，避免瀏覽器上一頁快取保留已填入的個案文字。service worker 只快取公開 JSON 與程式碼。桌機兩欄；手機組合區固定底部，可展開／收合，展開時內部捲動。未新增自訂罐頭功能，既有追蹤中與 Archive 資料格式不變。
+
+驗證：`tests/maternal-snippets.test.cjs` 檢查原文、結構、唯一 ID、標點、佔位符、搜尋與詞語選項；`tools/maternal-snippets-browser.cjs` 檢查加入、編輯、複製確認、拖曳／鍵盤排序、離開清除、不呼叫儲存，以及 1440／390／320 版面。安裝 Playwright 後可執行 `node tools/maternal-snippets-browser.cjs [截圖輸出目錄]`，測試不連正式 Firebase。
+

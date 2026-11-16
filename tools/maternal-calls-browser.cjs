@@ -20,7 +20,7 @@ async function run(browser,output){
    if(op.next!==null&&merged===null)throw Error('deleted remotely');
    if(merged===null)server.delete(op.id);else server.set(op.id,merged);return merged;
   });
-  for(const file of ['sync/state.js','sync/store.js','glass-layer.js','peek-glass.js','calculator/calculator.js','cases/maternal-calls.js','cases/cases.js'])await page.addScriptTag({content:fs.readFileSync(path.join(root,file),'utf8')});
+  for(const file of ['sync/state.js','sync/store.js','glass-layer.js','peek-glass.js','calculator/calculator.js','cases/maternal-calls.js','cases/maternal-snippets.js','cases/cases.js'])await page.addScriptTag({content:fs.readFileSync(path.join(root,file),'utf8')});
   await page.evaluate(({signedIn,entries})=>{window.ScholarSync.connect(signedIn?{uid:'fictional-owner'}:null,signedIn?{commit:op=>window.testCommit(op)}:null,new Map(entries));window.ScholarCases.show();},{signedIn,entries:[...server]});
   await page.locator('#ct-tab-maternal').click();return page;
  }
