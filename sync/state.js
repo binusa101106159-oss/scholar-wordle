@@ -62,7 +62,7 @@
     try { data = JSON.parse(raw); } catch (_) { /* Plain-text PBL answers. */ }
     if (key === 'scholar-wordle-round-v1') out.set(JSON.stringify([key]), raw);
     else if (object(data)) {
-      if (key === 'scholar-cases-v1') {
+      if (key === 'scholar-cases-v1' || key === 'scholar-maternal-calls-v1') {
         if (data.version !== 1 || !Array.isArray(data.records)) throw Error('Invalid patient list');
         for (const record of data.records) out.set(JSON.stringify([key, 'records', record.id]), JSON.stringify(record));
       } else for (const [field, value] of Object.entries(data)) out.set(JSON.stringify([key, field]), JSON.stringify(value));
@@ -74,7 +74,7 @@
     if (!pairs.length) return null;
     const single = pairs.find(([id]) => JSON.parse(id).length === 1);
     if (single) return single[1];
-    if (key === 'scholar-cases-v1') return JSON.stringify({version: 1, records: pairs
+    if (key === 'scholar-cases-v1' || key === 'scholar-maternal-calls-v1') return JSON.stringify({version: 1, records: pairs
       .filter(([id]) => JSON.parse(id)[1] === 'records').map(([, raw]) => JSON.parse(raw))
       .sort((a,b)=>(Number.isFinite(a.sortOrder)?a.sortOrder:-(a.createdAt||0))-(Number.isFinite(b.sortOrder)?b.sortOrder:-(b.createdAt||0))||b.id.localeCompare(a.id))});
     return JSON.stringify(Object.fromEntries(pairs.sort(([a],[b])=>a.localeCompare(b)).map(([id, raw]) => [JSON.parse(id)[1], JSON.parse(raw)])));

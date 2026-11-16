@@ -2,6 +2,20 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const S=require('../sync/state.js');
 const str=JSON.stringify;
+const maternalKey='scholar-maternal-calls-v1';
+test('maternal confirmed writes require an account, retain no rejected values, and clear on logout',async()=>{
+ const h=harness(),raw=str({version:1,records:[{id:'fictional',name:'虛構員工'}]});
+ h.sync.connect(null,null);assert.throws(()=>h.sync.requireAccount());await assert.rejects(h.store.setConfirmed(maternalKey,raw));
+ let fail=true;h.sync.connect({uid:'owner'},{commit:async op=>{if(fail)throw Error('denied');return op.next}});
+ await assert.rejects(h.store.setConfirmed(maternalKey,raw));assert.equal(h.store.getItem(maternalKey),null);
+ fail=false;await h.store.setConfirmed(maternalKey,raw);assert.equal(h.store.getItem(maternalKey),raw);
+ h.sync.connect(null,null);assert.equal(h.store.getItem(maternalKey),null);
+});
+test('maternal acknowledgements cannot restore account data after a sign-out during a request',async()=>{
+ const h=harness();let release;h.sync.connect({uid:'owner'},{commit:async op=>{await new Promise(r=>release=r);return op.next}});
+ const pending=h.store.setConfirmed(maternalKey,str({version:1,records:[{id:'fictional',name:'虛構員工'}]}));
+ h.sync.connect(null,null);release();await assert.rejects(pending,/Account changed/);assert.equal(h.store.getItem(maternalKey),null);
+});
 test('cloud three-way merge preserves independent checkbox changes and intentional unchecks',()=>{
  assert.deepEqual(JSON.parse(S.reconcile(str([1]),str([1,2]),str([1,3]),'scholar-laws-checked-v1')),[1,3,2]);
  assert.deepEqual(JSON.parse(S.reconcile(str([1]),str([]),str([1,3]),'scholar-laws-checked-v1')),[3]);
