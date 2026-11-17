@@ -1,3 +1,12 @@
+/* Always revalidate same-origin runtime files; private external APIs are untouched. */
+(() => {
+ const networkFetch=window.fetch.bind(window);
+ window.fetch=(input,options={})=>{
+  const url=new URL(typeof input==='string'||input instanceof URL?input:input.url,location.href);
+  const method=String(options.method||(typeof input==='object'&&input.method)||'GET').toUpperCase();
+  return networkFetch(input,url.origin===location.origin&&method==='GET'?{...options,cache:'no-store'}:options);
+ };
+})();
 /* Load feature code once, only when its tab is opened. Shared dependencies keep source order. */
 (() => {
  const files=new Map();
