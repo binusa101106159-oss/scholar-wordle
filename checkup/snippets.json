@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-beta",
+  "version": "0.2.0-beta",
   "snippets": [
     {
       "id": "general.normal",
@@ -259,7 +259,7 @@
     {
       "id": "derived.body.high",
       "category": "PE／體位",
-      "text": "體重過重或肥胖，請注意飲食及增加運動。"
+      "text": "體重過重，請注意飲食及增加運動。"
     },
     {
       "id": "derived.body.low",

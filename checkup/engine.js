@@ -59,7 +59,10 @@ const blank=s=>!s||/^(?:未做|未檢|檢驗中|拒檢|N\/A|NA|NULL|#REF!|#VALUE
 const negative=s=>/^(?:-|\(-\)|negative|neg|陰性|無|none|normal(?:\(<30\))?)$/i.test(s);
 const trace=s=>/^(?:trace|±|\+\/-|\(\+\/-\)|\+\-)$|\(\+\/-\)/i.test(s);
 const grade=s=>{let m=s.match(/([1-4])\s*\+/);return m?Number(m[1]):/^(?:\+|\(\+\)|positive|pos|陽性)$/i.test(s)?1:0;};
-function normUnit(s){return String(s||'').toLowerCase().replace(/μ|µ/g,'u').replace(/\s/g,'').replace(/×|x/g,'').replace(/\^/g,'');}
+function normUnit(s){return String(s||'').normalize('NFKC').toLowerCase().replace(/μ|µ/g,'u').replace(/\s/g,'').replace(/×|x/g,'').replace(/\^/g,'');}
+function comparableUnit(name,s){let u=normUnit(s);if(['WBC','PLT'].includes(name)&&u==='k/ul')u='103/ul';if(name==='RBC'&&u==='m/ul')u='106/ul';if(name==='Anti-HBs'&&u==='miu/ml')u='iu/l';return ({'kg/m2':'kg/m2','公分':'cm','公斤':'kg','毫米汞柱':'mmhg'})[u]||u;}
+function normalCxrText(text){const parts=[];if(/heart size/i.test(text))parts.push('心臟大小正常');if(/no definite (?:active|acute) (?:lung|pulmonary) lesion/i.test(text))parts.push('無明顯活動性肺病灶');else if(/no definite (?:focal )?lung lesion|no definite detectable lung abnormality|no definite mass or patchy lesion/i.test(text))parts.push('未見明顯肺部病灶');if(/No masses, pleural thickening, or effusions/i.test(text))parts.push('未見腫塊、肋膜增厚或積液');if(/clear costophrenic angles/i.test(text))parts.push('雙側肋膈角清晰');if(/clear retrocardiac and retrosternal|clear retrosternal and retrocardiac/i.test(text))parts.push('心後與胸骨後區未見明顯異常');return '胸部X光檢查：'+(parts.length?parts.join('，'):'無明顯異常')+'。';}
+
 function collect(input){let src=input.fields||input,fs=Object.create(null),warnings=[],context=input.context||{};
  const rows=Array.isArray(src)?src:Object.entries(src).filter(([k])=>!['context','clinical','unparsed'].includes(k)).map(([name,value])=>({name,...(value&&typeof value==='object'?value:{value})}));
  for(const x of rows){const name=canonical(x.name||''),raw=String(x.value??'').trim();if(/_g$|健康管理級|作業健康管理分級/.test(name))continue;
@@ -68,10 +71,10 @@ function collect(input){let src=input.fields||input,fs=Object.create(null),warni
  return {fs,warnings,context};}
 function numeric(s){if(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(s))return Number(s);return null;}
 function classify(name,f,sex){const raw=f.raw,r=P.rules.find(x=>canonical(x.field)===name),unit=r?.unit||units[name]||'';
- const out={field:name,raw,unit:f.unit||unit,state:'unknown',reason:'尚無對應規則'};
+ const out={field:name,sourceName:f.sourceName||name,raw,unit:f.unit||unit,state:'unknown',reason:'尚無對應規則'};
  if(blank(raw))return {...out,state:'missing',reason:'缺值，留空'};
  if(f.conflict)return {...out,reason:'同欄來源衝突'};
- if(f.unit&&unit&&normUnit(f.unit)!==normUnit(unit))return {...out,reason:'單位不同，保留原值，不自動換算',warning:true};
+ if(f.unit&&unit&&comparableUnit(name,f.unit)!==comparableUnit(name,unit))return {...out,reason:'單位不同，保留原值，不自動換算',warning:true};
  const text=raw.replace(/\s+(?:Color|Turbidity):.*$/i,'').trim(),n=numeric(text);out.number=n;
  if(name==='胰島素阻抗')return n!==null&&n>=0?{...out,state:round1(n)<=1.4?'normal':round1(n)<=1.9?'high':'high',rounded:round1(n)}:{...out,warning:true,reason:'IR格式無效，未自行計算'};
  if(name==='O.B.')name='O.B.(Dipstick)';
@@ -144,7 +147,7 @@ function generate(input,opts={}){
  if(bmiBad)review.push({code:'BMI_FORMAT',detail:'BMI或身高體重格式／一致性有疑義，原值保留，體位句暫停。'});
  if(!bmiBad){if(st('BMI值')==='high')body.push('體重過重');if(st('BMI值')==='low')body.push('體重過輕');}
  if(ab('腹圍'))body.push('腰圍偏大');
- if(body.length)add('BODY','體重腰圍',body.join('，')+'，請注意飲食及保持適度運動。',['BMI值','腹圍']);
+ if(body.length)add('BODY','體重腰圍',body.join('，')+(body.includes('體重過輕')?'，請注意飲食及營養攝取。':'，請注意飲食及保持適度運動。'),['BMI值','腹圍']);
  if(ab('血壓收縮壓')||ab('血壓舒張壓'))add('BP','血壓','血壓偏高，請控制飲食，保持適度運動，若複檢血壓仍超過130/80mmHg，建議至家醫科門診追蹤檢查。',['血壓收縮壓','血壓舒張壓'],['pe.bp.13080']);
  const corrected=['右眼矯正視力','左眼矯正視力'].some(has),eyes=corrected?['右眼矯正視力','左眼矯正視力']:['右眼裸視視力','左眼裸視視力'];
  const badEyes=eyes.filter(ab);if(badEyes.length)add('VISION','視力',(badEyes.length===2?'雙眼':badEyes[0].startsWith('右')?'右眼':'左眼')+(corrected?'矯正':'裸視')+'視力異常，建議至眼科門診追蹤檢查。',eyes,['derived.vision']);
@@ -186,7 +189,7 @@ function generate(input,opts={}){
  const ag=st('HBsAg'),antibody=st('Anti-HBs');
  if(ag==='positive'){const text='B型肝炎表面抗原陽性'+(antibody==='negative'?'、B型肝炎表面抗體陰性':antibody==='positive'?'、B型肝炎表面抗體陽性':'')+'，'+(historyText(/B.*肝炎|B肝/i,'B肝帶原')||'建議至家醫科或腸胃科門診追蹤諮詢。');add('HBV_POS','B肝',text,['HBsAg','Anti-HBs']);}
  else if(ag==='negative'&&antibody==='negative')add('HBV_NEGNEG','B肝','B型肝炎表面抗原陰性，B型肝炎表面抗體陰性，不具備免疫力。若工作有接觸B型肝炎病毒，建議至家醫科門診接受疫苗接種。',['HBsAg','Anti-HBs'],['hbv.negneg']);
- // Normal immune results are omitted under the user's latest normal-item policy.
+ else if(ag==='negative'&&antibody==='positive'&&context.includeHBVImmunity===true)add('HBV_IMMUNE','B肝','B型肝炎表面抗原陰性，B型肝炎表面抗體陽性，已具備免疫力。',['HBsAg','Anti-HBs'],['derived.hbv.immune']);
  const urine=[],used=new Set();const use=ns=>ns.forEach(n=>used.add(n));
  let bleeding=[];if(ab('O.B.(Dipstick)')||ab('O.B.')){bleeding.push('尿液檢驗潛血陽性反應');use(['O.B.(Dipstick)','O.B.']);}if(ab('RBC (Sediment)')){bleeding.push('尿液紅血球偏高');use(['RBC (Sediment)']);}
  if(bleeding.length)urine.push(bleeding.join('，')+'。可能原因包括腎臟疾病、泌尿道結石、腎臟或泌尿道感染、惡性腫瘤等。若為非尿液之血液來源汙染且無症狀，則定期追蹤即可。若有排尿不適、腰痛、血尿等症狀，建議三個月內至腎臟內科或泌尿外科門診追蹤檢查'+(sex==='女'?'，並避開經期複檢尿液。':'。'));
@@ -203,22 +206,29 @@ function generate(input,opts={}){
  // Unknown but explicit source abnormal flags are always visible, not silently dropped.
  const usedAll=new Set(sections.flatMap(s=>s.evidence.map(e=>e.field)));
  for(const [n,r] of Object.entries(results))if(ab(n)&&!usedAll.has(n)&&!['BMI值','胰島素阻抗','HBsAg','Anti-HBs'].includes(n))add('OTHER_'+n,'其他',finding(n)+'。',[n]);
- const peFields=['頭頸部','營養狀況','精神狀態','淋巴腺腫大','甲狀腺腫大','眼睛','耳部','鼻部','心臟聽診','四肢','胸部','腹部','皮膚','口腔黏膜','神經系統','泌尿生殖系統'];
+ const peFields=['右眼','左眼','辨色力','血壓是否正常','脈搏是否正常','呼吸是否正常','左耳聽力','右耳聽力','頭頸部','營養狀況','精神狀態','淋巴腺腫大','甲狀腺腫大','眼睛','耳部','鼻部','心臟聽診','四肢','胸部','腹部','皮膚','口腔黏膜','神經系統','泌尿生殖系統'];
  const abnormalPE=peFields.filter(n=>has(n)&&! /^(?:無明顯異常|正常|無|normal|unremarkable|-)$/i.test(fs[n].raw));
  if(abnormalPE.length)add('PE','PE',abnormalPE.map(n=>n+'：'+fs[n].raw).join('；')+'。',abnormalPE);
  const cxr=Object.keys(fs).filter(n=>/Chest|CXR|胸部.*[Xx]光/.test(n));const texts=cxr.filter(has).map(n=>fs[n].raw).filter(t=>! /^(?:未受檢|未做|未檢|拒檢)$/.test(t));
  const normals=opts.cxrNormals||[];
- if(context.includeCXR!==false){if(!texts.length)add('CXR_MISSING','CXR','胸部X光檢查：'+(context.pregnant===true?'因懷孕未受檢。':'未受檢。'),cxr);
-  else if(!texts.every(t=>normals.some(x=>x.text.replace(/\s+/g,' ').trim().toLowerCase()===t.replace(/\s+/g,' ').trim().toLowerCase()))){
-   const text=texts.join('\n');add('CXR_MANUAL','CXR','胸部X光檢查（待人工確認）：\n'+text,cxr);review.push({code:'CXR_MANUAL',detail:'包含異常或尚未核定的完整報告寫法，保留原文人工處理。'});
-   if(/scoliosis|\bspur\b|osteophyte/i.test(text))candidateAdvice.push({motherId:'cxr.spine',text:'若有不適，建議至復健科門診追蹤檢查。',status:'供人工插入，不自動改寫放射科結論'});
-  }}
+ if(context.includeCXR!==false){
+  const status=context.cxrStatus||'auto';
+  if(status==='doctor_normal'){add('CXR_DOCTOR_NORMAL','CXR','胸部X光檢查：心臟大小正常，無活動性肺病變，雙側肋膈角尖銳（無明顯異常）。',cxr,['cxr.normal']);review.push({code:'CXR_PROVISIONAL_NORMAL',detail:'CXR正常內容為醫師選擇暫填，尚未依放射科報告核實；不作為自動正常判讀或學習資料。'});}
+  else if(status==='not_examined'||cxr.some(n=>/^(?:未受檢|未檢|未做|拒檢|因.*未受檢)$/.test(fs[n].raw))){add('CXR_NOT_EXAMINED','CXR','胸部X光檢查：'+(context.pregnant===true?'因懷孕未受檢。':'未受檢。'),cxr);}
+  else if(status==='pending'||cxr.length&&!texts.length){review.push({code:'CXR_PENDING',detail:'胸部X光只有檢查標題，報告尚未提供；不自動判為正常，也不等同未受檢。'});}
+  else if(texts.length){
+   const isNormal=texts.every(t=>normals.some(x=>x.text.replace(/\s+/g,' ').trim().toLowerCase()===t.replace(/\s+/g,' ').trim().toLowerCase()));
+   if(isNormal){if(context.includeNormalCXR===true)add('CXR_NORMAL','CXR',normalCxrText(texts.join('\n')),cxr,['cxr.normal']);}
+   else {const text=texts.join('\n');add('CXR_MANUAL','CXR','胸部X光檢查（待人工確認）：\n'+text,cxr);review.push({code:'CXR_MANUAL',detail:'包含異常或尚未核定的完整報告寫法，保留原文人工處理。'});if(/scoliosis|\bspur\b|osteophyte/i.test(text))candidateAdvice.push({motherId:'cxr.spine',text:'若有不適，建議至復健科門診追蹤檢查。',status:'供人工插入，不自動改寫放射科結論'});}
+  }
+ }
  for(const n of Object.keys(fs).filter(n=>/ECG Report|超音波|sonography|ultrasound/i.test(n)))if(has(n)){add('TRANSLATE_'+n,'待翻譯',n+'（待LLM翻譯，原文保留）：\n'+fs[n].raw,[n]);review.push({code:'LLM_PENDING',detail:n+'翻譯尚未串接，不計算原文中的任何數字。'});}
  for(const [cat,list] of [['抽血',context.expectedBloodFields||[]],['尿液',context.expectedUrineFields||[]]])if(!input.unparsed?.length&&list.length&&list.every(n=>{n=canonical(n);return ['normal','not_applicable'].includes(st(n))||cat==='抽血'&&(n==='HBsAg'&&st(n)==='negative'||n==='Anti-HBs'&&st(n)==='positive');})&&!sections.some(s=>cat==='尿液'?s.category==='尿液':Object.keys(groupLists).includes(s.category)||['HOMA','B肝'].includes(s.category)&&s.ruleId!=='HOMA_normal'))add('NORMAL_'+cat,cat,cat+'檢查大致正常。',list);
+ if(Object.keys(fs).some(n=>/ECG Report/.test(n)&&!has(n)))review.push({code:'ECG_PENDING',detail:'上方心電圖報告空白，待人工補入；未從檢查判讀以下成稿回讀。'});
  const agents=context.occupationalAgents||[];const grading={followup:{requested:false,level:null,status:'忽略一般健檢1／2A／2B欄位'},occupational:agents.filter(x=>! /噪音|生物/.test(x)).map(agent=>({agent,level:null,status:'精簡版標準尚未接入本版，待人工判級'})),fitness:{conclusion:null,status:'人工核定後使用「可以從事XXX作業。」'}};
  if(agents.length)review.push({code:'SPECIAL_MANUAL',detail:'特殊作業標準尚未接入，不能把歷史級數當作新判定。'});
- return {version:'0.1.0-beta',mode:'使用者核定規則',draft:sections.map(s=>s.text).join('\n'),sections,referenceResults:Object.values(results).filter(r=>P.rules.some(p=>canonical(p.field)===r.field)||urineNames.includes(r.field)||r.field==='O.B.'),review,candidateAdvice,grading,trace:traceOut,ignoredOutputColumns:Object.keys(fs).filter(n=>/_g$/.test(n))};
+ return {version:'0.2.0-beta',mode:'使用者核定規則',draft:sections.map(s=>s.text).join('\n'),sections,referenceResults:Object.values(results).filter(r=>P.rules.some(p=>canonical(p.field)===r.field)||urineNames.includes(r.field)||r.field==='O.B.'),review,candidateAdvice,grading,trace:traceOut,ignoredOutputColumns:Object.keys(fs).filter(n=>/_g$/.test(n))};
 }
-A.generate=generate;A.classifyV03=(name,value,sex='男')=>classify(canonical(name),{raw:String(value?.value??value),unit:value?.unit,status:value?.status},sex);A.collectV03=collect;A.referenceProfile=P;A.VERSION='0.1.0-beta';A.urineNames=urineNames;A.groupLists=groupLists;
+A.generate=generate;A.classifyV03=(name,value,sex='男')=>classify(canonical(name),{raw:String(value?.value??value),unit:value?.unit,status:value?.status},sex);A.collectV03=collect;A.referenceProfile=P;A.VERSION='0.2.0-beta';A.urineNames=urineNames;A.groupLists=groupLists;
 if(typeof module!=='undefined'&&module.exports)module.exports=A;
 })(typeof globalThis!=='undefined'?globalThis:this);
