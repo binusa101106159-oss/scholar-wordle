@@ -45,12 +45,20 @@ def main():
          try:page.wait_for_function('id=>document.querySelector("#lx-annex-body")?.dataset.renderKey?.startsWith(id+"|")',arg=aid)
          except Exception:
           print('OPEN FAILURE',aid,errors,page.evaluate('()=>({open:document.querySelector("#lx-annex").open,title:document.querySelector("#lx-annex-title").textContent,key:document.querySelector("#lx-annex-body").dataset.renderKey,body:document.querySelector("#lx-annex-body").textContent.slice(0,100),focus:document.activeElement.outerHTML.slice(0,300)})'),flush=True);page.screenshot(path=str(out/'failure.png'));raise
-         body=page.locator('#lx-annex-body');assert len(re.sub(r'\s','',body.inner_text()))>30,aid
+         body=page.locator('#lx-annex-body')
+         # renderKey may precede WebKit popup visibility; wait for rendered text.
+         page.wait_for_function('''() => {
+          const body=document.querySelector('#lx-annex-body'),dialog=document.querySelector('#lx-annex');
+          return dialog?.open && body?.getBoundingClientRect().height>0 &&
+           getComputedStyle(body).visibility==='visible' && body.innerText.replace(/\\s/g,'').length>30;
+         }''')
+         assert len(re.sub(r'\s','',body.inner_text()))>30,aid
          native=json.loads((ROOT/'laws/annex'/f'{aid}.json').read_text(encoding='utf8'))
          assert re.sub(r'\s','',body.text_content())==re.sub(r'\s','',visible(native['blocks'])),(aid,'rendered text mismatch')
          assert body.locator('img').count()==0,(aid,'unexpected raster text')
          for pos in [0,.5,1]:
-          body.evaluate('(e,p)=>e.scrollTop=(e.scrollHeight-e.clientHeight)*p',pos)
+          body.evaluate('(e,p)=>e.scrollTo({top:(e.scrollHeight-e.clientHeight)*p,behavior:"instant"})',pos)
+          page.wait_for_function('(p)=>{const e=document.querySelector("#lx-annex-body");return Math.abs(e.scrollTop-(e.scrollHeight-e.clientHeight)*p)<3}',arg=pos)
           if engine=='chromium'and width==1440:body.screenshot(path=str(out/f'{aid}-{pos}.png'))
          edge=body.evaluate('e=>e.scrollHeight-e.clientHeight-e.scrollTop');assert edge<3,(aid,'bottom unreachable',edge)
          page.locator('#lx-annex [data-close]').click();page.locator('#lx-annex').wait_for(state='hidden')
