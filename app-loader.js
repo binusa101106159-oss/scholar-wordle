@@ -1,5 +1,6 @@
 /* Always revalidate same-origin runtime files; private external APIs are untouched. */
 (() => {
+ if(typeof window.fetch!=='function')return;
  const networkFetch=window.fetch.bind(window);
  window.fetch=(input,options={})=>{
   const url=new URL(typeof input==='string'||input instanceof URL?input:input.url,location.href);
