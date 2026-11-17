@@ -1,6 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..');
+const count=require('../cases/maternal-snippets.json').sections.flatMap(s=>s.groups.flatMap(g=>g.snippets)).length;
 async function run(browser,output){
  const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'}),page=await context.newPage(),errors=[];
  page.on('pageerror',error=>errors.push(error.message));
@@ -17,7 +18,7 @@ async function run(browser,output){
   window.ScholarCases.show();
  });
  assert.deepEqual(await page.locator('.ct-tabs [role=tab]').allTextContents(),['追蹤中 0','Archive（結案） 0','母性保護回電 0','母保罐頭']);
- await page.locator('#ct-tab-snippets').click();await page.waitForFunction(()=>document.querySelectorAll('.ct-sn-card').length===58);
+ await page.locator('#ct-tab-snippets').click();await page.waitForFunction(total=>document.querySelectorAll('.ct-sn-card').length===total,count);
  await page.locator('#ct-sn-search').fill('經常／偶爾');assert.equal(await page.locator('.ct-sn-card').count(),1);
  const choice=page.locator('.ct-sn-card');await choice.locator('.ct-sn-choice').first().click();await choice.locator('.ct-sn-choice').first().click();await choice.locator('.ct-sn-choice').nth(1).click();
  await choice.getByRole('button',{name:'複製',exact:true}).click();assert.deepEqual(await page.evaluate(()=>window.copies),['偶爾需長時間站立']);
@@ -49,7 +50,7 @@ async function run(browser,output){
  await page.locator('.ct-sn-card').first().getByRole('button',{name:'加入',exact:true}).click();await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));assert.equal(await page.locator('#ct-sn-items li').count(),0);
  await page.locator('.ct-sn-card').first().getByRole('button',{name:'加入',exact:true}).click();await page.evaluate(()=>window.ScholarSync.connect(null,null));assert.equal(await page.locator('#ct-sn-items li').count(),0);
  assert.deepEqual(await page.evaluate(()=>window.writes),[]);assert.equal(await page.evaluate(()=>localStorage.length),0);assert.deepEqual(errors,[]);
- await context.close();return {widths:[1440,390,320],snippets:58,checks:'copy, add, edit, reorder, placeholders, confirmation, search, toggles, clear on exit, no persistence, responsive composer'};
+ await context.close();return {widths:[1440,390,320],snippets:count,checks:'copy, add, edit, reorder, placeholders, confirmation, search, toggles, clear on exit, no persistence, responsive composer'};
 }
 module.exports={run};
 if(require.main===module){(async()=>{const {chromium}=require('playwright'),browser=await chromium.launch({headless:true});try{console.log(await run(browser,process.argv[2]));}finally{await browser.close();}})().catch(error=>{console.error(error);process.exitCode=1;});}

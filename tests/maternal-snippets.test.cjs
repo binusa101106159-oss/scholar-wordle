@@ -2,16 +2,27 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const data=require('../cases/maternal-snippets.json'),M=require('../cases/maternal-snippets.js');
 const rows=M.flatten(data);
+const additions=require('./fixtures/maternal-snippets-additions.json').snippets;
+const addedIds=new Set(additions.map(row=>row.id));
+const originalRows=rows.filter(row=>!addedIds.has(row.id));
 test('maternal snippets have five sections, nonempty groups and globally unique ids',()=>{
  assert.deepEqual(data.sections.map(s=>s.title),['一、個案基本資料','二、工作內容','三、作業風險評估','四、工作建議','五、結尾']);
  const ids=[];for(const section of data.sections){ids.push(section.id);assert.ok(section.groups.length);for(const group of section.groups){ids.push(group.id);assert.ok(group.title);assert.ok(group.snippets.length);for(const snippet of group.snippets){ids.push(snippet.id);assert.equal(typeof snippet.text,'string');assert.ok(snippet.text);if(snippet.label!==undefined)assert.equal(typeof snippet.label,'string');}}}
- assert.equal(new Set(ids).size,ids.length);assert.equal(rows.length,58);
+ assert.equal(new Set(ids).size,ids.length);assert.equal(rows.length,58+additions.length);
 });
 test('all 58 texts and optional labels match the supplied source verbatim in order, without Unicode normalization',()=>{
  const source=fs.readFileSync(require.resolve('./fixtures/maternal-snippets-source.txt'),'utf8');
  const expected=source.split(/\r?\n/).filter(line=>line.startsWith('- ')).map(line=>{const raw=line.slice(2),label=raw.match(/^（([^）]+)）/);return {text:label?raw.slice(label[0].length):raw,...(label?{label:label[1]}:{})};});
- assert.equal(expected.length,58);assert.deepEqual(rows.map(({text,label})=>({text,...(label?{label}:{})})),expected);
- assert.equal(rows.map(r=>r.text).join('\n'),expected.map(r=>r.text).join('\n'));
+ assert.equal(expected.length,58);assert.deepEqual(originalRows.map(({text,label})=>({text,...(label?{label}:{})})),expected);
+ assert.equal(originalRows.map(r=>r.text).join('\n'),expected.map(r=>r.text).join('\n'));
+});
+test('reviewed additions match the de-identified fixture, stay in their groups and introduce no duplicate texts',()=>{
+ assert.equal(additions.length,40);assert.equal(new Set(rows.map(row=>row.text)).size,rows.length);
+ for(const {id,group,label,text} of additions){const found=rows.find(row=>row.id===id);assert.ok(found,id);assert.deepEqual({group:found.group,label:found.label,text:found.text},{group,label,text},id);}
+ assert.ok(additions.every(row=>!/\d+歲女性|\d{4}年\d{1,2}月\d{1,2}日/.test(row.text)));
+ const lifting=rows.find(row=>row.id==='maternal-extra-35').text;
+ assert.match(lifting,/實際可搬抬重量因人而異，可能會小於10公斤/);
+ assert.ok(rows.find(row=>row.id==='maternal-extra-39').text.includes('【工作壓力、加班】'));
 });
 test('same-group neighbors use semicolons, cross-group sentences use full stops and original internal punctuation stays intact',()=>{
  const item=(group,text)=>({group,text});

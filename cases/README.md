@@ -34,7 +34,7 @@ Google登入後，以ScholarSync與Firestore儲存，每位病人為獨立且具
 
 ## 母保罐頭
 
-位於母性保護回電之後，沿用 ct-、sg-btn 與表單的靜態 JSON 資料驅動呈現。`cases/maternal-snippets.json` 的 `sections → groups → snippets` 收錄使用者提供的五區、58 則通用原文；情境標示只放 label，其餘文字、全形標點與【】佔位符原樣保留。此資料為提供文字的逐字匯入，不另行改寫內容。`tests/fixtures/maternal-snippets-source.txt` 保留原文供測試依序逐條比對 text 與 label，另檢查全部 text 串接一致及 ID 不重複。
+位於母性保護回電之後，沿用 ct-、sg-btn 與表單的靜態 JSON 資料驅動呈現。`cases/maternal-snippets.json` 的 `sections → groups → snippets` 最初收錄使用者提供的五區、58 則通用原文；情境標示只放 label，其餘文字、全形標點與【】佔位符原樣保留。此資料為提供文字的逐字匯入，不另行改寫內容。`tests/fixtures/maternal-snippets-source.txt` 保留原文供測試依序逐條比對 text 與 label，另檢查全部 text 串接一致及 ID 不重複。
 
 左側依基本資料、工作內容、風險評估、工作建議、結尾分區，各組可收合，搜尋涵蓋所有片段文字。每張卡片可直接複製或加入右側組合區；經常／偶爾、站立／靜坐等選項可用小標籤切換，僅影響這次複製／加入的文字，不改靜態原文。組合區每則文字可直接編輯，可重複加入同一來源、以拖曳把手、上下方向鍵或上移／下移按鈕排序，並刪除單則或清空。
 
@@ -44,3 +44,5 @@ Google登入後，以ScholarSync與Firestore儲存，每位病人為獨立且具
 
 驗證：`tests/maternal-snippets.test.cjs` 檢查原文、結構、唯一 ID、標點、佔位符、搜尋與詞語選項；`tools/maternal-snippets-browser.cjs` 檢查加入、編輯、複製確認、拖曳／鍵盤排序、離開清除、不呼叫儲存，以及 1440／390／320 版面。安裝 Playwright 後可執行 `node tools/maternal-snippets-browser.cjs [截圖輸出目錄]`，測試不連正式 Firebase。
 
+
+母保罐頭補充：依使用者追加的範例擷取 40 則，共 98 則，涵蓋病史分項、遠距照護／資訊／醫療／個案管理工作、工作時間、實驗室非操作者與技術員作業、工作負擔、類別引言，以及加班、高壓工作、妊娠搬抬、休息安排、產檢與適性評估。原有 58 則保留原文與 ID；新增片段統一標點，實際年齡、日期、單位、職稱、病史與作業細節改用【】佔位符，不匯入完整個案範例。新增搬抬句保留實際負重因人而異、可能低於 10 公斤的原有限定，未擴寫成所有人皆可搬抬的結論。新增內容為使用者提供的常用措辭，未新增醫療或法規查證結論。`tests/fixtures/maternal-snippets-additions.json` 只保留去識別化後的片段、類別及來源說明；測試分別核對原有 58 則與新增 40 則，並檢查重複及佔位符。
