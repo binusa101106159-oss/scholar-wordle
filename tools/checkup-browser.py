@@ -16,7 +16,8 @@ try:
     page.on('pageerror',lambda e:errors.append(str(e)));page.on('request',lambda r:writes.append(r.url) if r.method not in ['GET','HEAD'] else None)
     page.route('https://www.gstatic.com/firebasejs/**',lambda r:r.abort())
     page.goto(url+'/#checkup');page.locator('#hc-library .hc-card').first.wait_for(timeout=30000)
-    assert page.locator('.hc-beta').inner_text()=='beta v0.2'
+    assert page.locator('.hc-head, .hc-beta, #hc-results, .hc-search-label, #hc-copy, #hc-report-clear').count()==0
+    assert page.get_by_role('textbox',name='原始資料',exact=True).is_visible() and page.get_by_role('textbox',name='報告草稿',exact=True).is_visible()
     page.locator('#hc-source').fill('性別：男\nKetone(Dipstick)：3+\nGLU AC：85\nMCH：20')
     page.locator('#hc-regenerate').click();draft=page.locator('#hc-report').input_value()
     assert '疑似為長期空腹' in draft and '平均紅血球血紅素量偏低' in draft
