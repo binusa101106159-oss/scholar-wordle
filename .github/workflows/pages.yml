@@ -26,6 +26,7 @@ jobs:
       - run: python -m playwright install --with-deps chromium firefox webkit
       - run: python tools/smoke-browser.py
       - run: python tools/games-navigation-browser.py
+      - run: python tools/tab-order-browser.py
       - run: python tools/resilience-browser.py
       - run: python tools/insurance-browser.py
       - run: python tools/peek-browser.py

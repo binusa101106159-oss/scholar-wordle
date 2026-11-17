@@ -83,7 +83,8 @@
       if(!next||!nav.getClientRects().length){if(!lens.hidden)lens.hidden=true;return;}
       if(animate&&next===selected&&!lens.hidden)return;
       const track=nav.getBoundingClientRect(),rect=next.getBoundingClientRect(),base=track.left+nav.clientLeft;
-      const x=rect.left-base+nav.scrollLeft,y=rect.top-track.top-nav.clientTop+nav.scrollTop;
+      // Offset geometry ignores temporary FLIP transforms during tab sorting.
+      const x=next.offsetLeft,y=next.offsetTop;
       const before=!lens.hidden&&selected?lens.getBoundingClientRect():null;
       if(motion){motion.cancel();motion=null;}
       if(lens.hidden)lens.hidden=false;lens.style.left=x+'px';lens.style.top=y+'px';lens.style.width=rect.width+'px';lens.style.height=rect.height+'px';
@@ -106,6 +107,7 @@
       flow.finished.then(()=>{if(motion===flow){motion=null;lens.classList.remove('lg-flowing');}},()=>{});
     }
     const schedule=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;sync(true);});};
+    nav.addEventListener('scholar:taborder',()=>sync(false));
     new MutationObserver(schedule).observe(nav,{subtree:true,attributes:true,attributeFilter:['aria-selected','hidden','data-active']});
     const resize=new ResizeObserver(()=>sync(false));resize.observe(nav);nav.querySelectorAll('[role="tab"],[data-game-group]').forEach(tab=>resize.observe(tab));
     reducedMotion.addEventListener('change',()=>sync(false));
