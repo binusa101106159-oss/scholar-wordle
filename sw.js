@@ -1,20 +1,16 @@
-const CACHE_NAME = "scholar-games-v224";
+const CACHE_NAME = "scholar-games-v225";
 const AMA_DATA_CACHE = "scholar-ama-data-v1";
-const ASSETS = ["./checkup/checkup.js", "./checkup/checkup.css", "./checkup/snippets.json", "./ama/form-reader.js", "./ama/form-reader.css", "./calculator/impairment.js", "./calculator/impairment.css", "./calculator/impairment.json", "./edit-viewport.js", "./edit-viewport.css", "./app-loader.js", "./reader-performance.js", "./reader-tables.js", "./forms/forms.js", "./forms/forms.css", "./forms/data.json", "./calendar/calendar.css", "./calendar/calendar.js", "./calendar/roster.json", "./calculator/taiwan-calendar.json", "./iarc/iarc.js", "./iarc/iarc.css", "./iarc/data.json", "./calculator/california-occupations.json", "./calculator/california.js", "./calculator/california.css", "./calculator/california.json", "./assets/tailwind.css", "./calculator/overload.js", "./calculator/overload.css", "./glass-layer.js", "./liquid-clear.css", "./guides/table-layout.js", "./navigation.css", "./navigation.js", "./reading-performance.css", "./sync/state.js", "./sync/store.js", "./sync/client.js", "./sync/firebase-config.js", "./sync/sync.css", "./cases/cases.css", "./cases/cases.js", "./cases/maternal-calls.js", "./cases/maternal-snippets.js", "./cases/maternal-snippets.json", "./reader-layout.css", "./health/health.css", "./health/health.js", "./health/index.json", "./laws/search.css", "./laws/search.js", "./calculator/aaos.css", "./calculator/aaos.js", "./calculator/aaos.json", "./calculator/calculator.css", "./calculator/calculator.js", "./ilo/ilo.css", "./ilo/ilo.js", "./ilo/films.json", "./ilo/study.json", "./ama/fast/index.json", "./peek-glass.css", "./peek-glass.js", "./reader-top.css", "./reader-top.js", "./", "./index.html", "./manifest.json", "./laws/laws.css", "./laws/laws.js", "./laws/index.json", "./guides/guides.css", "./guides/guides.js", "./guides/index.json", "./ama/ama.css", "./ama/ama.js", "./ama/index.json", "./review/review.css", "./review/review.js", "./notes/notes.css", "./notes/notes.js"];
+const ASSETS = ["./site-updates.js", "./checkup/checkup.js", "./checkup/checkup.css", "./checkup/snippets.json", "./ama/form-reader.js", "./ama/form-reader.css", "./calculator/impairment.js", "./calculator/impairment.css", "./calculator/impairment.json", "./edit-viewport.js", "./edit-viewport.css", "./app-loader.js", "./reader-performance.js", "./reader-tables.js", "./forms/forms.js", "./forms/forms.css", "./forms/data.json", "./calendar/calendar.css", "./calendar/calendar.js", "./calendar/roster.json", "./calculator/taiwan-calendar.json", "./iarc/iarc.js", "./iarc/iarc.css", "./iarc/data.json", "./calculator/california-occupations.json", "./calculator/california.js", "./calculator/california.css", "./calculator/california.json", "./assets/tailwind.css", "./calculator/overload.js", "./calculator/overload.css", "./glass-layer.js", "./liquid-clear.css", "./guides/table-layout.js", "./navigation.css", "./navigation.js", "./reading-performance.css", "./sync/state.js", "./sync/store.js", "./sync/client.js", "./sync/firebase-config.js", "./sync/sync.css", "./cases/cases.css", "./cases/cases.js", "./cases/maternal-calls.js", "./cases/maternal-snippets.js", "./cases/maternal-snippets.json", "./reader-layout.css", "./health/health.css", "./health/health.js", "./health/index.json", "./laws/search.css", "./laws/search.js", "./calculator/aaos.css", "./calculator/aaos.js", "./calculator/aaos.json", "./calculator/calculator.css", "./calculator/calculator.js", "./ilo/ilo.css", "./ilo/ilo.js", "./ilo/films.json", "./ilo/study.json", "./ama/fast/index.json", "./peek-glass.css", "./peek-glass.js", "./reader-top.css", "./reader-top.js", "./", "./index.html", "./manifest.json", "./laws/laws.css", "./laws/laws.js", "./laws/index.json", "./guides/guides.css", "./guides/guides.js", "./guides/index.json", "./ama/ama.css", "./ama/ama.js", "./ama/index.json", "./review/review.css", "./review/review.js", "./notes/notes.css", "./notes/notes.js"];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(ASSETS)));
+  e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(ASSETS.map(asset => new Request(asset, {cache: "reload"})))));
 
 });
 
-// Activate after old pages close; never take over an editor or mix shell versions.
-self.addEventListener("activate", (e) => {
-  e.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME && k !== AMA_DATA_CACHE).map((k) => caches.delete(k))))
-
-  );
-});
+// Activate updates without requiring every site tab to close.
+// Do not claim existing documents: their loaded code and drafts stay untouched.
+// Old version caches remain available to documents still using the old worker.
+self.addEventListener("install", e => { e.waitUntil(self.skipWaiting()); });
 
 // Network first, always revalidating our own files with the server (skips the browser's
 // 10-minute HTTP cache); fall back to the cached copy only when offline.
