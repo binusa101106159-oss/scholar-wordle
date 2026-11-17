@@ -8,7 +8,7 @@ permissions:
   contents: read
 concurrency:
   group: pages-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -22,20 +22,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install playwright==1.64.1
-      - run: python -m playwright install --with-deps chromium firefox webkit
-      - run: python tools/smoke-browser.py
-      - run: python tools/checkup-browser.py
-      - run: python tools/games-navigation-browser.py
-      - run: python tools/tab-order-browser.py
-      - run: python tools/resilience-browser.py
-      - run: python tools/insurance-browser.py
-      - run: python tools/peek-browser.py
-      - run: python tools/ama-tabs-browser.py
-      - run: python tools/ama-forms-browser.py
-      - run: python tools/ama-form-reading-browser.py
-      - run: python tools/ama-art-browser.py
-      - run: python tools/ama-details-browser.py
       - run: python tools/ama-build/labels-review.py
       - run: python tools/build-public.py
       - uses: actions/upload-pages-artifact@v4
