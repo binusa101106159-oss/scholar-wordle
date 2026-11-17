@@ -52,3 +52,13 @@ test('composition reorder preserves edited values and allows duplicate source ph
  const items=[{id:'a',sourceId:'same',group:'a',text:'編輯後甲'},{id:'b',sourceId:'same',group:'a',text:'乙'}];
  assert.deepEqual(M.move(items,'b','a').map(i=>i.text),['乙','編輯後甲']);assert.equal(items[0].id,'a');assert.equal(M.move(items,'missing','a'),items);
 });
+test('maternal snippets have an independent lazy main tab with a direct URL and no case-subtab dependency',()=>{
+ const index=fs.readFileSync(require.resolve('../index.html'),'utf8'),loader=fs.readFileSync(require.resolve('../app-loader.js'),'utf8'),cases=fs.readFileSync(require.resolve('../cases/cases.js'),'utf8'),source=fs.readFileSync(require.resolve('../cases/maternal-snippets.js'),'utf8');
+ assert.match(index,/id="game-tab-maternal"[^>]*data-game-tab="maternal"/);
+ assert.match(index,/data-lazy="maternal" data-cloud-src="cases\/maternal-snippets.js"/);
+ assert.match(index,/id="maternal-panel"[^>]*aria-labelledby="game-tab-maternal"/);
+ assert.match(index,/location.hash === '#maternal' \? 'maternal'/);
+ assert.match(loader,/maternal:'ScholarMaternalSnippets'/);
+ assert.ok(!cases.includes('ct-tab-snippets'));assert.ok(!cases.includes('ScholarMaternalSnippets'));
+ assert.match(source,/by\('maternal-panel'\).replaceChildren\(panel\)/);
+});

@@ -97,9 +97,9 @@
   }
   function mount(){
     if(mounted)return;mounted=true;
-    const panel=el('section');panel.id='ct-sn-panel';panel.hidden=true;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby','ct-tab-snippets');
+    const panel=el('section');panel.id='ct-sn-panel';panel.className='ct-shell';
     panel.innerHTML='<header class="ct-head ct-sn-head"><h1>母保罐頭</h1><div class="ct-tools"><input id="ct-sn-search" type="search" aria-label="搜尋母保罐頭" placeholder="搜尋所有片段文字" autocomplete="off"><span id="ct-sn-results"></span></div><p>組合內容不會儲存，離開頁面即清除</p></header><p id="ct-sn-status" class="ct-status" role="status" aria-live="polite"></p><div class="ct-sn-layout"><div id="ct-sn-library"></div><details id="ct-sn-composer" class="ct-sn-composer"><summary>組合區 <span id="ct-sn-count">0 則</span><span class="ct-sn-expand">展開／收合</span></summary><div class="ct-sn-composer-body"><p id="ct-sn-composer-empty">從左側（手機上方）加入片段，可直接編輯、拖曳排序或刪除。</p><ol id="ct-sn-items"></ol><h2>完整段落預覽</h2><p id="ct-sn-preview" class="ct-sn-preview"></p><p id="ct-sn-warning" class="ct-error" role="status" aria-live="polite"></p><div class="ct-sn-actions"><button type="button" id="ct-sn-copy-all" class="sg-btn sg-primary">全部複製</button><button type="button" id="ct-sn-clear" class="sg-btn">清空</button></div></div></details></div>';
-    by('ct-list').after(panel);by('ct-sn-composer').open=!mobile.matches;
+    by('maternal-panel').replaceChildren(panel);by('ct-sn-composer').open=!mobile.matches;
     mobile.addEventListener('change',()=>{by('ct-sn-composer').open=!mobile.matches;});
     by('ct-sn-search').oninput=renderLibrary;by('ct-sn-copy-all').onclick=()=>copy(compose(items),true);
     by('ct-sn-clear').onclick=()=>{items=[];renderComposition();announce('組合區已清空。');};setupReorder();preview();
@@ -108,6 +108,7 @@
   }
   function clear(){if(!mounted)return;items=[];drag=null;selections.clear();by('ct-sn-search').value='';renderComposition();by('ct-sn-status').textContent='';if(catalog)renderLibrary();}
   async function show(){
+    mount();
     if(catalog){renderLibrary();return;}
     if(loading)return loading;
     announce('載入罐頭…');

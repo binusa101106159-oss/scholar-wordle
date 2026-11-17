@@ -5,7 +5,7 @@ const count=require('../cases/maternal-snippets.json').sections.flatMap(s=>s.gro
 async function run(browser,output){
  const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'}),page=await context.newPage(),errors=[];
  page.on('pageerror',error=>errors.push(error.message));
- await page.route('**/*',route=>{if(route.request().url().endsWith('cases/maternal-snippets.json'))return route.fulfill({contentType:'application/json',body:fs.readFileSync(path.join(root,'cases/maternal-snippets.json'))});return route.fulfill({contentType:'text/html',body:'<!doctype html><html class="dark"><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body data-game="cases"><main id="cases-panel"></main></body></html>'});});
+ await page.route('**/*',route=>{if(route.request().url().endsWith('cases/maternal-snippets.json'))return route.fulfill({contentType:'application/json',body:fs.readFileSync(path.join(root,'cases/maternal-snippets.json'))});return route.fulfill({contentType:'text/html',body:'<!doctype html><html class="dark"><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body data-game="cases"><button id="game-tab-cases">個案追蹤</button><button id="game-tab-maternal">母保罐頭</button><main id="cases-panel"></main><main id="maternal-panel" hidden></main></body></html>'});});
  await page.goto('https://snippets.invalid/');
  const styles=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m=>m[1]).join('\n');await page.addStyleTag({content:styles});
  for(const file of ['cases/cases.css','peek-glass.css','liquid-clear.css'])await page.addStyleTag({content:fs.readFileSync(path.join(root,file),'utf8')});
@@ -16,9 +16,11 @@ async function run(browser,output){
   window.ScholarSync.connect({uid:'fictional-owner'},{commit:async op=>op.next},new Map());
   for(const key of ['setItem','setConfirmed','removeItem'])window.ScholarStorage[key]=()=>{window.writes.push(key);throw Error('Unexpected persistence');};
   window.ScholarCases.show();
+  document.getElementById('game-tab-maternal').onclick=()=>{window.ScholarCases.hide();document.getElementById('cases-panel').hidden=true;document.getElementById('maternal-panel').hidden=false;document.body.dataset.game='maternal';window.ScholarMaternalSnippets.show();};
+  document.getElementById('game-tab-cases').onclick=()=>{window.ScholarMaternalSnippets.hide();document.getElementById('maternal-panel').hidden=true;document.getElementById('cases-panel').hidden=false;document.body.dataset.game='cases';window.ScholarCases.show();};
  });
- assert.deepEqual(await page.locator('.ct-tabs [role=tab]').allTextContents(),['追蹤中 0','Archive（結案） 0','母性保護回電 0','母保罐頭']);
- await page.locator('#ct-tab-snippets').click();await page.waitForFunction(total=>document.querySelectorAll('.ct-sn-card').length===total,count);
+ assert.deepEqual(await page.locator('.ct-tabs [role=tab]').allTextContents(),['追蹤中 0','Archive（結案） 0','母性保護回電 0']);
+ await page.locator('#game-tab-maternal').click();await page.waitForFunction(total=>document.querySelectorAll('.ct-sn-card').length===total,count);
  await page.locator('#ct-sn-search').fill('經常／偶爾');assert.equal(await page.locator('.ct-sn-card').count(),1);
  const choice=page.locator('.ct-sn-card');await choice.locator('.ct-sn-choice').first().click();await choice.locator('.ct-sn-choice').first().click();await choice.locator('.ct-sn-choice').nth(1).click();
  await choice.getByRole('button',{name:'複製',exact:true}).click();assert.deepEqual(await page.evaluate(()=>window.copies),['偶爾需長時間站立']);
@@ -46,7 +48,7 @@ async function run(browser,output){
  await page.locator('#ct-sn-items textarea').fill('<img src=x onerror=alert(1)>');assert.equal(await page.locator('#ct-sn-preview img').count(),0);assert.match(await page.locator('#ct-sn-preview').textContent(),/<img/);
  await page.locator('#ct-sn-clear').click();assert.equal(await page.locator('#ct-sn-items li').count(),0);
  if(await page.locator('#ct-sn-composer').evaluate(el=>el.open))await page.locator('#ct-sn-composer>summary').click();
- await page.locator('.ct-sn-card').first().getByRole('button',{name:'加入',exact:true}).click();await page.locator('#ct-tab-active').click();await page.locator('#ct-tab-snippets').click();assert.equal(await page.locator('#ct-sn-items li').count(),0);
+ await page.locator('.ct-sn-card').first().getByRole('button',{name:'加入',exact:true}).click();await page.locator('#game-tab-cases').click();await page.locator('#game-tab-maternal').click();assert.equal(await page.locator('#ct-sn-items li').count(),0);
  await page.locator('.ct-sn-card').first().getByRole('button',{name:'加入',exact:true}).click();await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));assert.equal(await page.locator('#ct-sn-items li').count(),0);
  await page.locator('.ct-sn-card').first().getByRole('button',{name:'加入',exact:true}).click();await page.evaluate(()=>window.ScholarSync.connect(null,null));assert.equal(await page.locator('#ct-sn-items li').count(),0);
  assert.deepEqual(await page.evaluate(()=>window.writes),[]);assert.equal(await page.evaluate(()=>localStorage.length),0);assert.deepEqual(errors,[]);

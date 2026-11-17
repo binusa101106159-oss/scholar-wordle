@@ -73,3 +73,7 @@ body[data-game="cases"] #game-main,body[data-game="cases"] #wordle-toolbar{displ
 @media(max-width:900px){.ct-sn-layout{grid-template-columns:minmax(0,1fr);padding-bottom:90px;gap:0}.ct-sn-composer{position:fixed;z-index:1000;top:auto;bottom:max(8px,env(safe-area-inset-bottom));left:12px;right:12px;max-height:70dvh;box-shadow:0 -8px 40px #0008}.ct-sn-composer>summary{min-height:48px;box-sizing:border-box;padding:14px 16px}.ct-sn-composer-body{padding:0 14px 14px}.ct-sn-composed textarea{font-size:16px}.ct-sn-head>.ct-tools{flex-wrap:wrap}.ct-sn-head>.ct-tools input{flex-basis:100%}}
 @media(max-width:900px){.ct-head{grid-template-columns:minmax(0,1fr) auto;gap:12px}.ct-head>h1{grid-column:1;grid-row:1}.ct-head>#ct-add{grid-column:2;grid-row:1}.ct-head>.ct-tools{grid-column:1/-1;grid-row:2;flex-wrap:nowrap}.ct-head>.ct-tools input{width:auto}.ct-head>p{grid-row:3}}
 
+
+body[data-game="maternal"] #game-main,body[data-game="maternal"] #wordle-toolbar{display:none!important}
+#maternal-panel{color:#edf2f8;font-family:system-ui,'Noto Sans TC','Microsoft JhengHei',sans-serif}
+#maternal-panel [hidden]{display:none!important}
