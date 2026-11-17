@@ -17,3 +17,11 @@ body[data-game="checkup"] #game-main,body[data-game="checkup"] #wordle-toolbar{d
  #checkup-panel .hc-phrases{height:100%;max-height:none;min-height:0;box-sizing:border-box}
 }
 #checkup-panel #hc-status:empty{display:none}
+
+/* beta v0.1: generated draft and manual review share the existing workspace. */
+.hc-beta{font-size:11px;font-weight:500;padding:3px 7px;border:1px solid #9dc8ff66;border-radius:20px;vertical-align:middle;color:#b8d8ff}
+.hc-options{font-size:12px;margin:6px 0;max-height:180px;overflow:auto;flex-shrink:0}.hc-options summary,.hc-audit summary{cursor:pointer;padding:5px 0}.hc-options .hc-controls{margin:7px 0}.hc-agent-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}.hc-agent-row label{display:flex;gap:4px;align-items:center}
+#checkup-panel .hc-controls input[type=checkbox],#checkup-panel .hc-agent-row input[type=checkbox]{width:auto;max-width:none;min-height:0;accent-color:#9dc8ff}.hc-warning{border-left:3px solid #e2b45b;background:#e2b45b12;padding:8px 10px;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}.hc-audit{margin:8px 0;font-size:12px}.hc-audit pre{white-space:pre-wrap;overflow-wrap:anywhere;user-select:text}.hc-audit details{margin:6px 0}.hc-box>.hc-actions{flex-shrink:0;margin-top:6px}#checkup-panel textarea[readonly]{opacity:.8}.hc-head{margin-bottom:6px}.hc-head h1{font-size:17px}#hc-suggestions:empty{display:none}#hc-suggestions{display:flex;flex-direction:column;gap:4px;padding-bottom:6px}
+@media(max-width:700px){.hc-options{max-height:none}.hc-head h1{font-size:18px}.hc-agent-row{align-items:flex-start}}
+@media(min-width:701px){#checkup-panel .hc-box{overflow:auto}#checkup-panel #hc-source,#checkup-panel #hc-report{min-height:90px;flex-shrink:0}}
+
