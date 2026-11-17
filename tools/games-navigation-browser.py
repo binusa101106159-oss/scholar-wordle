@@ -27,8 +27,11 @@ def main():
       assert group.get_attribute('aria-label')=='小遊戲：'+label
      group.press('ArrowDown');assert menu.is_visible();page.keyboard.press('Home');assert page.locator(':focus').get_attribute('aria-label')=='Wordle';page.keyboard.press('Escape');assert menu.is_hidden()and group.evaluate('e=>e===document.activeElement')
      page.keyboard.press('Escape');assert group.evaluate('e=>e===document.activeElement'),'game Escape must not focus a hidden old tab'
-     group.press('ArrowLeft');assert page.locator(':focus').get_attribute('id')=='game-tab-cases'
-     page.locator('#game-tab-cases').press('End');assert group.evaluate('e=>e===document.activeElement')
+     # Check the actual preceding visible tab; feature tabs may be added.
+     visible_tabs=page.locator('#scholar-game-tabs>[data-game-tab]:visible')
+     preceding_id=visible_tabs.last.get_attribute('id')
+     group.press('ArrowLeft');assert page.locator(':focus').get_attribute('id')==preceding_id
+     page.locator('#'+preceding_id).press('End');assert group.evaluate('e=>e===document.activeElement')
      group.click()
      if engine=='chromium'and width in [1440,390]:page.screenshot(path=str(out/f'menu-{width}.png'))
      page.locator('#game-tab-forms').click();assert menu.is_hidden()
