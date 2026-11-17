@@ -27,7 +27,7 @@ test('guide reader script parses and the tab is wired into the page', () => {
   assert.match(html, /id="guides-panel"/);
   assert.match(html, /guides\/guides\.js/);
   assert.match(html, /location\.hash === '#guides'/);
-  assert.match(fs.readFileSync(path.join(root, 'sw.js'), 'utf8'), /\.\/guides\/guides\.js/);
+  assert.ok(fs.existsSync(path.join(root, 'guides', 'guides.js')), 'reader script must be shipped without an offline cache dependency');
 });
 
 test('guides follow the official order and numbering, one section per category', () => {

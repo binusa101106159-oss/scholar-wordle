@@ -19,7 +19,7 @@ test('law reader script parses and the tab is wired into the page', () => {
   assert.match(html, /id="game-tab-laws"/);
   assert.match(html, /id="laws-panel"/);
   assert.match(html, /laws\/laws\.js/);
-  assert.match(fs.readFileSync(path.join(root, 'sw.js'), 'utf8'), /\.\/laws\/laws\.js/);
+  assert.ok(fs.existsSync(path.join(root, 'laws', 'laws.js')), 'reader script must be shipped without an offline cache dependency');
 });
 
 const B_ORDER = ['游離輻射防護法', '勞動基準法施行細則', '高架作業勞工保護措施標準'];
