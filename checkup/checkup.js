@@ -17,14 +17,9 @@
   if(!rows.length)host.append(el('p','找不到符合的罐頭。'));
  }
  function clear(){if(!mounted)return;by('hc-source').value='';by('hc-report').value='';by('hc-search').value='';by('hc-status').textContent='';update();if(catalog)renderLibrary();}
- function mode(){by('hc-work-label').hidden=by('hc-mode').value==='general';}
  function mount(){
   if(mounted)return;mounted=true;
   panel.innerHTML=`<div class="hc-shell">
-   <header class="hc-head"><h1>健檢報告</h1><div class="hc-controls">
-    <label>類型<select id="hc-mode"><option value="general">一般</option><option value="special-pre">特殊作業體格檢查</option><option value="special-periodic">特殊作業健康檢查</option></select></label>
-    <label id="hc-work-label" hidden>作業<input id="hc-work" type="text" placeholder="輸入作業名稱" autocomplete="off"></label>
-   </div></header>
    <p id="hc-status" role="status" aria-live="polite"></p>
    <div class="hc-layout"><div class="hc-editor">
     <section class="hc-box"><div class="hc-section-head"><h2><label for="hc-source">原始資料</label></h2><button class="sg-btn" id="hc-source-clear" type="button">清除資料</button></div>
@@ -37,10 +32,12 @@
    </div><aside class="hc-phrases" aria-label="罐頭"><div class="hc-section-head"><h2>罐頭 <small>點擊複製</small></h2><span id="hc-results"></span></div><label class="hc-search-label" for="hc-search">搜尋罐頭</label><input id="hc-search" type="search" placeholder="搜尋檢查項目、異常或建議" autocomplete="off"><div id="hc-library"></div></aside></div>
    <p class="hc-hint">貼入資料與報告僅留在本頁，切換分頁即清除。</p>
   </div>`;
-  by('hc-mode').onchange=mode;by('hc-search').oninput=()=>{if(catalog)renderLibrary();};
+  by('hc-search').oninput=()=>{if(catalog)renderLibrary();};
   by('hc-report').oninput=update;by('hc-copy').onclick=()=>copy(by('hc-report').value);
   by('hc-source-clear').onclick=()=>{by('hc-source').value='';};
   by('hc-report-clear').onclick=()=>{if(by('hc-report').value&&!confirm('清空報告內容？'))return;by('hc-report').value='';update();};
+  const size=()=>{if(panel.hidden)return;const top=panel.getBoundingClientRect().top;panel.style.setProperty('--hc-height',Math.max(360,window.innerHeight-top-22)+'px');};
+  window.addEventListener('resize',size);if(window.ResizeObserver)new ResizeObserver(size).observe(document.querySelector('.sg-nav-shell')||document.body);requestAnimationFrame(size);
   update();window.addEventListener('pagehide',clear);window.addEventListener('scholar-sync-status',clear);
  }
  async function show(){

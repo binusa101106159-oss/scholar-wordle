@@ -7,3 +7,13 @@ body[data-game="checkup"] #game-main,body[data-game="checkup"] #wordle-toolbar{d
 #checkup-panel textarea{display:block;width:100%;resize:vertical;min-height:160px;flex:1}#hc-source,#hc-report{height:calc((100dvh - 250px)/2);min-height:180px}#hc-search{width:100%;margin:4px 0 6px}.hc-search-label{font-size:11px}.hc-controls input{max-width:200px}.hc-phrases{display:flex;flex-direction:column;max-height:calc(100dvh - 150px);min-height:300px}.hc-phrases>.hc-section-head,.hc-phrases>input,.hc-search-label{flex-shrink:0}#hc-library{overflow:auto;min-height:0;flex:1}
 #checkup-panel .hc-card{display:block;width:100%;box-sizing:border-box;margin:0;padding:7px 6px;border:0;border-bottom:1px solid #9dc8ff20;border-radius:0;background:transparent;color:inherit;text-align:left;font:12px/1.55 system-ui;white-space:pre-wrap;overflow-wrap:anywhere;cursor:pointer;user-select:text}#checkup-panel .hc-card:hover{background:#9dc8ff12}.hc-hint{font-size:11px;line-height:1.4;color:#9baac0;margin:4px 0}#hc-results{font-size:11px;color:#b8cce6}#hc-status{min-height:16px;margin:3px 0;font-size:12px}#checkup-panel :focus-visible{outline:2px solid #9dc8ff;outline-offset:1px}#checkup-panel button:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:700px){.hc-shell{padding:10px 8px}.hc-layout{grid-template-columns:minmax(0,1fr)}.hc-phrases{max-height:65dvh}.hc-controls{width:100%;align-items:stretch}.hc-controls label{flex-wrap:wrap}#checkup-panel textarea,#checkup-panel input,#checkup-panel select{font-size:16px;max-width:100%}.hc-head{gap:8px}}
+
+/* One workspace height: both editor panes and the full right column align. */
+@media(min-width:701px){
+ #checkup-panel .hc-layout{height:var(--hc-height,calc(100dvh - 110px));min-height:360px;align-items:stretch}
+ #checkup-panel .hc-editor{grid-template-rows:minmax(0,1fr) minmax(0,1fr);min-height:0}
+ #checkup-panel .hc-box{min-height:0;overflow:hidden}
+ #checkup-panel #hc-source,#checkup-panel #hc-report{height:0;min-height:0;flex:1;resize:none}
+ #checkup-panel .hc-phrases{height:100%;max-height:none;min-height:0;box-sizing:border-box}
+}
+#checkup-panel #hc-status:empty{display:none}

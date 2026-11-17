@@ -4,7 +4,7 @@
  function install(nodes){
   async function load(group){
    const selected=nodes.filter(n=>(n.dataset.lazy||'').split(' ').includes(group));
-   await Promise.all(selected.map(n=>{const url=n.dataset.cloudSrc;if(!files.has(url))files.set(url,fetch(new URL(url,location.href)).then(r=>{if(!r.ok)throw Error('載入失敗');return r.text()}).catch(e=>{files.delete(url);throw e}));return files.get(url)}));
+   await Promise.all(selected.map(n=>{const url=n.dataset.cloudSrc;if(!files.has(url))files.set(url,fetch(new URL(url,location.href),{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('載入失敗');return r.text()}).catch(e=>{files.delete(url);throw e}));return files.get(url)}));
    for(const node of selected){if(node.dataset.executed)continue;const script=document.createElement('script');script.textContent=await files.get(node.dataset.cloudSrc)+'\n//# sourceURL='+node.dataset.cloudSrc;document.body.append(script);node.dataset.executed='true';}
   }
   const names={maternal:'ScholarMaternalSnippets',checkup:'ScholarCheckup',laws:'ScholarLaws',guides:'ScholarGuides',ama:'ScholarAMA',health:'ScholarHealth',calculator:'ScholarCalculator',forms:'ScholarForms',cases:'ScholarCases',calendar:'ScholarCalendar',iarc:'ScholarIARC',ilo:'ScholarILO',notes:'ScholarNotes',review:'ScholarReview'};

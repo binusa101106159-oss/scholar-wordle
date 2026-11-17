@@ -1,31 +1,10 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-function worker(options={}){
- const handlers={},entries=new Map();let requests=0,claimed=0,skipped=0,assets=[];
- const cache={addAll:async list=>{assets=list;if(options.install)await options.install();},match:async key=>entries.get(String(key)),put:async(key,value)=>entries.set(String(key),value)};
- vm.runInNewContext(fs.readFileSync(require.resolve('../sw.js'),'utf8'),{URL,Request,Promise,self:{location:{origin:'https://example.test'},registration:{scope:'https://example.test/site/'},clients:{claim(){claimed++;return Promise.resolve();}},skipWaiting(){skipped++;return Promise.resolve();},addEventListener(t,fn){handlers[t]=fn}},caches:{open:async()=>cache,keys:async()=>[],delete:async()=>true},fetch:async()=>{requests++;throw Error('offline');}});
- return {handlers,entries,get requests(){return requests;},get claimed(){return claimed;},get skipped(){return skipped;},get assets(){return assets;},
- install(){let pending;handlers.install({waitUntil:p=>{pending=p;}});return pending;},
- async get(path,mode='cors'){let response;handlers.fetch({request:{method:'GET',url:path,mode},respondWith(p){response=p;},waitUntil(){}});return response;}};
+function worker(){const handlers={},deleted=[];let skipped=0,claimed=0,unregistered=0,request;
+ vm.runInNewContext(fs.readFileSync(require.resolve('../sw.js'),'utf8'),{URL,Promise,self:{location:{origin:'https://example.test'},skipWaiting:async()=>{skipped++;},clients:{claim:async()=>{claimed++;}},registration:{unregister:async()=>{unregistered++;return true;}},addEventListener:(t,fn)=>handlers[t]=fn},caches:{keys:async()=>['scholar-games-v224','scholar-ama-data-v1','unrelated-cache'],delete:async key=>{deleted.push(key);return true;}},fetch:async(req,options)=>{request={req,options};return 'network';}});
+ return {handlers,deleted,get skipped(){return skipped;},get claimed(){return claimed;},get unregistered(){return unregistered;},get request(){return request;},async event(type){let promise;handlers[type]({waitUntil:p=>promise=p});await promise;}};
 }
-test('installed public shell opens offline without waiting for a network request',async()=>{
- const w=worker(),response={ok:true};w.entries.set('https://example.test/site/index.html',response);
- assert.equal(await w.get('https://example.test/site/','navigate'),response);assert.equal(w.requests,0);
-});
-test('new shell activates only after the complete download and does not claim existing pages',async()=>{
- let release;const gate=new Promise(resolve=>{release=resolve;}),w=worker({install:()=>gate});
- const installing=w.install();await Promise.resolve();await Promise.resolve();assert.equal(w.skipped,0);
- release();await installing;assert.equal(w.skipped,1);assert.equal(w.claimed,0);
- assert.ok(w.assets.length>50);assert.ok(w.assets.every(r=>r.cache==='reload'&&r.url.startsWith('https://example.test/site/')));
- assert.ok(w.assets.some(r=>r.url.endsWith('/site-updates.js')));
-});
-test('failed shell download never activates the replacement worker',async()=>{
- const w=worker({install:async()=>{throw Error('download failed');}});
- await assert.rejects(w.install(),/download failed/);assert.equal(w.skipped,0);assert.equal(w.claimed,0);
-});
-test('existing documents retain their old version cache during activation',async()=>{
- const w=worker();await w.install();assert.equal(w.handlers.activate,undefined);assert.equal(w.claimed,0);
-});
-test('authentication and Firestore requests bypass the service worker entirely',async()=>{
- const w=worker();assert.equal(await w.get('https://firestore.googleapis.com/test'),undefined);assert.equal(w.requests,0);
-});
+test('retirement worker immediately installs and unregisters after removing only Scholar caches',async()=>{const w=worker();await w.event('install');await w.event('activate');assert.equal(w.skipped,1);assert.equal(w.claimed,1);assert.equal(w.unregistered,1);assert.deepEqual(w.deleted,['scholar-games-v224','scholar-ama-data-v1']);});
+test('migration requests use network with no-store',async()=>{const w=worker();let result;w.handlers.fetch({request:{method:'GET',url:'https://example.test/index.html'},respondWith:p=>result=p});assert.equal(await result,'network');assert.equal(w.request.options.cache,'no-store');});
+test('cross-origin and write requests are untouched',()=>{const w=worker();let intercepted=false;for(const request of [{method:'GET',url:'https://firestore.googleapis.com/test'},{method:'POST',url:'https://example.test/api'}])w.handlers.fetch({request,respondWith:()=>intercepted=true});assert.equal(intercepted,false);});
+test('page cleanup never installs another service worker',()=>{const source=fs.readFileSync(require.resolve('../site-updates.js'),'utf8');assert.doesNotMatch(source,/serviceWorker\.register\s*\(/);assert.match(source,/reg\.unregister\(/);});
