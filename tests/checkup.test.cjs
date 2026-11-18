@@ -16,7 +16,7 @@ test('all small abnormalities are written, serum renal and urine are separate',(
 test('glycemic stage boundaries and known diabetes history',()=>{assert.match(gen({'GLU AC':100}).draft,/糖尿病前期/);assert.match(gen({'HbA1c':5.7}).draft,/糖尿病前期/);assert.match(gen({'GLU AC':126}).draft,/糖尿病標準/);assert.doesNotMatch(gen({'GLU AC':126}).draft,/糖尿病前期/);assert.match(gen({'個人病史':'糖尿病','GLU AC':130}).draft,/與糖尿病病史相符/);});
 test('Mentzer guidance is tentative and only applied with low Hb and MCV',()=>{assert.match(gen({'性別':'男',HB:12,MCV:60,RBC:6}).draft,/疑有地中海型貧血/);assert.match(gen({'性別':'男',HB:12,MCV:70,RBC:4}).draft,/疑有缺鐵性貧血/);assert.doesNotMatch(gen({'性別':'男',HB:14,MCV:70,RBC:4}).draft,/缺鐵性貧血|地中海型貧血/);});
 test('AFP uses pregnancy conditions without inferring pregnancy',()=>{assert.match(gen({'性別':'女','Alpha-Fetoprotein':30}).draft,/若目前懷孕/);assert.doesNotMatch(gen({'性別':'男','Alpha-Fetoprotein':30}).draft,/懷孕/);assert.match(gen({'性別':'女','Alpha-Fetoprotein':30},{pregnant:true}).draft,/婦產科/);});
-test('normal CXR requires a complete approved report',()=>{assert.equal(gen({'CXR':'normal heart size. no definite lung lesion.'},{includeCXR:true}).sections.filter(s=>s.category==='CXR').length,0);assert.match(gen({'CXR':'Normal heart size. Prominent lung markings.'},{includeCXR:true}).draft,/待人工確認/);assert.match(gen({},{includeCXR:true,cxrStatus:'not_examined'}).draft,/未受檢/);});
+test('normal CXR requires a complete approved report',()=>{assert.equal(gen({'CXR':'normal heart size. no definite lung lesion.'},{includeCXR:true}).sections.filter(s=>s.category==='CXR').length,0);assert.equal(gen({'CXR':'Normal heart size. Prominent lung markings.'},{includeCXR:true}).draft,'胸部X光檢查：');assert.match(gen({},{includeCXR:true,cxrStatus:'not_examined'}).draft,/未受檢/);});
 test('missing data does not produce a normal summary and unknown crystals are reviewed',()=>{assert.doesNotMatch(gen({HB:''}).draft,/大致正常/);assert(gen({'Crystal (Sediment)':'CaOX(+)'}).review.some(r=>r.field==='Crystal (Sediment)'));});
 test('TSV labels preserve qualifiers, grading columns are never adopted',()=>{const i=A.parseBetaInput('GLU AC\t126\tmg/dL\tH\nProtein(Dipstick)\t15(+/-)\n甲狀腺腫大：腫大');assert.equal(i.fields.length,3);assert.equal(i.fields[0].unit,'mg/dL');assert.equal(i.fields[0].status,'high');assert.equal(i.fields[1].value,'15(+/-)');assert.match(A.generate({...i,context:{includeCXR:false}},options).draft,/糖尿病標準/);assert.equal(gen({'健康管理級數':'2A','03游離輻射作業健康管理分級':'1'}).draft,'');});
 test('explicit conflicting units and source conflicts warn instead of silently converting',()=>{const p=A.parseBetaInput('GLU AC：100 mmol/L');const o=A.generate({...p,context:{includeCXR:false}},options);assert(o.review.some(r=>r.field==='GLU AC'));assert.doesNotMatch(o.draft,/糖尿病/);assert(gen([{name:'GLU AC',value:90},{name:'GLU AC',value:130}]).review.some(r=>r.code==='SOURCE_CONFLICT'));});
@@ -32,4 +32,16 @@ test('stool occult blood is independent from urine occult blood',()=>{
   const both=gen({'O.B.(Dipstick)':'1+','Stool O.B.(EIA)':'Positive(200)'});
   assert.match(both.draft,/尿液檢驗潛血/);
   assert.match(both.draft,/糞便潛血陽性反應/);
+});
+
+test('CXR accepts complete normal clause patterns and leaves mixed findings for review',()=>{
+ const context={includeCXR:true,includeNormalCXR:true};
+ const normal='Examination: Chest: PA View (Standing). Findings: Heart size normal. No definite active lung lesion. Bilateral sharp costophrenic angles.';
+ assert.match(gen({CXR:normal},context).draft,/心臟大小正常.*雙側肋膈角清晰/);
+ for(const extra of ['Mild scoliosis.','Prominent lung markings.','Possible small nodule.','Cannot exclude infiltrate.','No interval change of prior opacity.']){
+  const out=gen({CXR:normal+' '+extra},context);
+  assert.equal(out.draft,'胸部X光檢查：');
+  assert(out.review.some(r=>r.code==='CXR_MANUAL'&&r.detail.includes(extra)));
+ }
+ assert.equal(gen({'Chest : PA View (Standing)':normal,'Chest :  Lateral Right':''},context).draft,'胸部X光檢查：');
 });

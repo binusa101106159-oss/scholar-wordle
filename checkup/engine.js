@@ -61,7 +61,37 @@ const trace=s=>/^(?:trace|±|\+\/-|\(\+\/-\)|\+\-)$|\(\+\/-\)/i.test(s);
 const grade=s=>{let m=s.match(/([1-4])\s*\+/);return m?Number(m[1]):/^(?:\+|\(\+\)|positive|pos|陽性)$/i.test(s)?1:0;};
 function normUnit(s){return String(s||'').normalize('NFKC').toLowerCase().replace(/μ|µ/g,'u').replace(/\s/g,'').replace(/×|x/g,'').replace(/\^/g,'');}
 function comparableUnit(name,s){let u=normUnit(s);if(['WBC','PLT'].includes(name)&&u==='k/ul')u='103/ul';if(name==='RBC'&&u==='m/ul')u='106/ul';if(name==='Anti-HBs'&&u==='miu/ml')u='iu/l';return ({'kg/m2':'kg/m2','公分':'cm','公斤':'kg','毫米汞柱':'mmhg'})[u]||u;}
-function normalCxrText(text){const parts=[];if(/heart size/i.test(text))parts.push('心臟大小正常');if(/no definite (?:active|acute) (?:lung|pulmonary) lesion/i.test(text))parts.push('無明顯活動性肺病灶');else if(/no definite (?:focal )?lung lesion|no definite detectable lung abnormality|no definite mass or patchy lesion/i.test(text))parts.push('未見明顯肺部病灶');if(/No masses, pleural thickening, or effusions/i.test(text))parts.push('未見腫塊、肋膜增厚或積液');if(/clear costophrenic angles/i.test(text))parts.push('雙側肋膈角清晰');if(/clear retrocardiac and retrosternal|clear retrosternal and retrocardiac/i.test(text))parts.push('心後與胸骨後區未見明顯異常');return '胸部X光檢查：'+(parts.length?parts.join('，'):'無明顯異常')+'。';}
+// Every finding must match a complete normal clause. An unfamiliar clause
+// sends the report to manual review even when other clauses are normal.
+function isNormalCxrReport(text,normals){
+ const normalize=value=>value.normalize('NFKC').replace(/\s+/g,' ').trim().toLowerCase();
+ const value=normalize(text);
+ if(normals.some(row=>normalize(row.text)===value))return true;
+ const findings=value
+  .replace(/^examination:\s*chest\s*:\s*(?:pa view \(standing\)|lateral right)\.?\s*findings:\s*/,'')
+  .replace(/^(?:(?:lateral )?chest (?:radiograph(?: pa view)?|(?:pa(?:\/ap)?|ap\/pa|(?:right )?lateral)(?: view| plain film)?)|pa chest radiograph) (?:shows?|demonstrates)\s*:?\s*/,'')
+  .split(/[.;]+|\s+and\s+(?=no definite)/)
+  .map(clause=>clause.replace(/^\s*[-–]\s*/,'').trim()).filter(Boolean);
+ const normal=[
+  /^(?:normal heart size|heart size(?: is)? normal)$/,
+  /^no definite (?:(?:focal|active|acute|detectable) )?(?:lung lesions?|pulmonary lesions?|lung abnormality)(?: (?:is|are) noted)?$/,
+  /^no definite lesions at bilateral lung fields$/,
+  /^no definite mass or patchy lesion of lung$/,
+  /^no definite abnormality$/,
+  /^(?:bilateral )?(?:clear|sharp) costophrenic angles$/,
+  /^clear (?:retrocardiac and retrosternal|retrosternal and retrocardiac) regions$/,
+  /^lung parenchyma symmetrical in density$/,
+  /^pulmonary markings normal$/,
+  /^no masses, pleural thickening, or effusions$/,
+  /^unremarkable retrocardial lung fields and heart size$/,
+  /^unremarkable airways$/,
+  /^no definite retrocardiac mass$/
+ ];
+ const boilerplate=/^suggest (?:clinical correlation|correlation with chest pa)$/;
+ return findings.some(clause=>normal.some(pattern=>pattern.test(clause)))&&
+  findings.every(clause=>boilerplate.test(clause)||normal.some(pattern=>pattern.test(clause)));
+}
+function normalCxrText(text){const parts=[];if(/(?:normal heart size|heart size(?: is)? normal|unremarkable retrocardial lung fields and heart size)/i.test(text))parts.push('心臟大小正常');if(/no definite (?:active|acute) (?:lung|pulmonary) lesion/i.test(text))parts.push('無明顯活動性肺病灶');else if(/no definite (?:focal )?lung lesion|no definite lesions at bilateral lung fields|no definite detectable lung abnormality|no definite mass or patchy lesion/i.test(text))parts.push('未見明顯肺部病灶');if(/No masses, pleural thickening, or effusions/i.test(text))parts.push('未見腫塊、肋膜增厚或積液');if(/(?:clear|sharp) costophrenic angles/i.test(text))parts.push('雙側肋膈角清晰');if(/clear retrocardiac and retrosternal|clear retrosternal and retrocardiac/i.test(text))parts.push('心後與胸骨後區未見明顯異常');return '胸部X光檢查：'+(parts.length?parts.join('，'):'無明顯異常')+'。';}
 
 function collect(input){let src=input.fields||input,fs=Object.create(null),warnings=[],context=input.context||{};
  const rows=Array.isArray(src)?src:Object.entries(src).filter(([k])=>!['context','clinical','unparsed'].includes(k)).map(([name,value])=>({name,...(value&&typeof value==='object'?value:{value})}));
@@ -223,9 +253,9 @@ function generate(input,opts={}){
   else if(status==='not_examined'||cxr.some(n=>/^(?:未受檢|未檢|未做|拒檢|因.*未受檢)$/.test(fs[n].raw))){add('CXR_NOT_EXAMINED','CXR','胸部X光檢查：'+(context.pregnant===true?'因懷孕未受檢。':'未受檢。'),cxr);}
   else if(status==='pending'||cxr.length&&!texts.length){if(cxr.length)add('CXR_PLACEHOLDER','CXR','胸部X光檢查：',cxr);review.push({code:'CXR_PENDING',detail:'胸部X光只有檢查標題，報告尚未提供；不自動判為正常，也不等同未受檢。'});}
   else if(texts.length){
-   const isNormal=texts.every(t=>normals.some(x=>x.text.replace(/\s+/g,' ').trim().toLowerCase()===t.replace(/\s+/g,' ').trim().toLowerCase()));
+   const isNormal=cxr.every(n=>has(n)&&!fs[n].conflict)&&texts.every(t=>isNormalCxrReport(t,normals));
    if(isNormal){if(context.includeNormalCXR===true)add('CXR_NORMAL','CXR',normalCxrText(texts.join('\n')),cxr,['cxr.normal']);}
-   else {const text=texts.join('\n');add('CXR_MANUAL','CXR','胸部X光檢查（待人工確認）：\n'+text,cxr);review.push({code:'CXR_MANUAL',detail:'包含異常或尚未核定的完整報告寫法，保留原文人工處理。'});if(/scoliosis|\bspur\b|osteophyte/i.test(text))candidateAdvice.push({motherId:'cxr.spine',text:'若有不適，建議至復健科門診追蹤檢查。',status:'供人工插入，不自動改寫放射科結論'});}
+   else {const text=texts.join('\n');add('CXR_PLACEHOLDER','CXR','胸部X光檢查：',cxr);review.push({code:'CXR_MANUAL',detail:'胸部X光原文（待人工確認）：\n'+text});if(/(?:^|[.\n])\s*(?:(?:mild|thoracic|lumbar|degenerative)\s+)*(?:scoliosis|spur\b|osteophytes?\b|degenerative chang)/i.test(text))candidateAdvice.push({motherId:'cxr.spine',text:'若有不適，建議至復健科門診追蹤檢查。',status:'供人工插入，不自動改寫放射科結論'});}
   }
  }
  const pendingHeadings=new Map();
@@ -245,8 +275,8 @@ function generate(input,opts={}){
  if(Object.keys(fs).some(n=>/ECG Report/.test(n)&&!has(n)))review.push({code:'ECG_PENDING',detail:'上方心電圖報告空白，待人工補入；未從檢查判讀以下成稿回讀。'});
  const agents=context.occupationalAgents||[];const grading={followup:{requested:false,level:null,status:'忽略一般健檢1／2A／2B欄位'},occupational:agents.filter(x=>! /噪音|生物/.test(x)).map(agent=>({agent,level:null,status:'精簡版標準尚未接入本版，待人工判級'})),fitness:{conclusion:null,status:'人工核定後使用「可以從事XXX作業。」'}};
  if(agents.length)review.push({code:'SPECIAL_MANUAL',detail:'特殊作業標準尚未接入，不能把歷史級數當作新判定。'});
- return {version:'0.45.0-beta',mode:'使用者核定規則',draft:sections.map(s=>s.text).join('\n'),sections,referenceResults:Object.values(results).filter(r=>P.rules.some(p=>canonical(p.field)===r.field)||urineNames.includes(r.field)||['O.B.','Stool O.B.(EIA)'].includes(r.field)),review,candidateAdvice,grading,trace:traceOut,ignoredOutputColumns:Object.keys(fs).filter(n=>/_g$/.test(n))};
+ return {version:'0.5.0-beta',mode:'使用者核定規則',draft:sections.map(s=>s.text).join('\n'),sections,referenceResults:Object.values(results).filter(r=>P.rules.some(p=>canonical(p.field)===r.field)||urineNames.includes(r.field)||['O.B.','Stool O.B.(EIA)'].includes(r.field)),review,candidateAdvice,grading,trace:traceOut,ignoredOutputColumns:Object.keys(fs).filter(n=>/_g$/.test(n))};
 }
-A.generate=generate;A.classifyV03=(name,value,sex='男')=>classify(canonical(name),{raw:String(value?.value??value),unit:value?.unit,status:value?.status},sex);A.collectV03=collect;A.referenceProfile=P;A.VERSION='0.45.0-beta';A.urineNames=urineNames;A.groupLists=groupLists;
+A.generate=generate;A.classifyV03=(name,value,sex='男')=>classify(canonical(name),{raw:String(value?.value??value),unit:value?.unit,status:value?.status},sex);A.collectV03=collect;A.referenceProfile=P;A.VERSION='0.5.0-beta';A.urineNames=urineNames;A.groupLists=groupLists;
 if(typeof module!=='undefined'&&module.exports)module.exports=A;
 })(typeof globalThis!=='undefined'?globalThis:this);
