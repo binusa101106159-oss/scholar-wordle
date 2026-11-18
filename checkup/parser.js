@@ -22,7 +22,8 @@
  function parse(text){
   text=String(text||'').trim();if(!text)return finalize([],[],{format:'empty',cutoffApplied:false});
   if(/^[\[{]/.test(text)){const value=JSON.parse(text);if(!value||typeof value!=='object')throw Error('JSON必須為欄位物件或陣列。');const src=Array.isArray(value)?value:value.fields||Object.fromEntries(Object.entries(value).filter(([n])=>n!=='context'));const fields=Array.isArray(src)?src.map(f=>({...f,name:canonical(f.name)})):Object.entries(src).map(([name,value])=>({name:canonical(name),...(value&&typeof value==='object'?value:{value})}));return finalize(fields,[],{format:'json',cutoffApplied:false},value.context||{});}
-  const all=text.split(/\r?\n/),cut=all.findIndex(l=>/^\s*檢查判讀\s*$/.test(l));
+  const all=text.split(/\r\n?|\n/);
+  const cut=all.findIndex(line=>/^檢查判讀\s*:?$/.test(line.normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g,'').trim()));
   const above=cut<0?all:all.slice(0,cut),start=above.findIndex(l=>/^\s*報告結果\s*$/.test(l));
   const lines=start<0?above:above.slice(start+1),fields=[],unparsed=[],metadata={format:start>=0?'ntuh-ctrl-a':'labeled-rows',cutoffApplied:cut>=0,ignoredTrailingLines:cut<0?0:all.length-cut,cutoffLine:cut<0?null:cut+1};
   const header=above.slice(0,start<0?0:start).join('\n'),gender=header.match(/\(\s*([FM])\s*,/i);if(gender)fields.push({name:'性別',value:gender[1].toUpperCase()==='F'?'女':'男'});

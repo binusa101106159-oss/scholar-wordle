@@ -36,6 +36,16 @@ try:
     page.locator('#hc-source').fill(source);assert '已排除檢查判讀以下' in page.locator('#hc-source-meta').inner_text()
     text=page.locator('#hc-report').input_value();assert '總膽固醇偏高' in text and '糖尿病' not in text and '胸部X光檢查：' in text.splitlines() and '胸部X光檢查：正常。' not in text
     assert '報告尚未提供' in page.locator('#hc-review').inner_text()
+    page.locator('#hc-pending').get_by_role('button',name='胸部X光檢查',exact=True).click()
+    report=page.locator('#hc-report')
+    assert report.evaluate("e=>e.value.slice(0,e.selectionStart).endsWith('胸部X光檢查：')")
+    report.press('End');page.keyboard.insert_text('人工補述')
+    assert page.locator('#hc-pending button').count()==0
+    if page.locator('.hc-options').get_attribute('open') is None:page.locator('.hc-options summary').click()
+    page.locator('#hc-normal-exceptions').uncheck()
+    assert '人工補述' in report.input_value()
+    page.locator('#hc-cxr').uncheck()
+    assert '人工補述' in report.input_value() and page.locator('#hc-draft-conflict button').count()==1
     page.locator('#hc-source-clear').click();page.locator('#hc-source').fill(source)
     if page.locator('.hc-options').get_attribute('open') is None:page.locator('.hc-options summary').click()
     page.locator('#hc-cxr-status').select_option('doctor_normal');assert '胸部X光檢查：心臟大小正常' in page.locator('#hc-report').input_value();assert '醫師選擇暫填' in page.locator('#hc-review').inner_text()

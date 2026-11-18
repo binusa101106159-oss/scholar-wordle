@@ -86,3 +86,12 @@ test('additional report headings are kept from the report block',()=>{
  const input=A.parseBetaInput('報告結果\nX光暨其他檢查之純文字報告\n乳房攝影報告：\n骨密度檢查\n檢查判讀\n胃鏡檢查');
  assert.deepEqual(A.generate(input,opts).draft.split('\n'),['乳房攝影：','骨密度檢查：']);
 });
+
+
+test('hospital auto-filled results below a copied 判讀 heading are ignored',()=>{
+ const source=['報告結果','X光暨其他檢查之純文字報告','腹部超音波報告','ECG Report','檢查判讀：\u200B','Diagnosis: Fatty liver','心電圖：竇性心律','Stool O.B.(EIA)  Positive(200)  ng/mL  Negative'].join('\r');
+ const input=A.parseBetaInput(source);
+ assert.equal(input.metadata.cutoffApplied,true);
+ assert.equal(input.unparsed.length,0);
+ assert.deepEqual(A.generate(input,opts).draft.split('\n'),['腹部超音波檢查：','心電圖檢查：']);
+});
