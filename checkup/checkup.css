@@ -49,3 +49,13 @@ body[data-game="checkup"] #wordle-toolbar,
 #hc-pending:empty,#hc-draft-conflict:empty{display:none}
 #hc-pending button,#hc-draft-conflict button{min-height:36px}
 @media(max-width:850px){#hc-pending button,#hc-draft-conflict button{min-height:44px}}
+
+.hc-settings-row{position:relative;min-width:0}
+.hc-settings-row .hc-options>summary{padding:8px 145px 8px 0;min-height:36px;box-sizing:border-box}
+.hc-settings-row>.hc-actions{position:absolute;inset-block-start:0;inset-inline-end:0}
+.hc-settings-row .hc-controls{gap:5px 12px}
+.hc-settings-row .hc-options[open]>summary{margin-bottom:4px}
+.hc-settings-row .hc-options select{padding:3px 6px}
+@media(max-width:850px){
+ .hc-settings-row .hc-options>summary{min-height:44px;padding-block:12px}
+}
