@@ -81,3 +81,8 @@ test('copied empty exam headings appear as blank lines without borrowing report 
  const p=A.parseBetaInput('報告結果\nChest : PA View (Standing)\nECG Report\n腹部超音波報告\n乳房超音波檢查：\n甲狀腺超音波報告\nLung Function Report\n檢查判讀\n心臟超音波報告');
  assert.deepEqual(A.generate(p,opts).draft.split('\n'),['胸部X光檢查：','心電圖檢查：','腹部超音波檢查：','乳房超音波檢查：','甲狀腺超音波檢查：','肺功能檢查：']);
 });
+
+test('additional report headings are kept from the report block',()=>{
+ const input=A.parseBetaInput('報告結果\nX光暨其他檢查之純文字報告\n乳房攝影報告：\n骨密度檢查\n檢查判讀\n胃鏡檢查');
+ assert.deepEqual(A.generate(input,opts).draft.split('\n'),['乳房攝影：','骨密度檢查：']);
+});

@@ -29,7 +29,7 @@
    for(const box of panel.querySelectorAll('[data-agent]:checked')){const agent=box.value;if(agent==='生物性實驗')continue;const grade=[...panel.querySelectorAll('[data-grade]')].find(x=>x.dataset.grade===agent)?.value;if(grade)out.draft+='\n'+agent+'作業管理分級：第'+grade+'級管理';else out.review.push({detail:agent+'作業管理級數待醫師核定；beta尚未接入精簡版自動判級。'});if([...panel.querySelectorAll('[data-fit]')].find(x=>x.dataset.fit===agent)?.checked)out.draft+='\n可以從事'+agent+'作業。';}
    by('hc-report').value=out.draft.trim();selection=[by('hc-report').value.length,by('hc-report').value.length];by('hc-review').replaceChildren();for(const item of out.review)by('hc-review').append(el('p',(item.field?item.field+'：':'')+(item.detail||item.reason||item.code),'hc-warning'));
    by('hc-trace').replaceChildren();for(const section of out.sections){const det=el('details');det.append(el('summary',section.category+' · '+section.ruleId),el('pre',section.evidence.map(e=>e.field+'：'+e.raw+(e.unit?' '+e.unit:'')).join('\n')));by('hc-trace').append(det);}
-   by('hc-suggestions').replaceChildren();for(const item of out.candidateAdvice)by('hc-suggestions').append(button(item.text,()=>insert(item.text)));setLock(true);status('已生成 beta v0.3 草稿，請確認後人工編修。');
+   by('hc-suggestions').replaceChildren();for(const item of out.candidateAdvice)by('hc-suggestions').append(button(item.text,()=>insert(item.text)));setLock(true);status('已生成 beta v0.31 草稿，請確認後人工編修。');
   }catch(error){status(error.message);}
  }
  function mount(){

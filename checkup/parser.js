@@ -10,7 +10,7 @@
  const unitPattern=/^(?:mg\/dL|mg\/L|mg\/g|mmol\/L|g\/dL|g\/L|U\/L|IU\/L|IU\/mL|mIU\/mL|ng\/mL|ng\/dL|[μµu]IU\/mL|[μµu]U\/mL|[μµu]g\/dL|mmHg|毫米汞柱|fL|pg|%|COI|\/(?:HPF|LPF)|[kM]\/\s*[μµu]L|(?:[×x]\s*)?10[³⁶⁹^0-9]+\s*\/[μµu]L|mL\/min\/1\.73\s*m(?:\^?2|²)|kg\/m(?:\^?2|²)|cm|kg|公分|公斤)$/i;
  const bloodNames=new Set([...Object.values(A.groupLists).flat(),'HBsAg','Anti-HBs','胰島素阻抗']);
  const peNames=new Set(['右眼','左眼','辨色力','血壓是否正常','脈搏是否正常','呼吸是否正常','左耳聽力','右耳聽力','頭頸部','營養狀況','精神狀態','淋巴腺腫大','甲狀腺腫大','眼睛','耳部','鼻部','心臟聽診','四肢','胸部','腹部','皮膚','口腔黏膜','神經系統','泌尿生殖系統']);
- function imageKind(name){const q=key(name);return /^chest\s*:|^cxr$|胸部.*x光/.test(q)?'CXR':/^(?:ecg report|心電圖)/.test(q)?'ECG':/^(?:lung function report|肺功能)/.test(q)?'PFT':/超音波/.test(name)?'SONO':null;}
+ function imageKind(name){const q=key(name);return /^chest\s*:|^cxr$|胸部.*x光/.test(q)?'CXR':/^(?:ecg report|心電圖)/.test(q)?'ECG':/^(?:lung function report|肺功能)/.test(q)?'PFT':/超音波/.test(name)?'SONO':/^其他檢查：/.test(name)?'OTHER':null;}
  function finalize(fields,unparsed,metadata,context={}){
   // Repeated personal/family history cells are additive, not conflicting numerical results.
   for(const name of ['個人病史','家族病史','長期服藥原因','長期用藥原因']){const rows=fields.filter(f=>f.name===name);if(rows.length>1){const values=[...new Set(rows.map(f=>String(f.value).trim()).filter(Boolean))];fields=fields.filter(f=>f.name!==name);fields.push({name,value:values.join('、')});}}
@@ -26,7 +26,7 @@
   const above=cut<0?all:all.slice(0,cut),start=above.findIndex(l=>/^\s*報告結果\s*$/.test(l));
   const lines=start<0?above:above.slice(start+1),fields=[],unparsed=[],metadata={format:start>=0?'ntuh-ctrl-a':'labeled-rows',cutoffApplied:cut>=0,ignoredTrailingLines:cut<0?0:all.length-cut,cutoffLine:cut<0?null:cut+1};
   const header=above.slice(0,start<0?0:start).join('\n'),gender=header.match(/\(\s*([FM])\s*,/i);if(gender)fields.push({name:'性別',value:gender[1].toUpperCase()==='F'?'女':'男'});
-  let pending=null,imaging=null,imagingLines=[];
+  let pending=null,imaging=null,imagingLines=[],reportSection=false;
   function flushImage(){if(!imaging)return;let value=imagingLines.join('\n').trim().replace(/\s*檢查者\s*[:：][\s\S]*$/,'').trim();fields.push({name:imaging,value});imaging=null;imagingLines=[];}
   function add(name,segment){
    const sourceName=name;name=canonical(name);if(name==='PS')return;
@@ -40,9 +40,12 @@
    const f={name,value,sourceName};if(unit)f.unit=unit;if(referenceRaw)f.referenceRaw=referenceRaw;if(status)f.status=status.toUpperCase()==='H'?'high':'low';fields.push(f);
   }
   for(const raw of lines){const line=raw.trim();if(!line)continue;
-   if(/^項目名稱\s+(?:檢查值|檢驗值)|^X光暨其他檢查之純文字報告$/.test(line)){flushImage();continue;}
+   if(/^項目名稱\s+(?:檢查值|檢驗值)|^X光暨其他檢查之純文字報告$/.test(line)){flushImage();reportSection=line==='X光暨其他檢查之純文字報告';continue;}
    const heading=line.replace(/[:：]$/,'').trim();
    if(recognized(heading)&&imageKind(known.get(key(heading))||heading)){flushImage();imaging=known.get(key(heading))||heading;continue;}
+   if(reportSection&&/^[\p{L}\p{N} ()（）/＋+.-]{2,60}$/u.test(heading)&&/(?:檢查|報告|攝影|骨密度|超音波|鏡|掃描|Report)$/i.test(heading)){
+    flushImage();imaging='其他檢查：'+heading;continue;
+   }
    if(!imaging&&recognized(line)){if(pending)add(pending,'');pending=canonical(line);continue;}
    const matches=[...line.matchAll(pairPattern)];
    if(imaging&&!matches.length){imagingLines.push(line);continue;}

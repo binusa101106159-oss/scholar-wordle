@@ -215,7 +215,7 @@ function generate(input,opts={}){
  const peFields=['右眼','左眼','辨色力','血壓是否正常','脈搏是否正常','呼吸是否正常','左耳聽力','右耳聽力','頭頸部','營養狀況','精神狀態','淋巴腺腫大','甲狀腺腫大','眼睛','耳部','鼻部','心臟聽診','四肢','胸部','腹部','皮膚','口腔黏膜','神經系統','泌尿生殖系統'];
  const abnormalPE=peFields.filter(n=>has(n)&&! /^(?:無明顯異常|正常|無|normal|unremarkable|-)$/i.test(fs[n].raw));
  if(abnormalPE.length)add('PE','PE',abnormalPE.map(n=>n+'：'+fs[n].raw).join('；')+'。',abnormalPE);
- const cxr=Object.keys(fs).filter(n=>/Chest|CXR|胸部.*[Xx]光/.test(n));const texts=cxr.filter(has).map(n=>fs[n].raw).filter(t=>! /^(?:未受檢|未做|未檢|拒檢)$/.test(t));
+ const cxr=Object.keys(fs).filter(n=>!n.startsWith('其他檢查：')&&/Chest|CXR|胸部.*[Xx]光/.test(n));const texts=cxr.filter(has).map(n=>fs[n].raw).filter(t=>! /^(?:未受檢|未做|未檢|拒檢)$/.test(t));
  const normals=opts.cxrNormals||[];
  if(context.includeCXR!==false){
   const status=context.cxrStatus||'auto';
@@ -230,21 +230,23 @@ function generate(input,opts={}){
  }
  const pendingHeadings=new Map();
  for(const n of Object.keys(fs)){
-  const label=/^(?:ECG Report|心電圖)/i.test(n)?'心電圖檢查':
+  const label=n.startsWith('其他檢查：')?n.slice(5).replace(/報告$/,''):
+   /^(?:ECG Report|心電圖)/i.test(n)?'心電圖檢查':
    /^(?:Lung Function Report|肺功能)/i.test(n)?'肺功能檢查':
    /超音波/.test(n)?n.replace(/(?:檢查|報告)+$/,'')+'檢查':null;
   if(label){const fields=pendingHeadings.get(label)||[];fields.push(n);pendingHeadings.set(label,fields);}
  }
  for(const [label,fields] of pendingHeadings){
   if(fields.every(n=>!has(n))||label==='肺功能檢查')add('EXAM_PLACEHOLDER_'+label,'待人工填寫',label+'：',fields);
+  else if(fields.every(n=>n.startsWith('其他檢查：'))){const text=fields.filter(has).map(n=>fs[n].raw).join('\n');add('EXAM_MANUAL_'+label,'待人工確認',label+'：\n'+text,fields);}
  }
- for(const n of Object.keys(fs).filter(n=>/ECG Report|心電圖|超音波|sonography|ultrasound/i.test(n)))if(has(n)){add('TRANSLATE_'+n,'待翻譯',n+'（待LLM翻譯，原文保留）：\n'+fs[n].raw,[n]);review.push({code:'LLM_PENDING',detail:n+'翻譯尚未串接，不計算原文中的任何數字。'});}
+ for(const n of Object.keys(fs).filter(n=>!n.startsWith('其他檢查：')&&/ECG Report|心電圖|超音波|sonography|ultrasound/i.test(n)))if(has(n)){add('TRANSLATE_'+n,'待翻譯',n+'（待LLM翻譯，原文保留）：\n'+fs[n].raw,[n]);review.push({code:'LLM_PENDING',detail:n+'翻譯尚未串接，不計算原文中的任何數字。'});}
  for(const [cat,list] of [['抽血',context.expectedBloodFields||[]],['尿液',context.expectedUrineFields||[]]])if(!input.unparsed?.length&&list.length&&list.every(n=>{n=canonical(n);return ['normal','not_applicable'].includes(st(n))||cat==='抽血'&&(n==='HBsAg'&&st(n)==='negative'||n==='Anti-HBs'&&st(n)==='positive');})&&!sections.some(s=>cat==='尿液'?s.category==='尿液':Object.keys(groupLists).includes(s.category)||['HOMA','B肝'].includes(s.category)&&s.ruleId!=='HOMA_normal'))add('NORMAL_'+cat,cat,cat+'檢查大致正常。',list);
  if(Object.keys(fs).some(n=>/ECG Report/.test(n)&&!has(n)))review.push({code:'ECG_PENDING',detail:'上方心電圖報告空白，待人工補入；未從檢查判讀以下成稿回讀。'});
  const agents=context.occupationalAgents||[];const grading={followup:{requested:false,level:null,status:'忽略一般健檢1／2A／2B欄位'},occupational:agents.filter(x=>! /噪音|生物/.test(x)).map(agent=>({agent,level:null,status:'精簡版標準尚未接入本版，待人工判級'})),fitness:{conclusion:null,status:'人工核定後使用「可以從事XXX作業。」'}};
  if(agents.length)review.push({code:'SPECIAL_MANUAL',detail:'特殊作業標準尚未接入，不能把歷史級數當作新判定。'});
- return {version:'0.3.0-beta',mode:'使用者核定規則',draft:sections.map(s=>s.text).join('\n'),sections,referenceResults:Object.values(results).filter(r=>P.rules.some(p=>canonical(p.field)===r.field)||urineNames.includes(r.field)||['O.B.','Stool O.B.(EIA)'].includes(r.field)),review,candidateAdvice,grading,trace:traceOut,ignoredOutputColumns:Object.keys(fs).filter(n=>/_g$/.test(n))};
+ return {version:'0.31.0-beta',mode:'使用者核定規則',draft:sections.map(s=>s.text).join('\n'),sections,referenceResults:Object.values(results).filter(r=>P.rules.some(p=>canonical(p.field)===r.field)||urineNames.includes(r.field)||['O.B.','Stool O.B.(EIA)'].includes(r.field)),review,candidateAdvice,grading,trace:traceOut,ignoredOutputColumns:Object.keys(fs).filter(n=>/_g$/.test(n))};
 }
-A.generate=generate;A.classifyV03=(name,value,sex='男')=>classify(canonical(name),{raw:String(value?.value??value),unit:value?.unit,status:value?.status},sex);A.collectV03=collect;A.referenceProfile=P;A.VERSION='0.3.0-beta';A.urineNames=urineNames;A.groupLists=groupLists;
+A.generate=generate;A.classifyV03=(name,value,sex='男')=>classify(canonical(name),{raw:String(value?.value??value),unit:value?.unit,status:value?.status},sex);A.collectV03=collect;A.referenceProfile=P;A.VERSION='0.31.0-beta';A.urineNames=urineNames;A.groupLists=groupLists;
 if(typeof module!=='undefined'&&module.exports)module.exports=A;
 })(typeof globalThis!=='undefined'?globalThis:this);
