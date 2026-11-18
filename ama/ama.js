@@ -2,6 +2,24 @@
 (() => {
   'use strict';
   const STORE = 'scholar-ama-v1', MARKS = 'scholar-ama-marks-v1';
+  const NEURO_CHART_TEMPLATE = [
+    '13-4 Consciousness and Awareness:',
+    '13-5 Episodic Loss of Consciousness and Awareness:',
+    '13-6 Sleep and Arousal Disorders:',
+    '13-8 Alteration in MSCHIF:',
+    '13-9 Aphasia or Dysphasia',
+    '13-11 Upper Extremity:',
+    '13-12 Station and Gait:',
+    '13-13 Neurogenic Bowel:',
+    '13-14 Neurogenic Bladder:',
+    '13-15 Neurogenic Sexual Dysfunction:',
+    '13-16 Neurogenic Respiratory Dysfunction:',
+    '13-17 Dysesthetic Pain:',
+    '13-18 Migraine Headache:',
+    '13-19 Trigeminal or Glossopharyngeal Neuralgia:',
+    '13-20 Miscellaneous Peripheral Nerves:'
+  ].join('\n');
+  let neuroCopyBusy=false;
   const mobile = matchMedia('(max-width:1099px), (orientation:portrait)'), by = id => document.getElementById(id), chapters = new Map();
   const tableCaptions=new Map(), tableQueries=new Map(), objects=new Map();
   const chapterSearchText=new Map();let chapterSearchRevision=0,pageJumpRevision=0;
@@ -471,7 +489,7 @@
       button.textContent=object.label;button.title=caption;button.setAttribute('aria-label',object.label+' '+caption);button.setAttribute('aria-haspopup','dialog');shortcuts.append(button);
       if(object.kind==='figure'&&caption){const subtitle=document.createElement('span');subtitle.className='reader-table-caption';subtitle.textContent=caption;button.append(subtitle);}
     }
-    by('ax-table-shortcuts').replaceChildren(shortcuts);by('ax-table-shortcuts').hidden=!by('ax-table-shortcuts').childElementCount;window.ScholarReaderTables?.sync('ax');
+    by('ax-table-shortcuts').replaceChildren(shortcuts);by('ax-table-shortcuts').hidden=!by('ax-table-shortcuts').childElementCount;window.ScholarReaderTables?.sync('ax');syncNeuroTemplate();
     by('ax-section').replaceChildren(...choices.map(section => {
       const option=document.createElement('option'); option.value=section.id; option.textContent=section.title; return option;
     }));
@@ -507,6 +525,7 @@
     clearTimeout(scrollTimer);
     rememberReaderPosition();renderedChapter=undefined;objectRevision++;
     current=id; const version=++revision;
+    by('ama-panel').querySelectorAll('[data-neuro-template-copy]').forEach(button=>button.hidden=true);
     document.querySelectorAll('.ax-chapter').forEach(button => {
       const selected=button.dataset.chapter===id;
       button.setAttribute('aria-selected',String(selected)); button.tabIndex=selected?0:-1;
@@ -850,6 +869,34 @@
       by('ax-status').textContent=all?'已複製全部已匯入章節（含表格與圖中文字）。':'已複製本章全文（含表格與圖中文字）。';
     } catch (_) {by('ax-status').textContent='複製未成功，仍可直接選取文字後複製。';}
     finally {button.disabled=false;}
+  }
+
+  async function copyNeuroTemplate() {
+    if(current!=='c13'||neuroCopyBusy)return;
+    neuroCopyBusy=true;
+    const buttons=[...by('ama-panel').querySelectorAll('[data-neuro-template-copy]')];buttons.forEach(button=>button.disabled=true);
+    const active=document.activeElement;let usedFallback=false;
+    try {
+      try {await navigator.clipboard.writeText(NEURO_CHART_TEMPLATE);}
+      catch (_) {
+        usedFallback=true;
+        const selection=getSelection(),ranges=selection?Array.from({length:selection.rangeCount},(_,i)=>selection.getRangeAt(i).cloneRange()):[];
+        const area=document.createElement('textarea');area.value=NEURO_CHART_TEMPLATE;area.style.cssText='position:fixed;left:-10000px;top:0';document.body.append(area);area.select();
+        let copied;try {copied=document.execCommand('copy');}finally{area.remove();if(selection){selection.removeAllRanges();ranges.forEach(range=>selection.addRange(range));}}
+        if(!copied)throw Error('Copy unavailable');
+      }
+      if(current==='c13')by('ax-status').textContent='已複製第13章病歷模板，可直接貼上。';
+    } catch (_) {if(current==='c13')by('ax-status').textContent='複製未成功，請允許剪貼簿存取後再試。';}
+    finally {neuroCopyBusy=false;buttons.forEach(button=>button.disabled=false);if(usedFallback&&active?.isConnected&&!active.hidden)active.focus({preventScroll:true});}
+  }
+  function syncNeuroTemplate() {
+    if(current!=='c13')return;
+    for(const target of [by('ax-table-shortcuts'),by('ax-table-rail')?.querySelector('.reader-table-heading')]){
+      if(!target)continue;
+      let button=target.querySelector('[data-neuro-template-copy]');
+      if(!button){button=document.createElement('button');button.type='button';button.className='ax-template-copy';button.dataset.neuroTemplateCopy='true';button.textContent='複製病歷模板';button.addEventListener('click',copyNeuroTemplate);target.insertBefore(button,target.querySelector('.reader-object-tabs'));}
+      button.hidden=false;button.disabled=neuroCopyBusy;
+    }
   }
 
   async function boot() {

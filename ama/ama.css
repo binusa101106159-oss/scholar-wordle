@@ -59,6 +59,7 @@
 .ax-reading-controls { display: flex; flex-wrap: wrap; gap: 5px; }
 .ax-reading-controls button { border: 1px solid #ffffff25; border-radius: 8px; background: #ffffff09; color: #ddd; padding: 6px 8px; font-size: 11px; cursor: pointer; }
 .ax-status { min-height: 14px; font-size: 11px; color: #e2c58a; }
+.ax-template-copy{flex:none;min-height:34px;padding:6px 10px;border:1px solid #e2c58a65;border-radius:10px;background:#e2c58a12;color:#eed5a5;font:12px/1.4 system-ui;cursor:pointer;white-space:nowrap}.ax-template-copy:focus-visible{outline:2px solid #bcd8ff;outline-offset:2px}.ax-template-copy:disabled{opacity:.5;cursor:default}.ax-template-copy[hidden]{display:none!important}#ax-table-rail .reader-table-heading:has(.ax-template-copy:not([hidden])){flex-wrap:wrap}#ax-table-rail .reader-table-heading:has(.ax-template-copy:not([hidden]))>.reader-object-tabs{flex-basis:100%}#ax-table-shortcuts>.ax-template-copy{min-height:40px}
 .ax-page { margin-top: 18px; padding: clamp(18px,3vw,34px); border: 1px solid #ffffff14; border-radius: 22px; background: #ffffff06; color: #e5e7eb; font-family: Georgia,'Times New Roman',serif; font-size: var(--ax-font-size,18px); line-height: 1.75; overflow-wrap: break-word; user-select: text; }
 .ax-page-label { font: 11px/1.5 'Roboto','Noto Sans TC',sans-serif; color: #ffffff60; margin-bottom: 22px; }
 .ax-page-content > p { margin: .65em 0; }
