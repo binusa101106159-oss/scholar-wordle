@@ -42,8 +42,8 @@
     <textarea id="hc-source" aria-label="原始資料" rows="12" placeholder="性別：男&#10;GLU AC：126&#10;HbA1c：6.5&#10;Ketone(Dipstick)：3+" autocomplete="off" spellcheck="false"></textarea>
     <p id="hc-source-meta" class="hc-hint" role="status"></p><details class="hc-options"><summary>檢查設定與特殊作業</summary><div class="hc-controls"><label>孕況 <select id="hc-pregnant"><option value="unknown">未記錄</option><option value="true">懷孕</option><option value="false">未懷孕</option></select></label><label><input id="hc-cxr" type="checkbox" checked>包含胸部X光</label><label>CXR狀態 <select id="hc-cxr-status"><option value="auto">依檢查內容</option><option value="pending">報告待上傳</option><option value="not_examined">確定未受檢</option><option value="doctor_normal">醫師暫填正常（待核對）</option></select></label><label><input id="hc-normal-exceptions" type="checkbox" checked>保留B肝免疫力與正常CXR結果</label></div><div id="hc-agents" class="hc-controls"></div><label class="hc-hint">檢查性質 <select id="hc-exam"><option>定期特殊健康檢查</option><option>特殊體格檢查</option><option>變更作業</option></select></label><p class="hc-hint">特殊作業級數由醫師核定後帶入；噪音另用獨立系統，生物不判級。</p><div id="hc-agent-review"></div></details>
     <div class="hc-actions"><button class="sg-btn" id="hc-source-clear" type="button">清除並重新貼上</button></div></section>
-   <section class="hc-box"><textarea id="hc-report" aria-label="報告草稿" rows="15" placeholder="貼上即生成。調整設定會重建草稿，請在設定完成後編輯。" autocomplete="off" spellcheck="false"></textarea></section></div>
-   <aside class="hc-phrases" aria-label="罐頭"><input id="hc-search" aria-label="搜尋罐頭" type="search" placeholder="搜尋檢查項目、異常或建議" autocomplete="off"><div id="hc-suggestions"></div><div id="hc-library"></div></aside></div>
+   <section class="hc-box hc-draft"><textarea id="hc-report" aria-label="報告草稿" rows="15" placeholder="貼上即生成。調整設定會重建草稿，請在設定完成後編輯。" autocomplete="off" spellcheck="false"></textarea></section></div>
+   <details class="hc-phrases" aria-label="罐頭" open><summary>罐頭</summary><div class="hc-phrase-content"><input id="hc-search" aria-label="搜尋罐頭" type="search" placeholder="搜尋檢查項目、異常或建議" autocomplete="off"><div id="hc-suggestions"></div><div id="hc-library"></div></div></details></div>
    <div id="hc-review" aria-label="需要確認的項目"></div><details class="hc-audit"><summary>檢視選句來源</summary><div id="hc-trace"></div></details><p class="hc-hint">資料只留當次頁面，切換功能分頁、重新整理或關閉即清除。心電圖與超音波翻譯尚未串接；肺功能由人工輸入。</p></div>`;
   for(const agent of ['游離輻射','二甲基甲醯胺','正己烷','甲醛','鉛','汞及其無機化合物','粉塵','生物性實驗']){const label=el('label'),box=el('input');box.type='checkbox';box.value=agent;box.dataset.agent='';label.append(box,document.createTextNode(agent));by('hc-agents').append(label);}
   by('hc-search').oninput=()=>{if(catalog)renderLibrary();};by('hc-source').addEventListener('input',event=>{if(!event.isComposing)generate();});
@@ -54,7 +54,10 @@
   });
   by('hc-source-clear').onclick=clear;
   for(const event of ['keyup','click','select','blur'])by('hc-report').addEventListener(event,()=>selection=[by('hc-report').selectionStart,by('hc-report').selectionEnd]);
-  const size=()=>{if(panel.hidden)return;const top=panel.getBoundingClientRect().top;panel.style.setProperty('--hc-height',Math.max(470,window.innerHeight-top-70)+'px');};window.addEventListener('resize',size);if(window.ResizeObserver)new ResizeObserver(size).observe(document.querySelector('.sg-nav-shell')||document.body);requestAnimationFrame(size);window.addEventListener('pagehide',clear);window.addEventListener('scholar-sync-status',clear);
+  const narrow=window.matchMedia("(max-width: 850px)");
+  const syncPhrases=()=>{panel.querySelector(".hc-phrases").open=!narrow.matches;};
+  narrow.addEventListener("change",syncPhrases);syncPhrases();
+  window.addEventListener('pagehide',clear);window.addEventListener('scholar-sync-status',clear);
  }
  async function show(){mount();if(catalog){renderLibrary();return;}if(loading)return loading;status('載入判讀規則與罐頭…');loading=(async()=>{try{const responses=await Promise.all(['checkup/snippets.json','checkup/normal-cxr.json'].map(url=>fetch(url,{cache:'no-store'})));if(responses.some(r=>!r.ok))throw Error('load');[catalog,normals]=await Promise.all(responses.map(r=>r.json()));renderLibrary();status('');generate();}catch(_){status('載入失敗，請檢查連線後重試。');by('hc-library').replaceChildren(button('重試',show));}finally{loading=null;}})();return loading;}
  window.ScholarCheckup={show,hide:clear};

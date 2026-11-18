@@ -15,13 +15,14 @@ try:
     context=browser.new_context(viewport={'width':width,'height':1000},service_workers='block');page=context.new_page();errors=[];writes=[]
     page.on('pageerror',lambda e:errors.append(str(e)));page.on('request',lambda r:writes.append(r.url) if r.method not in ['GET','HEAD'] else None)
     page.route('https://www.gstatic.com/firebasejs/**',lambda r:r.abort())
-    page.goto(url+'/#checkup');page.locator('#hc-library .hc-card').first.wait_for(timeout=30000)
+    page.goto(url+'/#checkup');page.locator('#hc-library .hc-card').first.wait_for(state='attached',timeout=30000)
     assert page.locator('.hc-head, .hc-beta, #hc-results, .hc-search-label, #hc-copy, #hc-report-clear').count()==0
     assert page.get_by_role('textbox',name='原始資料',exact=True).is_visible() and page.get_by_role('textbox',name='報告草稿',exact=True).is_visible()
     page.locator('#hc-source').fill('性別：男\nKetone(Dipstick)：3+\nGLU AC：85\nMCH：20')
     draft=page.locator('#hc-report').input_value()
     assert '疑似為長期空腹' in draft and '平均紅血球血紅素量偏低' in draft
     assert page.locator('#hc-regenerate').count()==0 and page.locator('#hc-source').get_attribute('readonly') is None
+    if width<=850:page.locator('.hc-phrases summary').click()
     page.locator('#hc-report').fill('人工修改保留');page.locator('#hc-search').fill('尿上皮細胞過多')
     page.locator('#hc-report').evaluate("e=>{e.focus();e.setSelectionRange(0,0);e.dispatchEvent(new Event('select'))}")
     page.locator('#hc-library .hc-card').first.click();text=page.locator('#hc-report').input_value();assert text.startswith('尿上皮細胞過多') and text.endswith('人工修改保留')
