@@ -2,23 +2,43 @@
 (() => {
  'use strict';
  const panel=document.getElementById('checkup-panel'),A=window.HealthcheckLogic;
- let catalog=null,normals=[],loading=null,mounted=false,selection=[0,0];
+ let catalog=null,normals=[],loading=null,mounted=false,selection=[0,0],phraseRanks=new Map();
  const by=id=>document.getElementById(id),el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const button=(text,fn)=>{const b=el('button',text,'sg-btn');b.type='button';b.onclick=fn;return b;};
  const status=text=>by('hc-status').textContent=text;
  function insert(text){const a=by('hc-report'),start=Math.min(selection[0],a.value.length),end=Math.min(selection[1],a.value.length);a.setRangeText(text,start,end,'end');a.focus();selection=[a.selectionStart,a.selectionEnd];status('已插入游標位置。');}
+ function prioritizePhrases(out){
+  const aliases={HOMA:'血糖／胰島素阻抗',血糖:'血糖／胰島素阻抗',肝膽:'肝功能',B肝:'肝炎',甲狀腺:'甲狀腺功能',體重腰圍:'PE／體位',血壓:'PE／體位',視力:'PE／體位',PE:'PE／體位'};
+  const categories=new Set(out.sections.map(s=>aliases[s.category]||s.category));
+  const used=new Set(out.sections.flatMap(s=>s.mothers));
+  const related=new Set(out.candidateAdvice.map(s=>s.motherId));
+  for(const section of out.sections){
+   const label=section.ruleId;
+   if(section.category==='CXR')related.add('cxr.normal');
+   if(/ECG Report|心電圖/.test(label))categories.add('心電圖');
+   if(/肺功能/.test(label))categories.add('肺功能');
+   if(/腹部超音波/.test(label))related.add('us.abdomen');
+   if(/乳房超音波/.test(label))related.add('us.breast');
+   if(/心臟超音波/.test(label))related.add('us.heart');
+  }
+  if(panel.querySelector('[data-agent]:checked'))categories.add('特殊作業');
+  phraseRanks=new Map(catalog.snippets.map(row=>[row.id,used.has(row.id)?2:related.has(row.id)||categories.has(row.category)?1:0]));
+  renderLibrary();
+  by('hc-library').scrollTop=0;
+ }
  function renderLibrary(){
   const host=by('hc-library');host.replaceChildren();const terms=by('hc-search').value.normalize('NFKC').toLowerCase().trim().split(/\s+/).filter(Boolean);
-  const rows=catalog.snippets.filter(row=>terms.every(t=>(row.text+' '+(row.category||'')).normalize('NFKC').toLowerCase().includes(t)));
-  for(const row of rows){const b=el('button',row.text,'hc-card');b.type='button';b.title='插入報告游標位置';b.setAttribute('aria-label','插入：'+row.text);b.onclick=()=>insert(row.text);host.append(b);}if(!rows.length)host.append(el('p','找不到符合的罐頭。'));
+  const rows=catalog.snippets.filter(row=>terms.every(t=>(row.text+' '+(row.category||'')).normalize('NFKC').toLowerCase().includes(t))).sort((a,b)=>(phraseRanks.get(b.id)||0)-(phraseRanks.get(a.id)||0));
+  for(const row of rows){const b=el('button',row.text,'hc-card');b.type='button';b.title='插入報告游標位置';b.setAttribute('aria-label','插入：'+row.text);const rank=phraseRanks.get(row.id);if(rank){const tag=rank===2?'已採用':'相關';b.classList.add(rank===2?'hc-card-used':'hc-card-related');b.prepend(el('span',tag,'hc-card-tag'));b.setAttribute('aria-label',tag+'，插入：'+row.text);}b.onclick=()=>insert(row.text);host.append(b);}if(!rows.length)host.append(el('p','找不到符合的罐頭。'));
  }
  function renderAgents(){const previous=new Map([...panel.querySelectorAll('[data-grade]')].map(x=>[x.dataset.grade,x.value])),fits=new Map([...panel.querySelectorAll('[data-fit]')].map(x=>[x.dataset.fit,x.checked]));const host=by('hc-agent-review');host.replaceChildren();for(const box of panel.querySelectorAll('[data-agent]:checked')){
   if(box.value==='生物性實驗'){host.append(el('p','生物性實驗作業：不判健康管理級數。','hc-hint'));continue;}
   const row=el('div',undefined,'hc-agent-row');row.append(el('span',box.value+'作業'));const grade=el('select');grade.dataset.grade=box.value;grade.setAttribute('aria-label',box.value+'管理級數');grade.append(new Option('管理級數待醫師核定',''));for(const [v,t] of [['一','第一級管理'],['二','第二級管理'],['三','第三級管理'],['四','第四級管理']])grade.append(new Option(t,v));grade.value=previous.get(box.value)||'';row.append(grade);const label=el('label'),fit=el('input');fit.type='checkbox';fit.dataset.fit=box.value;fit.checked=fits.get(box.value)||false;label.append(fit,document.createTextNode('醫師確認可以從事'));row.append(label);host.append(row);
  }}
- function clear(){if(!mounted)return;by('hc-source').value='';by('hc-report').value='';by('hc-search').value='';status('');by('hc-review').replaceChildren();by('hc-trace').replaceChildren();by('hc-suggestions').replaceChildren();selection=[0,0];by('hc-pregnant').value='unknown';by('hc-cxr-status').value='auto';by('hc-cxr').checked=true;by('hc-exam').selectedIndex=0;by('hc-normal-exceptions').checked=true;by('hc-source-meta').textContent='';panel.querySelectorAll('[data-agent]').forEach(x=>x.checked=false);renderAgents();if(catalog)renderLibrary();}
+ function clear(){if(!mounted)return;by('hc-source').value='';by('hc-report').value='';by('hc-search').value='';status('');by('hc-review').replaceChildren();by('hc-trace').replaceChildren();by('hc-suggestions').replaceChildren();selection=[0,0];by('hc-pregnant').value='unknown';by('hc-cxr-status').value='auto';by('hc-cxr').checked=true;by('hc-exam').selectedIndex=0;by('hc-normal-exceptions').checked=true;by('hc-source-meta').textContent='';panel.querySelectorAll('[data-agent]').forEach(x=>x.checked=false);renderAgents();phraseRanks.clear();if(catalog)renderLibrary();}
  function showInventory(input){const m=input.metadata;if(!m){by('hc-source-meta').textContent='';return;}const i=m.inventory;const parts=['抽血 '+i.blood.length+' 項','尿液 '+i.urine.length+' 項','PE '+i.pe.length+' 項'];if(i.imaging.length)parts.push('影像／功能 '+i.imaging.length+' 項');if(m.cutoffApplied)parts.push('已排除檢查判讀以下全部內容');by('hc-source-meta').textContent=parts.join('｜');}
  function resetDraft(){
+  phraseRanks.clear();if(catalog)renderLibrary();
   by('hc-report').value='';by('hc-source-meta').textContent='';selection=[0,0];
   for(const id of ['hc-review','hc-trace','hc-suggestions'])by(id).replaceChildren();
  }
@@ -30,6 +50,7 @@
    showInventory(input);
    const out=A.generate({...input,context},{mothers:catalog.snippets,cxrNormals:normals});
    for(const box of panel.querySelectorAll('[data-agent]:checked')){const agent=box.value;if(agent==='生物性實驗')continue;const grade=[...panel.querySelectorAll('[data-grade]')].find(x=>x.dataset.grade===agent)?.value;if(grade)out.draft+='\n'+agent+'作業管理分級：第'+grade+'級管理';else out.review.push({detail:agent+'作業管理級數待醫師核定；beta尚未接入精簡版自動判級。'});if([...panel.querySelectorAll('[data-fit]')].find(x=>x.dataset.fit===agent)?.checked)out.draft+='\n可以從事'+agent+'作業。';}
+   prioritizePhrases(out);
    by('hc-report').value=out.draft.trim();selection=[by('hc-report').value.length,by('hc-report').value.length];by('hc-review').replaceChildren();for(const item of out.review)by('hc-review').append(el('p',(item.field?item.field+'：':'')+(item.detail||item.reason||item.code),'hc-warning'));
    by('hc-trace').replaceChildren();for(const section of out.sections){const det=el('details');det.append(el('summary',section.category+' · '+section.ruleId),el('pre',section.evidence.map(e=>e.field+'：'+e.raw+(e.unit?' '+e.unit:'')).join('\n')));by('hc-trace').append(det);}
    by('hc-suggestions').replaceChildren();for(const item of out.candidateAdvice)by('hc-suggestions').append(button(item.text,()=>insert(item.text)));status('');

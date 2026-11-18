@@ -206,7 +206,7 @@ function generate(input,opts={}){
  const albumin=['Microalbumin','Microalbumin/CRE(UACR)','Albumin(Dipstick)','Albumin/Creatinine(Dipstick)'].filter(ab);
  if(albumin.length){let t=albumin.map(n=>finding(n)).join('，');if(albumin.some(n=>['Microalbumin','Albumin(Dipstick)'].includes(n))&&st('Microalbumin/CRE(UACR)')==='normal')t+='，但定量尿液白蛋白／肌酸酐比值正常';urine.push(t+'，建議至家醫科或腎臟內科門診追蹤檢查。');use(albumin);}
  for(const n of urineNames)if(ab(n)&&!used.has(n)){urine.push(finding(n)+(n==='Others (Sediment)'?'（'+fs[n].raw+'）':'')+'。');use([n]);}
- if(urine.length)add('URINE_GROUP','尿液',urine.join(''),[...used],['urine.blood','urine.infection','urine.epithelial','urine.uacr.invalid','urine.ketone']);
+ if(urine.length)add('URINE_GROUP','尿液',urine.join(''),[...used],[bleeding.length&&'urine.blood',suspect&&'urine.infection',used.has('Epith. (Sediment)')&&'urine.epithelial',st('Albumin/Creatinine(Dipstick)')==='dilute'&&'urine.uacr.invalid',ab('Ketone(Dipstick)')&&st('GLU AC')==='normal'&&'urine.ketone'].filter(Boolean));
  const stool=['O.B.','Stool O.B.(EIA)'].filter(ab);
  if(stool.length)add('STOOL_OB','糞便','糞便潛血陽性反應。建議至肝膽腸胃內科門診追蹤檢查。',stool,['stool.positive']);
  // Unknown but explicit source abnormal flags are always visible, not silently dropped.
@@ -245,8 +245,8 @@ function generate(input,opts={}){
  if(Object.keys(fs).some(n=>/ECG Report/.test(n)&&!has(n)))review.push({code:'ECG_PENDING',detail:'上方心電圖報告空白，待人工補入；未從檢查判讀以下成稿回讀。'});
  const agents=context.occupationalAgents||[];const grading={followup:{requested:false,level:null,status:'忽略一般健檢1／2A／2B欄位'},occupational:agents.filter(x=>! /噪音|生物/.test(x)).map(agent=>({agent,level:null,status:'精簡版標準尚未接入本版，待人工判級'})),fitness:{conclusion:null,status:'人工核定後使用「可以從事XXX作業。」'}};
  if(agents.length)review.push({code:'SPECIAL_MANUAL',detail:'特殊作業標準尚未接入，不能把歷史級數當作新判定。'});
- return {version:'0.41.0-beta',mode:'使用者核定規則',draft:sections.map(s=>s.text).join('\n'),sections,referenceResults:Object.values(results).filter(r=>P.rules.some(p=>canonical(p.field)===r.field)||urineNames.includes(r.field)||['O.B.','Stool O.B.(EIA)'].includes(r.field)),review,candidateAdvice,grading,trace:traceOut,ignoredOutputColumns:Object.keys(fs).filter(n=>/_g$/.test(n))};
+ return {version:'0.42.0-beta',mode:'使用者核定規則',draft:sections.map(s=>s.text).join('\n'),sections,referenceResults:Object.values(results).filter(r=>P.rules.some(p=>canonical(p.field)===r.field)||urineNames.includes(r.field)||['O.B.','Stool O.B.(EIA)'].includes(r.field)),review,candidateAdvice,grading,trace:traceOut,ignoredOutputColumns:Object.keys(fs).filter(n=>/_g$/.test(n))};
 }
-A.generate=generate;A.classifyV03=(name,value,sex='男')=>classify(canonical(name),{raw:String(value?.value??value),unit:value?.unit,status:value?.status},sex);A.collectV03=collect;A.referenceProfile=P;A.VERSION='0.41.0-beta';A.urineNames=urineNames;A.groupLists=groupLists;
+A.generate=generate;A.classifyV03=(name,value,sex='男')=>classify(canonical(name),{raw:String(value?.value??value),unit:value?.unit,status:value?.status},sex);A.collectV03=collect;A.referenceProfile=P;A.VERSION='0.42.0-beta';A.urineNames=urineNames;A.groupLists=groupLists;
 if(typeof module!=='undefined'&&module.exports)module.exports=A;
 })(typeof globalThis!=='undefined'?globalThis:this);
