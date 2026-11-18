@@ -33,7 +33,7 @@ try:
     page.locator('#hc-source-clear').click()
     source='QA(F,2000/01/01,26y)\n報告結果\n項目名稱 檢驗值 單位 參考標準 項目名稱 檢驗值 單位 參考標準\nWBC  5.8  k/μL  3.25-9.16  RBC  4.6  M/μL  3.78-5.25\nGLU AC  88  mg/dL  70-100\nT-CHO  225  mg/dL  0-199\nX光暨其他檢查之純文字報告\nChest : PA View (Standing)\n檢查判讀\n醫師總評\nGLU AC  999  mg/dL\n胸部X光檢查：正常。'
     page.locator('#hc-source').fill(source);assert '已排除檢查判讀以下' in page.locator('#hc-source-meta').inner_text()
-    page.locator('#hc-regenerate').click();text=page.locator('#hc-report').input_value();assert '總膽固醇偏高' in text and '糖尿病' not in text and '胸部X光檢查：' not in text
+    page.locator('#hc-regenerate').click();text=page.locator('#hc-report').input_value();assert '總膽固醇偏高' in text and '糖尿病' not in text and '胸部X光檢查：' in text.splitlines() and '胸部X光檢查：正常。' not in text
     assert '報告尚未提供' in page.locator('#hc-review').inner_text()
     page.locator('#hc-source-clear').click();page.locator('#hc-source').fill(source)
     if page.locator('.hc-options').get_attribute('open') is None:page.locator('.hc-options summary').click()

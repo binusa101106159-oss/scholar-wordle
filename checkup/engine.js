@@ -77,7 +77,11 @@ function classify(name,f,sex){const raw=f.raw,r=P.rules.find(x=>canonical(x.fiel
  if(f.unit&&unit&&comparableUnit(name,f.unit)!==comparableUnit(name,unit))return {...out,reason:'單位不同，保留原值，不自動換算',warning:true};
  const text=raw.replace(/\s+(?:Color|Turbidity):.*$/i,'').trim(),n=numeric(text);out.number=n;
  if(name==='胰島素阻抗')return n!==null&&n>=0?{...out,state:round1(n)<=1.4?'normal':round1(n)<=1.9?'high':'high',rounded:round1(n)}:{...out,warning:true,reason:'IR格式無效，未自行計算'};
- if(name==='O.B.')name='O.B.(Dipstick)';
+ if(name==='O.B.'||name==='Stool O.B.(EIA)'){
+  if(negative(text)||/^negative\s*\(\s*<\s*\d+(?:\.\d+)?\s*\)$/i.test(text))return {...out,state:'normal'};
+  if(grade(text)>0||/^positive\s*\(\s*\d+(?:\.\d+)?\s*\)$/i.test(text))return {...out,state:'positive'};
+  return {...out,warning:true,reason:'糞便潛血結果格式待確認'};
+ }
  if(urineNames.includes(name)){
   if(['CRE(U)','Creatinine(Dipstick)'].includes(name))return {...out,state:n!==null?'not_applicable':'unknown',reason:'不單獨判讀'};
   if(['Microalbumin','Microalbumin/CRE(UACR)'].includes(name)){
@@ -191,7 +195,7 @@ function generate(input,opts={}){
  else if(ag==='negative'&&antibody==='negative')add('HBV_NEGNEG','B肝','B型肝炎表面抗原陰性，B型肝炎表面抗體陰性，不具備免疫力。若工作有接觸B型肝炎病毒，建議至家醫科門診接受疫苗接種。',['HBsAg','Anti-HBs'],['hbv.negneg']);
  else if(ag==='negative'&&antibody==='positive'&&context.includeHBVImmunity===true)add('HBV_IMMUNE','B肝','B型肝炎表面抗原陰性，B型肝炎表面抗體陽性，已具備免疫力。',['HBsAg','Anti-HBs'],['derived.hbv.immune']);
  const urine=[],used=new Set();const use=ns=>ns.forEach(n=>used.add(n));
- let bleeding=[];if(ab('O.B.(Dipstick)')||ab('O.B.')){bleeding.push('尿液檢驗潛血陽性反應');use(['O.B.(Dipstick)','O.B.']);}if(ab('RBC (Sediment)')){bleeding.push('尿液紅血球偏高');use(['RBC (Sediment)']);}
+ let bleeding=[];if(ab('O.B.(Dipstick)')){bleeding.push('尿液檢驗潛血陽性反應');use(['O.B.(Dipstick)']);}if(ab('RBC (Sediment)')){bleeding.push('尿液紅血球偏高');use(['RBC (Sediment)']);}
  if(bleeding.length)urine.push(bleeding.join('，')+'。可能原因包括腎臟疾病、泌尿道結石、腎臟或泌尿道感染、惡性腫瘤等。若為非尿液之血液來源汙染且無症狀，則定期追蹤即可。若有排尿不適、腰痛、血尿等症狀，建議三個月內至腎臟內科或泌尿外科門診追蹤檢查'+(sex==='女'?'，並避開經期複檢尿液。':'。'));
  const infectionNames=['Bacteria (Sediment)','WBC (Sediment)','WBC esterase (Dipstick)','Nitrite(Dipstick)'],infl=infectionNames.filter(ab),suspect=['Bacteria (Sediment)','WBC esterase (Dipstick)','Nitrite(Dipstick)'].some(ab);
  const inflLabels={'Bacteria (Sediment)':'菌尿症','WBC (Sediment)':'尿液白血球偏高','WBC esterase (Dipstick)':'尿白血球酯酶異常','Nitrite(Dipstick)':'尿液亞硝酸鹽陽性'};
@@ -203,6 +207,8 @@ function generate(input,opts={}){
  if(albumin.length){let t=albumin.map(n=>finding(n)).join('，');if(albumin.some(n=>['Microalbumin','Albumin(Dipstick)'].includes(n))&&st('Microalbumin/CRE(UACR)')==='normal')t+='，但定量尿液白蛋白／肌酸酐比值正常';urine.push(t+'，建議至家醫科或腎臟內科門診追蹤檢查。');use(albumin);}
  for(const n of urineNames)if(ab(n)&&!used.has(n)){urine.push(finding(n)+(n==='Others (Sediment)'?'（'+fs[n].raw+'）':'')+'。');use([n]);}
  if(urine.length)add('URINE_GROUP','尿液',urine.join(''),[...used],['urine.blood','urine.infection','urine.epithelial','urine.uacr.invalid','urine.ketone']);
+ const stool=['O.B.','Stool O.B.(EIA)'].filter(ab);
+ if(stool.length)add('STOOL_OB','糞便','糞便潛血陽性反應。建議至肝膽腸胃內科門診追蹤檢查。',stool,['stool.positive']);
  // Unknown but explicit source abnormal flags are always visible, not silently dropped.
  const usedAll=new Set(sections.flatMap(s=>s.evidence.map(e=>e.field)));
  for(const [n,r] of Object.entries(results))if(ab(n)&&!usedAll.has(n)&&!['BMI值','胰島素阻抗','HBsAg','Anti-HBs'].includes(n))add('OTHER_'+n,'其他',finding(n)+'。',[n]);
@@ -215,20 +221,30 @@ function generate(input,opts={}){
   const status=context.cxrStatus||'auto';
   if(status==='doctor_normal'){add('CXR_DOCTOR_NORMAL','CXR','胸部X光檢查：心臟大小正常，無活動性肺病變，雙側肋膈角尖銳（無明顯異常）。',cxr,['cxr.normal']);review.push({code:'CXR_PROVISIONAL_NORMAL',detail:'CXR正常內容為醫師選擇暫填，尚未依放射科報告核實；不作為自動正常判讀或學習資料。'});}
   else if(status==='not_examined'||cxr.some(n=>/^(?:未受檢|未檢|未做|拒檢|因.*未受檢)$/.test(fs[n].raw))){add('CXR_NOT_EXAMINED','CXR','胸部X光檢查：'+(context.pregnant===true?'因懷孕未受檢。':'未受檢。'),cxr);}
-  else if(status==='pending'||cxr.length&&!texts.length){review.push({code:'CXR_PENDING',detail:'胸部X光只有檢查標題，報告尚未提供；不自動判為正常，也不等同未受檢。'});}
+  else if(status==='pending'||cxr.length&&!texts.length){if(cxr.length)add('CXR_PLACEHOLDER','CXR','胸部X光檢查：',cxr);review.push({code:'CXR_PENDING',detail:'胸部X光只有檢查標題，報告尚未提供；不自動判為正常，也不等同未受檢。'});}
   else if(texts.length){
    const isNormal=texts.every(t=>normals.some(x=>x.text.replace(/\s+/g,' ').trim().toLowerCase()===t.replace(/\s+/g,' ').trim().toLowerCase()));
    if(isNormal){if(context.includeNormalCXR===true)add('CXR_NORMAL','CXR',normalCxrText(texts.join('\n')),cxr,['cxr.normal']);}
    else {const text=texts.join('\n');add('CXR_MANUAL','CXR','胸部X光檢查（待人工確認）：\n'+text,cxr);review.push({code:'CXR_MANUAL',detail:'包含異常或尚未核定的完整報告寫法，保留原文人工處理。'});if(/scoliosis|\bspur\b|osteophyte/i.test(text))candidateAdvice.push({motherId:'cxr.spine',text:'若有不適，建議至復健科門診追蹤檢查。',status:'供人工插入，不自動改寫放射科結論'});}
   }
  }
- for(const n of Object.keys(fs).filter(n=>/ECG Report|超音波|sonography|ultrasound/i.test(n)))if(has(n)){add('TRANSLATE_'+n,'待翻譯',n+'（待LLM翻譯，原文保留）：\n'+fs[n].raw,[n]);review.push({code:'LLM_PENDING',detail:n+'翻譯尚未串接，不計算原文中的任何數字。'});}
+ const pendingHeadings=new Map();
+ for(const n of Object.keys(fs)){
+  const label=/^(?:ECG Report|心電圖)/i.test(n)?'心電圖檢查':
+   /^(?:Lung Function Report|肺功能)/i.test(n)?'肺功能檢查':
+   /超音波/.test(n)?n.replace(/(?:檢查|報告)+$/,'')+'檢查':null;
+  if(label){const fields=pendingHeadings.get(label)||[];fields.push(n);pendingHeadings.set(label,fields);}
+ }
+ for(const [label,fields] of pendingHeadings){
+  if(fields.every(n=>!has(n))||label==='肺功能檢查')add('EXAM_PLACEHOLDER_'+label,'待人工填寫',label+'：',fields);
+ }
+ for(const n of Object.keys(fs).filter(n=>/ECG Report|心電圖|超音波|sonography|ultrasound/i.test(n)))if(has(n)){add('TRANSLATE_'+n,'待翻譯',n+'（待LLM翻譯，原文保留）：\n'+fs[n].raw,[n]);review.push({code:'LLM_PENDING',detail:n+'翻譯尚未串接，不計算原文中的任何數字。'});}
  for(const [cat,list] of [['抽血',context.expectedBloodFields||[]],['尿液',context.expectedUrineFields||[]]])if(!input.unparsed?.length&&list.length&&list.every(n=>{n=canonical(n);return ['normal','not_applicable'].includes(st(n))||cat==='抽血'&&(n==='HBsAg'&&st(n)==='negative'||n==='Anti-HBs'&&st(n)==='positive');})&&!sections.some(s=>cat==='尿液'?s.category==='尿液':Object.keys(groupLists).includes(s.category)||['HOMA','B肝'].includes(s.category)&&s.ruleId!=='HOMA_normal'))add('NORMAL_'+cat,cat,cat+'檢查大致正常。',list);
  if(Object.keys(fs).some(n=>/ECG Report/.test(n)&&!has(n)))review.push({code:'ECG_PENDING',detail:'上方心電圖報告空白，待人工補入；未從檢查判讀以下成稿回讀。'});
  const agents=context.occupationalAgents||[];const grading={followup:{requested:false,level:null,status:'忽略一般健檢1／2A／2B欄位'},occupational:agents.filter(x=>! /噪音|生物/.test(x)).map(agent=>({agent,level:null,status:'精簡版標準尚未接入本版，待人工判級'})),fitness:{conclusion:null,status:'人工核定後使用「可以從事XXX作業。」'}};
  if(agents.length)review.push({code:'SPECIAL_MANUAL',detail:'特殊作業標準尚未接入，不能把歷史級數當作新判定。'});
- return {version:'0.2.0-beta',mode:'使用者核定規則',draft:sections.map(s=>s.text).join('\n'),sections,referenceResults:Object.values(results).filter(r=>P.rules.some(p=>canonical(p.field)===r.field)||urineNames.includes(r.field)||r.field==='O.B.'),review,candidateAdvice,grading,trace:traceOut,ignoredOutputColumns:Object.keys(fs).filter(n=>/_g$/.test(n))};
+ return {version:'0.3.0-beta',mode:'使用者核定規則',draft:sections.map(s=>s.text).join('\n'),sections,referenceResults:Object.values(results).filter(r=>P.rules.some(p=>canonical(p.field)===r.field)||urineNames.includes(r.field)||['O.B.','Stool O.B.(EIA)'].includes(r.field)),review,candidateAdvice,grading,trace:traceOut,ignoredOutputColumns:Object.keys(fs).filter(n=>/_g$/.test(n))};
 }
-A.generate=generate;A.classifyV03=(name,value,sex='男')=>classify(canonical(name),{raw:String(value?.value??value),unit:value?.unit,status:value?.status},sex);A.collectV03=collect;A.referenceProfile=P;A.VERSION='0.2.0-beta';A.urineNames=urineNames;A.groupLists=groupLists;
+A.generate=generate;A.classifyV03=(name,value,sex='男')=>classify(canonical(name),{raw:String(value?.value??value),unit:value?.unit,status:value?.status},sex);A.collectV03=collect;A.referenceProfile=P;A.VERSION='0.3.0-beta';A.urineNames=urineNames;A.groupLists=groupLists;
 if(typeof module!=='undefined'&&module.exports)module.exports=A;
 })(typeof globalThis!=='undefined'?globalThis:this);

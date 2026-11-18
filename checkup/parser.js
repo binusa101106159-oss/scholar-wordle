@@ -1,7 +1,7 @@
 /* NTUH Ctrl+A adapter. Read source checks only, never the report/editor below 檢查判讀. */
 (function(root){
  'use strict';const A=root.HealthcheckLogic;
- const extra=['BMI','性別','年齡','身高','體重','Ideal Weight','個人病史','家族病史','受傷','工作開始時間','現在工作性質','過去工作開始時間1','過去工作開始時間2','過去工作開始時間3','過去工作性質1','過去工作性質2','過去工作性質3','過去1個月，平均每週工時為','過去6個月，平均每週工時為','工作日期間，平均每天睡眠時間為','現在危害暴露','現在防護用具','過去危害暴露1','過去危害暴露2','過去危害暴露3','過去防護用具1','過去防護用具2','過去防護用具3','吸菸','飲酒','吃檳榔','脈搏','是否長期服藥','長期服藥原因','長期用藥原因','頭頸部','營養狀況','精神狀態','淋巴腺腫大','甲狀腺腫大','眼睛','耳部','鼻部','心臟聽診','四肢','胸部','腹部','皮膚','口腔黏膜','神經系統','泌尿生殖系統','右眼','左眼','辨色力','血壓是否正常','脈搏是否正常','呼吸是否正常','左耳聽力','右耳聽力','B型肝炎檢驗','eGFR (MDRD)','eGFR (CKD-EPI)','Chest : PA View (Standing)','Chest :  Lateral Right','CXR','胸部X光','Lung Function Report','ECG Report','超音波','腹部超音波報告','Stool O.B.(EIA)','O.B.','Paras Ova'];
+ const extra=['BMI','性別','年齡','身高','體重','Ideal Weight','個人病史','家族病史','受傷','工作開始時間','現在工作性質','過去工作開始時間1','過去工作開始時間2','過去工作開始時間3','過去工作性質1','過去工作性質2','過去工作性質3','過去1個月，平均每週工時為','過去6個月，平均每週工時為','工作日期間，平均每天睡眠時間為','現在危害暴露','現在防護用具','過去危害暴露1','過去危害暴露2','過去危害暴露3','過去防護用具1','過去防護用具2','過去防護用具3','吸菸','飲酒','吃檳榔','脈搏','是否長期服藥','長期服藥原因','長期用藥原因','頭頸部','營養狀況','精神狀態','淋巴腺腫大','甲狀腺腫大','眼睛','耳部','鼻部','心臟聽診','四肢','胸部','腹部','皮膚','口腔黏膜','神經系統','泌尿生殖系統','右眼','左眼','辨色力','血壓是否正常','脈搏是否正常','呼吸是否正常','左耳聽力','右耳聽力','B型肝炎檢驗','eGFR (MDRD)','eGFR (CKD-EPI)','Chest : PA View (Standing)','Chest :  Lateral Right','CXR','胸部X光','Lung Function Report','ECG Report','超音波','腹部超音波報告','腹部超音波檢查','腹部超音波','乳房超音波報告','乳房超音波檢查','乳房超音波','甲狀腺超音波報告','甲狀腺超音波檢查','甲狀腺超音波','心臟超音波報告','心臟超音波檢查','心臟超音波','胸部X光檢查','心電圖檢查','心電圖報告','心電圖','肺功能檢查','肺功能報告','肺功能','Stool O.B.(EIA)','O.B.','Paras Ova'];
  const sourceNames=[...new Set([...A.referenceProfile.rules.map(r=>r.field),...A.urineNames,...extra])].sort((a,b)=>b.length-a.length);
  const key=s=>String(s).normalize('NFKC').replace(/\s+/g,' ').trim().toLowerCase(),known=new Map(sourceNames.map(n=>[key(n),n]));
  const canonical=s=>A.canonical(known.get(key(s))||s),recognized=s=>sourceNames.some(n=>key(n)===key(s))||sourceNames.includes(canonical(s));
@@ -10,7 +10,7 @@
  const unitPattern=/^(?:mg\/dL|mg\/L|mg\/g|mmol\/L|g\/dL|g\/L|U\/L|IU\/L|IU\/mL|mIU\/mL|ng\/mL|ng\/dL|[μµu]IU\/mL|[μµu]U\/mL|[μµu]g\/dL|mmHg|毫米汞柱|fL|pg|%|COI|\/(?:HPF|LPF)|[kM]\/\s*[μµu]L|(?:[×x]\s*)?10[³⁶⁹^0-9]+\s*\/[μµu]L|mL\/min\/1\.73\s*m(?:\^?2|²)|kg\/m(?:\^?2|²)|cm|kg|公分|公斤)$/i;
  const bloodNames=new Set([...Object.values(A.groupLists).flat(),'HBsAg','Anti-HBs','胰島素阻抗']);
  const peNames=new Set(['右眼','左眼','辨色力','血壓是否正常','脈搏是否正常','呼吸是否正常','左耳聽力','右耳聽力','頭頸部','營養狀況','精神狀態','淋巴腺腫大','甲狀腺腫大','眼睛','耳部','鼻部','心臟聽診','四肢','胸部','腹部','皮膚','口腔黏膜','神經系統','泌尿生殖系統']);
- function imageKind(name){const q=key(name);return /^chest\s*:|^cxr$|胸部.*x光/.test(q)?'CXR':q==='ecg report'?'ECG':q==='lung function report'?'PFT':/超音波/.test(name)?'SONO':null;}
+ function imageKind(name){const q=key(name);return /^chest\s*:|^cxr$|胸部.*x光/.test(q)?'CXR':/^(?:ecg report|心電圖)/.test(q)?'ECG':/^(?:lung function report|肺功能)/.test(q)?'PFT':/超音波/.test(name)?'SONO':null;}
  function finalize(fields,unparsed,metadata,context={}){
   // Repeated personal/family history cells are additive, not conflicting numerical results.
   for(const name of ['個人病史','家族病史','長期服藥原因','長期用藥原因']){const rows=fields.filter(f=>f.name===name);if(rows.length>1){const values=[...new Set(rows.map(f=>String(f.value).trim()).filter(Boolean))];fields=fields.filter(f=>f.name!==name);fields.push({name,value:values.join('、')});}}
@@ -41,7 +41,8 @@
   }
   for(const raw of lines){const line=raw.trim();if(!line)continue;
    if(/^項目名稱\s+(?:檢查值|檢驗值)|^X光暨其他檢查之純文字報告$/.test(line)){flushImage();continue;}
-   if(recognized(line)&&imageKind(known.get(key(line))||line)){flushImage();imaging=known.get(key(line))||line;continue;}
+   const heading=line.replace(/[:：]$/,'').trim();
+   if(recognized(heading)&&imageKind(known.get(key(heading))||heading)){flushImage();imaging=known.get(key(heading))||heading;continue;}
    if(!imaging&&recognized(line)){if(pending)add(pending,'');pending=canonical(line);continue;}
    const matches=[...line.matchAll(pairPattern)];
    if(imaging&&!matches.length){imagingLines.push(line);continue;}

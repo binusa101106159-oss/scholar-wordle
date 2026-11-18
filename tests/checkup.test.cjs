@@ -24,3 +24,12 @@ test('labeled rows, split rows and JSON preserve the supplied format',()=>{asser
 test('public feature has no case records or persistent health data writes',()=>{for(const file of ['engine.js','parser.js','checkup.js','snippets.json','normal-cxr.json']){const s=fs.readFileSync(path.join(__dirname,'../checkup',file),'utf8');assert.doesNotMatch(s,/Y11[45]-\d{4}|sourceRow|libfile_|工作表1|localStorage|sessionStorage|indexedDB|sendBeacon/);}assert(!catalog.snippets.some(s=>s.id==='invalid.mixed'));});
 test('lazy modules are ordered engine, parser, controller',()=>{const s=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');const paths=['checkup/engine.js','checkup/parser.js','checkup/checkup.js'].map(p=>s.indexOf(`data-cloud-src="${p}"`));assert(paths.every(p=>p>=0));assert(paths[0]<paths[1]&&paths[1]<paths[2]);});
 test('normal blood summary accepts protective hepatitis serology but rejects unparsed input',()=>{const fields={'性別':'男',HB:14,HBsAg:'Negative','Anti-HBs':'Positive(20)'};assert.match(gen(fields,{expectedBloodFields:['HB','HBsAg','Anti-HBs']}).draft,/抽血檢查大致正常/);assert.doesNotMatch(A.generate({fields,unparsed:['unknown result'],context:{includeCXR:false,expectedBloodFields:['HB']}},options).draft,/大致正常/);});
+
+test('stool occult blood is independent from urine occult blood',()=>{
+  const stool=gen({'O.B.':'1+','Stool O.B.(EIA)':'Negative(<50)','O.B.(Dipstick)':'-'});
+  assert.match(stool.draft,/糞便潛血陽性反應/);
+  assert.doesNotMatch(stool.draft,/尿液檢驗潛血/);
+  const both=gen({'O.B.(Dipstick)':'1+','Stool O.B.(EIA)':'Positive(200)'});
+  assert.match(both.draft,/尿液檢驗潛血/);
+  assert.match(both.draft,/糞便潛血陽性反應/);
+});
