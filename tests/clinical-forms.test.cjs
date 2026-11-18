@@ -27,5 +27,5 @@ test('MMSE notes mark incomplete data, include only assessed items and no unsupp
  const partial=buildMMSE({values:{time:0,place:null}});assert.match(partial,/時間定向：0 \/ 5/);assert.match(partial,/不計總分/);assert.doesNotMatch(partial,/地點定向|失智|正常/);
  const full=buildMMSE({values:Object.fromEntries(mmseItems.map(item=>[item.id,item.max]))});assert.match(full,/總分：30 \/ 30/);
  assert.equal(buildMMSE({name:'Removed',date:'2026-01-01',education:'Removed',age:'42',sex:'M',words:'Removed'}),'');
- const response=buildMMSE({responses:{time:['2026','','18']}});assert.match(response,/\[1\] 2026、\[3\] 18/);assert.match(response,/未記分/);assert.match(response,/不計總分/);
+ assert.equal(buildMMSE({responses:{time:['2026','','18']},comments:'Removed'}),'');
 });

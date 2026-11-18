@@ -30,16 +30,20 @@ def main():
      expected='Mental Status Exam\nObservations\nAppearance: Neat\nSpeech: Pressured\n\nCognition\nOrientation Impairment: Place, Time\n\nInsight\nInsight: Poor'
      # Other questionnaire answers survive clinical clears and switches.
      switch('bsrs');slider=page.locator('#fm-bsrs-q1-slider');slider.fill('2');slider.dispatch_event('input');switch('mmse')
-     assert page.locator('#fm-mmse-preview').input_value()==''
-     assert page.locator('#fm-mmse input[type=radio],#fm-mmse input[type=checkbox],#fm-mmse-name,#fm-mmse-date,#fm-mmse-words,#fm-mmse h1').count()==0
-     page.locator('#fm-mmse-time-answer-0').fill('2026');page.locator('#fm-mmse-time-answer-2').fill('18')
-     page.locator('#fm-mmse-time-score').fill('0');assert '不計總分'in page.locator('#fm-mmse-score').inner_text()
+     assert page.locator('#fm-mmse textarea,#fm-mmse input:not([type=checkbox]),#fm-mmse .fm-clinical-credit,#fm-mmse h1').count()==0
+     assert page.locator('#fm-mmse input[type=checkbox]').count()==30;assert page.locator('#fm-mmse input:checked').count()==0
+     assert page.locator('#fm-mmse-time-score').inner_text()=='—'
+     page.locator('#fm-mmse-time-zero').click();assert page.locator('#fm-mmse-time-score').inner_text()=='0';assert '不計總分'in page.locator('#fm-mmse-score').inner_text()
      maxima={'time':5,'place':5,'registration':3,'calculation':5,'recall':3,'naming':2,'repetition':1,'reading':1,'writing':1,'command':3,'construction':1}
-     for key,value in maxima.items():page.locator(f'#fm-mmse-{key}-score').fill(str(value))
-     page.locator('#fm-mmse-time-score').fill('6');assert page.locator('#fm-mmse-time-score').get_attribute('aria-invalid')=='true';assert '不計總分'in page.locator('#fm-mmse-score').inner_text();page.locator('#fm-mmse-time-score').fill('5')
-     assert page.locator('#fm-mmse-score').inner_text()=='總分：30 / 30';mmse_note=page.locator('#fm-mmse-preview').input_value();assert '總分：30 / 30'in mmse_note
+     for key,value in maxima.items():
+      for index in range(value):page.locator(f'#fm-mmse-{key}-tick-{index}').check()
+     assert page.locator('#fm-mmse-score').inner_text()=='總分：30 / 30'
+     tick=page.locator('#fm-mmse-time-tick-0');tick.uncheck();assert page.locator('#fm-mmse-score').inner_text()=='總分：29 / 30';tick.focus();tick.press('Space');assert page.locator('#fm-mmse-score').inner_text()=='總分：30 / 30'
+     page.locator('#fm-mmse-time-zero').click();assert page.locator('#fm-mmse-time-score').inner_text()=='—';assert '不計總分'in page.locator('#fm-mmse-score').inner_text()
+     page.locator('#fm-mmse-time-zero').click();assert page.locator('#fm-mmse-score').inner_text()=='總分：25 / 30'
+     for index in range(5):page.locator(f'#fm-mmse-time-tick-{index}').check()
      page.evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.copiedClinical=text}}})")
-     action('mmse','複製病歷');page.wait_for_function('window.copiedClinical!==undefined');assert page.evaluate('window.copiedClinical')==mmse_note
+     action('mmse','複製病歷');page.wait_for_function('window.copiedClinical!==undefined');mmse_note=page.evaluate('window.copiedClinical');assert '總分：30 / 30'in mmse_note and '時間定向：5 / 5'in mmse_note;assert '備註'not in mmse_note;assert page.locator('#fm-mmse textarea').count()==0
      switch('mse');action('mse','Copy result');page.wait_for_function('window.copiedClinical.startsWith("Mental Status Exam")');assert page.evaluate('window.copiedClinical')==expected
      # Real OS clipboard in Chromium, isolated test context; no patient data.
      if engine=='chromium':
@@ -51,7 +55,7 @@ def main():
      page.locator('.fm-content').evaluate('n=>n.scrollTop=0');before=page.locator('.fm-content').evaluate('n=>n.scrollTop');page.locator('#fm-mse').hover(position={'x':30,'y':100});page.mouse.wheel(0,600);page.wait_for_timeout(250);assert page.locator('.fm-content').evaluate('n=>n.scrollTop')>before
      dismiss=lambda d:d.dismiss();page.on('dialog',dismiss);action('mse','Clear MSE');assert page.locator('#fm-mse-appearance-0').is_checked()
      page.remove_listener('dialog',dismiss);page.on('dialog',lambda d:d.accept());action('mse','Clear MSE');assert page.locator('#fm-mse input:checked,#fm-mse textarea').count()==0
-     switch('mmse');assert page.locator('#fm-mmse-preview').input_value()==mmse_note
+     switch('mmse');assert page.locator('#fm-mmse-score').inner_text()=='總分：30 / 30'
      switch('bsrs');assert slider.input_value()=='2'
      switch('mse');page.locator('.fm-content').evaluate('n=>n.scrollTop=0');assert page.locator('#fm-mse').evaluate('n=>n.scrollWidth<=n.clientWidth+1')
      if engine=='chromium':page.screenshot(path=str(output/f'mse-{width}.png'));switch('mmse');page.screenshot(path=str(output/f'mmse-{width}.png'))

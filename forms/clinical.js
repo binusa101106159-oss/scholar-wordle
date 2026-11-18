@@ -33,7 +33,6 @@
   valid.delete('None');valid.delete('Normal');valid.add(value);
   return item.options.filter(v=>valid.has(v));
  }
- const clean=v=>typeof v==='string'?v.trim():'';
  function buildMSE(state={}){
   const lines=[];
   for(const section of sections){
@@ -51,10 +50,9 @@
  function buildMMSE(state={}){
   const result=scoreMMSE(state.values),lines=[];
   for(const item of mmseItems){
-   const value=state.values?.[item.id],responses=(state.responses?.[item.id]||[]).map(clean),hasScore=Number.isInteger(value)&&value>=0&&value<=item.max;
-   if(hasScore||responses.some(Boolean))lines.push(item.label+'：'+(hasScore?value+' / '+item.max:'未記分')+(responses.some(Boolean)?'；紀錄：'+responses.map((v,i)=>v?'['+(i+1)+'] '+v:'').filter(Boolean).join('、'):''));
+   const value=state.values?.[item.id];
+   if(Number.isInteger(value)&&value>=0&&value<=item.max)lines.push(item.label+'：'+value+' / '+item.max);
   }
-  if(clean(state.comments))lines.push('備註：'+clean(state.comments));
   if(!lines.length)return '';
   lines.push(result.ready?'總分：'+result.total+' / 30':'尚未完成評估（已填 '+result.count+' / 11 項），不計總分。');
   return 'MMSE（中文）\n'+lines.join('\n');
@@ -64,17 +62,10 @@
  if(typeof document==='undefined')return;
  const el=(tag,text='',cls='')=>{const node=document.createElement(tag);node.textContent=text;if(cls)node.className=cls;return node;};
  api.mount=function(id,host){
-  const mse=id==='mse',state=mse?{values:{}}:{values:{},responses:{}},inputs=[],checks=[];
+  const mse=id==='mse',state={values:{}},checks=[],scoreRows=[];
   const section=el('section','','fm-questionnaire fm-clinical');section.id='fm-'+id;section.lang=mse?'en':'zh-Hant';section.setAttribute('role','tabpanel');section.setAttribute('aria-labelledby','fm-tab-'+id);section.hidden=true;
   const editor=el('div');
   let revision=0;
-  function field(parent,key,label,multiline=false,container=state){
-   const wrap=el('label','','fm-clinical-field'),input=el(multiline?'textarea':'input');
-   input.id='fm-'+id+'-'+key;input.name=key;input.maxLength=multiline?4000:200;input.autocomplete='off';input.spellcheck=mse;
-   if(!multiline)input.type=key==='date'?'date':'text';else input.rows=3;
-   wrap.append(el('span',label),input);parent.append(wrap);inputs.push(input);
-   input.addEventListener('input',()=>{container[key]=input.value;update();});return input;
-  }
   if(mse){
    for(const group of sections){
     const block=el('section','','fm-clinical-block');block.append(el('h2',group.label));
@@ -95,31 +86,30 @@
    const blanks={time:['年','月','日','星期','季節'],place:['第1項','第2項','第3項','第4項','第5項'],registration:['腳踏車','快樂','紅色'],calculation:['第1次','第2次','第3次','第4次','第5次'],recall:['腳踏車','快樂','紅色'],naming:['錶','筆'],repetition:['複誦紀錄'],reading:['執行紀錄'],writing:['書寫句子'],command:['拿紙','折成一半','交回'],construction:['圖形抄寫紀錄']};
    for(const item of mmseItems){
     const line=el('div','','fm-mmse-line'),body=el('fieldset','','fm-mmse-item');body.append(el('legend',item.label+'（'+item.max+'分）'),el('p',item.prompt,'fm-clinical-caption'));
-    const answers=el('div','','fm-mmse-blanks');state.responses[item.id]=[];
-    blanks[item.id].forEach((label,index)=>{const wrap=el('label'),input=el(item.id==='writing'?'textarea':'input');if(input.tagName==='INPUT')input.type='text';else input.rows=2;input.id='fm-mmse-'+item.id+'-answer-'+index;input.maxLength=1000;input.autocomplete='off';input.setAttribute('aria-label',item.label+'：'+label);wrap.append(el('span',label),input);answers.append(wrap);inputs.push(input);input.addEventListener('input',()=>{state.responses[item.id][index]=input.value;update();});});body.append(answers);
-    const score=el('label','','fm-mmse-score-field'),input=el('input');input.type='number';input.min='0';input.max=String(item.max);input.step='1';input.inputMode='numeric';input.id='fm-mmse-'+item.id+'-score';input.setAttribute('aria-label',item.label+'得分');score.append(input,el('span','/ '+item.max));inputs.push(input);
-    input.addEventListener('input',()=>{const value=input.valueAsNumber,valid=input.value!==''&&input.validity.valid&&Number.isInteger(value);if(valid)state.values[item.id]=value;else delete state.values[item.id];input.setAttribute('aria-invalid',String(input.value!==''&&!valid));update();});
+    const answers=el('div','','fm-mmse-ticks'),rowChecks=[];
+    blanks[item.id].forEach((label,index)=>{const wrap=el('label','','fm-mmse-tick'),input=el('input'),mark=el('span','','fm-mmse-checkmark');input.type='checkbox';input.id='fm-mmse-'+item.id+'-tick-'+index;input.setAttribute('aria-label',item.label+'：'+label+'，答對');mark.setAttribute('aria-hidden','true');wrap.append(input,mark,el('span',label));answers.append(wrap);checks.push({input});rowChecks.push(input);input.addEventListener('change',()=>{state.values[item.id]=rowChecks.filter(n=>n.checked).length;update();});});body.append(answers);
+    const score=el('div','','fm-mmse-score-field'),value=el('output');value.id='fm-mmse-'+item.id+'-score';value.setAttribute('aria-label',item.label+'得分');score.append(value,el('span','/ '+item.max));
+    const zero=el('button','本項0分','fm-clear-question');zero.type='button';zero.id='fm-mmse-'+item.id+'-zero';zero.onclick=()=>{if(Object.hasOwn(state.values,item.id))delete state.values[item.id];else state.values[item.id]=0;rowChecks.forEach(n=>n.checked=false);update();};body.append(zero);scoreRows.push({item,value,zero});
     line.append(body,score);paper.append(line);
    }
    editor.append(paper);
-   field(editor,'comments','備註',true);section.append(editor,el('p','依使用者提供之台大醫院 MMSE 紀錄表照片建立。施測及圖形抄寫請搭配院內原表。','fm-clinical-credit'));
+   section.append(editor);
   }
-  let resultText='',fallback=null;const preview=mse?null:el('textarea');
-  if(preview){const previewLabel=el('label','','fm-clinical-field');preview.id='fm-mmse-preview';preview.readOnly=true;preview.rows=12;preview.placeholder='已填結果將顯示於此。';previewLabel.append(el('span','病歷預覽'),preview);section.append(previewLabel);}
+  let resultText='',fallback=null;
   const footer=el('div','','fm-footer'),status=el('span','','fm-progress'),copy=el('button',mse?'Copy result':'複製病歷','fm-primary'),reset=el('button',mse?'Clear MSE':'清除 MMSE','fm-reset');status.setAttribute('role','status');status.setAttribute('aria-live','polite');copy.type=reset.type='button';footer.append(status,copy,reset);
   function update(){
-   revision++;resultText=mse?buildMSE(state):buildMMSE(state);if(preview)preview.value=resultText;copy.disabled=!resultText;status.textContent='';if(fallback){fallback.remove();fallback=null;}
+   revision++;resultText=mse?buildMSE(state):buildMMSE(state);copy.disabled=!resultText;status.textContent='';if(fallback){fallback.remove();fallback=null;}
+   scoreRows.forEach(({item,value,zero})=>{const assessed=Object.hasOwn(state.values,item.id);value.textContent=assessed?String(state.values[item.id]):'—';zero.textContent=assessed?'清除此項':'本項0分';});
    if(!mse){const result=scoreMMSE(state.values);section.querySelector('#fm-mmse-score').textContent=result.ready?'總分：'+result.total+' / 30':'已填 '+result.count+' / 11 項 · 尚未完成，不計總分';}
   }
   copy.onclick=async()=>{
    const text=resultText,at=revision;if(!text)return;
    try{await navigator.clipboard.writeText(text);if(revision===at)status.textContent=mse?'Copied.':'已複製。';}
-   catch(_){if(revision!==at)return;section.closest('.fm-shell')?.classList.remove('fm-menu-open');document.getElementById('fm-menu-toggle')?.setAttribute('aria-expanded','false');const target=preview||fallback||el('textarea');if(!preview){fallback=target;target.id='fm-mse-copy-fallback';target.readOnly=true;target.setAttribute('aria-label','Result to copy');target.className='fm-copy-fallback';target.value=text;section.append(target);}target.focus();target.select();status.textContent=mse?'Copy unavailable. Result selected; use your device’s Copy command.':'無法自動複製，已選取病歷文字，請使用裝置的複製功能。';}
+   catch(_){if(revision!==at)return;section.closest('.fm-shell')?.classList.remove('fm-menu-open');document.getElementById('fm-menu-toggle')?.setAttribute('aria-expanded','false');const target=fallback||el('textarea');fallback=target;target.id='fm-'+id+'-copy-fallback';target.readOnly=true;target.setAttribute('aria-label',mse?'Result to copy':'待複製結果');target.className='fm-copy-fallback';target.value=text;section.append(target);target.focus();target.select();status.textContent=mse?'Copy unavailable. Result selected; use your device’s Copy command.':'無法自動複製，已選取結果，請使用裝置的複製功能。';}
   };
   reset.onclick=()=>{
    if(resultText&&!confirm(mse?'Clear this MSE?':'清除本份 MMSE？'))return;
-   state.values={};if(!mse){state.comments='';for(const key of Object.keys(state.responses))state.responses[key]=[];}
-   inputs.forEach(input=>{input.value='';input.removeAttribute('aria-invalid');});checks.forEach(({input})=>input.checked=false);update();
+   state.values={};checks.forEach(({input})=>input.checked=false);update();
   };
   host.append(section);update();return {section,footer,hydrate(){}};
  };
