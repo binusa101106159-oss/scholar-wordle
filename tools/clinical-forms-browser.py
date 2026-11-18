@@ -57,6 +57,23 @@ def main():
      page.remove_listener('dialog',dismiss);page.on('dialog',lambda d:d.accept());action('mse','Clear MSE');assert page.locator('#fm-mse input:checked,#fm-mse textarea').count()==0
      switch('mmse');assert page.locator('#fm-mmse-score').inner_text()=='總分：30 / 30'
      switch('bsrs');assert slider.input_value()=='2'
+     switch('midas');assert page.locator('#fm-midas input').count()==7;assert all(v=='' for v in page.locator('#fm-midas input').evaluate_all('nodes=>nodes.map(n=>n.value)'))
+     assert page.locator('#fm-midas-summary').inner_text()=='主項已填 0 / 5 題'
+     for index in range(1,6):page.locator(f'#fm-midas-q{index}').fill('0')
+     assert page.locator('#fm-midas-summary').inner_text()=='MIDAS：0 分 · 第I級 · 極少或無失能'
+     page.locator('#fm-midas-a').fill('90');page.locator('#fm-midas-b').fill('10');assert 'MIDAS：0 分'in page.locator('#fm-midas-summary').inner_text()
+     page.locator('#fm-midas-b').fill('11');assert page.locator('#fm-midas-b').get_attribute('aria-invalid')=='true';assert page.locator('.fm-actions').get_by_role('button',name='複製結果',exact=True,include_hidden=True).is_disabled();page.locator('#fm-midas-b').fill('10')
+     page.locator('#fm-midas-q5').fill('');assert page.locator('#fm-midas-summary').inner_text()=='主項已填 4 / 5 題';page.locator('#fm-midas-q5').fill('12');assert '第III級'in page.locator('#fm-midas-summary').inner_text()
+     page.evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.copiedMIDAS=text}}})")
+     action('midas','複製結果');page.wait_for_function('window.copiedMIDAS!==undefined');midas_note=page.evaluate('window.copiedMIDAS');assert '總分：12；第III級'in midas_note and '90 天（不計入總分）'in midas_note and '10 / 10（不計入總分）'in midas_note
+     if engine=='chromium':
+      page.evaluate('delete navigator.clipboard');action('midas','複製結果');page.wait_for_function("async expected=>(await navigator.clipboard.readText()).replace(/\\r\\n/g,'\\n')===expected",arg=midas_note)
+     switch('mmse');assert page.locator('#fm-mmse-score').inner_text()=='總分：30 / 30';switch('midas');assert page.locator('#fm-midas-q5').input_value()=='12'
+     if width<761 and page.locator('#fm-tab-midas').is_visible():page.locator('#fm-menu-toggle').click()
+     page.locator('.fm-content').evaluate('n=>n.scrollTop=0');assert page.locator('#fm-midas').evaluate('n=>n.scrollWidth<=n.clientWidth+1')
+     if engine=='chromium':page.screenshot(path=str(output/f'midas-{width}.png'))
+     action('midas','清除 MIDAS');assert page.locator('#fm-midas-q5').input_value()=='';assert page.locator('#fm-midas-summary').inner_text()=='主項已填 0 / 5 題'
+     switch('bsrs');assert slider.input_value()=='2'
      switch('mse');page.locator('.fm-content').evaluate('n=>n.scrollTop=0');assert page.locator('#fm-mse').evaluate('n=>n.scrollWidth<=n.clientWidth+1')
      if engine=='chromium':page.screenshot(path=str(output/f'mse-{width}.png'));switch('mmse');page.screenshot(path=str(output/f'mmse-{width}.png'))
      assert not errors,errors;print(engine,width,'clinical selection / exact copy / clipboard fallback / scoped clear / preserved drafts / scrolling PASS',flush=True);context.close()
