@@ -44,10 +44,20 @@ def main():
      page.locator('#ic-unit').select_option('LEI');page.locator('#ic-value').fill('1');assert page.locator('#ic-results [data-unit="WPI"]').inner_text()=='1%'
      page.locator('#ic-reset').click();assert page.locator('#cl-input').input_value()=='1+2';assert page.locator('#ic-results [data-unit="WPI"]').inner_text()=='—'
      page.locator('#ca-number-input').fill(record[0]);page.locator('#ca-number-options [role="option"]').first.click()
-     assert page.locator('.ca-number #ca-description').inner_text()==record[1];assert page.locator('#ca-description').is_visible();assert page.locator('#ca-number-input').input_value()==record[0]
-     assert page.locator('#ca-description').evaluate('e=>{const a=e.getBoundingClientRect(),b=e.closest(".ca-number").getBoundingClientRect();return a.left>=b.left&&a.right<=b.right+1;}')
+     assert page.locator('#ca-description').count()==0;assert page.locator('#ca-number-input').input_value()==record[1];assert page.locator('#ca-form input[name=number]').input_value()==record[0]
      if engine=='chromium':
-      page.locator('#ca-description').scroll_into_view_if_needed();page.locator('.ca-selectors').screenshot(path=str(output/f'diagnosis-{width}.png'));page.locator('#cl-impairment').screenshot(path=str(output/f'conversion-{width}.png'))
+      page.locator('#ca-number-input').scroll_into_view_if_needed();page.locator('.ca-selectors').screenshot(path=str(output/f'diagnosis-{width}.png'));page.locator('#cl-impairment').screenshot(path=str(output/f'conversion-{width}.png'))
+     page.locator('#ca-form [name=wpi]').fill('10');page.locator('#ca-form [name=age]').fill('40');page.locator('#ca-group-input').fill(data['groups'][0])
+     expected=page.evaluate('data=>ScholarCalifornia.createEngine(data).rate({wpi:10,age:40,number:data.impairments.find(r=>r[2]!==null)[0],group:data.groups[0]}).final',data)
+     assert page.locator('#ca-final').inner_text()==str(expected)+'%'
+     # Old saved code-only records still hydrate to a label in the selector.
+     legacy=page.evaluate("()=>{const saved=JSON.parse(ScholarStorage.getItem('scholar-california-v1'));delete saved.numberQuery;return JSON.stringify(saved);}")
+     # Restore the anonymous memory-backed record through the real mount path.
+     page.evaluate("async raw=>{ScholarStorage.setItem('scholar-california-v1',raw);const host=document.querySelector('#cl-california');host.replaceChildren();delete host.dataset.ready;await ScholarCalifornia.mount();}",legacy)
+     assert page.locator('#ca-number-input').input_value()==record[1];assert page.locator('#ca-final').inner_text()==str(expected)+'%'
+     page.locator('#ca-number-input').fill('unmatched diagnosis');assert page.locator('#ca-final').inner_text()=='—'
+     page.locator('#ca-number-input').fill(record[0]);page.locator('#ca-number-input').press('Tab');assert page.locator('#ca-number-input').input_value()==record[1]
+     page.locator('#ca-reset').click();assert page.locator('#ca-number-input').input_value()=='';assert page.locator('#ca-form input[name=number]').input_value()=='';assert page.locator('#ca-description').count()==0
      assert not errors,errors
      print(engine,width,'header tabs / exact figure names / contained example columns / source conversions / selected diagnosis / scoped reset PASS',flush=True);page.close()
     browser.close()
