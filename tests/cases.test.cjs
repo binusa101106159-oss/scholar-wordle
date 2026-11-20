@@ -1,7 +1,24 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const {fields,parseRecords,upsert,filterRecords,moveRecord,followupText,followupPreview,recordsForView,setArchived,setLostFollowup,setReportCompleted}=require('../cases/cases.js');
+const {fields,parseRecords,upsert,filterRecords,moveRecord,followupText,followupPreview,recordsForView,sortRecords,setArchived,setLostFollowup,setReportCompleted}=require('../cases/cases.js');
 const row=(id,extra={})=>Object.assign(Object.fromEntries(fields.map(([key])=>[key,''])),{id,name:'測試個案',mrn:'00001234',followupPeriod:'AM'},extra);
+
+test('case display sorting is natural, stable, non-mutating and restores manual order',()=>{
+ const rows=[row('ten',{name:'Patient 10',mrn:'0010'}),row('two',{name:'Patient 2',mrn:'0002'}),row('same',{name:'Patient 2',mrn:'2'}),row('blank',{name:''})];const original=structuredClone(rows);
+ assert.deepEqual(sortRecords(rows,'name').map(r=>r.id),['two','same','ten','blank']);assert.deepEqual(sortRecords(rows,'name','desc').map(r=>r.id),['ten','two','same','blank']);
+ assert.deepEqual(sortRecords(rows,'mrn').map(r=>r.id),['two','same','ten','blank']);
+ assert.deepEqual(sortRecords(rows),rows);assert.notEqual(sortRecords(rows),rows);assert.deepEqual(rows,original);
+});
+
+test('case follow-up sorting uses calendar dates and explicit periods; unknown dates remain last',()=>{
+ const rows=[row('pm',{followup:'1151120',followupPeriod:'PM'}),row('am',{followup:'20261120',followupPeriod:'AM'}),row('later',{followup:'2027/01/01'}),row('unknown',{followup:'待定'}),row('no-period',{followup:'2026/11/20',followupPeriod:''})];
+ assert.deepEqual(sortRecords(rows,'followup').map(r=>r.id),['am','pm','no-period','later','unknown']);assert.deepEqual(sortRecords(rows,'followup','desc').map(r=>r.id),['later','pm','am','no-period','unknown']);
+});
+
+test('report completion sorts independently of follow-up status and keeps legacy unchecked records',()=>{
+ const rows=[row('done',{reportCompleted:true}),row('legacy'),row('pending',{reportCompleted:false,lostFollowup:true})];
+ assert.deepEqual(sortRecords(rows,'reportCompleted').map(r=>r.id),['legacy','pending','done']);assert.deepEqual(sortRecords(rows,'reportCompleted','desc').map(r=>r.id),['done','legacy','pending']);
+});
 test('case records preserve the seven fields, leading zeroes and multiline notes',()=>{
   assert.deepEqual(fields.map(([,label])=>label),['姓名','病歷號','VS','回診目的','診斷','回診時間','備註']);
   const record=row('one',{date:'2026-11-04',purpose:'評估',diagnosis:'診斷一\n診斷二',followup:'11/18 上午',notes:'第一行\n第二行'});

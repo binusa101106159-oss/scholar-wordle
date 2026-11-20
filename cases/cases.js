@@ -7,6 +7,8 @@
     ['diagnosis', '診斷'], ['followup', '回診時間'], ['notes', '備註']
   ];
   const recordFields = [...fields.map(([key]) => key), 'followupPeriod'];
+  const sortFields=[...fields,['reportCompleted','報告完成']];
+  const collator=new Intl.Collator('zh-Hant-TW',{numeric:true,sensitivity:'base'});
   const periodLabels = {AM: '上午', PM: '下午'};
   const weekdayFor = typeof module === 'object' && module.exports
     ? require('../calculator/calculator.js').followupWeekday
@@ -80,6 +82,25 @@
     const selected=view===true?'archive':view===false?'active':view;
     return records.filter(row => selected==='archive'?row.archived===true:selected==='lost'?row.archived!==true&&row.lostFollowup===true:row.archived!==true&&row.lostFollowup!==true);
   }
+  function sortRecords(records,key='',direction='asc') {
+    if(!sortFields.some(([field])=>field===key))return records.slice();
+    const sign=direction==='desc'?-1:1;
+    return records.map((row,index)=>({row,index})).sort((a,b)=>{
+      let left,right,result=0;
+      if(key==='followup'){
+        left=dateFor(a.row.followup);right=dateFor(b.row.followup);
+        if(!left||!right)return left?-1:right?1:a.index-b.index;
+        result=left.localeCompare(right);
+        if(!result){const periods={AM:0,PM:1},x=periods[a.row.followupPeriod],y=periods[b.row.followupPeriod];if(x===undefined||y===undefined)return x===undefined?(y===undefined?a.index-b.index:1):-1;result=x-y;}
+      }else if(key==='reportCompleted')result=Number(a.row.reportCompleted===true)-Number(b.row.reportCompleted===true);
+      else{
+        left=String(a.row[key]??'').trim();right=String(b.row[key]??'').trim();
+        if(!left||!right)return left?-1:right?1:a.index-b.index;
+        result=collator.compare(left,right);
+      }
+      return sign*result||a.index-b.index;
+    }).map(({row})=>row);
+  }
   function setArchived(records, id, archived) {
     if (!records.some(row => row.id === id)) throw Error('此個案已在其他裝置刪除，未重新建立。');
     return records.map(row => row.id === id ? { ...row, archived, lostFollowup:false } : row);
@@ -92,10 +113,11 @@
     if (!records.some(row => row.id === id)) throw Error('此個案已在其他裝置刪除，未重新建立。');
     return records.map(row=>row.id===id?{...row,reportCompleted}:row);
   }
-  if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords, moveRecord, followupText, followupPreview, recordsForView, setArchived, setLostFollowup, setReportCompleted };
+  if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords, moveRecord, followupText, followupPreview, recordsForView, sortRecords, setArchived, setLostFollowup, setReportCompleted };
   if (typeof document === 'undefined') return;
   const by = id => document.getElementById(id);
   let booted = false, records = [], editing = null, editingBase = null, deleting = null, saving = false, readable = true, sorting = false, drag = null, caseView = 'active', archiving = false, suspendedDraft = null, pendingReport = null;
+  let sortBy='',sortDirection='asc';
   const read = () => parseRecords(window.ScholarStorage.getItem(STORE));
   function announce(message, error = false) {
     by('ct-status').textContent = message;
@@ -120,7 +142,14 @@
   }
   function render() {
     by('ct-add').disabled = !readable || archiving;
-    const rows = recordsForView(records, caseView), shown = filterRecords(rows, by('ct-search').value);
+    const rows = recordsForView(records, caseView), shown = sortRecords(filterRecords(rows, by('ct-search').value),sortBy,sortDirection);
+    by('ct-sort').value=sortBy?sortBy+':'+sortDirection:'';by('ct-sort').disabled=sorting||archiving;
+    for(const button of by('ct-table-wrap').querySelectorAll('[data-sort-field]')){
+      const selected=button.dataset.sortField===sortBy,label=sortFields.find(([key])=>key===button.dataset.sortField)[1];
+      button.closest('th').setAttribute('aria-sort',selected?(sortDirection==='asc'?'ascending':'descending'):'none');
+      button.querySelector('.ct-sort-arrow').textContent=selected?(sortDirection==='asc'?'↑':'↓'):'↕';
+      button.setAttribute('aria-label',label+'，'+(selected?(sortDirection==='asc'?'目前升冪，按下改為降冪':'目前降冪，按下恢復預設順序'):'按下升冪排序'));button.disabled=sorting||archiving;
+    }
     for (const id of ['active','lost','archive']) {
       const button = by('ct-tab-' + id), selected = caseView === id && by('ct-tab-maternal')?.getAttribute('aria-selected') !== 'true';
       button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected ? 0 : -1;
@@ -137,8 +166,8 @@
       const tr = document.createElement('tr'); tr.dataset.id = row.id;
       const gripCell = document.createElement('td'); gripCell.className = 'ct-grip-cell';
       const grip = document.createElement('button'); grip.type = 'button'; grip.className = 'ct-grip';
-      grip.dataset.id = row.id; grip.textContent = '⠿'; grip.disabled = !readable || sorting || archiving;
-      grip.title = '拖曳調整順序，或按上下方向鍵'; grip.setAttribute('aria-label', '調整' + row.name + '的順序');
+      grip.dataset.id = row.id; grip.textContent = '⠿'; grip.disabled = !readable || sorting || archiving || Boolean(sortBy);
+      grip.title = sortBy?'切回預設排序後可拖曳':'拖曳調整順序，或按上下方向鍵'; grip.setAttribute('aria-label', '調整' + row.name + '的順序');
       gripCell.append(grip); tr.append(gripCell);
       for (const [key, label] of fields) {
         const td = document.createElement('td');
@@ -163,6 +192,10 @@
       }
       tr.append(actions); body.append(tr);
     }
+  }
+  function setSort(key='',direction='asc') {
+    if(sorting||archiving||drag){by('ct-sort').value=sortBy?sortBy+':'+sortDirection:'';return;}
+    sortBy=sortFields.some(([field])=>field===key)?key:'';sortDirection=direction==='desc'?'desc':'asc';render();
   }
   function selectView(view, focus = false) {
     if (sorting || archiving || drag) return;
@@ -200,7 +233,7 @@
     finally{pendingReport=null;archiving=false;render();if(restoreFocus&&document.activeElement===document.body)[...by('ct-rows').querySelectorAll('[data-report-completed]')].find(input=>input.dataset.reportCompleted===id)?.focus({preventScroll:true});}
   }
   async function saveOrder(id, target, after) {
-    if (sorting || archiving || !readable) return;
+    if (sortBy || sorting || archiving || !readable) return;
     const latest = read(), next = moveRecord(latest, id, target, after);
     if (next === latest || next.every((row,i)=>row.id===latest[i].id)) { render(); return; }
     sorting = true;
@@ -214,7 +247,7 @@
     const duration = () => reduced.matches ? 0 : 240;
     body.addEventListener('keydown', event => {
       const grip = event.target.closest('.ct-grip');
-      if (!grip || !['ArrowUp','ArrowDown'].includes(event.key) || sorting || landing || drag) return;
+      if (!grip || !['ArrowUp','ArrowDown'].includes(event.key) || sortBy || sorting || landing || drag) return;
       event.preventDefault();
       const shown = filterRecords(recordsForView(records, caseView), by('ct-search').value), at = shown.findIndex(row=>row.id===grip.dataset.id);
       const target = shown[at + (event.key === 'ArrowUp' ? -1 : 1)];
@@ -224,7 +257,7 @@
     });
     body.addEventListener('pointerdown', event => {
       const grip = event.target.closest('.ct-grip');
-      if (!grip || !readable || sorting || landing || drag || event.button!==0) return;
+      if (!grip || !readable || sortBy || sorting || archiving || landing || drag || event.button!==0) return;
       event.preventDefault();
       grip.focus({preventScroll:true});
       grip.setPointerCapture(event.pointerId);
@@ -340,7 +373,7 @@
     panel.innerHTML = `
       <div class="ct-shell">
         <header class="ct-head"><h1>個案追蹤</h1>
-          <div class="ct-tools"><input id="ct-search" type="search" aria-label="搜尋個案" placeholder="搜尋姓名、病歷號、VS、回診目的、診斷或備註" autocomplete="off"><span id="ct-count"></span></div>
+          <div class="ct-tools"><input id="ct-search" type="search" aria-label="搜尋個案" placeholder="搜尋姓名、病歷號、VS、回診目的、診斷或備註" autocomplete="off"><label class="ct-sort-control">排序<select id="ct-sort" aria-describedby="ct-sort-hint"><option value="">預設（手動順序）</option>${sortFields.map(([key,label])=>'<option value="'+key+':asc">'+label+'：升冪</option><option value="'+key+':desc">'+label+'：降冪</option>').join('')}</select></label><span id="ct-count"></span><span id="ct-sort-hint" class="ct-sr">預設保留已儲存的手動順序；切回預設後可拖曳調整順序。</span></div>
           <button class="sg-btn sg-primary" id="ct-add" type="button">＋ 新增個案</button>
           <p>登入後儲存至私人雲端，其他裝置使用同一帳號即可接續。儲存成功前請勿關閉此頁。</p></header>
         <div class="ct-tabs" role="tablist" aria-label="個案狀態"><button id="ct-tab-active" type="button" role="tab" aria-controls="ct-list" aria-selected="true">追蹤中 <span id="ct-active-count">0</span></button><button id="ct-tab-lost" type="button" role="tab" aria-controls="ct-list" aria-selected="false" tabindex="-1">Lost follow-up（失聯） <span id="ct-lost-count">0</span></button><button id="ct-tab-archive" type="button" role="tab" aria-controls="ct-list" aria-selected="false" tabindex="-1">Archive（結案） <span id="ct-archive-count">0</span></button></div>
@@ -348,7 +381,7 @@
         <section id="ct-list" role="tabpanel" aria-labelledby="ct-tab-active">
         <p id="ct-empty" class="ct-empty"></p>
         <div class="ct-table-wrap" id="ct-table-wrap" hidden><table class="ct-table"><caption class="ct-sr">個案追蹤清單</caption><thead><tr>
-          <th scope="col"><span class="ct-sr">排序</span></th>${fields.map(([, label]) => '<th scope="col">' + label + '</th>').join('')}<th scope="col">報告完成</th><th scope="col">操作</th>
+          <th scope="col"><span class="ct-sr">排序</span></th>${sortFields.map(([key,label])=>'<th scope="col" aria-sort="none"><button type="button" class="ct-sort-header" data-sort-field="'+key+'">'+label+' <span class="ct-sort-arrow" aria-hidden="true">↕</span></button></th>').join('')}<th scope="col">操作</th>
         </tr></thead><tbody id="ct-rows"></tbody></table></div></section>
       </div>
       <dialog id="ct-editor" class="ct-dialog" aria-labelledby="ct-editor-title">
@@ -400,6 +433,8 @@
     for (const id of ['active','lost','archive']) by('ct-tab-' + id).addEventListener('click', () => selectView(id));
     by('ct-rows').addEventListener('change',event=>{if(event.target.matches('input[data-report-completed]'))markReport(event.target.dataset.reportCompleted,event.target.checked);});
     by('ct-search').addEventListener('input', render);
+    by('ct-sort').addEventListener('change',()=>{const [key,direction]=by('ct-sort').value.split(':');setSort(key,direction);});
+    by('ct-table-wrap').querySelector('thead').addEventListener('click',event=>{const button=event.target.closest('[data-sort-field]');if(!button)return;const key=button.dataset.sortField;if(sortBy!==key)setSort(key,'asc');else if(sortDirection==='asc')setSort(key,'desc');else setSort();});
     by('ct-followup').addEventListener('input', updateWeekday);
     by('ct-editor-close').addEventListener('click', closeEditor); by('ct-cancel').addEventListener('click', closeEditor);
     by('ct-editor').addEventListener('close', () => { if(suspendedDraft||by('ct-editor').open)return;by('ct-form').reset(); editing = null; });
