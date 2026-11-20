@@ -1,0 +1,40 @@
+/* Isolated acceptance with fictional patients and the real sync/merge code. */
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const root=path.join(__dirname,'..'),S=require('../sync/state.js'),key='scholar-cases-v1';
+const patient=(id,extra={})=>({id,createdAt:1,name:'虛構測試'+id,mrn:'000TEST'+id,vs:'TEST',purpose:'測試',diagnosis:'虛構資料',followup:'1151120',followupPeriod:'AM',notes:'原始備註',...extra});
+async function run(browser,output){
+ const server=S.split(key,JSON.stringify({version:1,records:[patient('a'),patient('b',{reportCompleted:true}),patient('c',{lostFollowup:true}),patient('d',{archived:true})]}));
+ let fail=false,delay=false,release;const errors=[];
+ const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
+ const styles=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m=>m[1]).join('\n');
+ const current=id=>JSON.parse(server.get(JSON.stringify([key,'records',id])));
+ async function device(signed=true){
+  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
+  await page.route('**/*',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><html class="dark"><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body data-game="cases"><main id="cases-panel"></main></body></html>'}));await page.goto('https://case-status.invalid/');
+  await page.addStyleTag({content:styles});for(const file of ['cases/cases.css','peek-glass.css','liquid-clear.css'])await page.addStyleTag({content:fs.readFileSync(path.join(root,file),'utf8')});
+  await page.exposeFunction('testCommit',async op=>{if(delay)await new Promise(resolve=>release=resolve);if(fail)throw Error('simulated denial');const merged=S.reconcile(op.base,op.next,server.get(op.id)??null,op.id);if(op.next!==null&&merged===null)throw Error('deleted remotely');if(merged===null)server.delete(op.id);else server.set(op.id,merged);return merged;});
+  for(const file of ['sync/state.js','sync/store.js','glass-layer.js','peek-glass.js','calculator/calculator.js','cases/maternal-calls.js','cases/cases.js'])await page.addScriptTag({content:fs.readFileSync(path.join(root,file),'utf8')});
+  await page.evaluate(({signed,entries})=>{ScholarSync.connect(signed?{uid:'fictional-owner'}:null,signed?{commit:op=>testCommit(op)}:null,new Map(entries));ScholarCases.show();},{signed,entries:[...server]});return page;
+ }
+ const guest=await device(false);assert.equal(await guest.locator('#ct-add').isDisabled(),true);assert.equal(await guest.locator('#ct-rows tr').count(),0);await guest.close();
+ const page=await device(),remote=await device();const row=id=>page.locator('#ct-rows tr[data-id="'+id+'"]'),report=id=>row(id).locator('input[data-report-completed]');
+ assert.equal(await page.locator('#ct-active-count').textContent(),'2');assert.equal(await page.locator('#ct-lost-count').textContent(),'1');assert.equal(await page.locator('#ct-archive-count').textContent(),'1');assert.equal(await report('a').isChecked(),false);
+ // Concurrent notes from another device must survive the report checkbox write.
+ await remote.locator('#ct-rows tr[data-id=a] [data-action=edit]').click();await remote.locator('#ct-notes').fill('另一裝置的虛構備註');await remote.locator('#ct-save').click();await remote.waitForFunction(()=>!document.getElementById('ct-editor').open);
+ delay=true;await report('a').click();await page.waitForFunction(()=>document.querySelector('[data-report-completed=a]')?.disabled);assert.equal(await report('a').isChecked(),true);delay=false;release();await page.waitForFunction(()=>!document.querySelector('[data-report-completed=a]')?.disabled);assert.equal(current('a').reportCompleted,true);assert.equal(current('a').notes,'另一裝置的虛構備註');assert.match(await row('a').textContent(),/另一裝置/);
+ fail=true;await report('a').click();await page.waitForFunction(()=>document.getElementById('ct-status').textContent.includes('未儲存成功'));assert.equal(await report('a').isChecked(),true);assert.equal(current('a').reportCompleted,true);fail=false;
+ await row('a').locator('[data-action=lost]').click();await page.waitForFunction(()=>document.getElementById('ct-lost-count').textContent==='2');assert.equal(await row('a').count(),0);assert.equal(current('a').lostFollowup,true);assert.equal(current('a').followup,'1151120');
+ await page.locator('#ct-tab-lost').click();assert.equal(await report('a').isChecked(),true);await report('a').click();await page.waitForFunction(()=>!document.querySelector('[data-report-completed=a]')?.disabled);assert.equal(current('a').reportCompleted,false);
+ await row('a').locator('[data-action=edit]').click();await page.locator('#ct-notes').fill('失聯時仍可編輯');await page.locator('#ct-save').click();await page.waitForFunction(()=>!document.getElementById('ct-editor').open);assert.equal(current('a').lostFollowup,true);assert.equal(current('a').reportCompleted,false);
+ await row('a').locator('[data-action=restore]').click();await page.waitForFunction(()=>document.getElementById('ct-active-count').textContent==='2');await page.locator('#ct-tab-active').click();assert.equal(await report('a').isChecked(),false);
+ fail=true;await row('a').locator('[data-action=lost]').click();await page.waitForFunction(()=>document.getElementById('ct-status').textContent.includes('未儲存成功'));assert.equal(await row('a').count(),1);assert.equal(current('a').lostFollowup,false);fail=false;
+ await row('a').locator('[data-action=lost]').click();await page.waitForFunction(()=>document.getElementById('ct-lost-count').textContent==='2');await page.locator('#ct-tab-lost').click();await row('a').locator('[data-action=archive]').click();await page.waitForFunction(()=>document.getElementById('ct-archive-count').textContent==='2');assert.equal(current('a').lostFollowup,false);
+ await page.locator('#ct-tab-archive').click();assert.equal(await row('a').count(),1);await row('a').locator('[data-action=restore]').click();await page.waitForFunction(()=>document.getElementById('ct-active-count').textContent==='2');await page.locator('#ct-tab-active').click();
+ await remote.evaluate(entries=>ScholarSync.receive(new Map(entries)),[...server]);await remote.locator('#ct-tab-active').click();assert.equal(await remote.locator('[data-report-completed=a]').isChecked(),false);assert.match(await remote.locator('#ct-rows tr[data-id=a]').textContent(),/失聯時仍可編輯/);
+ await page.locator('#ct-tab-active').focus();await page.keyboard.press('ArrowRight');assert.equal(await page.locator('#ct-tab-lost').getAttribute('aria-selected'),'true');await page.keyboard.press('ArrowRight');assert.equal(await page.locator('#ct-tab-archive').getAttribute('aria-selected'),'true');await page.keyboard.press('End');assert.equal(await page.locator('#ct-tab-maternal').getAttribute('aria-selected'),'true');await page.keyboard.press('Home');assert.equal(await page.locator('#ct-tab-active').getAttribute('aria-selected'),'true');
+ for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});assert.equal(await report('a').isVisible(),true);assert.equal(await page.locator('.ct-shell').evaluate(n=>n.scrollWidth<=innerWidth),true);if(output){fs.mkdirSync(output,{recursive:true});await page.screenshot({path:path.join(output,'case-status-'+width+'.png')});}}
+ await page.evaluate(()=>ScholarSync.connect(null,null));assert.equal(await page.locator('#ct-rows tr').count(),0);assert.equal(await page.evaluate(()=>localStorage.length),0);assert.deepEqual(errors,[]);await context.close();return 'report checkbox / delayed and failed saves / independent remote edits / lost-archive-restore / keyboard / 1440-390-320 / logout PASS';
+}
+module.exports={run};
+if(require.main===module){(async()=>{const p=require('playwright');for(const engine of ['chromium','firefox','webkit']){const browser=await p[engine].launch();try{console.log(engine,await run(browser,process.argv[2]));}finally{await browser.close();}}})().catch(e=>{console.error(e);process.exitCode=1;});}

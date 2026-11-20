@@ -44,6 +44,8 @@
           fields.some(([key]) => typeof row[key] !== 'string' && !(key === 'vs' && row[key] === undefined))) throw new Error('Invalid record');
       if (row.followupPeriod !== undefined && !['', 'AM', 'PM'].includes(row.followupPeriod)) throw new Error('Invalid follow-up period');
       if (row.archived !== undefined && typeof row.archived !== 'boolean') throw new Error('Invalid archive status');
+      if (row.lostFollowup !== undefined && typeof row.lostFollowup !== 'boolean') throw new Error('Invalid lost follow-up status');
+      if (row.reportCompleted !== undefined && typeof row.reportCompleted !== 'boolean') throw new Error('Invalid report completion status');
       ids.add(row.id);
     }
     const rows = data.records.map(row => row.vs === undefined ? { ...row, vs: '' } : row);
@@ -74,17 +76,26 @@
       return terms.every(term => haystack.includes(term));
     });
   }
-  function recordsForView(records, archived = false) {
-    return records.filter(row => (row.archived === true) === archived);
+  function recordsForView(records, view = false) {
+    const selected=view===true?'archive':view===false?'active':view;
+    return records.filter(row => selected==='archive'?row.archived===true:selected==='lost'?row.archived!==true&&row.lostFollowup===true:row.archived!==true&&row.lostFollowup!==true);
   }
   function setArchived(records, id, archived) {
     if (!records.some(row => row.id === id)) throw Error('此個案已在其他裝置刪除，未重新建立。');
-    return records.map(row => row.id === id ? { ...row, archived } : row);
+    return records.map(row => row.id === id ? { ...row, archived, lostFollowup:false } : row);
   }
-  if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords, moveRecord, followupText, followupPreview, recordsForView, setArchived };
+  function setLostFollowup(records,id,lostFollowup) {
+    if (!records.some(row => row.id === id)) throw Error('此個案已在其他裝置刪除，未重新建立。');
+    return records.map(row=>row.id===id?{...row,lostFollowup,archived:false}:row);
+  }
+  function setReportCompleted(records,id,reportCompleted) {
+    if (!records.some(row => row.id === id)) throw Error('此個案已在其他裝置刪除，未重新建立。');
+    return records.map(row=>row.id===id?{...row,reportCompleted}:row);
+  }
+  if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords, moveRecord, followupText, followupPreview, recordsForView, setArchived, setLostFollowup, setReportCompleted };
   if (typeof document === 'undefined') return;
   const by = id => document.getElementById(id);
-  let booted = false, records = [], editing = null, editingBase = null, deleting = null, saving = false, readable = true, sorting = false, drag = null, archivedView = false, archiving = false, suspendedDraft = null;
+  let booted = false, records = [], editing = null, editingBase = null, deleting = null, saving = false, readable = true, sorting = false, drag = null, caseView = 'active', archiving = false, suspendedDraft = null, pendingReport = null;
   const read = () => parseRecords(window.ScholarStorage.getItem(STORE));
   function announce(message, error = false) {
     by('ct-status').textContent = message;
@@ -105,23 +116,23 @@
   async function commit(next) {
     window.ScholarSync.requireAccount();
     await window.ScholarStorage.setConfirmed(STORE, JSON.stringify({ version: 1, records: next }));
-    records = next; render();
+    records = read(); render();
   }
   function render() {
     by('ct-add').disabled = !readable || archiving;
-    const rows = recordsForView(records, archivedView), shown = filterRecords(rows, by('ct-search').value);
-    for (const [id, archived] of [['active', false], ['archive', true]]) {
-      const button = by('ct-tab-' + id), selected = archivedView === archived && by('ct-tab-maternal')?.getAttribute('aria-selected') !== 'true';
+    const rows = recordsForView(records, caseView), shown = filterRecords(rows, by('ct-search').value);
+    for (const id of ['active','lost','archive']) {
+      const button = by('ct-tab-' + id), selected = caseView === id && by('ct-tab-maternal')?.getAttribute('aria-selected') !== 'true';
       button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected ? 0 : -1;
       button.disabled = sorting || archiving;
-      by('ct-' + id + '-count').textContent = recordsForView(records, archived).length;
+      by('ct-' + id + '-count').textContent = recordsForView(records, id).length;
     }
-    by('ct-list').setAttribute('aria-labelledby', archivedView ? 'ct-tab-archive' : 'ct-tab-active');
+    by('ct-list').setAttribute('aria-labelledby', 'ct-tab-'+caseView);
     const body = by('ct-rows'); body.replaceChildren();
     by('ct-count').textContent = shown.length === rows.length ? rows.length + ' 筆個案' : shown.length + ' / ' + rows.length + ' 筆個案';
     by('ct-table-wrap').hidden = !shown.length;
     by('ct-empty').hidden = Boolean(shown.length);
-    by('ct-empty').textContent = readable ? (rows.length ? '找不到符合的個案。' : archivedView ? '尚無結案個案。' : '尚無追蹤中的個案，按「新增個案」開始。') : '';
+    by('ct-empty').textContent = readable ? (rows.length ? '找不到符合的個案。' : caseView==='archive' ? '尚無結案個案。' : caseView==='lost'?'尚無失聯個案。':'尚無追蹤中的個案，按「新增個案」開始。') : '';
     for (const row of shown) {
       const tr = document.createElement('tr'); tr.dataset.id = row.id;
       const gripCell = document.createElement('td'); gripCell.className = 'ct-grip-cell';
@@ -139,8 +150,12 @@
         } else td.textContent = (key === 'followup' ? followupText(row) : row[key]) || '—';
         tr.append(td);
       }
+      const report=document.createElement('td');report.className='ct-report';report.dataset.label='報告完成';
+      const reportLabel=document.createElement('label'),checkbox=document.createElement('input'),reportText=document.createElement('span');
+      checkbox.type='checkbox';checkbox.dataset.reportCompleted=row.id;checkbox.checked=pendingReport?.id===row.id?pendingReport.value:row.reportCompleted===true;checkbox.disabled=!readable||archiving||sorting||saving;checkbox.setAttribute('aria-label',row.name+'的報告完成');reportText.textContent=pendingReport?.id===row.id?'儲存中…':'完成';reportLabel.append(checkbox,reportText);report.append(reportLabel);tr.append(report);
       const actions = document.createElement('td'); actions.className = 'ct-actions'; actions.dataset.label = '操作';
-      for (const [action, label] of [['edit', '編輯'], archivedView ? ['restore', '恢復追蹤'] : ['archive', '結案'], ['delete', '刪除']]) {
+      const rowActions=[['edit','編輯'],...(caseView!=='active'?[['restore','恢復追蹤']]:[]),...(caseView!=='archive'?[['archive','結案']]:[]),...(caseView==='active'?[['lost','失聯']]:[]),['delete','刪除']];
+      for (const [action, label] of rowActions) {
         const button = document.createElement('button');
         button.type = 'button'; button.className = 'sg-btn'; button.dataset.action = action; button.dataset.id = row.id;
         button.textContent = label; button.disabled = !readable || archiving;
@@ -149,15 +164,15 @@
       tr.append(actions); body.append(tr);
     }
   }
-  function selectView(archived, focus = false) {
+  function selectView(view, focus = false) {
     if (sorting || archiving || drag) return;
     window.ScholarMaternalCalls.hide();
     by('ct-m-panel').hidden = true;
     by('ct-list').hidden = false; by('ct-status').hidden = false;
     by('cases-panel').querySelector('.ct-head').hidden = false;
     by('ct-tab-maternal').setAttribute('aria-selected', 'false'); by('ct-tab-maternal').tabIndex = -1;
-    archivedView = archived; render();
-    if (focus) by(archived ? 'ct-tab-archive' : 'ct-tab-active').focus();
+    caseView = view===true?'archive':view===false?'active':view; render();
+    if (focus) by('ct-tab-'+caseView).focus();
   }
   async function archiveRecord(id, archived) {
     if (saving || sorting || archiving || !readable) return;
@@ -169,8 +184,23 @@
       announce((archived ? '結案' : '恢復追蹤') + '未儲存成功，請重試。' + error.message, true);
     } finally { archiving = false; render(); }
   }
+  async function markLost(id) {
+    if(saving||sorting||archiving||!readable)return;
+    archiving=true;render();
+    try{await commit(setLostFollowup(read(),id,true));announce('已移至 Lost follow-up（失聯），可隨時恢復追蹤。');}
+    catch(error){announce('失聯狀態未儲存成功，請重試。'+error.message,true);}
+    finally{archiving=false;render();}
+  }
+  async function markReport(id,value) {
+    if(saving||sorting||archiving||!readable){render();return;}
+    const restoreFocus=document.activeElement?.dataset.reportCompleted===id;
+    archiving=true;pendingReport={id,value};render();
+    try{await commit(setReportCompleted(read(),id,value));announce(value?'已儲存：報告完成。':'已儲存：報告尚未完成。');}
+    catch(error){announce('報告完成狀態未儲存成功，原狀態仍保留。'+error.message,true);}
+    finally{pendingReport=null;archiving=false;render();if(restoreFocus&&document.activeElement===document.body)[...by('ct-rows').querySelectorAll('[data-report-completed]')].find(input=>input.dataset.reportCompleted===id)?.focus({preventScroll:true});}
+  }
   async function saveOrder(id, target, after) {
-    if (sorting || !readable) return;
+    if (sorting || archiving || !readable) return;
     const latest = read(), next = moveRecord(latest, id, target, after);
     if (next === latest || next.every((row,i)=>row.id===latest[i].id)) { render(); return; }
     sorting = true;
@@ -186,7 +216,7 @@
       const grip = event.target.closest('.ct-grip');
       if (!grip || !['ArrowUp','ArrowDown'].includes(event.key) || sorting || landing || drag) return;
       event.preventDefault();
-      const shown = filterRecords(recordsForView(records, archivedView), by('ct-search').value), at = shown.findIndex(row=>row.id===grip.dataset.id);
+      const shown = filterRecords(recordsForView(records, caseView), by('ct-search').value), at = shown.findIndex(row=>row.id===grip.dataset.id);
       const target = shown[at + (event.key === 'ArrowUp' ? -1 : 1)];
       if (target) saveOrder(grip.dataset.id, target.id, event.key==='ArrowDown').then(()=>{
         [...body.querySelectorAll('.ct-grip')].find(el=>el.dataset.id===grip.dataset.id)?.focus();
@@ -313,12 +343,12 @@
           <div class="ct-tools"><input id="ct-search" type="search" aria-label="搜尋個案" placeholder="搜尋姓名、病歷號、VS、回診目的、診斷或備註" autocomplete="off"><span id="ct-count"></span></div>
           <button class="sg-btn sg-primary" id="ct-add" type="button">＋ 新增個案</button>
           <p>登入後儲存至私人雲端，其他裝置使用同一帳號即可接續。儲存成功前請勿關閉此頁。</p></header>
-        <div class="ct-tabs" role="tablist" aria-label="個案狀態"><button id="ct-tab-active" type="button" role="tab" aria-controls="ct-list" aria-selected="true">追蹤中 <span id="ct-active-count">0</span></button><button id="ct-tab-archive" type="button" role="tab" aria-controls="ct-list" aria-selected="false" tabindex="-1">Archive（結案） <span id="ct-archive-count">0</span></button></div>
+        <div class="ct-tabs" role="tablist" aria-label="個案狀態"><button id="ct-tab-active" type="button" role="tab" aria-controls="ct-list" aria-selected="true">追蹤中 <span id="ct-active-count">0</span></button><button id="ct-tab-lost" type="button" role="tab" aria-controls="ct-list" aria-selected="false" tabindex="-1">Lost follow-up（失聯） <span id="ct-lost-count">0</span></button><button id="ct-tab-archive" type="button" role="tab" aria-controls="ct-list" aria-selected="false" tabindex="-1">Archive（結案） <span id="ct-archive-count">0</span></button></div>
         <p id="ct-status" class="ct-status" role="status" aria-live="polite"></p>
         <section id="ct-list" role="tabpanel" aria-labelledby="ct-tab-active">
         <p id="ct-empty" class="ct-empty"></p>
         <div class="ct-table-wrap" id="ct-table-wrap" hidden><table class="ct-table"><caption class="ct-sr">個案追蹤清單</caption><thead><tr>
-          <th scope="col"><span class="ct-sr">排序</span></th>${fields.map(([, label]) => '<th scope="col">' + label + '</th>').join('')}<th scope="col">操作</th>
+          <th scope="col"><span class="ct-sr">排序</span></th>${fields.map(([, label]) => '<th scope="col">' + label + '</th>').join('')}<th scope="col">報告完成</th><th scope="col">操作</th>
         </tr></thead><tbody id="ct-rows"></tbody></table></div></section>
       </div>
       <dialog id="ct-editor" class="ct-dialog" aria-labelledby="ct-editor-title">
@@ -350,7 +380,7 @@
       by('ct-list').hidden = true; by('ct-status').hidden = true;
       by('cases-panel').querySelector('.ct-head').hidden = true;
       by('ct-m-panel').hidden = false;
-      for (const id of ['active', 'archive', 'maternal']) {
+      for (const id of ['active', 'lost', 'archive', 'maternal']) {
         by('ct-tab-'+id).setAttribute('aria-selected', String(id === 'maternal'));
         by('ct-tab-'+id).tabIndex = id === 'maternal' ? 0 : -1;
       }
@@ -361,19 +391,14 @@
     by('cases-panel').querySelector('.ct-tabs').addEventListener('keydown', event => {
       if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
       event.preventDefault(); event.stopImmediatePropagation();
-      const tabs = ['active','archive','maternal'], at = tabs.findIndex(id => by('ct-tab-'+id).getAttribute('aria-selected') === 'true');
-      const next = event.key === 'Home' ? 0 : event.key === 'End' ? 2 : (at + (event.key === 'ArrowRight' ? 1 : 2)) % 3;
-      if (next === 2) selectMaternal(true); else selectView(next === 1, true);
+      const tabs = ['active','lost','archive','maternal'], at = tabs.findIndex(id => by('ct-tab-'+id).getAttribute('aria-selected') === 'true');
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length-1 : (at + (event.key === 'ArrowRight' ? 1 : tabs.length-1)) % tabs.length;
+      if (tabs[next] === 'maternal') selectMaternal(true); else selectView(tabs[next], true);
     }, true);
     setupReorder();
     by('ct-add').addEventListener('click', () => { if (archiving) return; selectView(false); edit(); });
-    for (const [id, archived] of [['active', false], ['archive', true]]) {
-      by('ct-tab-' + id).addEventListener('click', () => selectView(archived));
-      by('ct-tab-' + id).addEventListener('keydown', event => {
-        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-        event.preventDefault(); selectView(event.key === 'Home' ? false : event.key === 'End' ? true : !archivedView, true);
-      });
-    }
+    for (const id of ['active','lost','archive']) by('ct-tab-' + id).addEventListener('click', () => selectView(id));
+    by('ct-rows').addEventListener('change',event=>{if(event.target.matches('input[data-report-completed]'))markReport(event.target.dataset.reportCompleted,event.target.checked);});
     by('ct-search').addEventListener('input', render);
     by('ct-followup').addEventListener('input', updateWeekday);
     by('ct-editor-close').addEventListener('click', closeEditor); by('ct-cancel').addEventListener('click', closeEditor);
@@ -387,6 +412,7 @@
         catch (_) { announce('無法複製病歷號，請允許剪貼簿存取後再試。', true); }
       } else if (button.dataset.action === 'edit') edit(button.dataset.id);
       else if (['archive', 'restore'].includes(button.dataset.action)) await archiveRecord(button.dataset.id, button.dataset.action === 'archive');
+      else if (button.dataset.action === 'lost') await markLost(button.dataset.id);
       else {
         deleting = button.dataset.id; by('ct-delete-error').textContent = '';
         const row = records.find(item => item.id === deleting);
@@ -436,7 +462,7 @@
     if (!booted) { shell(); booted = true; }
     refresh();
     if (by('ct-tab-maternal').getAttribute('aria-selected') === 'true') {
-      for (const id of ['active','archive']) { by('ct-tab-'+id).setAttribute('aria-selected','false'); by('ct-tab-'+id).tabIndex=-1; }
+      for (const id of ['active','lost','archive']) { by('ct-tab-'+id).setAttribute('aria-selected','false'); by('ct-tab-'+id).tabIndex=-1; }
       window.ScholarMaternalCalls.show();
     }
     if(suspendedDraft&&readable){

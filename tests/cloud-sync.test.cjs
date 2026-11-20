@@ -181,6 +181,15 @@ test('case archive state survives cloud hydration, concurrent edits and rejected
  assert.deepEqual(JSON.parse(h.store.getItem('scholar-cases-v1')).records,[base]);
 });
 
+test('report completion and lost-follow-up merge with independent edits and roll back denied writes',async()=>{
+ const key='scholar-cases-v1',base={id:'case',createdAt:1,name:'虛構測試',notes:'original'},report={...base,reportCompleted:true},lost={...base,lostFollowup:true,archived:false};
+ const merged=JSON.parse(S.reconcile(str(base),str(report),str(lost),key));assert.deepEqual(merged,{...lost,reportCompleted:true});
+ assert.deepEqual(JSON.parse(S.join(key,S.split(key,str({version:1,records:[merged]})))).records,[merged]);
+ const h=harness();h.sync.connect({uid:'test-owner'},{commit:async()=>{throw Error('denied')}},S.split(key,str({version:1,records:[base]})));
+ await assert.rejects(h.store.setConfirmed(key,str({version:1,records:[report]})));assert.deepEqual(JSON.parse(h.store.getItem(key)).records,[base]);
+ await assert.rejects(h.store.setConfirmed(key,str({version:1,records:[lost]})));assert.deepEqual(JSON.parse(h.store.getItem(key)).records,[base]);
+});
+
 
 test('same-account reconnect retains unsent edits, merges other fields and retries the outbox',async()=>{
  const h=harness(),key='scholar-reading-v1';let fail=true;

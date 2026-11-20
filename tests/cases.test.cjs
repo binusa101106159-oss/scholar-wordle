@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const {fields,parseRecords,upsert,filterRecords,moveRecord,followupText,followupPreview,recordsForView,setArchived}=require('../cases/cases.js');
+const {fields,parseRecords,upsert,filterRecords,moveRecord,followupText,followupPreview,recordsForView,setArchived,setLostFollowup,setReportCompleted}=require('../cases/cases.js');
 const row=(id,extra={})=>Object.assign(Object.fromEntries(fields.map(([key])=>[key,''])),{id,name:'測試個案',mrn:'00001234',followupPeriod:'AM'},extra);
 test('case records preserve the seven fields, leading zeroes and multiline notes',()=>{
   assert.deepEqual(fields.map(([,label])=>label),['姓名','病歷號','VS','回診目的','診斷','回診時間','備註']);
@@ -115,7 +115,7 @@ test('closing and restoring a case move it between views without deleting or cha
  const original=[row('one',{notes:'保留備註',followup:'1151113',sortOrder:0}),row('two',{sortOrder:1})];
  const archived=setArchived(original,'one',true);
  assert.equal(original[0].archived,undefined);
- assert.deepEqual(archived[0],{...original[0],archived:true});
+ assert.deepEqual(archived[0],{...original[0],archived:true,lostFollowup:false});
  assert.deepEqual(recordsForView(archived).map(r=>r.id),['two']);
  assert.deepEqual(recordsForView(archived,true).map(r=>r.id),['one']);
  assert.deepEqual(filterRecords(recordsForView(archived,true),'保留備註'),[archived[0]]);
@@ -128,5 +128,17 @@ test('closing and restoring a case move it between views without deleting or cha
  assert.equal(restored[0].notes,'更新備註');assert.equal(restored[0].sortOrder,0);
  assert.throws(()=>setArchived([], 'deleted', true),/已在其他裝置刪除/);
  for(const value of ['true',null,1])assert.throws(()=>parseRecords(JSON.stringify({version:1,records:[row('bad',{archived:value})]})),/archive/);
+});
+
+test('lost follow-up is a separate reversible view; report completion does not close a case',()=>{
+ const original=[row('one',{notes:'原始備註',followup:'20261120',sortOrder:0}),row('two')];
+ const completed=setReportCompleted(original,'one',true);assert.equal(original[0].reportCompleted,undefined);assert.equal(completed[0].reportCompleted,true);assert.equal(recordsForView(completed).length,2);
+ const lost=setLostFollowup(completed,'one',true);assert.deepEqual(recordsForView(lost,'lost').map(r=>r.id),['one']);assert.deepEqual(recordsForView(lost).map(r=>r.id),['two']);assert.equal(recordsForView(lost,true).length,0);
+ const saved=parseRecords(JSON.stringify({version:1,records:lost}));const edited=upsert(saved,row('one',{notes:'更新備註'}));assert.equal(edited.find(r=>r.id==='one').reportCompleted,true);assert.equal(edited.find(r=>r.id==='one').lostFollowup,true);
+ const archived=setArchived(edited,'one',true);assert.equal(recordsForView(archived,'lost').length,0);assert.equal(recordsForView(archived,true)[0].reportCompleted,true);
+ const restored=setArchived(lost,'one',false);assert.equal(recordsForView(restored).length,2);assert.equal(restored[0].reportCompleted,true);assert.equal(restored[0].followup,'20261120');assert.equal(restored[0].sortOrder,0);
+ assert.equal(setReportCompleted(restored,'one',false)[0].reportCompleted,false);
+ for(const helper of [setReportCompleted,setLostFollowup])assert.throws(()=>helper([],'gone',true),/已在其他裝置刪除/);
+ for(const field of ['reportCompleted','lostFollowup'])for(const value of ['true',null,1])assert.throws(()=>parseRecords(JSON.stringify({version:1,records:[row('bad',{[field]:value})]})));
 });
 

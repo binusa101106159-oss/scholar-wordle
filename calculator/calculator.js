@@ -94,7 +94,7 @@
     const data=JSON.parse(root.ScholarStorage.getItem('scholar-cases-v1')||'{"version":1,"records":[]}');
     if(data.version!==1||!Array.isArray(data.records))throw Error('Invalid cases');
     for(const row of data.records){
-     if(row.archived===true)continue;
+     if(row.archived===true||row.lostFollowup===true)continue;
      if(!row.followup?.trim())continue;
      const key=followupDate(row.followup);if(!key){missingDates++;continue;}
      if(!appointments.has(key))appointments.set(key,[]);appointments.get(key).push(row);
