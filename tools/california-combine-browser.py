@@ -18,6 +18,9 @@ def main():
     for width in [1440,390]:
      page=browser.new_page(viewport={'width':width,'height':1100},service_workers='block',reduced_motion='reduce');errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.route('https://www.gstatic.com/firebasejs/**',lambda r:r.abort());page.goto(base+'#calculator',wait_until='domcontentloaded');page.locator('#ca-number-input').wait_for()
      assert page.locator('#cl-help').count()==0;assert page.locator('#ca-rating-label').count()==0
+     assert page.locator('#cl-combine header, #cl-impairment header, #pure-combine-title, #ic-title').count()==0
+     assert page.locator('#pure-combine-reset').evaluate('n=>n.parentElement.classList.contains("ca-combine")');assert page.locator('#ic-reset').evaluate('n=>n.parentElement.classList.contains("ic-footer")')
+     page.locator('#ic-unit').select_option('UEI');page.locator('#ic-value').fill('10');assert page.locator('#ic-copy').is_enabled();page.locator('#ic-reset').click();assert page.locator('#ic-value').input_value()=='';assert page.locator('#ic-copy').is_disabled()
      assert page.evaluate("()=>{const nodes=[...document.querySelector('.cl-specialty').children].map(n=>n.id);return nodes.indexOf('cl-impairment')<nodes.indexOf('cl-combine')&&nodes.indexOf('cl-combine')<nodes.indexOf('cl-california')}")
      def flow(selector,result,total='36%'):
       fields=page.locator(selector);fields.nth(0).click();fields.nth(0).press_sequentially('25');assert fields.nth(1).evaluate('n=>n===document.activeElement')
@@ -38,7 +41,7 @@ def main():
      page.evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>window.combineCopy=text}})");page.locator('#pure-combine-copy').click();page.wait_for_function('window.combineCopy');assert '32%' in page.evaluate('window.combineCopy')
      for selector in ['#cl-combine .ca-app','#cl-california .ca-app','.ca-diagnosis-row']:assert page.locator(selector).first.evaluate('n=>n.scrollWidth<=n.clientWidth+1')
      if name=='chromium':
-      output=ROOT/'.local/california-combine';output.mkdir(parents=True,exist_ok=True);page.locator('#cl-california .ca-app').screenshot(path=str(output/f'california-{width}.png'));page.locator('#cl-combine .ca-app').screenshot(path=str(output/f'combine-{width}.png'))
+      output=ROOT/'.local/california-combine';output.mkdir(parents=True,exist_ok=True);page.locator('#cl-california .ca-app').screenshot(path=str(output/f'california-{width}.png'));page.locator('#cl-combine .ca-app').screenshot(path=str(output/f'combine-{width}.png'));page.locator('#cl-impairment .ic-card').screenshot(path=str(output/f'impairment-{width}.png'))
      assert not errors,errors;print(name,width,'independent combine / auto advance-tab-backspace / per-row steps / wide job / scoped reset-copy / no overflow PASS',flush=True);page.close()
     browser.close()
  finally:
