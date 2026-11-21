@@ -192,6 +192,29 @@
   root.addEventListener('hashchange',close);
   return {close,refresh,destroy(){close();if(frame)cancelAnimationFrame(frame);document.removeEventListener('pointerdown',outside);root.removeEventListener('scroll',scroll,true);root.removeEventListener('resize',schedule);root.visualViewport?.removeEventListener('resize',schedule);root.removeEventListener('hashchange',close);}};
  }
+ function bindRatingNavigation(host,fields,ensure){
+  const move=(index,select=true)=>{ensure(index+1);const field=fields[index];field.focus({preventScroll:true});if(select)field.select();else field.setSelectionRange(field.value.length,field.value.length);};
+  host.addEventListener('input',event=>{const field=event.target;if(event.isComposing||!fields.includes(field))return;field.value=field.value.normalize('NFKC');if(event.inputType==='insertText'&&/^\d{2}$/.test(field.value)&&integer(field.value,0,100)!==null)move(fields.indexOf(field)+1);});
+  host.addEventListener('keydown',event=>{
+   const at=fields.indexOf(event.target);if(at<0||event.isComposing)return;const field=fields[at];
+   if(event.key==='Backspace'&&!field.value&&at>0){event.preventDefault();move(at-1,false);}
+   else if(event.key==='Enter'){event.preventDefault();move(at+1);}
+   else if(event.key==='Tab'&&!event.shiftKey&&at===fields.length-1&&field.value){event.preventDefault();move(at+1);}
+   else if(event.key==='ArrowLeft'&&field.selectionStart===0&&field.selectionEnd===0&&at>0){event.preventDefault();move(at-1,false);}
+   else if(event.key==='ArrowRight'&&field.selectionStart===field.value.length&&at<fields.length-1){event.preventDefault();move(at+1);}
+  });
+ }
+ function mountCombine(){
+  const host=document.getElementById('cl-combine');if(!host||host.dataset.ready)return;host.dataset.ready='1';
+  host.innerHTML='<section class="ca-app ca-pure" aria-labelledby="pure-combine-title"><header class="ca-header"><h2 id="pure-combine-title">Combine-o-tron</h2><button type="button" id="pure-combine-reset" class="ca-icon" title="清除合併分數" aria-label="清除合併分數">↻</button></header><div class="ca-combine"><div class="ca-combine-entry"><div id="pure-combine-slots" class="ca-rating-slots" role="group" aria-label="待合併分數"></div></div><output id="pure-combined" aria-label="合併結果">—</output><button type="button" id="pure-combine-copy" disabled>複製結果</button></div><p id="pure-combine-error" class="ca-note" role="status"></p><p id="pure-combine-status" class="ca-note" role="status"></p></section>';
+  const by=id=>host.querySelector('#'+id),slots=by('pure-combine-slots'),fields=[];let result=null;
+  function ensure(count){while(fields.length<count){const field=document.createElement('input');field.type='text';field.inputMode='numeric';field.maxLength=3;field.placeholder='—';field.autocomplete='off';field.dataset.pureRating=String(fields.length);field.setAttribute('aria-label','合併分數 '+(fields.length+1)+'，0至100');fields.push(field);slots.append(field);}}
+  function update(){result=null;let error='';for(const field of fields)field.setAttribute('aria-invalid',String(field.value.trim()!==''&&integer(field.value,0,100)===null));const values=fields.map(field=>field.value).filter(value=>value.trim()!=='');if(values.length){try{result=combine(values);}catch(e){error=e.message;}}by('pure-combined').textContent=result?result.total+'%':'—';by('pure-combine-error').textContent=error;by('pure-combine-copy').disabled=!result;by('pure-combine-status').textContent='';}
+  ensure(7);bindRatingNavigation(slots,fields,ensure);slots.addEventListener('input',update);
+  slots.addEventListener('paste',event=>{const at=fields.indexOf(event.target),values=event.clipboardData.getData('text/plain').trim().normalize('NFKC').split(/[\s,、;]+/).filter(Boolean);if(at>=0&&values.length>1){event.preventDefault();ensure(at+values.length);values.forEach((value,index)=>fields[at+index].value=value);update();}});
+  by('pure-combine-reset').onclick=()=>{fields.forEach(field=>field.value='');update();fields[0].focus({preventScroll:true});};
+  by('pure-combine-copy').onclick=async()=>{if(!result)return;const text=['Combined Values',...result.steps.map(step=>`${step.left}% ⊕ ${step.right}% = ${step.result}%`),`合併結果：${result.total}%`].join('\n');try{await navigator.clipboard.writeText(text);by('pure-combine-status').textContent='已複製。';}catch(_){by('pure-combine-status').textContent='請選取合併結果複製。';}};
+ }
  async function mount(){
   const host=document.getElementById('cl-california');if(!host||host.dataset.ready)return;
   host.dataset.ready='true';host.innerHTML='<p class="ca-loading">載入加州調整…</p>';
@@ -204,7 +227,7 @@
   const engine=createEngine(data),search=createSearch(data,occupations);
   const descriptions=new Map(data.impairments.map(row=>[row[1],row]));
   const numberRecord=raw=>engine.record(raw)||descriptions.get(String(raw??'').trim());
-  host.innerHTML=`<section class="ca-app" aria-labelledby="ca-title"><header class="ca-header"><h2 id="ca-title">加州調整 <span>PDRS 2005</span></h2><div class="ca-header-actions"><div class="ca-modes" role="group" aria-label="加州調整輸入方式"><button type="button" data-ca-mode="auto">自動查表</button><button type="button" data-ca-mode="manual">手動輸入</button></div><button type="button" id="ca-reset">重設</button></div></header><form id="ca-form" novalidate autocomplete="off"><input type="hidden" name="mode" value="auto"><div class="ca-primary"><label>WPI (%)<input name="wpi" type="number" min="0" max="100" step="1" inputmode="numeric"></label><label class="ca-age-input">年齡／生日<input name="age" type="text" inputmode="text" maxlength="30" placeholder="年齡或生日" aria-label="受傷時年齡或生日" aria-describedby="ca-age-hint" title="可填受傷時年齡，或國曆／民國生日"></label><label class="ca-injury-input" id="ca-injury-wrap" hidden>受傷日期<input name="injuryDate" type="text" inputmode="text" maxlength="30" placeholder="YYYY/MM/DD" title="生日換算需填受傷日；支援國曆或民國年月日"></label><div class="ca-job-input" data-ca-show="auto"><label for="ca-group-input">職業</label><div class="ca-combo"><input id="ca-group-input" name="groupQuery" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ca-group-options" placeholder="職稱或三位數代碼" maxlength="160" spellcheck="false"><button type="button" id="ca-group-toggle" class="ca-combo-toggle" tabindex="-1" aria-label="開啟職業清單" aria-controls="ca-group-options" aria-expanded="false">▾</button><div id="ca-group-popup" class="ca-combo-popup" hidden><div id="ca-group-options" class="ca-combo-list" role="listbox" aria-label="職業搜尋結果"></div><p id="ca-group-count" class="ca-combo-count" role="status"></p></div></div></div><input name="group" type="hidden"><input name="jobId" type="hidden"><label data-ca-show="manual" hidden>FEC rank<select name="rank"></select></label><label data-ca-show="manual" hidden>職業變數<input name="variant" type="text" maxlength="1" placeholder="C–J" autocapitalize="characters"></label><output id="ca-final">—</output></div><p id="ca-age-hint" class="ca-note" hidden></p><p id="ca-job-description" class="ca-note" hidden></p><div class="ca-selectors" data-ca-show="auto"><label>損傷分類<select name="category"></select></label><div class="ca-number"><label for="ca-number-input">Impairment No.</label><div class="ca-combo"><input id="ca-number-input" name="numberQuery" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ca-number-options" placeholder="輸入編碼或關鍵字" maxlength="160" spellcheck="false"><button type="button" id="ca-number-toggle" class="ca-combo-toggle" tabindex="-1" aria-label="開啟編碼清單" aria-controls="ca-number-options" aria-expanded="false">▾</button><div id="ca-number-popup" class="ca-combo-popup" hidden><div id="ca-number-options" class="ca-combo-list" role="listbox" aria-label="編碼搜尋結果"></div><p id="ca-number-count" class="ca-combo-count" role="status"></p></div></div><input name="number" type="hidden"></div></div><label class="ca-basis" id="ca-basis-wrap" hidden>職業變數依據<select name="basis"></select></label><p id="ca-guidance" class="ca-note" hidden></p><dl class="ca-chain"><div><dt>WPI</dt><dd id="ca-wpi">—</dd></div><div><dt id="ca-fec-label">FEC</dt><dd id="ca-fec">—</dd></div><div><dt id="ca-occupation-label">Occupation</dt><dd id="ca-occupation">—</dd></div><div><dt id="ca-age-label">Age</dt><dd id="ca-age">—</dd></div></dl><p id="ca-error" class="ca-note" role="status"></p><div class="ca-actions"><button type="button" id="ca-copy" disabled>複製調整結果</button><button type="button" id="ca-add" disabled>加入合併</button></div><div class="ca-combine"><div class="ca-combine-entry"><label id="ca-rating-label">合併評分 (%)</label><div id="ca-rating-slots" class="ca-rating-slots" role="group" aria-labelledby="ca-rating-label"></div><input name="ratings" type="hidden"></div><output id="ca-combined">—</output><button type="button" id="ca-copy-combined" disabled>複製合併結果</button></div><p id="ca-combine-error" class="ca-note" role="status"></p><p id="ca-status" class="ca-note" role="status"></p></form></section>`;
+  host.innerHTML=`<section class="ca-app" aria-labelledby="ca-title"><header class="ca-header"><h2 id="ca-title">加州調整 <span>PDRS 2005</span></h2><div class="ca-header-actions"><div class="ca-modes" role="group" aria-label="加州調整輸入方式"><button type="button" data-ca-mode="auto">自動查表</button><button type="button" data-ca-mode="manual">手動輸入</button></div><button type="button" id="ca-reset">重設</button></div></header><form id="ca-form" novalidate autocomplete="off"><input type="hidden" name="mode" value="auto"><div class="ca-primary"><label>WPI (%)<input name="wpi" type="number" min="0" max="100" step="1" inputmode="numeric"></label><label class="ca-age-input">年齡／生日<input name="age" type="text" inputmode="text" maxlength="30" placeholder="年齡或生日" aria-label="受傷時年齡或生日" aria-describedby="ca-age-hint" title="可填受傷時年齡，或國曆／民國生日"></label><label class="ca-injury-input" id="ca-injury-wrap" hidden>受傷日期<input name="injuryDate" type="text" inputmode="text" maxlength="30" placeholder="YYYY/MM/DD" title="生日換算需填受傷日；支援國曆或民國年月日"></label><div class="ca-job-input" data-ca-show="auto"><label for="ca-group-input">職業</label><div class="ca-combo"><input id="ca-group-input" name="groupQuery" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ca-group-options" placeholder="職稱或三位數代碼" maxlength="160" spellcheck="false"><button type="button" id="ca-group-toggle" class="ca-combo-toggle" tabindex="-1" aria-label="開啟職業清單" aria-controls="ca-group-options" aria-expanded="false">▾</button><div id="ca-group-popup" class="ca-combo-popup" hidden><div id="ca-group-options" class="ca-combo-list" role="listbox" aria-label="職業搜尋結果"></div><p id="ca-group-count" class="ca-combo-count" role="status"></p></div></div></div><input name="group" type="hidden"><input name="jobId" type="hidden"><label data-ca-show="manual" hidden>FEC rank<select name="rank"></select></label><label data-ca-show="manual" hidden>職業變數<input name="variant" type="text" maxlength="1" placeholder="C–J" autocapitalize="characters"></label><output id="ca-final">—</output></div><p id="ca-age-hint" class="ca-note" hidden></p><p id="ca-job-description" class="ca-note" hidden></p><div class="ca-selectors" data-ca-show="auto"><label>損傷分類<select name="category"></select></label><div class="ca-number"><label for="ca-number-input">Impairment No.</label><div class="ca-combo"><input id="ca-number-input" name="numberQuery" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ca-number-options" placeholder="輸入編碼或關鍵字" maxlength="160" spellcheck="false"><button type="button" id="ca-number-toggle" class="ca-combo-toggle" tabindex="-1" aria-label="開啟編碼清單" aria-controls="ca-number-options" aria-expanded="false">▾</button><div id="ca-number-popup" class="ca-combo-popup" hidden><div id="ca-number-options" class="ca-combo-list" role="listbox" aria-label="編碼搜尋結果"></div><p id="ca-number-count" class="ca-combo-count" role="status"></p></div></div><input name="number" type="hidden"></div></div><label class="ca-basis" id="ca-basis-wrap" hidden>職業變數依據<select name="basis"></select></label><p id="ca-guidance" class="ca-note" hidden></p><dl class="ca-chain"><div><dt>WPI</dt><dd id="ca-wpi">—</dd></div><div><dt id="ca-fec-label">FEC</dt><dd id="ca-fec">—</dd></div><div><dt id="ca-occupation-label">Occupation</dt><dd id="ca-occupation">—</dd></div><div><dt id="ca-age-label">Age</dt><dd id="ca-age">—</dd></div></dl><p id="ca-error" class="ca-note" role="status"></p><div class="ca-actions"><button type="button" id="ca-copy" disabled>複製調整結果</button><button type="button" id="ca-add" disabled>加入合併</button></div><div class="ca-combine"><div class="ca-combine-entry"><div id="ca-rating-slots" class="ca-rating-slots" role="group" aria-label="加州調整分數合併"></div><input name="ratings" type="hidden"></div><output id="ca-combined">—</output><button type="button" id="ca-copy-combined" disabled>複製合併結果</button></div><p id="ca-combine-error" class="ca-note" role="status"></p><p id="ca-status" class="ca-note" role="status"></p></form></section>`;
   const form=host.querySelector('form'),fields=[...form.querySelectorAll('[name]')],by=id=>host.querySelector('#'+id);
   const diagnosisPanel=document.createElement('section');diagnosisPanel.className='ca-diagnoses';diagnosisPanel.setAttribute('aria-label','多診斷');
   const diagnosisToolbar=document.createElement('div');diagnosisToolbar.className='ca-diagnosis-toolbar';
@@ -219,6 +242,8 @@
   const selectors=form.querySelector('.ca-selectors');
   editorGrid.append(named('wpi').closest('label'),selectors,named('rank').closest('label'),named('variant').closest('label'),by('ca-final'),diagnosisToolbar);
   editor.append(editorGrid,by('ca-basis-wrap'),by('ca-guidance'));
+  const currentChain=form.querySelector('.ca-chain'),currentActions=form.querySelector('.ca-actions');
+  const editorDetails=document.createElement('div');editorDetails.className='ca-diagnosis-details';editorDetails.append(currentChain,currentActions);editor.append(editorDetails,by('ca-error'));
   diagnosisPanel.replaceChildren(diagnosisList,editor);
   const setText=(el,value)=>{if(el.textContent!==value)el.textContent=value;};
   const hide=(el,value)=>{if(el.hidden!==value)el.hidden=value;};
@@ -254,7 +279,7 @@
    const code=normalizeNumber(named('number').value);if(code===basisCode)return;
    basisCode=code;options(named('basis'),engine.basisOptions(code).map(r=>[r[0],r[1]]),'依受影響功能選擇');
   }
-  function selectedJob(){const job=search.job(named('jobId').value);return job&&job.group===named('group').value&&job.value===named('groupQuery').value?job:null;}
+  function selectedJob(){const job=search.job(named('jobId').value);return job&&job.group===named('group').value&&[job.value,job.label].includes(named('groupQuery').value)?job:null;}
   function syncGroup(){
    const value=named('groupQuery').value.normalize('NFKC').trim();
    if(search.validGroup(value)){named('group').value=value;named('jobId').value='';}
@@ -287,6 +312,8 @@
    const actions=document.createElement('div');actions.className='ca-diagnosis-toolbar';grid.append(actions);
    for(const [action,symbol,label]of [['clear','↻','清除此筆'],['remove','−','移除此筆診斷']]){const button=document.createElement('button');button.type='button';button.dataset.diagnosisAction=action;button.dataset.diagnosisId=entry.id;icon(button,symbol,label);actions.append(button);}
    const basisWrap=document.createElement('label');basisWrap.append(document.createTextNode('職業變數依據'));const basis=document.createElement('select');basis.dataset.diagnosisField='basis';basisWrap.append(basis);controls.basis=basis;row.append(basisWrap);
+   const chain=document.createElement('dl');chain.className='ca-chain';const cells=[];
+   for(let i=0;i<4;i++){const cell=document.createElement('div'),term=document.createElement('dt'),value=document.createElement('dd');cell.append(term,value);chain.append(cell);cells.push({term,value});}row.append(chain);
    const detail=document.createElement('p');detail.className='ca-note';detail.setAttribute('role','status');row.append(detail);
    const combo=bindCombo({input,button:toggle,popup,list,status,items:query=>search.numbers(query,entry.category),context:()=>entry.category,commit:item=>{const record=engine.record(item.value);entry.number=item.value;entry.category=record[3];input.value=record[1];entry.basis='';change();},empty:'沒有符合的編碼，可試其他關鍵字或分類。'});
    const onEdit=event=>{
@@ -297,7 +324,7 @@
    };
    row.addEventListener('input',onEdit);row.addEventListener('change',onEdit);
    diagnosisList.append(row);
-   return {row,controls,combo,result,detail,categoryWrap,numberWrap,rankWrap,variantWrap,basisWrap,basisCode:null};
+   return {row,controls,combo,result,detail,cells,categoryWrap,numberWrap,rankWrap,variantWrap,basisWrap,basisCode:null};
   }
   function renderDiagnoses(){
    diagnosisList.hidden=!diagnosisResults.length;
@@ -312,7 +339,8 @@
     hide(view.basisWrap,manual||!data.variantRules[normalizeNumber(entry.input.number)]);
     if(view.basisCode!==entry.input.number){view.basisCode=entry.input.number;options(view.controls.basis,engine.basisOptions(entry.input.number).map(r=>[r[0],r[1]]),'依受影響功能選擇');}view.controls.basis.value=entry.input.basis;
     setText(view.result,entry.result?entry.result.final+'%':'—');
-    setText(view.detail,entry.result?`WPI ${entry.result.wpi}% → FEC ${entry.result.fec}% → Occupation ${entry.result.occupation}% → Age ${entry.result.final}%`:entry.error);
+    const r=entry.result;const labels=['WPI',r?`FEC (${r.rank})`:'FEC',r?`Occupation (${r.group?r.group+', ':''}${r.variant})`:'Occupation',r?`Age (${r.age})`:'Age'];
+    view.cells.forEach((cell,i)=>{setText(cell.term,labels[i]);setText(cell.value,r?[r.wpi,r.fec,r.occupation,r.final][i]+'%':'—');});setText(view.detail,r?'':entry.error);
    });
   }
   function update(){
@@ -320,7 +348,7 @@
    const manual=input.mode==='manual',number=normalizeNumber(input.number),record=engine.record(number),basis=!manual&&Boolean(data.variantRules[number]);
    editorGrid.dataset.mode=input.mode;
    if(manual){numberCombo?.close();groupCombo?.close();}
-   const chosen=selectedJob(),jobText=!manual&&chosen?`${chosen.group} · ${chosen.title}${chosen.industry?' · '+chosen.industry:''}`:!manual&&input.groupQuery&&!input.group?'請從清單選擇職稱，或直接輸入三位數組別代碼。':'';
+   const chosen=selectedJob(),jobText=!manual&&input.groupQuery&&!input.group?'請從清單選擇職稱，或直接輸入三位數組別代碼。':'';
    setText(by('ca-job-description'),jobText);hide(by('ca-job-description'),!jobText);
    const birthday=needsInjuryDate(input.age);hide(by('ca-injury-wrap'),!birthday);
    let ageHint='';if(birthday){try{const a=resolveAge(input.age,input.injuryDate);ageHint=`${a.birthDate} → ${a.injuryDate}：受傷時 ${a.age} 歲`;}catch(_){}}
@@ -337,12 +365,11 @@
    for(const [id,value] of [['ca-final',current?current.final+'%':'—'],['ca-wpi',current?current.wpi+'%':'—'],['ca-fec',current?current.fec+'%':'—'],['ca-occupation',current?current.occupation+'%':'—'],['ca-age',current?current.final+'%':'—'],['ca-fec-label',current?`FEC (${current.rank})`:'FEC'],['ca-occupation-label',current?`Occupation (${current.group?current.group+', ':''}${current.variant})`:'Occupation'],['ca-age-label',current?`Age (${current.age})`:'Age']])setText(by(id),value);
    disable(by('ca-copy'),!current);disable(by('ca-add'),!current);
    disable(by('ca-diagnosis-add'),!readable||!current);hide(by('ca-add'),multiDiagnosis);
-   hide(form.querySelector('.ca-chain'),multiDiagnosis&&!hasDiagnosis());hide(form.querySelector('.ca-actions'),multiDiagnosis&&!hasDiagnosis());
+   hide(currentChain,multiDiagnosis&&!hasDiagnosis());hide(currentActions,multiDiagnosis&&!hasDiagnosis());
    diagnosisResults=rateDiagnoses(engine,input,diagnoses);renderDiagnoses();
-   setText(by('ca-rating-label'),multiDiagnosis?'合併評分 (%) · 診斷自動帶入＋手動補充':'合併評分 (%)');
    ratingHost.querySelectorAll('[data-linked-diagnosis]').forEach(node=>node.remove());
    const automatic=multiDiagnosis?[...diagnosisResults,...(hasDiagnosis()?[{id:'current',result:current,error:error||'目前診斷尚未完成。'}]:[])]:[];
-   const linked=document.createDocumentFragment();automatic.forEach((entry,index)=>{const field=document.createElement('input');field.type='text';field.readOnly=true;field.dataset.linkedDiagnosis=entry.id;field.value=entry.result?String(entry.result.final):'—';field.title=entry.result?.description||entry.error;field.setAttribute('aria-label','診斷'+(index+1)+'自動帶入的調整後評分');linked.append(field);});ratingHost.prepend(linked);
+   const linked=document.createDocumentFragment();automatic.forEach((entry,index)=>{const field=document.createElement('input');field.type='text';field.readOnly=true;field.tabIndex=-1;field.dataset.linkedDiagnosis=entry.id;field.value=entry.result?String(entry.result.final):'—';field.title=entry.result?.description||entry.error;field.setAttribute('aria-label','診斷'+(index+1)+'自動帶入的調整後評分');linked.append(field);});ratingHost.prepend(linked);
    combined=null;let combineError='';if(input.ratings.trim()||automatic.length){try{
     if(automatic.some(entry=>!entry.result))throw Error('有診斷尚未完成，請完成或移除後再合併。');
     if(ratingFields.some(f=>f.value.trim()!==''&&integer(f.value,0,100)===null))throw Error('合併評分須為 0–100 的整數。');
@@ -369,7 +396,7 @@
   };
   form.addEventListener('input',edited);form.addEventListener('change',edited);
   host.addEventListener('click',e=>{const button=e.target.closest('[data-ca-mode]');if(button){named('mode').value=button.dataset.caMode;change();}});
-  ratingHost.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();const at=ratingFields.indexOf(e.target);if(at>=0){ensureRatings(Math.max(7,at+2));ratingFields[at+1].focus();ratingFields[at+1].select();}}});
+  bindRatingNavigation(ratingHost,ratingFields,count=>ensureRatings(Math.max(7,count)));
   ratingHost.addEventListener('paste',e=>{
    const values=(e.clipboardData.getData('text/plain')||e.clipboardData.getData('text')).trim().normalize('NFKC').split(/[\s,、;]+/).filter(Boolean),at=ratingFields.indexOf(e.target);
    if(values.length>1&&at>=0){e.preventDefault();ensureRatings(Math.max(7,at+values.length));values.forEach((value,i)=>ratingFields[at+i].value=value);syncRatings();change();}
@@ -390,7 +417,7 @@
   by('ca-copy-combined').onclick=()=>{if(combined)copy(['合併評分 · PDRS 2005',...(multiDiagnosis?[...diagnosisResults.map(entry=>entry.result),...(hasDiagnosis()?[current]:[])].filter(Boolean).map((result,index)=>'診斷'+(index+1)+'\n'+summary(result)):[]),...combined.steps.map(s=>`${s.left}% ⊕ ${s.right}% = ${s.result}%`),`合併結果：${combined.total}%`].join('\n'));};
   const combo=(prefix,items,commit,context,empty)=>bindCombo({input:by('ca-'+prefix+'-input'),button:by('ca-'+prefix+'-toggle'),popup:by('ca-'+prefix+'-popup'),list:by('ca-'+prefix+'-options'),status:by('ca-'+prefix+'-count'),items,commit,context,empty});
   numberCombo=combo('number',query=>search.numbers(query,named('category').value),item=>{populateNumbers(item.value);change();},()=>named('category').value,'沒有符合的編碼，可試其他關鍵字或分類。');
-  groupCombo=combo('group',query=>search.jobs(query),item=>{named('group').value=item.group;named('jobId').value=item.kind==='job'?item.id:'';change();},()=>'', '沒有符合職稱，可試英文職稱或三位數代碼。');
+  groupCombo=combo('group',query=>search.jobs(query),item=>{named('group').value=item.group;named('jobId').value=item.kind==='job'?item.id:'';named('groupQuery').value=item.kind==='job'?item.label:item.value;change();},()=>'', '沒有符合職稱，可試英文職稱或三位數代碼。');
   function hydrate(){let saved={};try{saved=JSON.parse(root.ScholarStorage.getItem(KEY)||'{}')||{};}catch(_){}
    try{diagnoses=parseDiagnoses(saved.diagnoses);readable=true;multiDiagnosis=saved.multiDiagnosis===true||diagnoses.length>0;}catch(error){readable=false;disable(by('ca-diagnosis-add'),true);setText(by('ca-status'),error.message+' 未覆寫原資料。');return;}
    for(const view of diagnosisRows.values()){view.combo.destroy();view.row.remove();}diagnosisRows.clear();signature='';
@@ -398,6 +425,7 @@
    if(!['auto','manual'].includes(named('mode').value))named('mode').value='auto';
    numberCombo.close();groupCombo.close();
    if(!selectedJob()){named('jobId').value='';if(search.validGroup(named('group').value))named('groupQuery').value=named('group').value;}
+   else named('groupQuery').value=selectedJob().label;
    const number=String(saved.number??'');populateNumbers(engine.record(number)?number:String(saved.numberQuery??number));populateRatings(named('ratings').value);basisCode='';populateBasis();named('basis').value=String(saved.basis??'');update();persisted=JSON.stringify(read());
   }
   let hydrationPending=false;
@@ -413,5 +441,5 @@
   },0));
   hydrate();
  }
- root.ScholarCalifornia={...api,mount};
+ root.ScholarCalifornia={...api,mount,mountCombine};
 })(typeof window==='undefined'?globalThis:window);
