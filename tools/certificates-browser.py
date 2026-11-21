@@ -38,7 +38,7 @@ def main():
      if name=='chromium':
       out=ROOT/'.local/certificates';out.mkdir(parents=True,exist_ok=True);page.locator('#dc-categories').get_by_role('tab',name='復工',exact=True).click();page.screenshot(path=str(out/f'page-{width}.png'),full_page=True)
      page.evaluate("()=>{const ids=[...document.querySelectorAll('#scholar-game-tabs>.sg-tab')].filter(n=>!n.hidden&&n.id!=='game-tab-certificates').map(n=>n.id);localStorage.setItem('scholar-tab-order-v1',JSON.stringify(ids));}")
-     page.reload(wait_until='domcontentloaded');page.locator('#dc-output').wait_for();assert page.locator('#scholar-game-tabs>.sg-tab:visible').last.get_attribute('id')=='game-group-button';assert page.locator('#dc-fields [data-variable]').first.input_value()=='';assert not errors,errors;print(name,width,'15 templates / purpose categories / blank fields / explicit generate / editable copy / retained drafts / reset / navigation PASS',flush=True);page.close()
+     page.reload(wait_until='domcontentloaded');page.locator('#dc-output').wait_for();assert page.locator('#scholar-game-tabs>.sg-tab:visible').last.get_attribute('id')=='game-group-button';assert page.locator('#dc-fields [data-variable]').first.input_value()=='';assert not errors,errors;print(name,width,'all templates / purpose categories / blank fields / explicit generate / editable copy / retained drafts / reset / navigation PASS',flush=True);page.close()
     browser.close()
  finally:
   if server:server.shutdown()

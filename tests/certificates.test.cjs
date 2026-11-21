@@ -1,10 +1,10 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const C=require('../certificates/certificates.js');
 const data=JSON.parse(fs.readFileSync(require.resolve('../certificates/templates.json'),'utf8'));
-test('all 15 user templates are grouped by purpose with no case facts prefilled',()=>{
- assert.equal(C.validate(data),data);assert.equal(data.templates.length,15);
+test('all 16 user templates are grouped by purpose with no case facts prefilled',()=>{
+ assert.equal(C.validate(data),data);assert.equal(data.templates.length,16);
  assert.deepEqual(data.categories,['復工','休養','工作限制','職業病','勞動能力減損']);
- assert.deepEqual(data.categories.map(category=>data.templates.filter(t=>t.category===category).length),[3,3,2,2,5]);
+ assert.deepEqual(data.categories.map(category=>data.templates.filter(t=>t.category===category).length),[3,3,2,2,6]);
  for(const template of data.templates){assert.ok(C.variables(template.body).length);assert.doesNotMatch(template.body,/202[0-9]|11[123]年|3\.86|8\.5|19\.3|三軍|臺北醫院|竹南診所|店長|設計師/);assert.ok(!C.generate(template.body).includes('{{'));}
 });
 test('repeated variables are filled consistently and remaining values stay blank',()=>{
