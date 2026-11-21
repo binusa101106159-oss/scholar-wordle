@@ -28,48 +28,51 @@
   return root.ScholarQuestionnaireScores.scoreQuickDASH(values);
  }
  function mountForm(form,host){
-  const section=element('section','', 'fm-questionnaire');section.id='fm-'+form.id;section.setAttribute('role','tabpanel');section.setAttribute('aria-labelledby','fm-tab-'+form.id);section.hidden=form.id!==active;
-  const heading=element('div','', 'fm-heading');heading.append(element('h1',form.name));section.append(heading);
+  const section=element('section','','fm-questionnaire fm-paper');section.id='fm-'+form.id;section.setAttribute('role','tabpanel');section.setAttribute('aria-labelledby','fm-tab-'+form.id);section.hidden=form.id!==active;
+  const heading=element('div','','fm-heading');heading.append(element('h1',form.subtitle||form.name));section.append(heading);
+  if(form.intro)section.append(element('p',form.intro,'fm-paper-instructions'));
   if(form.notice)section.append(element('p',form.notice,'fm-version'));
-  if(form.pending){section.append(element('p','完整題目尚待匯入，請使用原始問卷；計算機的11題快速計分仍可使用。','fm-pending'));host.append(section);views.set(form.id,{section,hydrate(){}});return;}
-  const questionnaire=element('form');questionnaire.id='fm-answers-'+form.id;questionnaire.noValidate=true;const groups=[];
+  if(form.pending){section.append(element('p','完整題目尚待匯入，請使用原始問卷。','fm-pending'));host.append(section);views.set(form.id,{section,hydrate(){}});return;}
+  const questionnaire=element('form');questionnaire.id='fm-answers-'+form.id;questionnaire.noValidate=true;const groups=[];let matrix=null,matrixKey='';
+  function option(q,index,answer,withText=false){
+   const label=element('label','','fm-paper-number'),input=document.createElement('input'),number=element('span',String(answer.value),'fm-paper-value');
+   input.type='radio';input.name='q'+(index+1);input.value=String(answer.value);input.id='fm-'+form.id+'-q'+(index+1)+'-v'+answer.value;input.setAttribute('aria-label','第'+(index+1)+'題，'+answer.label+'（'+answer.value+'）');
+   input.addEventListener('change',()=>{if(!input.checked)return;submitted=false;const saved=read(form.id);saved[input.name]=Number(input.value);saved.submitted=false;root.ScholarStorage.setItem(KEY(form.id),JSON.stringify(saved));update();});
+   label.append(input,number);if(withText){label.classList.add('fm-paper-statement');label.append(element('span',answer.label,'fm-paper-answer'));}return label;
+  }
+  function clearQuestion(index){const clear=element('button','↻','fm-paper-clear');clear.type='button';clear.title='清除此題';clear.setAttribute('aria-label','清除第'+(index+1)+'題');clear.onclick=()=>{const saved=read(form.id);delete saved['q'+(index+1)];saved.submitted=false;root.ScholarStorage.setItem(KEY(form.id),JSON.stringify(saved));hydrate();};return clear;}
   form.questions.forEach((q,i)=>{
-   if(q.section)questionnaire.append(element('h2',q.section,'fm-section-title'));
-   const group=element('fieldset','', 'fm-question');group.id='fm-'+form.id+'-q'+(i+1);
-   group.append(element('legend',String(i+1)+'. '+q.text));
-   if(q.prompt)group.append(element('p',q.prompt,'fm-intro'));
-   if(q.original){const original=element('details','', 'fm-original');original.append(element('summary','英文原題'),element('p',q.original));group.append(original);}
-   const first=q.options[0],last=q.options.at(-1),anchors=q.anchors||[first.label,last.label];
-   const endpoints=element('div','', 'fm-endpoints');endpoints.append(element('span',first.value+' · '+anchors[0]),element('span',last.value+' · '+anchors[1]));group.append(endpoints);
-   const wrap=element('div','', 'fm-slider'),range=document.createElement('input'),value=element('output','未作答','fm-slider-value');
-   if(!q.anchors)value.classList.add('fm-slider-choice');
-   if(q.options.some(option=>option.label.length>28))value.classList.add('fm-slider-long-choice');
-   range.type='range';range.name='q'+(i+1);range.min=String(first.value);range.max=String(last.value);range.step='1';range.value=String(Math.round((first.value+last.value)/2));range.dataset.answered='false';range.setAttribute('aria-label','第'+(i+1)+'題，'+first.value+'至'+last.value);
-   range.id=group.id+'-slider';value.setAttribute('for',range.id);
-   const ticks=element('div','', 'fm-slider-ticks');ticks.setAttribute('aria-hidden','true');q.options.forEach(option=>ticks.append(element('span',String(option.value))));
-   const accept=()=>{range.dataset.answered='true';submitted=false;const saved=read(form.id);saved[range.name]=Number(range.value);saved.submitted=false;root.ScholarStorage.setItem(KEY(form.id),JSON.stringify(saved));update();};
-   range.addEventListener('input',accept);range.addEventListener('change',accept);range.addEventListener('pointerup',accept);
-   const dots=element('div','', 'fm-start-dots');dots.setAttribute('aria-hidden','true');
-   for(let point=0;point<5;point++)dots.append(element('span','', 'fm-start-dot'));
-   const rail=element('div','', 'fm-slider-rail'),hint=element('span','左右滑動作答','fm-slider-hint');rail.append(range,dots);
-   wrap.append(value,rail,ticks,hint);group.append(wrap);
-   if(form.id==='quickdash'){const clear=element('button','清除此題','fm-clear-question');clear.type='button';clear.onclick=()=>{const saved=read(form.id);delete saved['q'+(i+1)];saved.submitted=false;root.ScholarStorage.setItem(KEY(form.id),JSON.stringify(saved));hydrate();};group.append(clear);}
-   questionnaire.append(group);groups.push(group);
+   if(q.section){questionnaire.append(element('h2',q.section,'fm-section-title'));matrixKey='';}
+   const questionText=(form.id==='bsrs'&&i===5?'★ ':String(i+1)+'. ')+q.text;
+   let group;
+   if(form.id==='pdq'){
+    group=element('fieldset','','fm-paper-block fm-paper-pdq');group.append(element('legend',questionText));
+    const scale=element('div','','fm-paper-scale'),numbers=element('div','','fm-paper-numbers');q.options.forEach(answer=>numbers.append(option(q,i,answer)));
+    scale.append(element('span',q.anchors[0],'fm-paper-anchor fm-paper-left'),numbers,element('span',q.anchors[1],'fm-paper-anchor fm-paper-right'));group.append(scale);questionnaire.append(group);matrixKey='';
+   }else if(form.id==='aaos'&&i===5){
+    group=element('fieldset','','fm-paper-block');group.append(element('legend',questionText));const list=element('div','','fm-paper-statements');q.options.forEach(answer=>list.append(option(q,i,answer,true)));group.append(list);questionnaire.append(group);matrixKey='';
+   }else{
+    const key=JSON.stringify([q.options,q.prompt||'']);
+    if(key!==matrixKey){
+     const table=element('table','','fm-paper-table');table.setAttribute('aria-label',form.name+' 選項');table.style.setProperty('--fm-choice-count',String(q.options.length));
+     if(q.prompt)table.append(element('caption',q.prompt));
+     const cols=document.createElement('colgroup'),questionCol=document.createElement('col');questionCol.className='fm-paper-question-col';questionCol.style.width=q.options.length>5?'38%':'45%';cols.append(questionCol);q.options.forEach(()=>cols.append(document.createElement('col')));table.append(cols);
+     const head=document.createElement('thead'),row=document.createElement('tr'),topic=element('th',form.id==='bsrs'?'最近一週以來，您是否有…':'');topic.scope='col';row.append(topic);
+     q.options.forEach(answer=>{const cell=element('th',answer.label);cell.scope='col';row.append(cell);});head.append(row);table.append(head);matrix=document.createElement('tbody');table.append(matrix);questionnaire.append(table);matrixKey=key;
+    }
+    group=element('tr','','fm-paper-row');const question=element('th',questionText,'fm-paper-question');question.scope='row';group.append(question);
+    q.options.forEach(answer=>{const cell=document.createElement('td');cell.append(option(q,i,answer));group.append(cell);});matrix.append(group);
+    if(form.id==='quickdash')question.append(clearQuestion(i));
+   }
+   group.id='fm-'+form.id+'-q'+(i+1);groups.push(group);
   });
   const footer=element('div','', 'fm-footer'),progress=element('span','', 'fm-progress'),submit=element('button','完成作答','fm-primary'),reset=element('button','清除本份','fm-reset');submit.type='submit';submit.setAttribute('form',questionnaire.id);reset.type='button';footer.append(progress,reset,submit);questionnaire.append(footer);
   const result=element('section','', 'fm-result');result.setAttribute('role','status');result.setAttribute('aria-live','polite');result.hidden=true;
   let submitted=false;
-  function values(){return groups.map(g=>{const slider=g.querySelector('input[type=range]');return slider.dataset.answered==='true'?Number(slider.value):null;});}
+  function values(){return groups.map(group=>{const checked=group.querySelector('input[type=radio]:checked');return checked?Number(checked.value):null;});}
   function update(){
    const answers=values(),done=answers.filter(v=>v!==null).length;progress.textContent=`已填 ${done} / ${answers.length} 題`;
-   groups.forEach((g,i)=>{
-    g.classList.toggle('fm-answered',answers[i]!==null);const slider=g.querySelector('input[type=range]'),q=form.questions[i];
-    const option=q.options.find(o=>o.value===answers[i]);
-    const label=answers[i]===null?'未作答':q.anchors?answers[i]+' 分':answers[i]+' · '+option.label;
-    g.querySelector('output').textContent=label;
-    const answered=answers[i]!==null,wrap=g.querySelector('.fm-slider');wrap.querySelector('.fm-start-dots').hidden=answered;wrap.querySelector('.fm-slider-hint').hidden=answered;[wrap.querySelector('output'),wrap.querySelector('.fm-slider-ticks')].forEach(e=>e.hidden=!answered);
-    slider.setAttribute('aria-valuetext',answers[i]===null?'未作答，請選擇'+slider.min+'至'+slider.max:label);
-   });result.replaceChildren();result.hidden=!submitted;
+   groups.forEach((group,i)=>group.classList.toggle('fm-answered',answers[i]!==null));result.replaceChildren();result.hidden=!submitted;
    if(!submitted)return;
    const calculated=score(form,answers);
    if(!calculated.ready){result.append(element('p','尚未完成，請確認未填的題目。'));return;}
@@ -85,12 +88,12 @@
   }
   function hydrate(){
    const saved=read(form.id);
-   groups.forEach((g,i)=>{const input=g.querySelector('input[type=range]'),value=saved['q'+(i+1)],q=form.questions[i];const answered=q.options.some(option=>option.value===value);input.dataset.answered=String(answered);input.value=answered?value:Math.round((Number(input.min)+Number(input.max))/2);});
+   groups.forEach((group,i)=>{const value=saved['q'+(i+1)],valid=form.questions[i].options.some(option=>option.value===value);group.querySelectorAll('input[type=radio]').forEach(input=>input.checked=valid&&Number(input.value)===value);});
    submitted=saved.submitted===true;update();
   }
   questionnaire.onsubmit=event=>{
-   event.preventDefault();const answers=values();const missing=answers.findIndex(v=>v===null);
-   if(missing!==-1 && !(form.id==='quickdash' && answers.filter(v=>v!==null).length>=10)){submitted=false;update();groups[missing].scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});groups[missing].querySelector('input[type=range]').focus({preventScroll:true});progress.textContent+=' · 請完成第'+(missing+1)+'題';return;}
+   event.preventDefault();document.querySelector('.fm-shell')?.classList.remove('fm-menu-open');document.getElementById('fm-menu-toggle')?.setAttribute('aria-expanded','false');const answers=values();const missing=answers.findIndex(v=>v===null);
+   if(missing!==-1 && !(form.id==='quickdash' && answers.filter(v=>v!==null).length>=10)){submitted=false;update();groups[missing].scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});groups[missing].querySelector('input[type=radio]').focus({preventScroll:true});progress.textContent+=' · 請完成第'+(missing+1)+'題';return;}
    submitted=true;const saved=read(form.id);saved.submitted=true;root.ScholarStorage.setItem(KEY(form.id),JSON.stringify(saved));update();result.scrollIntoView({block:'center',behavior:'smooth'});
   };
   reset.onclick=()=>{if(values().some(v=>v!==null)&&!confirm('清除這份問卷的全部答案？'))return;root.ScholarStorage.removeItem(KEY(form.id));hydrate();};

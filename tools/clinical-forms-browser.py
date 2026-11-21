@@ -29,7 +29,7 @@ def main():
      page.locator('#fm-mse-orientation-1').check();page.locator('#fm-mse-orientation-4').check();page.locator('#fm-mse-insight-0').check();page.locator('#fm-mse-insight-2').check();assert not page.locator('#fm-mse-insight-0').is_checked()
      expected='Mental Status Exam\nObservations\nAppearance: Neat\nSpeech: Pressured\n\nCognition\nOrientation Impairment: Place, Time\n\nInsight\nInsight: Poor'
      # Other questionnaire answers survive clinical clears and switches.
-     switch('bsrs');slider=page.locator('#fm-bsrs-q1-slider');slider.fill('2');slider.dispatch_event('input');switch('mmse')
+     switch('bsrs');answer=page.locator('#fm-bsrs-q1 input[value="2"]');answer.locator('..').click();switch('mmse')
      assert page.locator('#fm-mmse textarea,#fm-mmse input:not([type=checkbox]),#fm-mmse .fm-clinical-credit,#fm-mmse h1').count()==0
      assert page.locator('#fm-mmse input[type=checkbox]').count()==30;assert page.locator('#fm-mmse input:checked').count()==0
      assert page.locator('#fm-mmse-time-score').inner_text()=='—'
@@ -56,7 +56,7 @@ def main():
      dismiss=lambda d:d.dismiss();page.on('dialog',dismiss);action('mse','Clear MSE');assert page.locator('#fm-mse-appearance-0').is_checked()
      page.remove_listener('dialog',dismiss);page.on('dialog',lambda d:d.accept());action('mse','Clear MSE');assert page.locator('#fm-mse input:checked,#fm-mse textarea').count()==0
      switch('mmse');assert page.locator('#fm-mmse-score').inner_text()=='總分：30 / 30'
-     switch('bsrs');assert slider.input_value()=='2'
+     switch('bsrs');assert answer.is_checked()
      switch('midas');assert page.locator('#fm-midas input').count()==7;assert all(v=='' for v in page.locator('#fm-midas input').evaluate_all('nodes=>nodes.map(n=>n.value)'))
      assert page.locator('#fm-midas-summary').inner_text()=='主項已填 0 / 5 題'
      for index in range(1,6):page.locator(f'#fm-midas-q{index}').fill('0')
@@ -73,7 +73,7 @@ def main():
      page.locator('.fm-content').evaluate('n=>n.scrollTop=0');assert page.locator('#fm-midas').evaluate('n=>n.scrollWidth<=n.clientWidth+1')
      if engine=='chromium':page.screenshot(path=str(output/f'midas-{width}.png'))
      action('midas','清除 MIDAS');assert page.locator('#fm-midas-q5').input_value()=='';assert page.locator('#fm-midas-summary').inner_text()=='主項已填 0 / 5 題'
-     switch('bsrs');assert slider.input_value()=='2'
+     switch('bsrs');assert answer.is_checked()
      switch('mse');page.locator('.fm-content').evaluate('n=>n.scrollTop=0');assert page.locator('#fm-mse').evaluate('n=>n.scrollWidth<=n.clientWidth+1')
      if engine=='chromium':page.screenshot(path=str(output/f'mse-{width}.png'));switch('mmse');page.screenshot(path=str(output/f'mmse-{width}.png'))
      assert not errors,errors;print(engine,width,'clinical selection / exact copy / clipboard fallback / scoped clear / preserved drafts / scrolling PASS',flush=True);context.close()
