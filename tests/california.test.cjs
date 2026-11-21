@@ -5,6 +5,16 @@ const chart=require('./fixtures/california-cvc.json');
 const C=require('../calculator/california.js'),engine=C.createEngine(data);
 const occupations=require('../calculator/california-occupations.json'),search=C.createSearch(data,occupations);
 
+test('multiple diagnoses keep their own WPI/code and rerate against shared age and occupation',()=>{
+ const rows=[{id:'a',mode:'auto',wpi:'2',category:'16',number:'16.06.01.01',basis:'',rank:'',variant:''},{id:'b',mode:'auto',wpi:'10',category:'13',number:'13.04.00.00',basis:'',rank:'',variant:''}];
+ assert.deepEqual(C.parseDiagnoses(rows),rows);assert.deepEqual(C.parseDiagnoses(undefined),[]);assert.throws(()=>C.parseDiagnoses([...rows,rows[0]]));assert.throws(()=>C.parseDiagnoses([{}]));
+ const shared={age:'48',group:'311',wpi:'99',number:'bad'},rated=C.rateDiagnoses(engine,shared,rows);
+ assert.equal(rated[0].result.final,3);for(let i=0;i<rows.length;i++)assert.deepEqual(rated[i].result,engine.rate({...shared,...rows[i]}));
+ const changed=C.rateDiagnoses(engine,{...shared,age:'62',group:'111'},rows);changed.forEach((row,i)=>assert.deepEqual(row.result,engine.rate({age:'62',group:'111',...rows[i]})));
+ const bad=C.rateDiagnoses(engine,shared,[{...rows[0],wpi:''}]);assert.equal(bad[0].result,null);assert.ok(bad[0].error);
+ assert.equal(rows[0].wpi,'2');
+});
+
 test('California reproduces the 17 previously verified adjustment examples',()=>{
  const examples=[
   [7,'15.03.02.01','211',51,8],[5,'15.02.02.01','230',31,4],[10,'15.03.02.01','212',43,13],
