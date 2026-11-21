@@ -4,7 +4,7 @@ const sync = window.ScholarSync;
 let auth, db, A, F, stop, initialized = false, started = false;
 let preparedApps, signingIn = false, accountRequest = 0;
 const ownerEmail = 'binusa101106159@gmail.com';
-const privatePanels=['calculator','forms','cases','calendar','wordle','crossword','sudoku'];
+const privatePanels=['certificates','calculator','forms','cases','calendar','wordle','crossword','sudoku'];
 let accountReady=false;
 function accountInputs(ready){accountReady=ready;for(const id of privatePanels){const panel=document.getElementById(id+'-panel');if(panel)panel.inert=!ready;}}
 

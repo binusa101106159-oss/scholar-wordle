@@ -60,7 +60,9 @@
   const order=()=>tabs().map(tab=>tab.id);
   function valid(raw){
     if(!Array.isArray(raw))return null;
-    return [...new Set([...raw.filter(id=>typeof id==='string'&&known.has(id)),...defaults.map(tab=>tab.id)])];
+    const ids=[...new Set(raw.filter(id=>typeof id==='string'&&known.has(id)))];
+    for(const tab of defaults)if(!ids.includes(tab.id)){const games=ids.indexOf('game-group-button');if(games>=0&&tab.id!=='game-group-button')ids.splice(games,0,tab.id);else ids.push(tab.id);}
+    return ids;
   }
   function notify(){nav.dispatchEvent(new Event('scholar:taborder'));}
   function save(){try{localStorage.setItem(KEY,JSON.stringify(order()));}catch(_){/* Ordering still works in this session. */}}
