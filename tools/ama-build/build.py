@@ -1036,6 +1036,9 @@ def main():
     for ident,result in chapters.items():
         for page in result["pages"]: page["html"]=add_links(page["html"],known,ident)
         for attachment in result["attachments"]: attachment["html"]=add_links(attachment["html"],known,ident)
+        if ident in ('c12','c13'):
+            from repair_reader_residuals import repair_chapter
+            repair_chapter(result,doc)
         (args.output/(ident+".json")).write_text(json.dumps(result,ensure_ascii=False,separators=(",",":"))+"\n",encoding="utf-8",newline="\n")
         metadata=next(c for c in index["chapters"] if c["id"]==ident)
         metadata["ready"]=True

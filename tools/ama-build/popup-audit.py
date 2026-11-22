@@ -34,7 +34,7 @@ METRICS=r'''body=>{
  }
  const scrolls=[body,...body.querySelectorAll('*')].filter(n=>n.clientWidth>0&&n.clientHeight>0&&(/auto|scroll/.test(getComputedStyle(n).overflowX+getComputedStyle(n).overflowY))&&(n.scrollWidth>n.clientWidth+4||n.scrollHeight>n.clientHeight+4)).map(n=>{n.scrollLeft=n.scrollWidth;n.scrollTop=n.scrollHeight;return {class:n.className,width:n.scrollWidth,viewWidth:n.clientWidth,height:n.scrollHeight,viewHeight:n.clientHeight,x:n.scrollLeft,y:n.scrollTop};});
  return {textLength:body.textContent.length,visibleText:body.innerText.length,tables:[...body.querySelectorAll('table')].map(t=>({rows:t.rows.length,cells:t.querySelectorAll('td,th').length})),scrolls,
-  contentWidth:Math.max(body.scrollWidth,...[...body.querySelectorAll('.ax-table-wrap,.ax-source-object,.ax-form-figure,table')].map(n=>n.scrollWidth)),
+  contentWidth:Math.max(body.scrollWidth,...[...body.querySelectorAll('.ax-table-wrap,.ax-source-object,.ax-form-figure,.ax-ca-sheet,table')].map(n=>n.scrollWidth)),
   art:[...body.querySelectorAll('svg')].filter(n=>!n.closest('defs')).map(n=>({visible:visible(n),width:n.getBoundingClientRect().width,height:n.getBoundingClientRect().height})),
   broken,missing,overflow,opaqueOverlays,scrollWidth:body.scrollWidth,clientWidth:body.clientWidth,scrollHeight:body.scrollHeight,clientHeight:body.clientHeight};
 }'''
@@ -42,7 +42,7 @@ METRICS=r'''body=>{
 def main():
  parser=argparse.ArgumentParser();parser.add_argument('--engines',default='chromium,firefox,webkit');parser.add_argument('--widths',default='1440,390');parser.add_argument('--screenshots',action='store_true');parser.add_argument('--url');parser.add_argument('--ids');args=parser.parse_args()
  output=ROOT/('.local/ama-popup-audit-live'if args.url else'.local/ama-popup-audit');output.mkdir(parents=True,exist_ok=True)
- chapters=[json.loads((ROOT/f'ama/c{n:02}.json').read_text(encoding='utf8'))for n in range(1,18)]
+ chapters=[json.loads((ROOT/f'ama/c{n:02}.json').read_text(encoding='utf8'))for n in range(1,18)]+[json.loads((ROOT/'ama/california.json').read_text(encoding='utf8'))]
  server=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Quiet,directory=str(ROOT)));threading.Thread(target=server.serve_forever,daemon=True).start();url=f'http://127.0.0.1:{server.server_port}/'
  if args.url:url=args.url.rstrip('/')+'/'
  records=[]
@@ -73,6 +73,8 @@ def main():
         if body.locator('[data-form-view="source"]').count():body.locator('[data-form-view="source"]').click()
         body.locator('svg').evaluate_all('nodes=>nodes.forEach(n=>n.style.contentVisibility="visible")')
         result.update(body.evaluate(METRICS))
+        result['svgImages']=body.evaluate('''async body=>Promise.all([...body.querySelectorAll('svg image')].map(node=>new Promise(resolve=>{const image=new Image();image.onload=()=>resolve({loaded:true,width:image.naturalWidth,height:image.naturalHeight});image.onerror=()=>resolve({loaded:false});image.src=node.getAttribute('href')||node.getAttribute('xlink:href');})))''')
+        if any(not image['loaded']for image in result['svgImages']):result['issues'].append('broken SVG image')
         if item['id']=='ap16-A'and body.locator('.ax-source-object').count()!=1:result['issues'].append('appendix art and labels detached')
         if result['textLength']<10:result['issues'].append('empty popup')
         for key in ['broken','missing','overflow','opaqueOverlays']:
@@ -89,7 +91,7 @@ def main():
          # expose all scroll content. Actual viewport metrics above are intact.
          html=body.inner_html();capture_width=max(1000,result['contentWidth'])
          preview.set_viewport_size({'width':capture_width+4,'height':1100})
-         preview.set_content('<html><head><base href="'+url+'">'+head+'</head><body><main id="ama-panel"><div id="ax-dialog-body" class="ax-dialog-body">'+html+'</div></main><style>html,body,#ama-panel{margin:0;padding:0;background:#151b23;overflow:visible!important;height:auto!important}#ax-dialog-body{color:var(--ax-ink);width:'+str(capture_width+40)+'px;max-height:none!important;height:auto!important;overflow:visible!important;content-visibility:visible!important}#ax-dialog-body .ax-table-wrap{overflow:visible!important}#ax-dialog-body *{content-visibility:visible!important}</style></body></html>')
+         preview.set_content('<html><head><base href="'+url+'">'+head+'</head><body><main id="ama-panel"><div id="ax-dialog-body" class="ax-dialog-body">'+html+'</div></main><style>html,body,#ama-panel{margin:0;padding:0;background:#151b23;overflow:visible!important;height:auto!important}#ax-dialog-body{color:var(--ax-ink);width:'+str(capture_width+40)+'px;max-height:none!important;height:auto!important;overflow:visible!important;content-visibility:visible!important}#ax-dialog-body .ax-table-wrap,#ax-dialog-body .ax-ca-scroll{overflow:visible!important}#ax-dialog-body *{content-visibility:visible!important}</style></body></html>')
          preview.locator('#ax-dialog-body').screenshot(path=str(output/(item['id']+'.png')),timeout=60000)
         page.locator('#ax-dialog-close').click();page.locator('#ax-dialog').wait_for(state='hidden')
        except Exception as e:

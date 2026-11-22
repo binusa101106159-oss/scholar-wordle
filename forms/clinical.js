@@ -81,26 +81,33 @@
    }
    section.append(editor);
   }else{
-   const summary=el('p','','fm-mmse-score');summary.id='fm-mmse-score';summary.setAttribute('role','status');editor.append(summary);
-   const paper=el('div','','fm-mmse-paper'),tableHead=el('div','','fm-mmse-table-head');tableHead.append(el('span','評估紀錄'),el('span','得分'));paper.append(tableHead);
-   const blanks={time:['年','月','日','星期','季節'],place:['第1項','第2項','第3項','第4項','第5項'],registration:['腳踏車','快樂','紅色'],calculation:['第1次','第2次','第3次','第4次','第5次'],recall:['腳踏車','快樂','紅色'],naming:['錶','筆'],repetition:['複誦紀錄'],reading:['執行紀錄'],writing:['書寫句子'],command:['拿紙','折成一半','交回'],construction:['圖形抄寫紀錄']};
-   for(const item of mmseItems){
-    const line=el('div','','fm-mmse-line'),body=el('fieldset','','fm-mmse-item'),description=el('div','','fm-mmse-description'),title=el('h3',item.label+'（'+item.max+'分）');title.id='fm-mmse-'+item.id+'-title';body.setAttribute('aria-labelledby',title.id);description.append(title,el('p',item.prompt,'fm-clinical-caption'));body.append(description);
-    const answers=el('div','','fm-mmse-ticks'),rowChecks=[];
-    blanks[item.id].forEach((label,index)=>{const wrap=el('label','','fm-mmse-tick'),input=el('input'),mark=el('span','','fm-mmse-checkmark');input.type='checkbox';input.id='fm-mmse-'+item.id+'-tick-'+index;input.setAttribute('aria-label',item.label+'：'+label+'，答對');mark.setAttribute('aria-hidden','true');wrap.append(input,mark,el('span',label));answers.append(wrap);checks.push({input});rowChecks.push(input);input.addEventListener('change',()=>{state.values[item.id]=rowChecks.filter(n=>n.checked).length;update();});});body.append(answers);
-    const score=el('div','','fm-mmse-score-field'),value=el('output');value.id='fm-mmse-'+item.id+'-score';value.setAttribute('aria-label',item.label+'得分');score.append(value,el('span','/ '+item.max));
-    const zero=el('button','本項0分','fm-clear-question');zero.type='button';zero.id='fm-mmse-'+item.id+'-zero';zero.onclick=()=>{if(Object.hasOwn(state.values,item.id))delete state.values[item.id];else state.values[item.id]=0;rowChecks.forEach(n=>n.checked=false);update();};body.append(zero);scoreRows.push({item,value,zero});
-    line.append(body,score);paper.append(line);
+   const paper=el('div','','fm-mmse-paper fm-mmse-original'),header=el('div','','fm-mmse-original-head');header.append(el('span',''),el('span','得分'));paper.append(header);
+   const labels={time:['年','月','日','星期','季'],place:['市','醫院','樓','科','新／舊大樓'],registration:['腳踏車','快樂','紅色'],calculation:['93','86','79','72','65'],recall:['腳踏車','快樂','紅色'],naming:['錶','筆'],repetition:['白紙真正寫黑字'],reading:['請閉上眼睛'],writing:['（合文意，多於三個字）'],command:['用左（右）手拿紙','折成一半','再交給我'],construction:['圖形抄繪']};
+   const groups=[['I、定向感（10）',['time','place']],['II、注意力（8）',['registration','calculation']],['III、記憶（3）',['recall']],['IV、語言（5）',['naming','repetition','reading','writing']],['V、口語理解及行動能力（3）',['command']],['VI、建構力（1）',['construction']]];
+   const titles={time:'1. 時間（5）：',place:'2. 地方（5）：',registration:'1. 記憶登錄（3）：',calculation:'2. 系列減七（5）：100 − 7',recall:'',naming:'1. 命名（2）：',repetition:'2. 複誦（1）：',reading:'3. 閱讀理解（1）：',writing:'4. 書寫造句（1）：',command:'',construction:''};
+   for(const [heading,ids]of groups){
+    const group=el('section','','fm-mmse-original-group');group.append(el('h2',heading));
+    for(const key of ids){
+     const item=mmseItems.find(item=>item.id===key),line=el('div','','fm-mmse-original-row'),body=el('fieldset','','fm-mmse-original-item');body.setAttribute('aria-label',item.label);
+     if(titles[key])body.append(el('legend',titles[key]));
+     const answers=el('div','','fm-mmse-original-blanks'),rowChecks=[];
+     labels[key].forEach((label,index)=>{const wrap=el('label','','fm-mmse-original-tick'),input=el('input'),mark=el('span','','fm-mmse-original-mark');input.type='checkbox';input.id='fm-mmse-'+key+'-tick-'+index;input.setAttribute('aria-label',item.label+'：'+label+'，答對');mark.setAttribute('aria-hidden','true');wrap.append(input);if(['time','place'].includes(key))wrap.append(mark,el('span',label));else wrap.append(el('span',label),mark);answers.append(wrap);checks.push({input});rowChecks.push(input);input.addEventListener('change',()=>{state.values[key]=rowChecks.filter(input=>input.checked).length;update();});});body.append(answers);
+     const score=el('div','','fm-mmse-original-score'),value=el('output');value.id='fm-mmse-'+key+'-score';value.setAttribute('aria-label',item.label+'得分');score.append(value,el('small','/ '+item.max));
+     const zero=el('button','0','fm-mmse-original-zero');zero.type='button';zero.id='fm-mmse-'+key+'-zero';zero.setAttribute('aria-label',item.label+'，設為0分');zero.onclick=()=>{if(Object.hasOwn(state.values,key))delete state.values[key];else state.values[key]=0;rowChecks.forEach(input=>input.checked=false);update();};score.append(zero);scoreRows.push({item,value,zero});line.append(body,score);group.append(line);
+    }paper.append(group);
    }
-   editor.append(paper);
-   section.append(editor);
+   const total=el('div','','fm-mmse-original-total'),totalValue=el('output','—');totalValue.id='fm-mmse-total';total.append(el('span','總分'),totalValue);paper.append(total);
+   const stimuli=el('div','','fm-mmse-original-stimuli');stimuli.append(el('p','請 閉 上 眼 睛'));const diagram=document.createElementNS('http://www.w3.org/2000/svg','svg');diagram.setAttribute('viewBox','245 828 145 95');diagram.setAttribute('role','img');diagram.setAttribute('aria-label','原表交疊五邊形抄繪參考圖');
+   for(const points of ['254,873 293,845 330,868 310,910 272,911','326,839 369,841 379,884 340,909 307,885']){const shape=document.createElementNS('http://www.w3.org/2000/svg','polygon');shape.setAttribute('points',points);shape.setAttribute('fill','none');shape.setAttribute('stroke','currentColor');shape.setAttribute('stroke-width','1.5');diagram.append(shape);}stimuli.append(diagram);paper.append(stimuli);
+   const summary=el('p','','fm-mmse-score');summary.id='fm-mmse-score';summary.setAttribute('role','status');editor.append(paper,summary);section.append(editor);
   }
+
   let resultText='',fallback=null;
   const footer=el('div','','fm-footer'),status=el('span','','fm-progress'),copy=el('button',mse?'Copy result':'複製病歷','fm-primary'),reset=el('button',mse?'Clear MSE':'清除 MMSE','fm-reset');status.setAttribute('role','status');status.setAttribute('aria-live','polite');copy.type=reset.type='button';footer.append(status,copy,reset);
   function update(){
    revision++;resultText=mse?buildMSE(state):buildMMSE(state);copy.disabled=!resultText;status.textContent='';if(fallback){fallback.remove();fallback=null;}
-   scoreRows.forEach(({item,value,zero})=>{const assessed=Object.hasOwn(state.values,item.id);value.textContent=assessed?String(state.values[item.id]):'—';zero.textContent=assessed?'清除此項':'本項0分';});
-   if(!mse){const result=scoreMMSE(state.values);section.querySelector('#fm-mmse-score').textContent=result.ready?'總分：'+result.total+' / 30':'已填 '+result.count+' / 11 項 · 尚未完成，不計總分';}
+   scoreRows.forEach(({item,value,zero})=>{const assessed=Object.hasOwn(state.values,item.id);value.textContent=assessed?String(state.values[item.id]):'—';zero.textContent=assessed?'↻':'0';zero.setAttribute('aria-label',item.label+(assessed?'，清除此項':'，設為0分'));});
+   if(!mse){const result=scoreMMSE(state.values);section.querySelector('#fm-mmse-total').textContent=result.ready?String(result.total):'—';section.querySelector('#fm-mmse-score').textContent=result.ready?'總分：'+result.total+' / 30':'已填 '+result.count+' / 11 項 · 尚未完成，不計總分';}
   }
   copy.onclick=async()=>{
    const text=resultText,at=revision;if(!text)return;
