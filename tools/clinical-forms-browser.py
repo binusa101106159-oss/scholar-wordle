@@ -31,16 +31,16 @@ def main():
      # Other questionnaire answers survive clinical clears and switches.
      switch('bsrs');answer=page.locator('#fm-bsrs-q1 input[value="2"]');answer.locator('..').click();switch('mmse')
      assert page.locator('#fm-mmse textarea,#fm-mmse input:not([type=checkbox]),#fm-mmse .fm-clinical-credit,#fm-mmse h1').count()==0
-     assert page.locator('.fm-mmse-original-group').count()==6;assert page.locator('.fm-mmse-original-row').count()==11;assert page.locator('.fm-mmse-original-stimuli svg polygon').count()==2
+     assert page.locator('.fm-mmse-original-row').count()==11;assert page.locator('.fm-mmse-source').evaluate('n=>n.complete&&n.naturalWidth==840');assert page.locator('.fm-mmse-original').evaluate('n=>n.getBoundingClientRect().width')>=680
      assert page.locator('#fm-mmse input[type=checkbox]').count()==30;assert page.locator('#fm-mmse input:checked').count()==0
-     assert page.locator('#fm-mmse-time-score').inner_text()=='—'
+     assert page.locator('#fm-mmse-time-score').inner_text()==''
      page.locator('#fm-mmse-time-zero').click();assert page.locator('#fm-mmse-time-score').inner_text()=='0';assert '不計總分'in page.locator('#fm-mmse-score').inner_text()
      maxima={'time':5,'place':5,'registration':3,'calculation':5,'recall':3,'naming':2,'repetition':1,'reading':1,'writing':1,'command':3,'construction':1}
      for key,value in maxima.items():
       for index in range(value):page.locator(f'#fm-mmse-{key}-tick-{index}').check()
      assert page.locator('#fm-mmse-score').inner_text()=='總分：30 / 30'
      tick=page.locator('#fm-mmse-time-tick-0');tick.uncheck();assert page.locator('#fm-mmse-score').inner_text()=='總分：29 / 30';tick.focus();tick.press('Space');assert page.locator('#fm-mmse-score').inner_text()=='總分：30 / 30'
-     page.locator('#fm-mmse-time-zero').click();assert page.locator('#fm-mmse-time-score').inner_text()=='—';assert '不計總分'in page.locator('#fm-mmse-score').inner_text()
+     page.locator('#fm-mmse-time-zero').click();assert page.locator('#fm-mmse-time-score').inner_text()=='';assert '不計總分'in page.locator('#fm-mmse-score').inner_text()
      page.locator('#fm-mmse-time-zero').click();assert page.locator('#fm-mmse-score').inner_text()=='總分：25 / 30'
      for index in range(5):page.locator(f'#fm-mmse-time-tick-{index}').check()
      page.evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.copiedClinical=text}}})")

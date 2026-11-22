@@ -588,6 +588,7 @@
     if(!reuse)scopeObjectIds(body);
     presentPopup(before);
     window.ScholarFormReader?.mount(body,id);
+    window.ScholarFieldOverlay?.mount(body,id);
     body.scrollTop=0;
     } catch(_){if(request===objectRevision)by('ax-status').textContent='無法載入圖表，請檢查連線後再試。';}
   }
