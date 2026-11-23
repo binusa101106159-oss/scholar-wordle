@@ -31,6 +31,7 @@ def main():
      # Other questionnaire answers survive clinical clears and switches.
      switch('bsrs');answer=page.locator('#fm-bsrs-q1 input[value="2"]');answer.locator('..').click();switch('mmse')
      assert page.locator('#fm-mmse textarea,#fm-mmse input:not([type=checkbox]),#fm-mmse .fm-clinical-credit,#fm-mmse h1').count()==0
+     page.wait_for_function("document.querySelector('.fm-mmse-source')?.complete&&document.querySelector('.fm-mmse-source')?.naturalWidth===840")
      assert page.locator('.fm-mmse-original-row').count()==11;assert page.locator('.fm-mmse-source').evaluate('n=>n.complete&&n.naturalWidth==840');assert page.locator('.fm-mmse-original').evaluate('n=>n.getBoundingClientRect().width')>=680
      assert page.locator('#fm-mmse input[type=checkbox]').count()==30;assert page.locator('#fm-mmse input:checked').count()==0
      assert page.locator('#fm-mmse-time-score').inner_text()==''
