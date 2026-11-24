@@ -1,0 +1,1040 @@
+{
+ "forms": [
+  {
+   "id": "nmq",
+   "name": "肌肉骨骼症狀",
+   "subtitle": "肌肉骨骼症狀調查表",
+   "source": {
+    "guide": "plans01",
+    "guideName": "人因性危害預防計畫指引",
+    "label": "附錄一 肌肉骨骼症狀調查表"
+   },
+   "notice": "本頁未收錄原表的勞工編號、姓名等個人識別欄位。",
+   "score": "nmq",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "A. 填表說明"
+    },
+    {
+     "type": "p",
+     "text": "下列任何部位請以酸痛不適與影響關節活動評斷。任選分數高者。"
+    },
+    {
+     "type": "p",
+     "text": "● 酸痛不適程度與關節活動能力：（以肩關節為例）"
+    },
+    {
+     "type": "img",
+     "src": "guides/attach/img/plans01-edc56b11d9f8.png",
+     "w": 341,
+     "h": 248,
+     "alt": "酸痛不適程度與關節活動能力對照圖（以肩關節為例）"
+    },
+    {
+     "type": "line",
+     "text": "[t:company:10]公司"
+    },
+    {
+     "type": "line",
+     "text": "填表日期：[d:date]"
+    },
+    {
+     "type": "h",
+     "text": "B. 基本資料"
+    },
+    {
+     "type": "grid",
+     "cells": [
+      "廠區[t:site]",
+      "部門[t:dept]",
+      "課/組[t:unit]",
+      "作業名稱[t:task]",
+      "職稱[t:title]",
+      "性別[r:sex:m]男[r:sex:f]女",
+      "年齡[n:age]",
+      "年資[t:tenure]",
+      "身高[n:height]",
+      "體重[n:weight]",
+      "慣用手[r:hand:l]左手[r:hand:r]右手"
+     ]
+    },
+    {
+     "type": "p",
+     "text": "1. 您在過去的 1 年內，身體是否有長達 2 星期以上的疲勞、酸痛、發麻、刺痛等不舒服，或關節活動受到限制？"
+    },
+    {
+     "type": "line",
+     "text": "[r:q1:no]否 [r:q1:yes]是（若否，結束此調查表；若是，請繼續填寫下列表格。）"
+    },
+    {
+     "type": "p",
+     "text": "2. 下表的身體部位酸痛、不適或影響關節活動之情形持續多久時間？"
+    },
+    {
+     "type": "line",
+     "text": "[r:q2:1m]1 個月 [r:q2:3m]3 個月 [r:q2:6m]6 個月 [r:q2:1y]1 年 [r:q2:3y]3 年 [r:q2:3y+]3 年以上"
+    },
+    {
+     "type": "h",
+     "text": "C. 症狀調查"
+    },
+    {
+     "type": "body",
+     "img": "guides/attach/img/plans01-630640e67662.png",
+     "w": 194,
+     "h": 261,
+     "alt": "人體背面觀，標示頸、上背、下背、左右肩、手肘／前臂、手／手腕、臀／大腿、膝、腳踝／腳",
+     "scale": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "low": "不痛",
+     "high": "極度劇痛",
+     "left": [
+      [
+       "neck",
+       "頸"
+      ],
+      [
+       "lshoulder",
+       "左肩"
+      ],
+      [
+       "lelbow",
+       "左手肘/左前臂"
+      ],
+      [
+       "lwrist",
+       "左手/左手腕"
+      ],
+      [
+       "lhip",
+       "左臀/左大腿"
+      ],
+      [
+       "lknee",
+       "左膝"
+      ],
+      [
+       "lankle",
+       "左腳踝/左腳"
+      ]
+     ],
+     "right": [
+      [
+       "upback",
+       "上背"
+      ],
+      [
+       "rshoulder",
+       "右肩"
+      ],
+      [
+       "relbow",
+       "右手肘/右前臂"
+      ],
+      [
+       "lowback",
+       "下背"
+      ],
+      [
+       "rwrist",
+       "右手/右手腕"
+      ],
+      [
+       "rhip",
+       "右臀/右大腿"
+      ],
+      [
+       "rknee",
+       "右膝"
+      ],
+      [
+       "rankle",
+       "右腳踝/右腳"
+      ]
+     ]
+    },
+    {
+     "type": "area",
+     "key": "history",
+     "label": "● 其他症狀、病史說明"
+    }
+   ],
+   "rule": {
+    "title": "表 1 肌肉骨骼傷病調查危害等級區分（問卷可判定的兩列）",
+    "suspect": "疑似有危害：問卷調查表中有身體部位的評分在 3 分以上（包含 3 分）",
+    "none": "無危害：問卷調查 （NMQ）身體部位的評分都在 2 分以下（包含 2分）",
+    "other": "「確診疾病」與「有危害」需依確診紀錄、通報、就醫、離職或請假等資料判定，非本問卷可得。"
+   }
+  },
+  {
+   "id": "maternal",
+   "name": "母性健康自我評估",
+   "subtitle": "妊娠及分娩後未滿 1 年之勞工健康情形自我評估表",
+   "source": {
+    "guide": "plans03",
+    "guideName": "工作場所母性健康保護技術指引",
+    "label": "附表二"
+   },
+   "notice": "本頁未收錄原表的姓名等個人識別欄位。",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "一、基本資料"
+    },
+    {
+     "type": "line",
+     "text": "年齡：[n:age]"
+    },
+    {
+     "type": "line",
+     "text": "單位/部門名稱：[t:dept] 職務：[t:job]"
+    },
+    {
+     "type": "line",
+     "text": "目前班別：[t:shift]"
+    },
+    {
+     "type": "line",
+     "text": "[c:preg]妊娠週數 [n:weeks]週；預產期 [d:edd]"
+    },
+    {
+     "type": "line",
+     "text": "[c:multi]本次妊娠有無多胎情形：[r:multiple:no]無 [r:multiple:yes]有（多胞胎）"
+    },
+    {
+     "type": "line",
+     "text": "[c:post]分娩後（分娩日期 [d:delivery]）"
+    },
+    {
+     "type": "line",
+     "text": "[r:feed:yes]哺乳 [r:feed:no]未哺乳"
+    },
+    {
+     "type": "h",
+     "text": "二、過去疾病史"
+    },
+    {
+     "type": "line",
+     "text": "[c:pmh_none]無 [c:pmh_asthma]氣喘 [c:pmh_htn]高血壓 [c:pmh_dm]糖尿病 [c:pmh_cvd]心血管疾病 [c:pmh_g6pd]蠶豆症"
+    },
+    {
+     "type": "line",
+     "text": "[c:pmh_renal]腎臟或泌尿系統疾病 [c:pmh_other]其他：[t:pmh_other_text]"
+    },
+    {
+     "type": "h",
+     "text": "三、家族病史"
+    },
+    {
+     "type": "line",
+     "text": "[c:fh_none]無 [c:fh_asthma]氣喘 [c:fh_htn]高血壓 [c:fh_dm]糖尿病 [c:fh_cvd]心血管疾病 [c:fh_g6pd]蠶豆症"
+    },
+    {
+     "type": "line",
+     "text": "[c:fh_renal]腎臟或泌尿系統疾病 [c:fh_other]其他：[t:fh_other_text]"
+    },
+    {
+     "type": "h",
+     "text": "四、婦產科相關病史"
+    },
+    {
+     "type": "p",
+     "text": "1.免疫狀況（曾接受疫苗注射或具有抗體）："
+    },
+    {
+     "type": "line",
+     "text": "[c:imm_hbv]B 型肝炎 [c:imm_vzv]水痘 [c:imm_mmr]MMR (痲疹-腮腺炎-德國麻疹)"
+    },
+    {
+     "type": "line",
+     "text": "2.生產史：懷孕次數 [n:gravida]次，生產次數 [n:para]次，流產次數 [n:abortion]次"
+    },
+    {
+     "type": "line",
+     "text": "3.生產方式：自然產 [n:nsd]次，剖腹產 [n:cs]次，"
+    },
+    {
+     "type": "line",
+     "text": "併發症：[r:comp:no]否 [r:comp:yes]是：[t:comp_text]"
+    },
+    {
+     "type": "p",
+     "text": "4.過去懷孕病史："
+    },
+    {
+     "type": "line",
+     "text": "[c:ph_none]無 [c:ph_uterus]先天性子宮異常 [c:ph_myoma]子宮肌瘤 [c:ph_cervix]子宮頸手術病史"
+    },
+    {
+     "type": "line",
+     "text": "[c:ph_loss]曾有第 2 孕期 (14 週) 以上之流產 [c:ph_preterm]早產 (懷孕未滿 37 週之生產) 史"
+    },
+    {
+     "type": "line",
+     "text": "5.其他：[t:ob_other]"
+    },
+    {
+     "type": "h",
+     "text": "五、妊娠及分娩後風險因子評估"
+    },
+    {
+     "type": "line",
+     "text": "[c:rf_none]無下列各種風險情形"
+    },
+    {
+     "type": "line",
+     "text": "[c:rf_anc]沒有規律產檢"
+    },
+    {
+     "type": "line",
+     "text": "[c:rf_smoke]抽菸 [c:rf_alcohol]喝酒 [c:rf_drug]藥物，請敘明：[t:rf_drug_text]"
+    },
+    {
+     "type": "line",
+     "text": "[c:rf_age]年齡 (未滿 18 歲或大於 40 歲) [c:rf_env]生活環境存在風險因素 (例如熱、空氣汙染)"
+    },
+    {
+     "type": "line",
+     "text": "[c:rf_body]孕前體重未滿 45 公斤、身高未滿 150 公分"
+    },
+    {
+     "type": "line",
+     "text": "個人心理狀況：[c:psy_normal]正常 [c:psy_anx]焦慮症 [c:psy_dep]憂鬱症 [c:psy_other]其他：[t:psy_text]"
+    },
+    {
+     "type": "line",
+     "text": "睡眠：[c:sl_normal]正常 [c:sl_insom]失眠 [c:sl_med]需使用藥物 [c:sl_other]其他：[t:sl_text]"
+    },
+    {
+     "type": "line",
+     "text": "[c:rf_other]其他：[t:rf_other_text]"
+    },
+    {
+     "type": "h",
+     "text": "六、自覺徵狀"
+    },
+    {
+     "type": "line",
+     "text": "[c:sx_none]無 [c:sx_bleed]出血 [c:sx_pain]腹痛 [c:sx_cramp]痙攣 [c:sx_other]其他症狀：[t:sx_text]"
+    },
+    {
+     "type": "p",
+     "text": "備註："
+    },
+    {
+     "type": "p",
+     "text": "1. 本表由勞工本人填寫，可參閱孕婦健康手冊。"
+    },
+    {
+     "type": "p",
+     "text": "2. 請於面談時將此表單及孕婦健康手冊交予勞工健康服務醫師或護理人員。"
+    }
+   ]
+  },
+  {
+   "id": "burnout",
+   "name": "過勞量表",
+   "subtitle": "過勞量表",
+   "source": {
+    "guide": "plans04",
+    "guideName": "異常工作負荷促發疾病預防指引",
+    "label": "附錄二"
+   },
+   "score": "burnout",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "「過勞量表」個人評估工具(包含「個人相關過勞」及「工作相關過勞」狀況)"
+    },
+    {
+     "type": "h",
+     "text": "(一)個人相關過勞分量表"
+    },
+    {
+     "type": "p",
+     "text": "1.你常覺得疲勞嗎?"
+    },
+    {
+     "type": "line",
+     "text": "[r:p1:1](1)總是 [r:p1:2](2)常常 [r:p1:3](3)有時候 [r:p1:4](4)不常 [r:p1:5](5)從未或幾乎從未"
+    },
+    {
+     "type": "p",
+     "text": "2.你常覺得身體上體力透支嗎?"
+    },
+    {
+     "type": "line",
+     "text": "[r:p2:1](1)總是 [r:p2:2](2)常常 [r:p2:3](3)有時候 [r:p2:4](4)不常 [r:p2:5](5)從未或幾乎從未"
+    },
+    {
+     "type": "p",
+     "text": "3.你常覺得情緒上心力交瘁嗎?"
+    },
+    {
+     "type": "line",
+     "text": "[r:p3:1](1)總是 [r:p3:2](2)常常 [r:p3:3](3)有時候 [r:p3:4](4)不常 [r:p3:5](5)從未或幾乎從未"
+    },
+    {
+     "type": "p",
+     "text": "4.你常會覺得，「我快要撐不下去了」嗎?"
+    },
+    {
+     "type": "line",
+     "text": "[r:p4:1](1)總是 [r:p4:2](2)常常 [r:p4:3](3)有時候 [r:p4:4](4)不常 [r:p4:5](5)從未或幾乎從未"
+    },
+    {
+     "type": "p",
+     "text": "5.你常覺得精疲力竭嗎?"
+    },
+    {
+     "type": "line",
+     "text": "[r:p5:1](1)總是 [r:p5:2](2)常常 [r:p5:3](3)有時候 [r:p5:4](4)不常 [r:p5:5](5)從未或幾乎從未"
+    },
+    {
+     "type": "p",
+     "text": "6.你常常覺得虛弱，好像快要生病了嗎?"
+    },
+    {
+     "type": "line",
+     "text": "[r:p6:1](1)總是 [r:p6:2](2)常常 [r:p6:3](3)有時候 [r:p6:4](4)不常 [r:p6:5](5)從未或幾乎從未"
+    },
+    {
+     "type": "h",
+     "text": "(二)工作相關過勞分量表"
+    },
+    {
+     "type": "p",
+     "text": "1.你的工作會令人情緒上心力交瘁嗎？"
+    },
+    {
+     "type": "line",
+     "text": "[r:w1:1](1)很嚴重 [r:w1:2](2)嚴重 [r:w1:3](3)有一些 [r:w1:4](4)輕微 [r:w1:5](5)非常輕微"
+    },
+    {
+     "type": "p",
+     "text": "2.你的工作會讓你覺得快要累垮了嗎?"
+    },
+    {
+     "type": "line",
+     "text": "[r:w2:1](1)很嚴重 [r:w2:2](2)嚴重 [r:w2:3](3)有一些 [r:w2:4](4)輕微 [r:w2:5](5)非常輕微"
+    },
+    {
+     "type": "p",
+     "text": "3.你的工作會讓你覺得挫折嗎?"
+    },
+    {
+     "type": "line",
+     "text": "[r:w3:1](1)很嚴重 [r:w3:2](2)嚴重 [r:w3:3](3)有一些 [r:w3:4](4)輕微 [r:w3:5](5)非常輕微"
+    },
+    {
+     "type": "p",
+     "text": "4.工作一整天之後，你覺得精疲力竭嗎?"
+    },
+    {
+     "type": "line",
+     "text": "[r:w4:1](1)總是 [r:w4:2](2)常常 [r:w4:3](3)有時候 [r:w4:4](4)不常 [r:w4:5](5)從未或幾乎從未"
+    },
+    {
+     "type": "p",
+     "text": "5.上班之前只要想到又要工作一整天，你就覺得沒力嗎?"
+    },
+    {
+     "type": "line",
+     "text": "[r:w5:1](1)總是 [r:w5:2](2)常常 [r:w5:3](3)有時候 [r:w5:4](4)不常 [r:w5:5](5)從未或幾乎從未"
+    },
+    {
+     "type": "p",
+     "text": "6.上班時你會覺得每一刻都很難熬嗎?"
+    },
+    {
+     "type": "line",
+     "text": "[r:w6:1](1)總是 [r:w6:2](2)常常 [r:w6:3](3)有時候 [r:w6:4](4)不常 [r:w6:5](5)從未或幾乎從未"
+    },
+    {
+     "type": "p",
+     "text": "7.不工作的時候，你有足夠的精力陪朋友或家人嗎?"
+    },
+    {
+     "type": "line",
+     "text": "[r:w7:1](1)總是 [r:w7:2](2)常常 [r:w7:3](3)有時候 [r:w7:4](4)不常 [r:w7:5](5)從未或幾乎從未"
+    },
+    {
+     "type": "p",
+     "text": "(資料來源: 勞安所過勞自我預防手冊)"
+    }
+   ],
+   "scoring": [
+    "A.將各選項分數轉換如下：(1)100 (2)75 (3)50 (4)25 (5)0。",
+    "B.個人相關過勞分數–將第1~6 題的得分相加，除以6，可得個人相關過勞分數。",
+    "C.工作相關過勞分數–第1~6 題分數轉換同上，第7 題為反向題，分數轉換為：(1)0 (2)25 (3)50 (4)75 (5)100。將1~7 題之分數相加，除以7，可得工作相關過勞分數。"
+   ],
+   "bands": {
+    "personal": [
+     {
+      "range": "50 分以下",
+      "lo": null,
+      "hi": 50,
+      "level": "輕微",
+      "text": "您的過勞程度輕微，您並不常感到疲勞、體力透支、精疲力竭、或者虛弱好像快生病的樣子。"
+     },
+     {
+      "range": "50－70 分",
+      "lo": 50,
+      "hi": 70,
+      "level": "中度",
+      "text": "你的個人過勞程度中等。您有時候感到疲勞、體力透支、精疲力竭、或者虛弱好像快生病的樣子。建議您找出生活的壓力源，進一步的調適自己，增加放鬆與休息的時間。"
+     },
+     {
+      "range": "70 分以上",
+      "lo": 70,
+      "hi": null,
+      "level": "嚴重",
+      "text": "您的個人過勞程度嚴重。您時常感到疲勞、體力透支、精疲力竭、或者虛弱好像快生病的樣子。建議您適度的改變生活方式，增加運動與休閒時間之外，您還需要進一步尋找專業人員諮詢。"
+     }
+    ],
+    "work": [
+     {
+      "range": "45 分以下",
+      "lo": null,
+      "hi": 45,
+      "level": "輕微",
+      "text": "您的工作相關過勞程度輕微，您的工作並不會讓您感覺很沒力、心力交瘁、很挫折。"
+     },
+     {
+      "range": "45－60 分",
+      "lo": 45,
+      "hi": 60,
+      "level": "中度",
+      "text": "您的工作相關過勞程度中等，您有時對工作感覺沒力，沒有興趣，有點挫折。"
+     },
+     {
+      "range": "60 分以上",
+      "lo": 60,
+      "hi": null,
+      "level": "嚴重",
+      "text": "您的工作相關過勞程度嚴重，您已經快被工作累垮了，您感覺心力交瘁，感覺挫折，而且上班時都很難熬，此外您可能缺少休閒時間，沒有時間陪伴家人朋友。建議您適度的改變生活方式，增加運動與休閒時間之外，您還需要進一步尋找專業人員諮詢。"
+     }
+    ]
+   }
+  },
+  {
+   "id": "overload",
+   "name": "過負荷評估問卷",
+   "subtitle": "過負荷評估問卷",
+   "source": {
+    "guide": "plans04",
+    "guideName": "異常工作負荷促發疾病預防指引",
+    "label": "附錄三"
+   },
+   "notice": "本頁未收錄原表的姓名、出生日期等個人識別欄位。",
+   "blocks": [
+    {
+     "type": "line",
+     "text": "填寫日期：[d:date]"
+    },
+    {
+     "type": "h",
+     "text": "一、基本資料"
+    },
+    {
+     "type": "grid",
+     "cells": [
+      "性別[r:sex:m]男 [r:sex:f]女",
+      "婚姻狀態[r:mar:single]未婚 [r:mar:married]已婚 [r:mar:div]離婚 [r:mar:wid]鳏寡",
+      "工作部門[t:dept]",
+      "年資[n:ty]年 [n:tm]月",
+      "職稱[t:title]"
+     ]
+    },
+    {
+     "type": "h",
+     "text": "二、個人過去病史(經醫師確定診斷，可複選)"
+    },
+    {
+     "type": "line",
+     "text": "[c:h_cv]心臟循環系統疾病([c:h_angina]心绞痛[c:h_cad]冠心病[c:h_mi]心肌梗塞[c:h_pci]接受心導管支架手術[c:h_cabg]曾接受冠狀動脈繞道手術、術[c:h_cadmed]冠狀動脈疾病接受藥物治療[c:h_htn]高血壓[c:h_arr]心律不整[c:h_cvother]其他[t:h_cvother_text])"
+    },
+    {
+     "type": "line",
+     "text": "[c:h_stroke]腦中風 [c:h_lipid]血脂肪異常"
+    },
+    {
+     "type": "line",
+     "text": "[c:h_osa]睡眠相關呼吸疾病(如睡眠呼吸中止症) [c:h_cns]中樞神經系統疾病(如癲癇、脊椎疾病)"
+    },
+    {
+     "type": "line",
+     "text": "[c:h_pns]周邊神經系統疾病(如腕隧道症候群) [c:h_psy]情感或心理疾病"
+    },
+    {
+     "type": "line",
+     "text": "[c:h_eye]眼睛疾病(不含可以矯正之近視或遠視) [c:h_hear]聽力損失"
+    },
+    {
+     "type": "line",
+     "text": "[c:h_limb]上肢或下肢疾病(如會導致關節僵硬、無力等症狀之疾病)"
+    },
+    {
+     "type": "line",
+     "text": "[c:h_dm]糖尿病 [c:h_asthma]氣喘 [c:h_med]長期服藥，藥物名稱：[t:h_med_text]"
+    },
+    {
+     "type": "line",
+     "text": "[c:h_other]其他 [c:h_none]以上均無"
+    },
+    {
+     "type": "h",
+     "text": "三、家族史"
+    },
+    {
+     "type": "line",
+     "text": "[c:f_none]無"
+    },
+    {
+     "type": "line",
+     "text": "[c:f_chd]一等親內的家屬(父母、祖父母、子女) 男性於55 歲、女性於65 歲前發生狹心症或心絞痛"
+    },
+    {
+     "type": "line",
+     "text": "[c:f_stroke]家族中有中風病史"
+    },
+    {
+     "type": "line",
+     "text": "[c:f_other]其他"
+    },
+    {
+     "type": "h",
+     "text": "四、生活習慣史"
+    },
+    {
+     "type": "line",
+     "text": "1.抽菸 [r:smoke:no]無 [r:smoke:yes]有(每天 [n:smoke_ppd]包、共 [n:smoke_y]年) [r:smoke:quit]已戒菸 [n:smoke_quit]年"
+    },
+    {
+     "type": "line",
+     "text": "2.檳榔 [r:betel:no]無 [r:betel:yes]有(每天 [n:betel_n]顆、共 [n:betel_y]年) [r:betel:quit]已戒 [n:betel_quit]年"
+    },
+    {
+     "type": "line",
+     "text": "3.喝酒 [r:alc:no]無 [r:alc:yes]有(總類:[t:alc_type]、頻率:[t:alc_freq]、每次大約[n:alc_ml]ml)"
+    },
+    {
+     "type": "line",
+     "text": "4.用餐時間不正常 [r:meal:no]否 [r:meal:yes]是 ； 外食頻率 [r:eatout:0]無 [r:eatout:1]一餐 [r:eatout:2]兩餐 [r:eatout:3]三餐"
+    },
+    {
+     "type": "line",
+     "text": "5.自覺睡眠不足 [r:sleep:no]否 [r:sleep:yes]是(工作日睡眠平均 [n:sleep_w]小時/日；假日睡眠平均 [n:sleep_h]小時/日)"
+    },
+    {
+     "type": "line",
+     "text": "6.運動習慣 [r:ex:no]無 [r:ex:yes]有(每週 [n:ex_n]次、每次 [n:ex_min]分)"
+    },
+    {
+     "type": "line",
+     "text": "7.其他[t:life_other:16]"
+    },
+    {
+     "type": "h",
+     "text": "五、健康檢查項目(無此項目者或事業單位已掌握有勞工之健檢資料者免填寫)"
+    },
+    {
+     "type": "line",
+     "text": "1.身體質量指數[n:bmi]公斤/米2(18.5<=BMI<24)(身高[n:ht]公分；體重[n:wt]公斤)"
+    },
+    {
+     "type": "line",
+     "text": "2.腰圍[n:waist](男性＜90公分；女性＜80公分)"
+    },
+    {
+     "type": "line",
+     "text": "3.脈搏[n:pulse]"
+    },
+    {
+     "type": "line",
+     "text": "4.血壓[n:sbp]/[n:dbp]mmHg (收縮壓<120、舒張壓<80 mmHg)"
+    },
+    {
+     "type": "line",
+     "text": "5.總膽固醇[n:tc](＜200 mg/dL)"
+    },
+    {
+     "type": "line",
+     "text": "6.低密度膽固醇[n:ldl] (＜100 mg/dL)"
+    },
+    {
+     "type": "line",
+     "text": "7.高密度膽固醇[n:hdl] (男性≧40 mg/dL；女性≧50 mg/dL)"
+    },
+    {
+     "type": "line",
+     "text": "8.三酸甘油脂[n:tg] (＜150 mg/dL)"
+    },
+    {
+     "type": "line",
+     "text": "9.空腹血糖[n:ac] (＜100 mg/dL)"
+    },
+    {
+     "type": "line",
+     "text": "10.尿蛋白[t:upro] (陰性)"
+    },
+    {
+     "type": "line",
+     "text": "11.尿潛血[t:uob] (陰性)"
+    },
+    {
+     "type": "h",
+     "text": "六、工作相關因素（工作時數及輪班等資料可由人資部門提供）"
+    },
+    {
+     "type": "line",
+     "text": "1.工作時數： 平均每天[n:hd]小時；平均每週[n:hw]小時；平均每月加班[n:ot]小時"
+    },
+    {
+     "type": "line",
+     "text": "2.工作班別： [c:sh_day]白班 [c:sh_night]夜班 [c:sh_rot]輪班([r:rot:fixed]定期[r:rot:irr]不定期；輪班方式：[t:rot_text])"
+    },
+    {
+     "type": "p",
+     "text": "3.工作環境(可複選)："
+    },
+    {
+     "type": "line",
+     "text": "[c:env_noise]噪音([n:env_db]分貝) [c:env_temp]異常溫度(高溫約[n:env_hi]度；低溫約[n:env_lo]度) [c:env_vent]通風不良"
+    },
+    {
+     "type": "line",
+     "text": "[c:env_ergo]人因工程設計不良(如:座椅、震動、搬運等) [c:env_none]以上皆無"
+    },
+    {
+     "type": "p",
+     "text": "4.日常伴隨緊張之工作負荷(可複選)"
+    },
+    {
+     "type": "line",
+     "text": "[c:s1]經常負責會威脅自己或他人生命、財產的危險性工作"
+    },
+    {
+     "type": "line",
+     "text": "[c:s2]有迴避危險責任的工作"
+    },
+    {
+     "type": "line",
+     "text": "[c:s3]關乎人命、或可能左右他人一生重大判決的工作"
+    },
+    {
+     "type": "line",
+     "text": "[c:s4]處理高危險物質的工作"
+    },
+    {
+     "type": "line",
+     "text": "[c:s5]可能造成社會龐大損失責任的工作"
+    },
+    {
+     "type": "line",
+     "text": "[c:s6]有過多或過分嚴苛的限時工作"
+    },
+    {
+     "type": "line",
+     "text": "[c:s7]需在一定的期間內(如交期等)完成的困難工作"
+    },
+    {
+     "type": "line",
+     "text": "[c:s8]負責處理客戶重大衝突或複雜的勞資紛爭"
+    },
+    {
+     "type": "line",
+     "text": "[c:s9]無法獲得周遭理解或孤立無援狀況下的困難工作"
+    },
+    {
+     "type": "line",
+     "text": "[c:s10]負責複雜困難的開發業務、或公司重建等工作"
+    },
+    {
+     "type": "line",
+     "text": "[c:s_none]以上皆無"
+    },
+    {
+     "type": "p",
+     "text": "5.有無工作相關突發異常事件(如近期發生車禍、車子於行駛中發生重大故障等)?"
+    },
+    {
+     "type": "line",
+     "text": "[r:q5:no]無 [r:q5:yes]有(說明：[t:q5_text:16])"
+    },
+    {
+     "type": "p",
+     "text": "6.工作環境中有無組織文化、職場正義問題(如職場人際衝突、部門內部溝通管道不足等?)"
+    },
+    {
+     "type": "line",
+     "text": "[r:q6:no]無 [r:q6:yes]有(說明：[t:q6_text:16])"
+    },
+    {
+     "type": "p",
+     "text": "7.對預定之工作排程或工作內容經常性變更或無法預估、常屬於事前的通知狀況等?"
+    },
+    {
+     "type": "line",
+     "text": "[r:q7:no]無 [r:q7:yes]有(說明：[t:q7_text:16])"
+    },
+    {
+     "type": "p",
+     "text": "8.經常性出差，其具有時差、無法休憩、休息或適當住宿、長距離自行開車或往返兩地而無法恢復疲勞狀況等?"
+    },
+    {
+     "type": "line",
+     "text": "[r:q8:no]無 [r:q8:yes]有(說明：[t:q8_text:16])"
+    },
+    {
+     "type": "h",
+     "text": "七、非工作相關因素"
+    },
+    {
+     "type": "line",
+     "text": "1.家庭因素問題 [r:fam:no]無 [r:fam:yes]有(說明：[t:fam_text:16])"
+    },
+    {
+     "type": "line",
+     "text": "2.經濟因素問題 [r:eco:no]無 [r:eco:yes]有(說明：[t:eco_text:16])"
+    },
+    {
+     "type": "h",
+     "text": "八、過負荷評估"
+    },
+    {
+     "type": "line",
+     "text": "1.心血管疾病風險：[r:cvr:low]低度風險 [r:cvr:mid]中度風險 [r:cvr:high]高度風險 [r:cvr:vhigh]極高風險 [r:cvr:other]其他：[t:cvr_text]"
+    },
+    {
+     "type": "line",
+     "text": "2.工作負荷風險： [r:wl:low]低負荷 [r:wl:mid]中負荷 [r:wl:high]高負荷 [r:wl:other]其他：[t:wl_text]"
+    },
+    {
+     "type": "line",
+     "text": "3.過負荷綜合評估：[r:ov:low]低度風險 [r:ov:mid]中度風險 [r:ov:high]高度風險 [r:ov:other]其他：[t:ov_text]"
+    },
+    {
+     "type": "line",
+     "text": "評估人員職稱/簽名：[t:assessor] [d:assess_date]"
+    }
+   ]
+  },
+  {
+   "id": "skin",
+   "name": "職業皮膚病問卷",
+   "subtitle": "職業皮膚病問卷調查表",
+   "source": {
+    "guide": "c047",
+    "guideName": "職業性皮膚病認定參考指引",
+    "label": "附件"
+   },
+   "notice": "本頁未收錄原表的第1–4、7、8、12、13項（編號、日期、姓名、病歷號、住址、電話、地址）等個人識別欄位。",
+   "blocks": [
+    {
+     "type": "grid",
+     "cells": [
+      "5.性別:[r:sex:m]男[r:sex:f]女",
+      "6.年齡:[n:age]",
+      "9.職業:[t:job]"
+     ]
+    },
+    {
+     "type": "line",
+     "text": "10.何時開始此項工作? [n:start_y]年 [n:start_m]月"
+    },
+    {
+     "type": "line",
+     "text": "11.服務機構:[t:employer:14]"
+    },
+    {
+     "type": "line",
+     "text": "14.副業:[t:side] [n:side_y]年[n:side_m]月"
+    },
+    {
+     "type": "line",
+     "text": "15.以前的職業是:[t:prev] [n:prev_y]年[n:prev_m]月"
+    },
+    {
+     "type": "line",
+     "text": "16.工作上會接觸到的原因有:[t:exposure:20]"
+    },
+    {
+     "type": "line",
+     "text": "17.工作時有戴手套：[r:glove:yes]有[r:glove:no]無"
+    },
+    {
+     "type": "line",
+     "text": "18.同樣工作的員工有 [n:cow]人，其中 [n:cow_sick]人也有皮膚病。"
+    },
+    {
+     "type": "line",
+     "text": "19.今天要看的病是始自何時? [d:onset]"
+    },
+    {
+     "type": "line",
+     "text": "20.今天的部位是在身體的:[t:site:16]"
+    },
+    {
+     "type": "line",
+     "text": "21.時常會好了再發? [r:recur:yes]是[r:recur:no]否"
+    },
+    {
+     "type": "line",
+     "text": "22.病因可能是:[t:cause:16]"
+    },
+    {
+     "type": "line",
+     "text": "23.每當周末休假病況會[r:wk:better]改善[r:wk:worse]惡化[r:wk:same]不變"
+    },
+    {
+     "type": "line",
+     "text": "24.病況為何會惡化? [c:ag_season]季節 [c:ag_sun]曬太陽[c:ag_mood]心情[c:ag_food]食物 [c:ag_det]清潔劑"
+    },
+    {
+     "type": "line",
+     "text": "[c:ag_top]外用藥[c:ag_oral]內服藥[c:ag_other]其他 [c:ag_unk]不明[c:ag_none]都不會"
+    },
+    {
+     "type": "line",
+     "text": "25.曾治療過? [c:tx_md]醫生[c:tx_ph]藥店[c:tx_self]自己[c:tx_none]不管"
+    },
+    {
+     "type": "line",
+     "text": "26.曾擦過藥? 藥名:[t:drug:12] [c:drug_unk]不明[c:drug_none]無"
+    },
+    {
+     "type": "line",
+     "text": "27.曾有過下列症狀：[c:a_urt]蕁麻疹[c:a_asthma]氣喘[c:a_rhin]鼻子過敏[c:a_ecz]濕疹[c:a_drug]內服藥過敏[c:a_other]其他"
+    },
+    {
+     "type": "line",
+     "text": "[c:a_none]無"
+    },
+    {
+     "type": "line",
+     "text": "28.家裡有人患過上列病症： [c:fam_unk]不明[c:fam_none]無"
+    },
+    {
+     "type": "line",
+     "text": "29.曾有過下列過敏：[c:al_metal]金屬 [c:al_cos]化妝品 [c:al_top]外用藥 [c:al_other]其他"
+    },
+    {
+     "type": "line",
+     "text": "[c:al_none]無"
+    },
+    {
+     "type": "line",
+     "text": "30.婚姻： [r:mar:no]未[r:mar:yes]已 [n:mar_y]年"
+    },
+    {
+     "type": "line",
+     "text": "31.家中有 2 歲以下的小孩 [r:kid:yes]有[r:kid:no]無"
+    },
+    {
+     "type": "line",
+     "text": "32.家務做多少：[r:hw:full]全工[r:hw:half]半工(有人分攤)[r:hw:some]有時[r:hw:none]不做(幾乎不做)"
+    },
+    {
+     "type": "line",
+     "text": "33.做家事是否戴手套[r:hwg:yes]有[r:hwg:some]有時[r:hwg:no]無"
+    },
+    {
+     "type": "line",
+     "text": "34.多汗嗎? [c:sw_hand]手[c:sw_foot]腳[c:sw_body]全身[c:sw_none]都不會"
+    },
+    {
+     "type": "p",
+     "text": "35.請列出最近一個月內常用的皮膚用品"
+    },
+    {
+     "type": "p",
+     "text": "(1)潔膚 (2)護膚 (3)化妝 (4)護手 (5)髮用 (6)鬍用 (7)香水"
+    },
+    {
+     "type": "p",
+     "text": "(8)油類(如綿羊油等) (9)藥性(真珠膏、防曬油等) (10)其他"
+    },
+    {
+     "type": "area",
+     "key": "products",
+     "label": "35. 常用的皮膚用品"
+    },
+    {
+     "type": "line",
+     "text": "36.何種休閒：[c:le_wood]木工[c:le_garden]園藝[c:le_photo]沖片[c:le_sew]女紅[c:le_repair]修護[c:le_sport]運動[c:le_other]其他"
+    },
+    {
+     "type": "line",
+     "text": "37.某種樹木花草使皮膚發癢：[t:plant:16]"
+    },
+    {
+     "type": "line",
+     "text": "38.有飼養動物：[t:pet:16]"
+    },
+    {
+     "type": "h",
+     "text": "一、 疾病史"
+    },
+    {
+     "type": "area",
+     "key": "systemic",
+     "label": "1. 系統性疾病："
+    },
+    {
+     "type": "area",
+     "key": "course",
+     "label": "2. 皮膚病經過："
+    },
+    {
+     "type": "h",
+     "text": "二、 視診所見"
+    },
+    {
+     "type": "area",
+     "key": "inspection",
+     "label": "二、 視診所見"
+    },
+    {
+     "type": "h",
+     "text": "三、 職業細況"
+    },
+    {
+     "type": "line",
+     "text": "1. 雇主或服務機構：[t:employer2:16]"
+    },
+    {
+     "type": "area",
+     "key": "work",
+     "label": "2. 工作內容描述"
+    },
+    {
+     "type": "pending",
+     "text": "原表此處另有「工作／期間 專 兼／其他也有病的員工 Ｙ Ｎ／慣用左／右手」欄位，指引文字版無法確定其表格排列，待對照原始 PDF；暫以上方文字欄記錄。"
+    },
+    {
+     "type": "area",
+     "key": "agents",
+     "label": "3. 接觸因子"
+    },
+    {
+     "type": "area",
+     "key": "gloves",
+     "label": "4. 手套"
+    },
+    {
+     "type": "area",
+     "key": "rinse",
+     "label": "5. 沖洗措施"
+    }
+   ]
+  }
+ ]
+}
