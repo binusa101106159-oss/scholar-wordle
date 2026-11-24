@@ -5,14 +5,21 @@ let auth, db, A, F, stop, initialized = false, started = false;
 let preparedApps, signingIn = false, accountRequest = 0;
 const ownerEmail = 'binusa101106159@gmail.com';
 const privatePanels=['certificates','calculator','forms','cases','calendar','wordle','crossword','sudoku'];
-let accountReady=false;
+let accountReady=false, accountUser=null, accountTask=null, accountTaskUID=null, retryTimer, reconnectAttempt=0, connectionNotice='', bootstrapPromise, loadingAuth=false, authObserved=false;
+const renderConnection=()=>window.dispatchEvent?.(new Event('scholar-sync-status'));
 function accountInputs(ready){accountReady=ready;for(const id of privatePanels){const panel=document.getElementById(id+'-panel');if(panel)panel.inert=!ready;}}
 
-async function timed(promise) {
-  let timer;
-  try { return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Cloud connection timed out. Public reading is available; retry to reconnect.')),8000);})]); }
-  finally { clearTimeout(timer); }
+async function waitForConnection(promise, message) {
+  // A slow request is still live. Never discard a late successful sign-in/read.
+  const timer=setTimeout(()=>{connectionNotice=message;renderConnection();},12000);
+  try { return await promise; } finally { clearTimeout(timer); }
 }
+function scheduleReconnect(user,error){
+  if(!/(?:unavailable|deadline|aborted|resource-exhausted|network|offline|connection|timeout)/i.test(error.code||error.message||''))return;
+  clearTimeout(retryTimer);
+  retryTimer=setTimeout(()=>{if(accountUser?.uid===user.uid)accountChanged(user,true).catch(error=>sync.error(error.message));},Math.min(30000,2000*2**Math.min(reconnectAttempt++,4)));
+}
+function wakeNetwork(){return F?.enableNetwork&&db?F.enableNetwork(db).catch(error=>sync.error(error.message)):Promise.resolve();}
 const docID = id => btoa(unescape(encodeURIComponent(id))).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 function mount() {
   const bar = document.createElement('aside');
@@ -21,27 +28,28 @@ function mount() {
   document.body.append(bar);
   const by = id => document.getElementById(id);
   const render = () => {
-    const state = sync.status();bar.dataset.state = state.phase;
-    bar.hidden = state.phase === 'synced' && Boolean(state.user) && !state.pending && !state.error && !signingIn;
+    const state = sync.status(), account=state.user||accountUser;bar.dataset.state = state.phase;
+    bar.hidden = state.phase === 'synced' && Boolean(state.user) && !state.pending && !state.error && !connectionNotice && !signingIn;
     by('cloud-status').textContent = state.phase === 'loading' ? 'Connecting…' : state.phase === 'guest' ? 'Not signed in · not saved' : state.phase === 'error' ? 'Not synced · retry' : state.pending ? (state.paused?'Editing · save pending':state.background?'Saving position…':'Syncing…') : 'Synced';
-    by('cloud-status').title = state.error || (state.user ? state.user.email : 'Sign in to save across devices. Guest changes last only for this visit.');
-    by('cloud-signin').hidden = Boolean(state.user);by('cloud-account').hidden = !state.user;
-    by('cloud-signin').disabled = signingIn;
+    by('cloud-status').title = state.error || (account ? account.email : 'Sign in to save across devices. Guest changes last only for this visit.');
+    by('cloud-signin').hidden = Boolean(account);by('cloud-account').hidden = !account;
+    by('cloud-signin').disabled = signingIn || loadingAuth;
     by('cloud-signin').textContent = signingIn ? 'Signing in…' : 'Sign in';
     if(!accountReady)by('cloud-status').textContent='Connecting account…';
+    if(accountUser&&!state.user)by('cloud-status').textContent='Signed in · connecting cloud data…';
     if (signingIn) by('cloud-status').textContent = 'Continue in the Google sign-in window';
-    by('cloud-error').hidden = !state.error || signingIn;
-    by('cloud-error').textContent = state.error || '';
+    by('cloud-error').hidden = !(state.error||connectionNotice) || signingIn;
+    by('cloud-error').textContent = state.error || connectionNotice || '';
     by('cloud-signout').disabled = state.pending > 0;
-    by('cloud-email').textContent = state.user?.email || '';
-    by('cloud-retry').hidden = state.phase !== 'error';
+    by('cloud-email').textContent = account?.email || '';
+    by('cloud-retry').hidden = state.phase !== 'error' && !connectionNotice;
   };
   window.addEventListener('scholar-sync-status', render); render();
   by('cloud-signin').onclick = async () => {
     if (signingIn) return;
     signingIn = true; render();
     try {
-      if (!auth) throw Error('Google sign-in has not loaded. Wait a moment, then retry. If this continues, reload and check your connection.');
+      if (!auth) throw Error('Google sign-in has not loaded yet. Press Retry to reconnect without reloading this page.');
       // Call directly from the click handler to preserve Safari's user gesture.
       await A.signInWithPopup(auth, new A.GoogleAuthProvider());
     } catch (error) {
@@ -60,9 +68,11 @@ function mount() {
     catch (error) { sync.error(error.message); }
   };
   by('cloud-retry').onclick = () => {
+    if(!auth||!db)return initializeFirebase();
+    if(accountTask)return wakeNetwork();
     if(sync.status().pending)return sync.flush().catch(()=>{});
-    if(auth?.currentUser)return accountChanged(auth.currentUser,true).catch(error=>sync.error(error.message));
-    location.reload();
+    if(auth.currentUser)return accountChanged(auth.currentUser,true).catch(error=>sync.error(error.message));
+    return by('cloud-signin').onclick();
   };
 }
 function prepareApps() {
@@ -104,17 +114,25 @@ async function accountChanged(user, retry = false) {
     await A.signOut(auth);sync.error('This private site is restricted to its owner account.');return;
   }
   const previous = sync.status().user?.uid;
-  // Firebase can repeat the same account notification. Its live listener already
-  // reconnects itself; restarting hydration here would erase unsent edits.
-  if (initialized && user && previous === user.uid && stop && !retry) return;
-  const request = ++accountRequest;
-  if (stop) { stop();stop = null; }
-  // Clear displayed personal data immediately during sign-out/account changes.
-  if (initialized && previous !== user?.uid) { document.body.hidden=true;location.reload();return; }
-  if (!user) { if(sync.status().user)sync.connect(null,null);initialized = true;accountInputs(true);await startApps();return; }
+  accountUser=user;renderConnection();
+  if (initialized && previous && previous !== user?.uid) { document.body.hidden=true;location.reload();return; }
+  if (!user) {
+    ++accountRequest;clearTimeout(retryTimer);connectionNotice='';
+    if(stop){stop();stop=null;}
+    if(sync.status().user)sync.connect(null,null);
+    initialized=true;accountInputs(true);sync.connectionRestored?.();await startApps();renderConnection();return;
+  }
+  // Keep the working listener and coalesce duplicate auth/Retry notifications.
+  if (initialized && previous === user.uid && stop) { if(retry)await wakeNetwork();return; }
+  if(accountTask&&accountTaskUID===user.uid){if(retry)await wakeNetwork();return accountTask;}
+  clearTimeout(retryTimer);const request=++accountRequest;
+  const job=Promise.resolve().then(()=>loadAccount(user,request));accountTask=job;accountTaskUID=user.uid;
+  try{return await job;}finally{if(accountTask===job){accountTask=null;accountTaskUID=null;}}
+}
+async function loadAccount(user,request){
   try {
     const state = F.collection(db, 'users', user.uid, 'state');
-    const snapshot = await timed(F.getDocsFromServer(state));
+    const snapshot = await waitForConnection(F.getDocsFromServer(state),'Signed in. Cloud data is taking longer than usual; reconnecting automatically. Your current input is retained.');
     if(request !== accountRequest)return;
     const revisions=new Map(snapshot.docs.map(item=>[item.id,item.data().revision]));
     const adapter = {
@@ -141,8 +159,9 @@ async function accountChanged(user, retry = false) {
         return results.map(result=>result.merged);
       }
     };
-    sync.connect({uid: user.uid, email: user.email}, adapter, readSnapshot(snapshot), true);initialized = true;accountInputs(true);
+    sync.connect({uid: user.uid, email: user.email}, adapter, readSnapshot(snapshot), true);initialized = true;connectionNotice='';reconnectAttempt=0;accountInputs(true);renderConnection();
     stop = F.onSnapshot(state, {includeMetadataChanges: true}, next => {
+      if(request!==accountRequest)return;
       // Local optimistic snapshots are not server acknowledgements.
       if (!next.metadata.fromCache && !next.metadata.hasPendingWrites) {
         try {
@@ -159,16 +178,16 @@ async function accountChanged(user, retry = false) {
             }
           }
           if(delta.size)sync.receiveChanges(delta);
+          sync.connectionRestored?.();connectionNotice='';renderConnection();
         } catch (error) { sync.error(error.message); }
       }
-    }, error => sync.error(error.message));
+    }, error => {if(request!==accountRequest)return;if(stop){stop();stop=null;}sync.error(error.message);scheduleReconnect(user,error);});
     await startApps();
   } catch (error) {
     if(request !== accountRequest)return;
+    connectionNotice='';scheduleReconnect(user,error);
     // A reconnect failure must leave the authenticated in-memory draft intact.
     if(sync.status().user?.uid === user.uid){sync.error(error.message);return;}
-    sync.error(error.message);
-    document.getElementById('cloud-status').textContent = 'Cloud unavailable · retry';
     // A failed read must never become an empty, writable authenticated account.
     initialized=true;accountInputs(true);sync.error(error.message);await startApps();
   }
@@ -179,23 +198,28 @@ preparedApps=prepareApps();preparedApps.catch(()=>{});
 // Public UI starts independently; owner data hydrates through normal notifications.
 sync.connect(null,null);
 startApps().catch(error=>sync.error(error.message));
-try {
-  const base = 'https://www.gstatic.com/firebasejs/13.2.0/';
-  const [app, authModule, firestoreModule] = await timed(Promise.all([
-    import(base+'firebase-app.js'), import(base+'firebase-auth.js'), import(base+'firebase-firestore.js')
-  ]));
-  A = authModule; F = firestoreModule;
-  const firebase = app.initializeApp(firebaseConfig);
-  auth = A.getAuth(firebase);
-  // Only the login session persists; application and patient data have no disk cache.
-  await A.setPersistence(auth, A.browserLocalPersistence);
-  db = F.initializeFirestore(firebase, {localCache: F.memoryLocalCache()});
-  await A.getRedirectResult(auth);
-  A.onAuthStateChanged(auth, user => { accountChanged(user).catch(error => sync.error(error.message)); });
-} catch (error) {
-  accountInputs(true);sync.error(error.message);
-  await startApps(); // Public reading remains available if Firebase cannot load.
+function initializeFirebase(){
+  if(bootstrapPromise)return bootstrapPromise;
+  const job=Promise.resolve().then(async()=>{
+    loadingAuth=true;renderConnection();
+    try {
+      const base='https://www.gstatic.com/firebasejs/13.4.0/';
+      const [app,authModule,firestoreModule]=await waitForConnection(Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]),'Sign-in services are loading slowly. Public reading remains available.');
+      A=authModule;F=firestoreModule;
+      const firebase=app.getApps().length?app.getApp():app.initializeApp(firebaseConfig);
+      // Initialize persistence once, with fallbacks if browser storage is blocked.
+      // Application/patient data remains memory-only.
+      auth ||= A.initializeAuth(firebase,{persistence:[A.browserLocalPersistence,A.browserSessionPersistence,A.inMemoryPersistence],popupRedirectResolver:A.browserPopupRedirectResolver});
+      db ||= F.initializeFirestore(firebase,{localCache:F.memoryLocalCache()});
+      connectionNotice='';
+      // This site uses popup login, so redirect-result lookup must not gate auth.
+      if(!authObserved){A.onAuthStateChanged(auth,user=>{accountChanged(user).catch(error=>sync.error(error.message));},error=>sync.error(error.message));authObserved=true;}
+    } catch(error){connectionNotice='';accountInputs(true);sync.error(error.message);await startApps().catch(error=>sync.error(error.message));}
+    finally{loadingAuth=false;renderConnection();}
+  });bootstrapPromise=job;job.then(()=>{if(bootstrapPromise===job)bootstrapPromise=null;},()=>{if(bootstrapPromise===job)bootstrapPromise=null;});return job;
 }
+initializeFirebase();
+window.addEventListener('online',()=>{if(auth?.currentUser)accountChanged(auth.currentUser,true).catch(error=>sync.error(error.message));else if(!auth)initializeFirebase();});
 
 // Restoring a suspended page must preserve its inputs and in-memory outbox.
 window.addEventListener('pageshow',event=>{if(event.persisted&&sync.status().pending)sync.flush().catch(()=>{});});

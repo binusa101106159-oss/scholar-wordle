@@ -208,6 +208,7 @@
     } catch (err) { failure = err.message;phase = 'error';throw err; }
     finally { confirming = false;notify();if(queue.size)schedule(); }
   }
+  function connectionRestored() {if(queue.size||confirming)return;failure=null;phase=user?'synced':'guest';notify();}
   function error(message) { failure = message; phase = 'error'; notify(); }
   const storage = {
     getItem, setItem, setConfirmed,
@@ -222,7 +223,7 @@
     get length() { return groups.size; }
   };
   window.ScholarStorage = storage;
-  window.ScholarSync = {ready, flush, status, connect, receive, receiveChanges, error, allowed,
+  window.ScholarSync = {ready, flush, status, connect, receive, receiveChanges, error, connectionRestored, allowed,
     subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     requireAccount() { if (!user || phase === 'loading') throw Error('Please sign in before saving patient records.'); },
     get transport() { return transport; }

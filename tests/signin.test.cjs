@@ -4,7 +4,7 @@ function mount(signInWithPopup){
  const nodes=new Map(),listeners=new Map();let status={phase:'guest',user:null,pending:0,error:null};
  const document={createElement(){return {dataset:{},setAttribute(){}}},body:{append(){}},getElementById(id){if(!nodes.has(id))nodes.set(id,{});return nodes.get(id)}};
  const sync={status:()=>status,error(message){status={...status,phase:'error',error:message};listeners.get('scholar-sync-status')()}};
- const context={document,window:{addEventListener:(name,fn)=>listeners.set(name,fn)},sync,signingIn:false,accountReady:true,auth:{},A:{GoogleAuthProvider:class{},signInWithPopup}};
+ const context={document,window:{addEventListener:(name,fn)=>listeners.set(name,fn)},sync,signingIn:false,accountReady:true,accountUser:null,connectionNotice:'',loadingAuth:false,auth:{},A:{GoogleAuthProvider:class{},signInWithPopup}};
  vm.createContext(context);vm.runInContext(client.slice(client.indexOf('function mount()'),client.indexOf('function prepareApps()'))+';mount();',context);
  return {nodes,click:()=>nodes.get('cloud-signin').onclick(),context};
 }

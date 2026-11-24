@@ -253,6 +253,39 @@ function fakeClock(){
  let now=100000,id=0;const pending=new Map();
  return {timers:{Date:class extends Date{static now(){return now}},setTimeout(fn,ms){pending.set(++id,{fn,at:now+ms,ms});return id},clearTimeout(id){pending.delete(id)}},pending,advance(ms){now+=ms},async run(){const entry=[...pending].sort((a,b)=>a[1].at-b[1].at)[0];assert.ok(entry);pending.delete(entry[0]);now=Math.max(now,entry[1].at);entry[1].fn();for(let i=0;i<12;i++)await Promise.resolve();},nextDelay(){return Math.min(...[...pending.values()].map(x=>x.at-now))}};
 }
+
+function accountHarness(h,F,timers={}){
+ const source=fs.readFileSync(require.resolve('../sync/client.js'),'utf8').replace(/^import[^\n]+\n/,'').split("if (document.readyState === 'loading')")[0];
+ const context={window:{ScholarSync:h.sync,ScholarSyncState:S},document:{body:{},getElementById:id=>id==='cloud-status'?{}:null},location:{reload(){throw Error('unexpected reload')}},setTimeout:timers.setTimeout||setTimeout,clearTimeout:timers.clearTimeout||clearTimeout,Promise,Map,JSON,Math,Error,decodeURIComponent,encodeURIComponent,escape,unescape,atob:s=>Buffer.from(s,'base64').toString('binary'),btoa:s=>Buffer.from(s,'binary').toString('base64')};
+ vm.createContext(context);vm.runInContext(source+'\n globalThis.setup=(f)=>{F=f;A={};db={};started=true;};globalThis.changed=accountChanged;',context);context.setup(F);return context;
+}
+const ownerUser={uid:'one',email:'binusa101106159@gmail.com',emailVerified:true};
+const emptyServer={docs:[]};
+test('slow first account read survives the old deadline, coalesces Retry and preserves guest typing',async()=>{
+ const clock=fakeClock(),document={activeElement:{matches:()=>true},querySelector:()=>null,addEventListener(){}},h=harness(S,{...clock.timers,document}),key='scholar-calculator-v1';let release,reads=0,nudges=0;
+ const F={collection:()=>({}),getDocsFromServer:()=>{reads++;return new Promise(r=>release=r)},onSnapshot:()=>()=>{},enableNetwork:async()=>{nudges++}};
+ const app=accountHarness(h,F,clock.timers);h.sync.connect(null,null);await app.changed(null);h.store.setItem(key,str({input:'nurse'}));
+ const first=app.changed(ownerUser);await Promise.resolve();await clock.run();assert.equal(reads,1);assert.equal(h.sync.status().phase,'guest');
+ h.store.setItem(key,str({input:'latest nurse typing'}));const duplicate=app.changed(ownerUser,true);await Promise.resolve();assert.equal(nudges,1);assert.equal(reads,1);
+ release(emptyServer);await first;await duplicate;assert.equal(h.sync.status().user.uid,'one');assert.equal(h.store.getItem(key),str({input:'latest nurse typing'}));assert.ok(h.sync.status().pending>0);
+ h.sync.connect(null,null);
+});
+test('a failed first server read retries automatically without creating an empty writable account',async()=>{
+ const clock=fakeClock(),h=harness(S,clock.timers);let reads=0;
+ const F={collection:()=>({}),getDocsFromServer:async()=>{if(++reads===1)throw Object.assign(Error('offline'),{code:'unavailable'});return emptyServer},onSnapshot:()=>()=>{}};
+ const app=accountHarness(h,F,clock.timers);h.sync.connect(null,null);await app.changed(ownerUser);assert.equal(h.sync.status().user,null);assert.throws(()=>h.sync.requireAccount());assert.equal(clock.nextDelay(),2000);
+ await clock.run();for(let i=0;i<15;i++)await Promise.resolve();assert.equal(reads,2);assert.equal(h.sync.status().user.uid,'one');assert.equal(h.sync.status().phase,'synced');
+});
+test('permission errors do not loop and a late account read cannot sign a user back in after logout',async()=>{
+ const clock=fakeClock(),h=harness(S,clock.timers);let release;
+ const F={collection:()=>({}),getDocsFromServer:async()=>{throw Object.assign(Error('not permitted'),{code:'permission-denied'})},onSnapshot:()=>()=>{}};
+ const app=accountHarness(h,F,clock.timers);h.sync.connect(null,null);await app.changed(ownerUser);assert.equal(clock.pending.size,0);assert.equal(h.sync.status().user,null);
+ F.getDocsFromServer=()=>new Promise(r=>release=r);const loading=app.changed(ownerUser,true);await Promise.resolve();await app.changed(null);release(emptyServer);await loading;assert.equal(h.sync.status().user,null);
+});
+test('a live read acknowledgment clears connection errors without claiming unsaved writes are synced',async()=>{
+ const h=harness();h.sync.connect({uid:'one'},{commit:async op=>op.next});h.sync.error('offline');h.sync.connectionRestored();assert.equal(h.sync.status().phase,'synced');
+ h.store.setItem('scholar-reading-v1',str({draft:'keep'}));h.sync.error('write failed');h.sync.connectionRestored();assert.equal(h.sync.status().phase,'error');assert.ok(h.sync.status().pending);await h.sync.flush();assert.equal(h.sync.status().phase,'synced');
+});
 test('typing is coalesced but continuous editing has a five-second maximum wait',async()=>{
  const clock=fakeClock(),h=harness(S,clock.timers),sent=[];h.sync.connect({uid:'one'},{commit:async op=>{sent.push(op.next);return op.next}});
  for(let i=0;i<10;i++){h.store.setItem('scholar-calculator-v1',str({input:String(i)}));if(i<9)clock.advance(500);}
