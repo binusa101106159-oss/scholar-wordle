@@ -22,8 +22,8 @@ def main():
       if width<761 and not page.locator('#fm-tab-'+form).is_visible():page.locator('#fm-menu-toggle').click()
       page.locator('#fm-tab-'+form).click()
      def action(form,label):
-      if width<761 and not page.locator('.fm-actions').get_by_role('button',name=label,exact=True).is_visible():page.locator('#fm-menu-toggle').click()
-      page.locator('.fm-actions').get_by_role('button',name=label,exact=True).click()
+      if width<761 and not page.locator('.fm-actions .fm-footer:not([hidden])').get_by_role('button',name=label,exact=True).is_visible():page.locator('#fm-menu-toggle').click()
+      page.locator('.fm-actions .fm-footer:not([hidden])').get_by_role('button',name=label,exact=True).click()
      switch('mse');assert page.locator('#fm-mse input:not([type=checkbox]),#fm-mse textarea,#fm-mse h1,#fm-mse .fm-clinical-credit').count()==0
      page.locator('#fm-mse-appearance-0').check();page.locator('#fm-mse-speech-0').check();page.locator('#fm-mse-speech-2').check();assert not page.locator('#fm-mse-speech-0').is_checked()
      page.locator('#fm-mse-orientation-1').check();page.locator('#fm-mse-orientation-4').check();page.locator('#fm-mse-insight-0').check();page.locator('#fm-mse-insight-2').check();assert not page.locator('#fm-mse-insight-0').is_checked()
@@ -31,17 +31,16 @@ def main():
      # Other questionnaire answers survive clinical clears and switches.
      switch('bsrs');answer=page.locator('#fm-bsrs-q1 input[value="2"]');answer.locator('..').click();switch('mmse')
      assert page.locator('#fm-mmse textarea,#fm-mmse input:not([type=checkbox]),#fm-mmse .fm-clinical-credit,#fm-mmse h1').count()==0
-     page.wait_for_function("document.querySelector('.fm-mmse-source')?.complete&&document.querySelector('.fm-mmse-source')?.naturalWidth===840")
-     assert page.locator('.fm-mmse-original-row').count()==11;assert page.locator('.fm-mmse-source').evaluate('n=>n.complete&&n.naturalWidth==840');assert page.locator('.fm-mmse-original').evaluate('n=>n.getBoundingClientRect().width')>=680
+     assert page.locator('.fm-mmse-original-group').count()==6;assert page.locator('.fm-mmse-original-row').count()==11;page.wait_for_function("document.querySelector('.fm-mmse-original-figure')?.complete&&document.querySelector('.fm-mmse-original-figure')?.naturalWidth===210");assert page.locator('#fm-mmse img').count()==1
      assert page.locator('#fm-mmse input[type=checkbox]').count()==30;assert page.locator('#fm-mmse input:checked').count()==0
-     assert page.locator('#fm-mmse-time-score').inner_text()==''
+     assert page.locator('#fm-mmse-time-score').inner_text()=='—'
      page.locator('#fm-mmse-time-zero').click();assert page.locator('#fm-mmse-time-score').inner_text()=='0';assert '不計總分'in page.locator('#fm-mmse-score').inner_text()
      maxima={'time':5,'place':5,'registration':3,'calculation':5,'recall':3,'naming':2,'repetition':1,'reading':1,'writing':1,'command':3,'construction':1}
      for key,value in maxima.items():
       for index in range(value):page.locator(f'#fm-mmse-{key}-tick-{index}').check()
      assert page.locator('#fm-mmse-score').inner_text()=='總分：30 / 30'
      tick=page.locator('#fm-mmse-time-tick-0');tick.uncheck();assert page.locator('#fm-mmse-score').inner_text()=='總分：29 / 30';tick.focus();tick.press('Space');assert page.locator('#fm-mmse-score').inner_text()=='總分：30 / 30'
-     page.locator('#fm-mmse-time-zero').click();assert page.locator('#fm-mmse-time-score').inner_text()=='';assert '不計總分'in page.locator('#fm-mmse-score').inner_text()
+     page.locator('#fm-mmse-time-zero').click();assert page.locator('#fm-mmse-time-score').inner_text()=='—';assert '不計總分'in page.locator('#fm-mmse-score').inner_text()
      page.locator('#fm-mmse-time-zero').click();assert page.locator('#fm-mmse-score').inner_text()=='總分：25 / 30'
      for index in range(5):page.locator(f'#fm-mmse-time-tick-{index}').check()
      page.evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.copiedClinical=text}}})")
@@ -64,7 +63,7 @@ def main():
      for index in range(1,6):page.locator(f'#fm-midas-q{index}').fill('0')
      assert page.locator('#fm-midas-summary').inner_text()=='MIDAS：0 分 · 第I級 · 極少或無失能'
      page.locator('#fm-midas-a').fill('90');page.locator('#fm-midas-b').fill('10');assert 'MIDAS：0 分'in page.locator('#fm-midas-summary').inner_text()
-     page.locator('#fm-midas-b').fill('11');assert page.locator('#fm-midas-b').get_attribute('aria-invalid')=='true';assert page.locator('.fm-actions').get_by_role('button',name='複製結果',exact=True,include_hidden=True).is_disabled();page.locator('#fm-midas-b').fill('10')
+     page.locator('#fm-midas-b').fill('11');assert page.locator('#fm-midas-b').get_attribute('aria-invalid')=='true';assert page.locator('.fm-actions .fm-footer:not([hidden])').get_by_role('button',name='複製結果',exact=True,include_hidden=True).is_disabled();page.locator('#fm-midas-b').fill('10')
      page.locator('#fm-midas-q5').fill('');assert page.locator('#fm-midas-summary').inner_text()=='主項已填 4 / 5 題';page.locator('#fm-midas-q5').fill('12');assert '第III級'in page.locator('#fm-midas-summary').inner_text()
      page.evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.copiedMIDAS=text}}})")
      action('midas','複製結果');page.wait_for_function('window.copiedMIDAS!==undefined');midas_note=page.evaluate('window.copiedMIDAS');assert '總分：12；第III級'in midas_note and '90 天（不計入總分）'in midas_note and '10 / 10（不計入總分）'in midas_note

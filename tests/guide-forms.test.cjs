@@ -64,3 +64,16 @@ test('NMQ symptom grid: 15 parts scored 0-5 and the two questionnaire rows of �
  assert.equal(scoreNMQ(f,{...all(0)}).max,0);
  assert.throws(()=>scoreNMQ(f,{part_neck:6}));
 });
+
+test('copied result keeps answered lines in form order and the guide-based result',()=>{
+ const {buildNote}=require('../forms/guide-forms.js');
+ assert.equal(buildNote(forms.skin,{}),'');
+ const nmq=buildNote(forms.nmq,{q1:'yes',part_neck:'3',part_lowback:'2'}).split('\n');
+ assert.equal(nmq[0],'肌肉骨骼症狀調查表（人因性危害預防計畫指引 附錄一 肌肉骨骼症狀調查表）');
+ assert.ok(nmq.includes('部位評分（0 不痛－5 極度劇痛）：頸 3、下背 2'));assert.ok(nmq.at(-1).startsWith('符合疑似有危害'));
+ const burnout=buildNote(forms.burnout,{p1:'3',p2:'3',p3:'3',p4:'3',p5:'3',p6:'3'});
+ assert.ok(burnout.includes('1.你常覺得疲勞嗎? (3)有時候'));assert.ok(burnout.includes('個人相關過勞：50 分，50 分以下 輕微 或 50－70 分 中度（同時落在兩列，請人工判讀）'));assert.ok(burnout.includes('工作相關過勞：未完成'));
+ const overload=buildNote(forms.overload,{smoke:'yes',smoke_ppd:'1',sbp:'128',dbp:'82'});
+ assert.ok(overload.includes('1.抽菸 □無 ☑有(每天 1 包、共 ＿年) □已戒菸 ＿年'));assert.ok(overload.includes('4.血壓 128 / 82 mmHg (收縮壓<120、舒張壓<80 mmHg)'));
+ assert.ok(buildNote(forms.skin,{ag_sun:true,ag_det:true}).includes('24.病況為何會惡化? 曬太陽、清潔劑'));
+});

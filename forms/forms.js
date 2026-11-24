@@ -15,7 +15,22 @@
   const total=values.reduce((a,b)=>a+b,0);
   return {ready:true,total,level:total===0?'None':total<=70?'Mild':total<=100?'Moderate':total<=130?'Severe':'Extreme'};
  }
- if(typeof module==='object'&&module.exports)module.exports={scoreBSRS,scorePDQ};
+ // Chart-note text: answered items in form order, then the same result the page shows.
+ function buildNote(form,values,calculated){
+  if(!values.some(v=>v!==null))return '';
+  const lines=[form.name+(form.subtitle?'（'+form.subtitle+'）':'')];
+  form.questions.forEach((q,i)=>{if(values[i]===null)return;const option=q.options.find(o=>o.value===values[i]);lines.push((form.id==='bsrs'&&i===5?'★ ':(i+1)+'. ')+q.text+'：'+(form.id==='pdq'?values[i]:option?option.label+'（'+values[i]+'）':values[i]));});
+  const answered=values.filter(v=>v!==null).length;
+  if(!calculated||!calculated.ready)lines.push('尚未完成（已填 '+answered+' / '+values.length+' 題），不計分。');
+  else{
+   const value=calculated.total??calculated.displayScore??calculated.score,max=form.id==='bsrs'?20:form.id==='pdq'?150:100,level=calculated.level||calculated.severity?.original;
+   lines.push('結果：'+Number(value).toLocaleString('en-US',{maximumFractionDigits:2})+' / '+max+(level?'，'+level:''));
+   if(form.id==='quickdash'&&values.includes(null))lines.push('已依 '+answered+' 題計分；未填第 '+values.map((v,i)=>v===null?i+1:null).filter(v=>v!==null).join('、')+' 題。');
+  }
+  if(form.id==='bsrs')lines.push('附加題：'+(values[5]===null?'未填':values[5]+' 分')+'（不計入總分）');
+  return lines.join('\n');
+ }
+ if(typeof module==='object'&&module.exports)module.exports={scoreBSRS,scorePDQ,buildNote};
  if(typeof document==='undefined')return;
  const KEY=id=>'scholar-form-'+id+'-v1';
  let catalog=null,aaos=null,guide=null,loading=null,active='bsrs',views=new Map();
@@ -66,12 +81,13 @@
    }
    group.id='fm-'+form.id+'-q'+(i+1);groups.push(group);
   });
-  const footer=element('div','', 'fm-footer'),progress=element('span','', 'fm-progress'),submit=element('button','完成作答','fm-primary'),reset=element('button','清除本份','fm-reset');submit.type='submit';submit.setAttribute('form',questionnaire.id);reset.type='button';footer.append(progress,reset,submit);questionnaire.append(footer);
+  const footer=element('div','', 'fm-footer'),progress=element('span','', 'fm-progress'),submit=element('button','完成作答','fm-primary'),reset=element('button','清除本份','fm-reset'),copy=element('button','複製結果','fm-copy');submit.type='submit';submit.setAttribute('form',questionnaire.id);reset.type=copy.type='button';progress.setAttribute('aria-live','polite');footer.append(progress,copy,reset,submit);
+  copy.onclick=()=>{const answers=values();let calculated=null;try{calculated=score(form,answers);}catch(_){}const text=buildNote(form,answers,calculated);if(text)root.ScholarGuideForms.copyText(text,section,progress,'fm-'+form.id);};questionnaire.append(footer);
   const result=element('section','', 'fm-result');result.setAttribute('role','status');result.setAttribute('aria-live','polite');result.hidden=true;
   let submitted=false;
   function values(){return groups.map(group=>{const checked=group.querySelector('input[type=radio]:checked');return checked?Number(checked.value):null;});}
   function update(){
-   const answers=values(),done=answers.filter(v=>v!==null).length;progress.textContent=`已填 ${done} / ${answers.length} 題`;
+   const answers=values(),done=answers.filter(v=>v!==null).length;progress.textContent=`已填 ${done} / ${answers.length} 題`;copy.disabled=!done;section.querySelector('.fm-copy-fallback')?.remove();
    groups.forEach((group,i)=>group.classList.toggle('fm-answered',answers[i]!==null));result.replaceChildren();result.hidden=!submitted;
    if(!submitted)return;
    const calculated=score(form,answers);

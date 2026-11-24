@@ -81,26 +81,32 @@
    }
    section.append(editor);
   }else{
-   const viewport=el('div','','fm-mmse-original-scroll'),paper=el('div','','fm-mmse-paper fm-mmse-original'),source=el('img','','fm-mmse-source');source.src='forms/mmse-original.webp';source.alt='使用者提供的台大醫院 MMSE 原表：包含表頭、六區題目、系列減七範例、請閉上眼睛指令及原始交疊五邊形。';source.width=840;source.height=1188;source.draggable=false;paper.append(source);viewport.append(paper);
-   const layout={"time":{"ticks":[[22.882,25.303],[30.875,25.269],[39.046,25.234],[47.988,25.195],[57.1,25.156]],"score":[87.011,25.028]},"place":{"ticks":[[22.861,27.967],[31.422,27.926],[39.761,27.887],[47.285,27.851],[55.185,27.814]],"score":[86.962,27.663]},"registration":{"ticks":[[33.959,34.548],[43.788,34.49],[52.801,34.437]],"score":[86.838,34.238]},"calculation":{"ticks":[[39.976,37.103],[47.408,37.057],[55.21,37.007],[62.408,36.962],[69.976,36.914]],"score":[86.79,36.808]},"recall":{"ticks":[[31.571,41.082],[41.71,41.011],[51.814,40.941]],"score":[86.716,40.697]},"naming":{"ticks":[[26.465,46.867],[33.639,46.81]],"score":[86.609,46.389]},"repetition":{"ticks":[[41.485,49.253]],"score":[86.562,48.875]},"reading":{"ticks":[[41.407,51.872]],"score":[86.513,51.475]},"writing":{"ticks":[[29.449,54.453]],"score":[86.467,53.927]},"command":{"ticks":[[31.155,60.615],[46.14,60.461],[58.978,60.329]],"score":[86.352,60.047]},"construction":{"ticks":[[38.715,63.709]],"score":[86.286,63.57]}};
-   const labels={time:['年','月','日','星期','季'],place:['市','醫院','樓','科','新／舊大樓'],registration:['腳踏車','快樂','紅色'],calculation:['93','86','79','72','65'],recall:['腳踏車','快樂','紅色'],naming:['錶','筆'],repetition:['白紙真正寫黑字'],reading:['請閉上眼睛'],writing:['合文意，多於三個字'],command:['用左（右）手拿紙','折成一半','再交給我'],construction:['圖形抄繪']};
-   const at=(node,point)=>{node.style.left=point[0]+'%';node.style.top=point[1]+'%';};
-   for(const item of mmseItems){
-    const body=el('fieldset','','fm-mmse-original-row');body.setAttribute('aria-label',item.label);const rowChecks=[];
-    labels[item.id].forEach((label,index)=>{const wrap=el('label','','fm-mmse-original-tick'),input=el('input'),mark=el('span','','fm-mmse-original-mark');input.type='checkbox';input.id='fm-mmse-'+item.id+'-tick-'+index;input.setAttribute('aria-label',item.label+'：'+label+'，答對');mark.setAttribute('aria-hidden','true');wrap.append(input,mark);at(wrap,layout[item.id].ticks[index]);body.append(wrap);checks.push({input});rowChecks.push(input);input.addEventListener('change',()=>{state.values[item.id]=rowChecks.filter(input=>input.checked).length;update();});});
-    const score=el('div','','fm-mmse-original-score'),value=el('output');value.id='fm-mmse-'+item.id+'-score';value.setAttribute('aria-label',item.label+'得分');score.append(value);at(score,layout[item.id].score);
-    const zero=el('button','0','fm-mmse-original-zero');zero.type='button';zero.id='fm-mmse-'+item.id+'-zero';zero.onclick=()=>{if(Object.hasOwn(state.values,item.id))delete state.values[item.id];else state.values[item.id]=0;rowChecks.forEach(input=>input.checked=false);update();};score.append(zero);scoreRows.push({item,value,zero});body.append(score);paper.append(body);
+   const paper=el('div','','fm-mmse-paper fm-mmse-original'),header=el('div','','fm-mmse-original-head');header.append(el('span',''),el('span','得分'));paper.append(header);
+   const labels={time:['年','月','日','星期','季'],place:['市','醫院','樓','科','新／舊大樓'],registration:['腳踏車','快樂','紅色'],calculation:['93','86','79','72','65'],recall:['腳踏車','快樂','紅色'],naming:['錶','筆'],repetition:['白紙真正寫黑字'],reading:['請閉上眼睛'],writing:['（合文意，多於三個字）'],command:['用左（右）手拿紙','折成一半','再交給我'],construction:['圖形抄繪']};
+   const groups=[['I、定向感（10）',['time','place']],['II、注意力（8）',['registration','calculation']],['III、記憶（3）',['recall']],['IV、語言（5）',['naming','repetition','reading','writing']],['V、口語理解及行動能力（3）',['command']],['VI、建構力（1）',['construction']]];
+   const titles={time:'1. 時間（5）：',place:'2. 地方（5）：',registration:'1. 記憶登錄（3）：',calculation:'2. 系列減七（5）：100 − 7',recall:'',naming:'1. 命名（2）：',repetition:'2. 複誦（1）：',reading:'3. 閱讀理解（1）：',writing:'4. 書寫造句（1）：',command:'',construction:''};
+   for(const [heading,ids]of groups){
+    const group=el('section','','fm-mmse-original-group');group.append(el('h2',heading));
+    for(const key of ids){
+     const item=mmseItems.find(item=>item.id===key),line=el('div','','fm-mmse-original-row'),body=el('fieldset','','fm-mmse-original-item');body.setAttribute('aria-label',item.label);
+     if(titles[key])body.append(el('legend',titles[key]));
+     const answers=el('div','','fm-mmse-original-blanks'),rowChecks=[];
+     labels[key].forEach((label,index)=>{const wrap=el('label','','fm-mmse-original-tick'),input=el('input'),mark=el('span','','fm-mmse-original-mark');input.type='checkbox';input.id='fm-mmse-'+key+'-tick-'+index;input.setAttribute('aria-label',item.label+'：'+label+'，答對');mark.setAttribute('aria-hidden','true');wrap.append(input);if(['time','place','writing'].includes(key))wrap.append(mark,el('span',label));else wrap.append(el('span',label),mark);answers.append(wrap);checks.push({input});rowChecks.push(input);input.addEventListener('change',()=>{state.values[key]=rowChecks.filter(input=>input.checked).length;update();});});body.append(answers);
+     const score=el('div','','fm-mmse-original-score'),value=el('output');value.id='fm-mmse-'+key+'-score';value.setAttribute('aria-label',item.label+'得分');score.append(value,el('small','/ '+item.max));
+     const zero=el('button','0','fm-mmse-original-zero');zero.type='button';zero.id='fm-mmse-'+key+'-zero';zero.setAttribute('aria-label',item.label+'，設為0分');zero.onclick=()=>{if(Object.hasOwn(state.values,key))delete state.values[key];else state.values[key]=0;rowChecks.forEach(input=>input.checked=false);update();};score.append(zero);scoreRows.push({item,value,zero});line.append(body,score);group.append(line);
+    }paper.append(group);
    }
-   const total=el('output','','fm-mmse-original-total');total.id='fm-mmse-total';total.setAttribute('aria-label','MMSE 總分');at(total,[86.384, 68.169]);paper.append(total);
-   const summary=el('p','','fm-mmse-score');summary.id='fm-mmse-score';summary.setAttribute('role','status');editor.append(viewport,summary);section.append(editor);
+   const total=el('div','','fm-mmse-original-total'),totalValue=el('output','—');totalValue.id='fm-mmse-total';total.append(el('span','總分'),totalValue);paper.append(total);
+   const stimuli=el('div','','fm-mmse-original-stimuli');stimuli.append(el('p','請 閉 上 眼 睛'));const diagram=el('img','','fm-mmse-original-figure');diagram.src='forms/mmse-pentagons.webp';diagram.alt='原表交疊五邊形抄繪參考圖（擷取自台大醫院 MMSE 原表）';diagram.width=210;diagram.height=117;diagram.draggable=false;stimuli.append(diagram);paper.append(stimuli);
+   const summary=el('p','','fm-mmse-score');summary.id='fm-mmse-score';summary.setAttribute('role','status');editor.append(paper,summary);section.append(editor);
   }
 
   let resultText='',fallback=null;
   const footer=el('div','','fm-footer'),status=el('span','','fm-progress'),copy=el('button',mse?'Copy result':'複製病歷','fm-primary'),reset=el('button',mse?'Clear MSE':'清除 MMSE','fm-reset');status.setAttribute('role','status');status.setAttribute('aria-live','polite');copy.type=reset.type='button';footer.append(status,copy,reset);
   function update(){
    revision++;resultText=mse?buildMSE(state):buildMMSE(state);copy.disabled=!resultText;status.textContent='';if(fallback){fallback.remove();fallback=null;}
-   scoreRows.forEach(({item,value,zero})=>{const assessed=Object.hasOwn(state.values,item.id);value.textContent=assessed?String(state.values[item.id]):'';zero.textContent=assessed?'↻':'0';zero.setAttribute('aria-label',item.label+(assessed?'，清除此項':'，設為0分'));});
-   if(!mse){const result=scoreMMSE(state.values);section.querySelector('#fm-mmse-total').textContent=result.ready?String(result.total):'';section.querySelector('#fm-mmse-score').textContent=result.ready?'總分：'+result.total+' / 30':'已填 '+result.count+' / 11 項 · 尚未完成，不計總分';}
+   scoreRows.forEach(({item,value,zero})=>{const assessed=Object.hasOwn(state.values,item.id);value.textContent=assessed?String(state.values[item.id]):'—';zero.textContent=assessed?'↻':'0';zero.setAttribute('aria-label',item.label+(assessed?'，清除此項':'，設為0分'));});
+   if(!mse){const result=scoreMMSE(state.values);section.querySelector('#fm-mmse-total').textContent=result.ready?String(result.total):'—';section.querySelector('#fm-mmse-score').textContent=result.ready?'總分：'+result.total+' / 30':'已填 '+result.count+' / 11 項 · 尚未完成，不計總分';}
   }
   copy.onclick=async()=>{
    const text=resultText,at=revision;if(!text)return;

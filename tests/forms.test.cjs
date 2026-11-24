@@ -18,3 +18,10 @@ test('patient form item counts and values remain aligned to source scoring',()=>
  const aa=require('../calculator/aaos.json');forms.aaos.questions.forEach((q,i)=>assert.deepEqual(q.options.map(o=>o.value),aa.questions[i].options.map(o=>o.value)));
  forms.pdq.questions.forEach(q=>{assert.equal(q.options.length,11);assert.equal(q.anchors.length,2);assert.ok(q.text);assert.equal(q.original,undefined);});
 });
+test('copied questionnaire result lists answered items and the displayed score',()=>{
+ const {buildNote}=require('../forms/forms.js');const bsrs=data.forms.find(f=>f.id==='bsrs');
+ assert.equal(buildNote(bsrs,Array(6).fill(null),null),'');
+ const v=[1,2,0,0,1,3],text=buildNote(bsrs,v,scoreBSRS(v));
+ assert.ok(text.startsWith('BSRS-5（簡式健康量表）\n1. 睡眠困難，譬如難以入睡、易醒或早醒：輕微（1）'));assert.ok(text.includes('結果：4 / 20，身心適應狀況良好'));assert.ok(text.endsWith('附加題：3 分（不計入總分）'));
+ const p=data.forms.find(f=>f.id==='pdq'),pv=Array(15).fill(null);pv[0]=0;assert.ok(buildNote(p,pv,scorePDQ(pv)).includes('尚未完成（已填 1 / 15 題），不計分。'));
+});

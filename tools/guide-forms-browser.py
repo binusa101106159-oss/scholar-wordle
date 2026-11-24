@@ -71,6 +71,13 @@ def main():
      switch('skin');action('清除本份');assert saved('skin')=={};assert page.locator('#fm-skin input:checked').count()==0
      assert saved('maternal')['pmh_htn'] is True;assert saved('overload')['sh_day'] is True;assert saved('nmq')['company']=='臺大醫院';assert saved('burnout')['p1']=='3'
      switch('bsrs');assert page.locator('#fm-bsrs-q1 input:checked').count()==1
+     # 複製結果: guide form and an existing questionnaire, clipboard then fallback box.
+     page.evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.copied=text}}})")
+     action('複製結果');page.wait_for_function('window.copied');assert page.evaluate('window.copied').startswith('BSRS-5（簡式健康量表）\n1. ');assert '已複製' in page.evaluate("[...document.querySelectorAll('.fm-actions .fm-footer')].find(f=>!f.hidden).querySelector('.fm-progress').textContent")
+     switch('burnout');action('複製結果');page.wait_for_function("window.copied.startsWith('過勞量表')");assert '個人相關過勞：50 分' in page.evaluate('window.copied')
+     page.evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async()=>{throw Error('denied')}}})")
+     switch('overload');action('複製結果');box=page.locator('#fm-overload .fm-copy-fallback');box.wait_for();assert '4.血壓 128' in box.input_value();tick('overload','夜班');assert page.locator('#fm-overload .fm-copy-fallback').count()==0
+     switch('skin');assert page.evaluate("[...document.querySelectorAll('.fm-actions .fm-footer')].find(f=>!f.hidden).querySelector('.fm-copy').disabled")
      assert not errors,errors;page.close();print(engine,width,'5 guide forms render / one-of boxes / NMQ grid and 表1 rows / burnout bands / text drafts / scoped reset PASS',flush=True)
     browser.close()
  finally:

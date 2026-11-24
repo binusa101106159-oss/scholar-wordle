@@ -53,7 +53,62 @@
   if(work.ready)work.bands=band(form.bands.work,work.score);
   return {personal,work};
  }
- const api={parseLine,scoreNMQ,scoreBurnout,band};
+ const BOX={on:'☑',off:'□'};
+ const filledValue=v=>v!==undefined&&v!==null&&v!==''&&v!==false;
+ // Text for the medical record: only lines with an answer, in the paper form's order and wording.
+ function noteLine(text,saved){
+  const parts=parseLine(text),answered=parts.some(p=>p.kind&&(p.kind==='one'?saved[p.key]===p.value:filledValue(saved[p.key])));
+  if(!answered)return null;
+  const hasBlank=parts.some(p=>['text','number','date'].includes(p.kind));
+  if(!hasBlank){
+   // Box-only lines keep the words before the first box, then only the ticked choices.
+   const first=parts.findIndex(p=>p.kind),lead=parts.slice(0,first).map(p=>p.text).join('').trim();
+   const chosen=parts.filter(p=>p.kind==='check'?saved[p.key]===true:p.kind==='one'&&saved[p.key]===p.value).map(p=>p.label);
+   return (lead?lead+' ':'')+chosen.join('、');
+  }
+  return parts.map(p=>p.text!==undefined?p.text:p.kind==='check'?(saved[p.key]===true?BOX.on:BOX.off):p.kind==='one'?(saved[p.key]===p.value?BOX.on:BOX.off):filledValue(saved[p.key])?' '+saved[p.key]+' ':'＿').join('').replace(/\s+/g,' ').trim();
+ }
+ function nmqSummary(form,saved){
+  const r=scoreNMQ(form,saved);
+  if(r.status==='ended')return ['第1題答「否」：依原表說明結束此調查表。'];
+  const lines=[];if(r.max!==null)lines.push('最高部位評分：'+r.max+' 分（已評 '+r.answered+' / '+r.total+' 個部位）');
+  if(r.status==='suspect')lines.push('符合'+form.rule.suspect);else if(r.status==='none')lines.push('符合'+form.rule.none);else if(r.answered)lines.push('尚有 '+(r.total-r.answered)+' 個部位未評分');
+  return lines;
+ }
+ const round=v=>Number(v.toFixed(1)).toLocaleString('en-US',{maximumFractionDigits:1});
+ function burnoutSummary(form,saved){
+  const r=scoreBurnout(form,saved);
+  return [['個人相關過勞',r.personal],['工作相關過勞',r.work]].map(([name,sub])=>!sub.ready?name+'：未完成（第 '+sub.missing.join('、')+' 題未填），不計分':name+'：'+round(sub.score)+' 分，'+sub.bands.map(b=>b.range+' '+b.level).join(' 或 ')+(sub.bands.length>1?'（同時落在兩列，請人工判讀）':''));
+ }
+ function buildNote(form,saved){
+  const out=[];let heading=null,prompt=null;
+  const push=line=>{if(heading){out.push(heading);heading=null;}if(prompt){out.push(prompt);prompt=null;}out.push(line);};
+  form.blocks.forEach(block=>{
+   if(block.type==='h'){heading='【'+block.text+'】';prompt=null;}
+   else if(block.type==='p')prompt=block.text;
+   else if(block.type==='line'){const line=noteLine(block.text,saved);if(line){if(prompt&&!/\[[tnd]:/.test(block.text)){const q=prompt;prompt=null;push(q+' '+line);}else push(line);}prompt=null;}
+   else if(block.type==='grid'){const cells=block.cells.map(c=>noteLine(c,saved)).filter(Boolean);if(cells.length)push(cells.join('；'));prompt=null;}
+   else if(block.type==='area'){const v=saved[block.key];if(filledValue(v)){prompt=null;push(block.label.replace(/[：:]$/,'')+'：'+String(v).trim());}}
+   else if(block.type==='img'||block.type==='pending'){heading=null;prompt=null;}
+   else if(block.type==='body'){const scored=[...block.left,...block.right].filter(([k])=>filledValue(saved['part_'+k])).map(([k,name])=>name+' '+saved['part_'+k]);if(scored.length)push('部位評分（0 不痛－5 極度劇痛）：'+scored.join('、'));}
+  });
+  if(!out.length)return '';
+  const lines=[form.subtitle+'（'+form.source.guideName+' '+form.source.label+'）',...out];
+  const summary=form.score==='nmq'?nmqSummary(form,saved):form.score==='burnout'?burnoutSummary(form,saved):[];
+  if(summary.length)lines.push('結果：',...summary);
+  return lines.join('\n');
+ }
+ // Shared by the other questionnaires: clipboard first, otherwise a selected read-only box.
+ async function copyText(text,section,status,id){
+  section.querySelector('.fm-copy-fallback')?.remove();
+  try{await navigator.clipboard.writeText(text);status.textContent='已複製。';}
+  catch(_){
+   if(typeof document==='undefined')return;
+   section.closest('.fm-shell')?.classList.remove('fm-menu-open');document.getElementById('fm-menu-toggle')?.setAttribute('aria-expanded','false');
+   const box=document.createElement('textarea');box.className='fm-copy-fallback';box.id=id+'-copy-fallback';box.readOnly=true;box.setAttribute('aria-label','待複製結果');box.value=text;section.append(box);box.focus();box.select();status.textContent='無法自動複製，已選取結果，請使用裝置的複製功能。';
+  }
+ }
+ const api={parseLine,scoreNMQ,scoreBurnout,band,buildNote,copyText};
  if(typeof module==='object'&&module.exports)module.exports=api;
  if(typeof document==='undefined')return;
 
@@ -61,7 +116,6 @@
  const el=(tag,text='',cls='')=>{const node=document.createElement(tag);if(text)node.textContent=text;if(cls)node.className=cls;return node;};
  function read(id){try{return JSON.parse(root.ScholarStorage.getItem(KEY(id))||'{}')||{};}catch(_){return {};}}
  function write(id,saved){root.ScholarStorage.setItem(KEY(id),JSON.stringify(saved));}
- const round=v=>Number(v.toFixed(1)).toLocaleString('en-US',{maximumFractionDigits:1});
 
  api.mount=function(form,host){
   const id=form.id,controls=[];let submitted=false;
@@ -137,7 +191,8 @@
    else if(block.type==='body')paper.append(body(block));
   });
   section.append(paper);
-  const footer=el('div','','fm-footer'),progress=el('span','','fm-progress'),reset=el('button','清除本份','fm-reset');reset.type='button';progress.setAttribute('role','status');footer.append(progress,reset);
+  const footer=el('div','','fm-footer'),progress=el('span','','fm-progress'),reset=el('button','清除本份','fm-reset'),copy=el('button','複製結果','fm-copy');reset.type=copy.type='button';progress.setAttribute('role','status');progress.setAttribute('aria-live','polite');footer.append(progress,copy,reset);
+  copy.onclick=()=>{const text=buildNote(form,read(id));if(text)copyText(text,section,progress,'fm-'+id);};
   const result=el('section','','fm-result');result.setAttribute('role','status');result.setAttribute('aria-live','polite');result.hidden=true;
   let submit=null;
   if(form.score){submit=el('button','完成作答','fm-primary');submit.type='button';footer.append(submit);submit.onclick=()=>{document.querySelector('.fm-shell')?.classList.remove('fm-menu-open');document.getElementById('fm-menu-toggle')?.setAttribute('aria-expanded','false');const saved=read(id);saved.submitted=true;write(id,saved);submitted=true;update();result.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});};}
@@ -165,7 +220,7 @@
    const how=el('details'),summary=el('summary','計分方式（指引附錄二）');how.append(summary,...form.scoring.map(t=>el('p',t)));result.append(how,el('p','請將此畫面交給醫療人員確認。','fm-intro'));
   }
   function update(){
-   progress.textContent='已填 '+filled()+' 項';result.replaceChildren();result.hidden=!submitted;
+   progress.textContent='已填 '+filled()+' 項';copy.disabled=!filled();section.querySelector('.fm-copy-fallback')?.remove();result.replaceChildren();result.hidden=!submitted;
    if(!submitted)return;const saved=read(id);
    try{if(form.score==='nmq')showNMQ(saved);else if(form.score==='burnout')showBurnout(saved);}catch(error){result.append(el('p',error.message));}
   }
