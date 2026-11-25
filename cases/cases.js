@@ -400,9 +400,9 @@
           <label>姓名 <span class="ct-required">*</span><input id="ct-name" name="name" required maxlength="120" autocomplete="off"></label>
           <label>病歷號<input id="ct-mrn" name="mrn" maxlength="80" autocomplete="off" spellcheck="false"></label>
           <label>VS<input id="ct-vs" name="vs" maxlength="120" autocomplete="off"></label>
-          <div class="ct-full ct-followup-fields"><label>回診日期 <span id="ct-followup-weekday"></span><input id="ct-followup" name="followup" placeholder="20261113 或 1151113" aria-describedby="ct-followup-hint ct-followup-preview" maxlength="120" autocomplete="off"></label>
+          <div class="ct-full ct-followup-fields"><label>回診日期 <span id="ct-followup-weekday"></span><input id="ct-followup" name="followup" placeholder="20261113 或 1151113" aria-describedby="ct-followup-preview" maxlength="120" autocomplete="off"></label>
             <label>回診時段 <span id="ct-period-required" class="ct-required">*</span><select id="ct-followupPeriod" name="followupPeriod" required><option value="">請選擇</option><option value="AM">上午 AM</option><option value="PM">下午 PM</option></select></label>
-            <div class="ct-full ct-date-help"><p id="ct-followup-hint">西元 8 碼（YYYYMMDD）／民國 7 碼（YYYMMDD），也可使用 / 分隔；只填月日（如 11/18、1118）時，儲存為最接近今天的日期。</p><p id="ct-followup-preview" aria-live="polite" hidden></p></div></div>
+            <div class="ct-full ct-date-help"><p id="ct-followup-preview" aria-live="polite" hidden></p></div></div>
           <label class="ct-full">回診目的<textarea id="ct-purpose" name="purpose" rows="2" maxlength="500"></textarea></label>
           <label class="ct-full">診斷<textarea id="ct-diagnosis" name="diagnosis" rows="2" maxlength="4000"></textarea></label>
           <label class="ct-full">備註<textarea id="ct-notes" name="notes" rows="3" maxlength="8000"></textarea></label>
