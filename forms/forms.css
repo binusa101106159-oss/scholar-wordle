@@ -58,3 +58,5 @@ body[data-game="forms"] #game-main,body[data-game="forms"] #wordle-toolbar{displ
 @media(max-width:760px){.fg-body{grid-template-columns:1fr}.fg-body-figure{max-width:220px;justify-self:center;order:-1}.fg-body-table th[scope=row]{width:34%}}
 /* Twelve forms: keep the phone menu's footer buttons clear of the bottom sync bar. */
 @media(max-width:760px){.fm-side{max-height:calc(100% - 130px)}.fm-side .fm-tabs{gap:2px;padding:2px}.fm-side .fm-tabs button{min-height:40px;padding:8px 14px}}
+/* The form list still scrolls on short windows, but without a visible scrollbar. */
+.fm-side,.fm-menu{scrollbar-width:none;-ms-overflow-style:none}.fm-side::-webkit-scrollbar,.fm-menu::-webkit-scrollbar{display:none;width:0;height:0}
