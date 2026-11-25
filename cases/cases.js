@@ -4,10 +4,12 @@
   const STORE = 'scholar-cases-v1';
   const fields = [
     ['name', '姓名'], ['mrn', '病歷號'], ['vs', 'VS'], ['purpose', '回診目的'],
-    ['diagnosis', '診斷'], ['followup', '回診時間'], ['notes', '備註']
+    ['diagnosis', '診斷'], ['followup', '回診時間'], ['notes', '備註'], ['soap', 'SOAP']
   ];
+  // Fields added later may be absent from records saved before them; they read as empty.
+  const optionalFields = new Set(['vs', 'soap']);
   const recordFields = [...fields.map(([key]) => key), 'followupPeriod'];
-  const sortFields=[...fields,['reportCompleted','報告完成']];
+  const sortFields=[...fields.filter(([key])=>key!=='soap'),['reportCompleted','報告完成']];
   const collator=new Intl.Collator('zh-Hant-TW',{numeric:true,sensitivity:'base'});
   const periodLabels = {AM: '上午', PM: '下午'};
   const weekdayFor = typeof module === 'object' && module.exports
@@ -53,14 +55,14 @@
     const ids = new Set();
     for (const row of data.records) {
       if (!row || typeof row.id !== 'string' || !row.id || ids.has(row.id) ||
-          fields.some(([key]) => typeof row[key] !== 'string' && !(key === 'vs' && row[key] === undefined))) throw new Error('Invalid record');
+          fields.some(([key]) => typeof row[key] !== 'string' && !(optionalFields.has(key) && row[key] === undefined))) throw new Error('Invalid record');
       if (row.followupPeriod !== undefined && !['', 'AM', 'PM'].includes(row.followupPeriod)) throw new Error('Invalid follow-up period');
       if (row.archived !== undefined && typeof row.archived !== 'boolean') throw new Error('Invalid archive status');
       if (row.lostFollowup !== undefined && typeof row.lostFollowup !== 'boolean') throw new Error('Invalid lost follow-up status');
       if (row.reportCompleted !== undefined && typeof row.reportCompleted !== 'boolean') throw new Error('Invalid report completion status');
       ids.add(row.id);
     }
-    const rows = data.records.map(row => row.vs === undefined ? { ...row, vs: '' } : row);
+    const rows = data.records.map(row => row.vs === undefined || row.soap === undefined ? { ...row, vs: row.vs ?? '', soap: row.soap ?? '' } : row);
     return rows.some(row => Number.isFinite(row.sortOrder)) ? rows.sort((a,b)=>(a.sortOrder ?? -(a.createdAt||0))-(b.sortOrder ?? -(b.createdAt||0)) || b.id.localeCompare(a.id)) : rows;
   }
   function upsert(records, record) {
@@ -186,6 +188,8 @@
           const copy = document.createElement('button');
           copy.type = 'button'; copy.className = 'ct-copy-mrn'; copy.dataset.action = 'copy-mrn'; copy.dataset.id = row.id;
           copy.textContent = row[key]; copy.title = '點擊複製病歷號'; copy.setAttribute('aria-label', '複製病歷號 ' + row[key]); td.append(copy);
+        } else if (key === 'soap' && row.soap) {
+          const text = document.createElement('div'); text.className = 'ct-soap-text'; text.textContent = row.soap; td.append(text);
         } else td.textContent = (key === 'followup' ? followupText(row) : row[key]) || '—';
         tr.append(td);
       }
@@ -382,16 +386,16 @@
     const panel = by('cases-panel');
     panel.innerHTML = `
       <div class="ct-shell">
-        <header class="ct-head"><h1>個案追蹤</h1>
-          <div class="ct-tools"><input id="ct-search" type="search" aria-label="搜尋個案" placeholder="搜尋姓名、病歷號、VS、回診目的、診斷或備註" autocomplete="off"><label class="ct-sort-control">排序<select id="ct-sort" aria-describedby="ct-sort-hint"><option value="">預設（手動順序）</option>${sortFields.map(([key,label])=>'<option value="'+key+':asc">'+label+'：升冪</option><option value="'+key+':desc">'+label+'：降冪</option>').join('')}</select></label><span id="ct-count"></span><span id="ct-sort-hint" class="ct-sr">預設保留已儲存的手動順序；切回預設後可拖曳調整順序。</span></div>
+        <header class="ct-head ct-head-min"><h1 class="ct-sr">個案追蹤</h1>
+          <div class="ct-tools" hidden><input id="ct-search" type="search" aria-label="搜尋個案" placeholder="搜尋姓名、病歷號、VS、回診目的、診斷或備註" autocomplete="off"><label class="ct-sort-control">排序<select id="ct-sort" aria-describedby="ct-sort-hint"><option value="">預設（手動順序）</option>${sortFields.map(([key,label])=>'<option value="'+key+':asc">'+label+'：升冪</option><option value="'+key+':desc">'+label+'：降冪</option>').join('')}</select></label><span id="ct-count"></span><span id="ct-sort-hint" class="ct-sr">預設保留已儲存的手動順序；切回預設後可拖曳調整順序。</span></div>
           <button class="sg-btn sg-primary" id="ct-add" type="button">＋ 新增個案</button>
-          <p>登入後儲存至私人雲端，其他裝置使用同一帳號即可接續。儲存成功前請勿關閉此頁。</p></header>
+</header>
         <div class="ct-tabs" role="tablist" aria-label="個案狀態"><button id="ct-tab-active" type="button" role="tab" aria-controls="ct-list" aria-selected="true">追蹤中 <span id="ct-active-count">0</span></button><button id="ct-tab-lost" type="button" role="tab" aria-controls="ct-list" aria-selected="false" tabindex="-1">Lost follow-up（失聯） <span id="ct-lost-count">0</span></button><button id="ct-tab-archive" type="button" role="tab" aria-controls="ct-list" aria-selected="false" tabindex="-1">Archive（結案） <span id="ct-archive-count">0</span></button></div>
         <p id="ct-status" class="ct-status" role="status" aria-live="polite"></p>
         <section id="ct-list" role="tabpanel" aria-labelledby="ct-tab-active">
         <p id="ct-empty" class="ct-empty"></p>
         <div class="ct-table-wrap" id="ct-table-wrap" hidden><table class="ct-table"><caption class="ct-sr">個案追蹤清單</caption><thead><tr>
-          <th scope="col"><span class="ct-sr">排序</span></th>${sortFields.map(([key,label])=>'<th scope="col" aria-sort="none"><button type="button" class="ct-sort-header" data-sort-field="'+key+'">'+label+' <span class="ct-sort-arrow" aria-hidden="true">↕</span></button></th>').join('')}<th scope="col">操作</th>
+          <th scope="col"><span class="ct-sr">排序</span></th>${[...fields,['reportCompleted','報告完成']].map(([key,label])=>sortFields.some(([field])=>field===key)?'<th scope="col" aria-sort="none"><button type="button" class="ct-sort-header" data-sort-field="'+key+'">'+label+' <span class="ct-sort-arrow" aria-hidden="true">↕</span></button></th>':'<th scope="col" class="ct-col-'+key+'">'+label+'</th>').join('')}<th scope="col">操作</th>
         </tr></thead><tbody id="ct-rows"></tbody></table></div></section>
       </div>
       <dialog id="ct-editor" class="ct-dialog" aria-labelledby="ct-editor-title">
@@ -406,6 +410,7 @@
           <label class="ct-full">回診目的<textarea id="ct-purpose" name="purpose" rows="2" maxlength="500"></textarea></label>
           <label class="ct-full">診斷<textarea id="ct-diagnosis" name="diagnosis" rows="2" maxlength="4000"></textarea></label>
           <label class="ct-full">備註<textarea id="ct-notes" name="notes" rows="3" maxlength="8000"></textarea></label>
+          <label class="ct-full">SOAP<textarea id="ct-soap" name="soap" rows="8" maxlength="8000" placeholder="S：&#10;O：&#10;A：&#10;P："></textarea></label>
         </div><p id="ct-form-error" class="ct-error" role="alert"></p>
         <div class="ct-form-actions"><button type="button" class="sg-btn" id="ct-cancel">取消</button><button type="submit" class="sg-btn sg-primary" id="ct-save">儲存</button></div></form>
       </dialog>

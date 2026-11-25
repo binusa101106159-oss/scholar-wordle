@@ -80,3 +80,10 @@ body[data-game="cases"] #game-main,body[data-game="cases"] #wordle-toolbar{displ
 body[data-game="maternal"] #game-main,body[data-game="maternal"] #wordle-toolbar{display:none!important}
 #maternal-panel{color:#edf2f8;font-family:system-ui,'Noto Sans TC','Microsoft JhengHei',sans-serif}
 #maternal-panel [hidden]{display:none!important}
+/* Header reduced to the 新增個案 button (title kept for screen readers only). */
+.ct-tools[hidden]{display:none!important}
+.ct-head.ct-head-min{display:flex;justify-content:flex-end;padding:0;margin-bottom:12px;border:0;background:none;box-shadow:none}
+.ct-head.ct-head-min button{align-self:auto}
+/* SOAP: keeps the typed line breaks; long notes are clipped in the table and shown in full in 編輯. */
+.ct-soap{min-width:220px;max-width:380px;white-space:pre-line}
+.ct-soap-text{display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}

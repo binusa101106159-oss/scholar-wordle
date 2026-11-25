@@ -19,10 +19,14 @@ test('report completion sorts independently of follow-up status and keeps legacy
  const rows=[row('done',{reportCompleted:true}),row('legacy'),row('pending',{reportCompleted:false,lostFollowup:true})];
  assert.deepEqual(sortRecords(rows,'reportCompleted').map(r=>r.id),['legacy','pending','done']);assert.deepEqual(sortRecords(rows,'reportCompleted','desc').map(r=>r.id),['done','legacy','pending']);
 });
-test('case records preserve the seven fields, leading zeroes and multiline notes',()=>{
-  assert.deepEqual(fields.map(([,label])=>label),['姓名','病歷號','VS','回診目的','診斷','回診時間','備註']);
+test('case records preserve the eight fields, leading zeroes and multiline notes',()=>{
+  assert.deepEqual(fields.map(([,label])=>label),['姓名','病歷號','VS','回診目的','診斷','回診時間','備註','SOAP']);
   const record=row('one',{date:'2026-11-04',purpose:'評估',diagnosis:'診斷一\n診斷二',followup:'11/18 上午',notes:'第一行\n第二行'});
-  assert.deepEqual(parseRecords(JSON.stringify({version:1,records:[record]})),[record]);
+  // Records saved before SOAP existed still load, with an empty SOAP.
+  assert.deepEqual(parseRecords(JSON.stringify({version:1,records:[record]})),[{...record,soap:''}]);
+  const soap={...record,soap:'S：右肩痛\nO：Hawkins (+)\nA：R/O impingement\nP：PT'};
+  assert.deepEqual(parseRecords(JSON.stringify({version:1,records:[soap]})),[soap]);
+  assert.throws(()=>parseRecords(JSON.stringify({version:1,records:[{...record,soap:1}]})));
   assert.deepEqual(parseRecords(null),[]);
 });
 test('case storage rejects malformed data rather than treating it as an empty list',()=>{
