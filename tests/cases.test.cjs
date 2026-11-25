@@ -126,7 +126,7 @@ test('date entry previews both calendars and clears incomplete or uncertain date
  for(const raw of ['20261113','1151113','2026/11/13','民國115年11月13日','１１５１１１３'])assert.equal(followupPreview(raw),'西元 2026/11/13（五） · 民國 115/11/13',raw);
  assert.equal(followupPreview('1130229'),'西元 2024/02/29（四） · 民國 113/02/29');
  assert.equal(followupPreview('1900/1/1'),'西元 1900/01/01（一） · 民國前 12/01/01');
- for(const raw of ['', '2026111','115111','20260229','1151131','11/13','待定','20261113取消'])assert.equal(followupPreview(raw),'',raw);
+ for(const raw of ['', '2026111','115111','20260229','1151131','待定','20261113取消'])assert.equal(followupPreview(raw),'',raw);
 });
 test('closing and restoring a case move it between views without deleting or changing its fields',()=>{
  const original=[row('one',{notes:'保留備註',followup:'1151113',sortOrder:0}),row('two',{sortOrder:1})];
@@ -159,3 +159,12 @@ test('lost follow-up is a separate reversible view; report completion does not c
  for(const field of ['reportCompleted','lostFollowup'])for(const value of ['true',null,1])assert.throws(()=>parseRecords(JSON.stringify({version:1,records:[row('bad',{[field]:value})]})));
 });
 
+
+test('case follow-up without a year is previewed and stored with the nearest year',()=>{
+ const c=require('../cases/cases.js'),today=new Date(2026,10,25);
+ assert.equal(c.followupPreview('1/5 上午',today),'未輸入年份，儲存為最接近今天的日期：西元 2027/01/05（二） · 民國 116/01/05');
+ assert.equal(c.completeFollowup('1/5',today),'116/1/5');assert.equal(c.completeFollowup('1210',today),'1151210');assert.equal(c.completeFollowup('0120',today),'1160120');
+ assert.equal(c.completeFollowup('20270105',today),'20270105');
+ assert.equal(c.completeFollowup('待定',today),'待定');
+ assert.equal(c.followupPreview('待定',today),'');
+});

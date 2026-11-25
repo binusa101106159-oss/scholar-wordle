@@ -47,3 +47,14 @@ test('official Taiwan calendar distinguishes holidays, substitute days and worki
  for(const item of data.sources){assert.match(item.url,/^https:\/\/www\.dgpa\.gov\.tw\//);assert.match(item.sha256,/^[a-f0-9]{64}$/);}
 });
 
+
+test('follow-up date without a year resolves to the occurrence nearest to today',()=>{
+ const {completeFollowupYear:c,followupDate}=require('../calculator/calculator.js'),today=new Date(2026,10,25);
+ for(const [text,out] of [['1210','1151210'],['0120','1160120'],['11/18 上午','115/11/18 上午'],['12/3','115/12/3'],['1/5','116/1/5'],['1118','1151118'],['11月18日 下午','115年11月18日 下午'],['11-18','115-11-18'],['11.18','115.11.18'],['１１／１８','115/11/18'],['5/25','116/5/25'],['6/1','115/6/1']]){
+  const r=c(text,today);assert.equal(r&&r.text,out,text);assert.equal(r.date,followupDate(out));
+ }
+ assert.equal(c('1/10',new Date(2026,0,3)).year,2026);assert.equal(c('12/30',new Date(2026,0,3)).year,2025);
+ for(const text of ['2026/11/18','1151118','20261118','2/29','13/1','11/31','11/18改11/19','11/18或11/20','11/18/2026','11/180','待定','118','',null])assert.equal(c(text,today),null,String(text));
+ // Original strict parser is unchanged: a bare month/day is still not a date by itself.
+ assert.equal(followupDate('11/18'),null);
+});

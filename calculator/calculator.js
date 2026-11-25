@@ -48,6 +48,26 @@
   const date=new Date(Date.UTC(year,month-1,day));
   return date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day?dateKey(year,month,day):null;
  }
+ // A follow-up typed without a year (11/18, 11月18日, 1118) means the occurrence nearest to today.
+ function completeFollowupYear(raw,today=new Date()){
+  const text=String(raw||'').normalize('NFKC').trim();
+  const match=text.match(/^(\d{1,2})\s*(月|[./-])\s*(\d{1,2})(?:日|號)?(.*)$/)||text.match(/^(\d{2})()(\d{2})(?:日|號)?(.*)$/);
+  if(!match)return null;
+  const month=Number(match[1]),day=Number(match[3]),rest=match[4];
+  if(/^\s*[\d./-]/.test(rest)||/(?:取消|改|或|待定|未定|\d+[./-]\d+)/.test(rest))return null;
+  const base=Date.UTC(today.getFullYear(),today.getMonth(),today.getDate());let best=null;
+  for(const year of [today.getFullYear()-1,today.getFullYear(),today.getFullYear()+1]){
+   const time=Date.UTC(year,month-1,day),date=new Date(time);
+   if(date.getUTCMonth()!==month-1||date.getUTCDate()!==day)continue;
+   const distance=Math.abs(time-base);
+   if(!best||distance<best.distance||(distance===best.distance&&time>best.time))best={year,time,distance};
+  }
+  if(!best)return null;
+  const sep=match[2]==='月'?'年':match[2];
+  // Written back in 民國 form, matching how dates are entered (1210 → 1151210).
+  const completed=String(best.year-1911).padStart(3,'0')+sep+text;
+  return followupDate(completed)?{year:best.year,date:followupDate(completed),text:completed}:null;
+ }
  function followupWeekday(raw){
   const key=followupDate(raw);
   return key?['日','一','二','三','四','五','六'][new Date(key+'T00:00:00Z').getUTCDay()]:'';
@@ -190,7 +210,7 @@
   fetch('calculator/taiwan-calendar.json').then(response=>{if(!response.ok)throw Error('Calendar unavailable');return response.json();}).then(data=>{holidays=data;refresh();}).catch(()=>{holidayError=true;refresh();});
   return {refresh(){readAppointments();refresh();}};
  }
- if(typeof module!=='undefined'&&module.exports)module.exports={calculate,monthGrid,weekDates,monthWeek,followupDate,followupWeekday,dayInfo};
+ if(typeof module!=='undefined'&&module.exports)module.exports={calculate,monthGrid,weekDates,monthWeek,followupDate,followupWeekday,completeFollowupYear,dayInfo};
  if(typeof document==='undefined')return;
  let ready=false,calendar;
  function show(){
@@ -234,6 +254,6 @@
   root.ScholarSync.subscribe(key=>{if(key==='scholar-calculator-v1')hydrate();});hydrate();
 
  }
- root.ScholarCalculator={show,followupDate,followupWeekday,dayInfo,monthWeek,weekDates};
+ root.ScholarCalculator={show,followupDate,followupWeekday,completeFollowupYear,dayInfo,monthWeek,weekDates};
 })(typeof window==='undefined'?globalThis:window);
 

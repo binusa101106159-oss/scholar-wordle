@@ -16,7 +16,17 @@
   const dateFor = typeof module === 'object' && module.exports
     ? require('../calculator/calculator.js').followupDate
     : raw => window.ScholarCalculator.followupDate(raw);
-  function followupPreview(raw) {
+  const completeFor = typeof module === 'object' && module.exports
+    ? require('../calculator/calculator.js').completeFollowupYear
+    : (raw, today) => window.ScholarCalculator.completeFollowupYear(raw, today);
+  // Applied when a typed follow-up date is saved, so the stored text carries the year it was meant for.
+  function completeFollowup(raw, today = new Date()) {
+    const done = completeFor(raw, today);
+    return done ? done.text : raw;
+  }
+  function followupPreview(raw, today = new Date()) {
+    const done = dateFor(raw) ? null : completeFor(raw, today);
+    if (done) return '未輸入年份，儲存為最接近今天的日期：' + followupPreview(done.text);
     const date = dateFor(raw);
     if (!date) return '';
     const [year, month, day] = date.split('-'), rocYear = Number(year) - 1911;
@@ -113,7 +123,7 @@
     if (!records.some(row => row.id === id)) throw Error('此個案已在其他裝置刪除，未重新建立。');
     return records.map(row=>row.id===id?{...row,reportCompleted}:row);
   }
-  if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords, moveRecord, followupText, followupPreview, recordsForView, sortRecords, setArchived, setLostFollowup, setReportCompleted };
+  if (typeof module === 'object' && module.exports) module.exports = { fields, parseRecords, upsert, filterRecords, moveRecord, followupText, followupPreview, completeFollowup, recordsForView, sortRecords, setArchived, setLostFollowup, setReportCompleted };
   if (typeof document === 'undefined') return;
   const by = id => document.getElementById(id);
   let booted = false, records = [], editing = null, editingBase = null, deleting = null, saving = false, readable = true, sorting = false, drag = null, caseView = 'active', archiving = false, suspendedDraft = null, pendingReport = null;
@@ -356,7 +366,7 @@
     by('ct-name').focus({ preventScroll: true });
   }
   function updateWeekday() {
-    const raw = by('ct-followup').value, weekday = weekdayFor(raw);
+    const raw = by('ct-followup').value, weekday = weekdayFor(raw) || weekdayFor(completeFollowup(raw));
     by('ct-followup-weekday').textContent = weekday ? '（' + weekday + '）' : '';
     const preview = by('ct-followup-preview');
     preview.textContent = followupPreview(raw);
@@ -392,7 +402,7 @@
           <label>VS<input id="ct-vs" name="vs" maxlength="120" autocomplete="off"></label>
           <div class="ct-full ct-followup-fields"><label>回診日期 <span id="ct-followup-weekday"></span><input id="ct-followup" name="followup" placeholder="20261113 或 1151113" aria-describedby="ct-followup-hint ct-followup-preview" maxlength="120" autocomplete="off"></label>
             <label>回診時段 <span id="ct-period-required" class="ct-required">*</span><select id="ct-followupPeriod" name="followupPeriod" required><option value="">請選擇</option><option value="AM">上午 AM</option><option value="PM">下午 PM</option></select></label>
-            <div class="ct-full ct-date-help"><p id="ct-followup-hint">西元 8 碼（YYYYMMDD）／民國 7 碼（YYYMMDD），也可使用 / 分隔。</p><p id="ct-followup-preview" aria-live="polite" hidden></p></div></div>
+            <div class="ct-full ct-date-help"><p id="ct-followup-hint">西元 8 碼（YYYYMMDD）／民國 7 碼（YYYMMDD），也可使用 / 分隔；只填月日（如 11/18、1118）時，儲存為最接近今天的日期。</p><p id="ct-followup-preview" aria-live="polite" hidden></p></div></div>
           <label class="ct-full">回診目的<textarea id="ct-purpose" name="purpose" rows="2" maxlength="500"></textarea></label>
           <label class="ct-full">診斷<textarea id="ct-diagnosis" name="diagnosis" rows="2" maxlength="4000"></textarea></label>
           <label class="ct-full">備註<textarea id="ct-notes" name="notes" rows="3" maxlength="8000"></textarea></label>
@@ -461,6 +471,7 @@
       try {
         const record = { id: editing || crypto.randomUUID(), createdAt: editingBase?.createdAt || Date.now() };
         for (const key of recordFields) record[key] = by('ct-' + key).value.trim();
+        if (!editingBase || record.followup !== (editingBase.followup || '')) record.followup = completeFollowup(record.followup);
         const latest = read();
         if (editing && editingBase) {
           const current = latest.find(row => row.id === editing);
