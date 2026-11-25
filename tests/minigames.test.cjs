@@ -63,3 +63,33 @@ test('Connections groups never share an item, and each item belongs to exactly o
   assert.deepEqual(L.checkGuess(p,[...g0.slice(0,2),...p.groups[1].items.slice(0,2)]),{correct:false,oneAway:false});
  }
 });
+
+test('cloze blanks numbers with units from article text, skips dates, and offers same-unit choices',()=>{
+ assert.deepEqual(L.clozeBlanks('一百十五年六月二十六日修正，自一百十六年七月一日施行，三個月內').map(b=>b.text),['三個月']);
+ assert.deepEqual(L.clozeBlanks('第十二條規定，每年一次，達二分之一，百分之五十以上，五十人').map(b=>[b.text,b.unit]),[['一次','次'],['二分之一','分之'],['百分之五十','百分之'],['五十人','人']]);
+ const index=require('../laws/index.json'),articles=index.laws.filter(l=>l.tier==='S').flatMap(l=>L.lawArticles(require('../laws/text/'+l.id+'.json')));
+ const ci=L.clozeIndex(articles),rand=L.rng(9);assert.ok(ci.items.length>300);
+ for(let i=0;i<200;i++){
+  const q=L.clozeQuestion(ci,rand);assert.equal(q.article.text.slice(q.blank.start,q.blank.end),q.answer);
+  assert.equal(new Set(q.choices).size,4);assert.ok(q.choices.includes(q.answer));
+  assert.ok(q.choices.every(c=>ci.byUnit.get(q.blank.unit).has(c)),'choices share the unit');
+ }
+ const item=ci.items[5];assert.equal(L.clozeQuestion(ci,rand,item).answer,item.blank.text);
+});
+
+test('mistake list counts repeats, keeps newest first, and drops a reviewed item',()=>{
+ let m=L.addMistake([], 'iarcquiz','official-1');m=L.addMistake(m,'lawmatch','s01#2#text');m=L.addMistake(m,'iarcquiz','official-1');
+ assert.deepEqual(m,[{g:'iarcquiz',k:'official-1',n:2},{g:'lawmatch',k:'s01#2#text',n:1}]);
+ assert.deepEqual(L.dropMistake(m,'iarcquiz','official-1'),[{g:'lawmatch',k:'s01#2#text',n:1}]);
+ let big=[];for(let i=0;i<350;i++)big=L.addMistake(big,'iarcquiz','x'+i);assert.equal(big.length,300);assert.equal(big[0].k,'x349');
+});
+
+test('daily questions are fixed by Taipei date and the streak only continues from yesterday',()=>{
+ assert.equal(L.taipeiDate(new Date('2026-11-24T16:30:00Z')),'2026-11-25');assert.equal(L.taipeiDate(new Date('2026-11-24T15:30:00Z')),'2026-11-24');
+ assert.equal(L.previousDate('2026-03-01'),'2026-02-28');assert.equal(L.previousDate('2027-01-01'),'2026-12-31');
+ const data=require('../iarc/data.json'),a=L.iarcQuestion(data.entries,L.rng(L.dateSeed('2026-11-25'))),b=L.iarcQuestion(data.entries,L.rng(L.dateSeed('2026-11-25')));assert.equal(a.entry.id,b.entry.id);
+ assert.notEqual(L.dateSeed('2026-11-25'),L.dateSeed('2026-11-26'));
+ let s=L.completeDay({},'2026-11-24');assert.deepEqual([s.streak,s.best],[1,1]);
+ s=L.completeDay(s,'2026-11-25');assert.deepEqual([s.streak,s.best],[2,2]);assert.equal(L.completeDay(s,'2026-11-25').streak,2);
+ s=L.completeDay(s,'2026-11-27');assert.deepEqual([s.streak,s.best],[1,2]);
+});

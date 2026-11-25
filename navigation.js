@@ -2,7 +2,7 @@
   'use strict';
   const nav=document.getElementById('scholar-game-tabs');
   if(!nav)return;
-  const games=['wordle','crossword','sudoku','g2048','mines','iarcquiz','lawmatch','connect'].map(id=>document.getElementById('game-tab-'+id));
+  const games=['wordle','crossword','sudoku','g2048','mines','iarcquiz','lawmatch','connect','lawcloze','mistakes','daily'].map(id=>document.getElementById('game-tab-'+id));
   const button=document.createElement('button');
   button.type='button';button.className='sg-tab sg-games-button';button.dataset.gameGroup='';
   button.id='game-group-button';button.setAttribute('aria-haspopup','menu');button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','game-group-menu');

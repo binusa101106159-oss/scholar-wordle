@@ -23,7 +23,7 @@ def main():
      def shot(name):
       if engine=='chromium':page.screenshot(path=str(out/f'{name}-{width}.png'))
      # Games menu lists the three old games and the five new ones.
-     page.locator('#game-group-button').click();items=page.locator('#game-group-menu [role=menuitemradio]');assert items.count()==8,items.count();assert '踩地雷' in page.locator('#game-group-menu').inner_text();page.keyboard.press('Escape')
+     page.locator('#game-group-button').click();items=page.locator('#game-group-menu [role=menuitemradio]');assert items.count()==11,items.count();assert '踩地雷' in page.locator('#game-group-menu').inner_text();page.keyboard.press('Escape')
      # 2048: arrow keys move and score; 新遊戲 resets to two tiles.
      board=lambda:page.locator('.mg-tile').evaluate_all('ns=>ns.map(n=>Number(n.textContent)||0)')
      assert sum(1 for v in board() if v)==2;page.locator('.mg-2048').focus()
@@ -76,9 +76,33 @@ def main():
      assert page.locator('.mg-group').count()==4;assert '錯 4 次' in page.locator('.mg-status').inner_text();assert saved()['connect']['played']==1
      no_overflow('connect');shot('connect')
      page.locator('.mg-tools select').select_option('iarc');page.locator('.mg-tile-word').first.wait_for();assert page.locator('.mg-tile-word').count()==16;no_overflow('connect-iarc')
+     # 條文填空: a blank is shown, answering fills it in; a wrong answer is filed in 錯題本.
+     page.evaluate("location.hash='#lawcloze'");page.locator('.mg-choice').first.wait_for();assert page.locator('.mg-blank').inner_text()=='（＿＿＿）'
+     page.locator('.mg-choice').nth(0).click();assert page.locator('.mg-blank.filled').count()==1;assert saved()['lawcloze']['total']==1;no_overflow('cloze');shot('cloze')
+     # File at least one IARC mistake, then review: a right answer removes it, a wrong one keeps it.
+     page.evaluate("location.hash='#iarcquiz'");page.locator('.mg-choice').first.wait_for()
+     for _ in range(6):
+      before=len(saved().get('mistakes',[]))
+      choices=page.locator('.mg-choice');choices.first.wait_for()
+      choices.nth(3).click()
+      if len(saved().get('mistakes',[]))>before:break
+      page.get_by_role('button',name='下一題').click()
+     n=len(saved()['mistakes']);assert n>=1
+     page.evaluate("location.hash='#mistakes'");page.get_by_role('button',name='開始練習（'+str(n)+' 題）').click();page.locator('.mg-choice').first.wait_for()
+     idx=page.evaluate("(()=>{const b=[...document.querySelectorAll('#minigames-panel .mg-choice')];return b.length})()");assert idx==4
+     page.locator('.mg-choice').first.click();assert page.locator('.mg-choice.right').count()==1
+     ok='已移出' in page.locator('.mg-result').inner_text();after=len(saved().get('mistakes',[]))
+     assert (after==n-1) if ok else (after==n),(ok,n,after);no_overflow('mistakes');shot('mistakes')
+     # 每日一題: three fixed questions; reloading keeps the answers; finishing counts the day.
+     page.evaluate("location.hash='#daily'");page.locator('.mg-daily').nth(2).wait_for();assert page.locator('.mg-daily').count()==3
+     first=page.locator('.mg-daily .mg-question').first.inner_text()
+     for k in range(3):page.locator('.mg-daily').nth(k).locator('.mg-choice').first.click()
+     assert '今天的三題都完成了' in page.locator('.mg-status').inner_text();d=saved()['daily'];assert d['streak']==1 and len(d['answers'])==3
+     page.evaluate("location.hash='#g2048'");page.evaluate("location.hash='#daily'");page.locator('.mg-daily').nth(2).wait_for()
+     assert page.locator('.mg-daily .mg-question').first.inner_text()==first;assert page.locator('.mg-daily .mg-choice:not(:disabled)').count()==0;assert '今日 3/3' in page.locator('.mg-tools').inner_text();no_overflow('daily');shot('daily')
      # Old games still work after visiting the new ones.
      page.evaluate("location.hash='#sudoku'");page.locator('#sudoku-board [data-cell]').first.wait_for();page.keyboard.press('ArrowRight')
-     assert not errors,errors;page.close();print(engine,width,'menu / 2048 keys+swipe / mines safe start+flags+levels / IARC / 法規條次 two modes+tiers / Connections solve+lose / overflow PASS',flush=True)
+     assert not errors,errors;page.close();print(engine,width,'menu / 2048 keys+swipe / mines safe start+flags+levels / IARC / 法規條次 two modes+tiers / Connections solve+lose / 條文填空 / 錯題本 review / 每日一題 fixed+streak / overflow PASS',flush=True)
     browser.close()
  finally:server.shutdown()
 if __name__=='__main__':main()

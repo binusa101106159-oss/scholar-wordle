@@ -1,7 +1,7 @@
 /* 小遊戲：2048、踩地雷、IARC 分級、法規條次、職醫 Connections. Rules live in games/logic.js. */
 ((root)=>{
  'use strict';
- const L=root.ScholarGameLogic,KEY='scholar-minigames-v1',GAMES={g2048:'2048',mines:'踩地雷',iarcquiz:'IARC 分級',lawmatch:'法規條次',connect:'職醫 Connections'};
+ const L=root.ScholarGameLogic,KEY='scholar-minigames-v1',GAMES={g2048:'2048',mines:'踩地雷',iarcquiz:'IARC 分級',lawmatch:'法規條次',connect:'職醫 Connections',lawcloze:'條文填空',mistakes:'錯題本',daily:'每日一題'};
  const el=(tag,text='',cls='')=>{const n=document.createElement(tag);if(text!=='')n.textContent=text;if(cls)n.className=cls;return n;};
  const btn=(text,cls='mg-btn')=>{const b=el('button',text,cls);b.type='button';return b;};
  function load(){try{return JSON.parse(root.ScholarStorage.getItem(KEY)||'{}')||{};}catch(_){return {};}}
@@ -106,7 +106,28 @@
 
  /* ---------- 共用：選擇題 ---------- */
  function scoreLine(stats){return '答對 '+(stats.right||0)+' / '+(stats.total||0)+'　連續 '+(stats.streak||0)+'　最佳連續 '+(stats.best||0);}
- function record(game,correct){const s=load()[game]||{};s.total=(s.total||0)+1;if(correct){s.right=(s.right||0)+1;s.streak=(s.streak||0)+1;s.best=Math.max(s.best||0,s.streak);}else s.streak=0;store(game,s);return s;}
+ // Stats per game; a wrong answer goes to 錯題本, a right answer during review takes it out.
+ function record(game,correct,key,review=false){
+  const all=load(),s=all[game]||{};
+  if(!review){s.total=(s.total||0)+1;if(correct){s.right=(s.right||0)+1;s.streak=(s.streak||0)+1;s.best=Math.max(s.best||0,s.streak);}else s.streak=0;all[game]=s;}
+  if(key!==undefined)all.mistakes=correct?(review?L.dropMistake(all.mistakes,game,key):all.mistakes||[]):L.addMistake(all.mistakes,game,key);
+  root.ScholarStorage.setItem(KEY,JSON.stringify(all));return s;
+ }
+ // Shared four-option block: marks right/wrong, then calls back with the result.
+ function choiceBlock(box,labels,correctIndex,onAnswer,chosen=null){
+  box.replaceChildren(...labels.map((text,i)=>{const b=btn(text,'mg-choice');b.onclick=()=>finish(i);return b;}));
+  function finish(i){[...box.children].forEach((x,j)=>{x.disabled=true;if(j===correctIndex)x.classList.add('right');else if(j===i)x.classList.add('wrong');});onAnswer(i===correctIndex,i);}
+  if(chosen!==null&&chosen!==undefined){[...box.children].forEach((x,j)=>{x.disabled=true;if(j===correctIndex)x.classList.add('right');else if(j===chosen)x.classList.add('wrong');});}
+ }
+ const IARC_LABEL={'1':'Group 1','2A':'Group 2A','2B':'Group 2B','3':'Group 3'};
+ const iarcDetail=e=>[e.evaluationYear?'評估年份 '+e.evaluationYear:'',e.volume?.length?'Monograph Vol. '+e.volume.join('、'):''].filter(Boolean).join('　');
+ function clozeView(q){
+  const box=el('div','','mg-question mg-law-text'),t=q.article.text;
+  const blank=el('mark','（＿＿＿）','mg-blank');box.append(t.slice(0,q.blank.start),blank,t.slice(q.blank.end));
+  return {box,fill:()=>{blank.textContent=q.answer;blank.classList.add('filled');}};
+ }
+ const lawCache=new Map();
+ async function lawArticlesFor(ids){const texts=await Promise.all(ids.map(id=>json('laws/text/'+id+'.json')));return texts.flatMap(t=>{if(!lawCache.has(t.id))lawCache.set(t.id,L.lawArticles(t));return lawCache.get(t.id);});}
 
  /* ---------- IARC 分級 ---------- */
  async function playIarc(){
@@ -121,8 +142,8 @@
    const q=L.iarcQuestion(data.entries,rand);name.textContent=q.entry.text;meta.textContent=q.entry.cas?.length?'CAS '+q.entry.cas.join('、'):'';result.replaceChildren();next.hidden=true;status.textContent='';
    choices.replaceChildren(...q.choices.map(c=>{const b=btn(label[c],'mg-choice');b.onclick=()=>{
     const ok=c===q.answer;[...choices.children].forEach((x,i)=>{x.disabled=true;if(q.choices[i]===q.answer)x.classList.add('right');else if(x===b)x.classList.add('wrong');});
-    const s=record('iarcquiz',ok);stats.textContent=scoreLine(s);
-    result.replaceChildren(el('p',(ok?'答對！':'答錯。')+'正確答案：'+label[q.answer]+'。',ok?'mg-ok':'mg-bad'),el('p',[q.entry.evaluationYear?'評估年份 '+q.entry.evaluationYear:'',q.entry.volume?.length?'Monograph Vol. '+q.entry.volume.join('、'):''].filter(Boolean).join('　'),'mg-meta'));
+    const s=record('iarcquiz',ok,q.entry.id);stats.textContent=scoreLine(s);
+    result.replaceChildren(el('p',(ok?'答對！':'答錯。')+'正確答案：'+label[q.answer]+'。',ok?'mg-ok':'mg-bad'),el('p',iarcDetail(q.entry),'mg-meta'));
     status.textContent=ok?'答對':'答錯，正確答案 '+label[q.answer];next.hidden=false;next.focus({preventScroll:true});
    };return b;}));
   }
@@ -157,7 +178,7 @@
     const b=btn('','mg-choice');if(q.mode==='text')b.textContent=L.articleLabel(a);else{const t=a.text.replace(/\s+/g,' ');b.textContent=t.length>110?t.slice(0,110)+'…':t;}
     b.onclick=()=>{
      const ok=a===q.answer;[...choices.children].forEach((x,i)=>{x.disabled=true;if(q.choices[i]===q.answer)x.classList.add('right');else if(x===b)x.classList.add('wrong');});
-     const s=record('lawmatch',ok);persist();stats.textContent=scoreLine(s);
+     const s=record('lawmatch',ok,q.answer.law+'#'+q.answer.no+'#'+q.mode);persist();stats.textContent=scoreLine(s);
      const detail=el('details');detail.append(el('summary','正確條文：'+L.articleLabel(q.answer)),el('p',q.answer.text,'mg-law-full'));
      result.replaceChildren(el('p',ok?'答對！':'答錯。',ok?'mg-ok':'mg-bad'),detail);if(q.mode==='label'||!ok)detail.open=!ok;
      status.textContent=ok?'答對':'答錯，正確答案 '+L.articleLabel(q.answer);next.hidden=false;next.focus({preventScroll:true});
@@ -205,7 +226,110 @@
   showStats();start();
  }
 
- const PLAY={g2048:play2048,mines:playMines,iarcquiz:playIarc,lawmatch:playLaw,connect:playConnect};
+ /* ---------- 條文填空 ---------- */
+ async function playCloze(){
+  const {tools,body,status}=frame('lawcloze'),saved=load().lawcloze||{};
+  const tier=el('select'),stats=el('span',scoreLine(saved),'mg-pill');tier.setAttribute('aria-label','法規範圍');tools.append(tier,stats);body.append(el('p','載入中…','mg-hint'));
+  let index;try{index=await json('laws/index.json');}catch(e){body.replaceChildren(el('p','暫時無法載入法規資料。','mg-hint'));return;}
+  for(const t of index.tiers)if(index.laws.some(l=>l.tier===t.id))tier.append(new Option(t.id+(t.name?'｜'+t.name:''),t.id));
+  tier.append(new Option('全部法規','all'));tier.value=[...tier.options].some(o=>o.value===saved.tier)?saved.tier:'S';
+  const card=el('section','','mg-card'),label=el('p','','mg-hint'),holder=el('div'),choices=el('div','','mg-choices'),result=el('div','','mg-result'),next=btn('下一題','mg-btn mg-primary');
+  card.append(el('p','空格應填入哪一個？','mg-hint'),label,holder,choices,result,next);
+  body.replaceChildren(card,el('p','條文取自本站「法規」分頁；挖空的是條文中的數字與單位（期限、人數、比例、年齡等），其他選項是同一範圍法規中同單位的其他數值。','mg-source'));
+  let ci=null;
+  async function loadTier(){
+   holder.replaceChildren(el('p','載入中…','mg-hint'));choices.replaceChildren();next.hidden=true;
+   try{ci=L.clozeIndex(await lawArticlesFor(index.laws.filter(l=>tier.value==='all'||l.tier===tier.value).map(l=>l.id)));}catch(e){holder.replaceChildren(el('p','暫時無法載入條文。','mg-hint'));return;}
+   ask();
+  }
+  function ask(){
+   const q=L.clozeQuestion(ci,rand);if(!q){holder.replaceChildren(el('p','這個範圍可出的題目不足。','mg-hint'));return;}
+   label.textContent=L.articleLabel(q.article);const v=clozeView(q);holder.replaceChildren(v.box);result.replaceChildren();next.hidden=true;status.textContent='';
+   choiceBlock(choices,q.choices,q.choices.indexOf(q.answer),ok=>{
+    v.fill();const s=record('lawcloze',ok,L.clozeKey(q.article,q.blank));const all=load();all.lawcloze={...all.lawcloze,tier:tier.value};root.ScholarStorage.setItem(KEY,JSON.stringify(all));stats.textContent=scoreLine(s);
+    result.replaceChildren(el('p',(ok?'答對！':'答錯。')+'正確答案：'+q.answer,ok?'mg-ok':'mg-bad'));status.textContent=ok?'答對':'答錯，正確答案 '+q.answer;next.hidden=false;next.focus({preventScroll:true});
+   });
+  }
+  next.onclick=ask;tier.onchange=()=>{const all=load();all.lawcloze={...all.lawcloze,tier:tier.value};root.ScholarStorage.setItem(KEY,JSON.stringify(all));loadTier();};
+  loadTier();
+ }
+
+ /* ---------- 錯題本 ---------- */
+ async function playMistakes(){
+  const {tools,body,status}=frame('mistakes'),clear=btn('清空錯題本');tools.append(clear);
+  const NAMES={iarcquiz:'IARC 分級',lawmatch:'法規條次',lawcloze:'條文填空'};
+  const summary=el('div','','mg-card'),card=el('section','','mg-card'),title=el('p','','mg-hint'),holder=el('div'),choices=el('div','','mg-choices'),result=el('div','','mg-result'),next=btn('下一題','mg-btn mg-primary');
+  card.append(title,holder,choices,result,next);card.hidden=true;
+  body.replaceChildren(summary,card,el('p','在 IARC 分級、法規條次、條文填空（含每日一題）答錯的題目會自動收進來；在這裡答對一次就移出。','mg-source'));
+  let queue=[];
+  function list(){return (load().mistakes||[]).filter(m=>NAMES[m.g]);}
+  function showSummary(){
+   const items=list(),count=g=>items.filter(m=>m.g===g).length;
+   const start=btn('開始練習（'+items.length+' 題）','mg-btn mg-primary');start.disabled=!items.length;start.onclick=()=>{queue=L.shuffle(items,rand);card.hidden=false;ask();};
+   summary.replaceChildren(el('p',items.length?Object.keys(NAMES).map(g=>NAMES[g]+' '+count(g)+' 題').join('　'):'目前沒有錯題。','mg-question mg-small'),start);
+   clear.disabled=!items.length;
+  }
+  async function build(m){
+   if(m.g==='iarcquiz'){const data=await json('iarc/data.json'),e=data.entries.find(x=>x.id===m.k);return e&&{title:'IARC 分級',view:el('p',e.text,'mg-question'),q:L.iarcQuestion(null,rand,e),labels:L.IARC_GROUPS.map(g=>IARC_LABEL[g]),correct:L.IARC_GROUPS.indexOf(e.group),after:()=>el('p','正確答案：'+IARC_LABEL[e.group]+'　'+iarcDetail(e),'mg-meta')};}
+   const [law,no,extra]=m.k.split('#'),index=await json('laws/index.json'),meta=index.laws.find(l=>l.id===law);if(!meta)return null;
+   const articles=await lawArticlesFor(index.laws.filter(l=>l.tier===meta.tier).map(l=>l.id)),a=articles.find(x=>x.law===law&&x.no===no);if(!a)return null;
+   if(m.g==='lawmatch'){
+    const q=L.lawQuestion(articles,extra==='label'?'label':'text',rand,a),labels=q.choices.map(c=>q.mode==='text'?L.articleLabel(c):(t=>t.length>110?t.slice(0,110)+'…':t)(c.text.replace(/\s+/g,' ')));
+    return {title:q.mode==='text'?'這是哪一部法規的第幾條？':'下列哪一則是這一條的條文？',view:el('div',q.mode==='text'?a.text:L.articleLabel(a),'mg-question mg-law-text'),labels,correct:q.choices.indexOf(a),after:()=>{const d=el('details');d.append(el('summary','正確條文：'+L.articleLabel(a)),el('p',a.text,'mg-law-full'));return d;}};
+   }
+   const blank=L.clozeBlanks(a.text).find(b=>b.start===Number(extra));if(!blank)return null;
+   const q=L.clozeQuestion(L.clozeIndex(articles),rand,{article:a,blank});if(!q)return null;const v=clozeView(q);
+   return {title:'條文填空：'+L.articleLabel(a),view:v.box,labels:q.choices,correct:q.choices.indexOf(q.answer),after:()=>{v.fill();return el('p','正確答案：'+q.answer,'mg-meta');}};
+  }
+  async function ask(){
+   result.replaceChildren();next.hidden=true;status.textContent='';
+   while(queue.length){
+    const m=queue.shift();let item=null;try{item=await build(m);}catch(_){item=null;}
+    if(!item){const all=load();all.mistakes=L.dropMistake(all.mistakes,m.g,m.k);root.ScholarStorage.setItem(KEY,JSON.stringify(all));continue;}
+    title.textContent=NAMES[m.g]+'｜'+item.title;holder.replaceChildren(item.view);
+    choiceBlock(choices,item.labels,item.correct,ok=>{record(m.g,ok,m.k,true);result.replaceChildren(el('p',ok?'答對，已移出錯題本。':'答錯，仍留在錯題本。',ok?'mg-ok':'mg-bad'),item.after());status.textContent=ok?'答對':'答錯';showSummary();next.hidden=false;next.focus({preventScroll:true});});
+    return;
+   }
+   card.hidden=true;status.textContent='這一輪練完了。';showSummary();
+  }
+  next.onclick=ask;
+  clear.onclick=()=>{if(!confirm('清空錯題本？'))return;const all=load();all.mistakes=[];root.ScholarStorage.setItem(KEY,JSON.stringify(all));card.hidden=true;showSummary();};
+  showSummary();
+ }
+
+ /* ---------- 每日一題 ---------- */
+ async function playDaily(){
+  const {tools,body,status}=frame('daily'),streak=el('span','','mg-pill');tools.append(streak);body.append(el('p','載入中…','mg-hint'));
+  const date=L.taipeiDate(),r=L.rng(L.dateSeed(date));
+  let iarc,index,articles;
+  try{[iarc,index]=await Promise.all([json('iarc/data.json'),json('laws/index.json')]);articles=await lawArticlesFor(index.laws.filter(l=>l.tier==='S').map(l=>l.id));}
+  catch(e){body.replaceChildren(el('p','暫時無法載入題目。','mg-hint'));return;}
+  // Same date → same seed → same three questions on every device.
+  const q1=L.iarcQuestion(iarc.entries,r),q2=L.lawQuestion(articles,'text',r),q3=L.clozeQuestion(L.clozeIndex(articles),r);
+  const questions=[
+   {id:'iarc',game:'iarcquiz',key:q1.entry.id,title:'IARC 分級',view:()=>el('p',q1.entry.text,'mg-question'),labels:q1.choices.map(g=>IARC_LABEL[g]),correct:q1.choices.indexOf(q1.answer),after:()=>el('p','正確答案：'+IARC_LABEL[q1.answer]+'　'+iarcDetail(q1.entry),'mg-meta')},
+   {id:'law',game:'lawmatch',key:q2.answer.law+'#'+q2.answer.no+'#text',title:'法規條次：這是哪一部法規的第幾條？',view:()=>el('div',q2.answer.text,'mg-question mg-law-text'),labels:q2.choices.map(L.articleLabel),correct:q2.choices.indexOf(q2.answer),after:()=>el('p','正確答案：'+L.articleLabel(q2.answer),'mg-meta')},
+   {id:'cloze',game:'lawcloze',key:L.clozeKey(q3.article,q3.blank),title:'條文填空：'+L.articleLabel(q3.article),cloze:q3,labels:q3.choices,correct:q3.choices.indexOf(q3.answer),after:()=>el('p','正確答案：'+q3.answer,'mg-meta')}
+  ];
+  const state=()=>{const d=load().daily||{};return d.date===date?d:{...d,date,answers:{}};};
+  function header(){const d=state(),answered=Object.keys(d.answers||{}).length,right=questions.filter(q=>d.answers?.[q.id]===q.correct).length;streak.textContent=date+'　今日 '+answered+'/3'+(answered===3?'（答對 '+right+'）':'')+'　連續 '+(d.done===date||d.done===L.previousDate(date)?d.streak||0:0)+' 天　最佳 '+(d.best||0);}
+  body.replaceChildren(el('p','每天固定三題，所有裝置同一天題目相同；三題都作答即算完成當天。法規題取自 S 級法規。','mg-hint'));
+  for(const q of questions){
+   const card=el('section','','mg-card mg-daily'),choices=el('div','','mg-choices'+(q.id==='law'?' mg-law-choices':'')),result=el('div','','mg-result'),v=q.cloze?clozeView(q.cloze):null;
+   card.append(el('h2',q.title,'mg-daily-title'),v?v.box:q.view(),choices,result);body.append(card);
+   const prior=state().answers?.[q.id];
+   choiceBlock(choices,q.labels,q.correct,(ok,i)=>{
+    const all=load();let d=all.daily?.date===date?{...all.daily}:{...(all.daily||{}),date,answers:{}};d.answers={...d.answers,[q.id]:i};
+    if(Object.keys(d.answers).length===questions.length)d=L.completeDay(d,date);all.daily=d;root.ScholarStorage.setItem(KEY,JSON.stringify(all));
+    record(q.game,ok,q.key);if(v)v.fill();result.replaceChildren(el('p',ok?'答對！':'答錯。',ok?'mg-ok':'mg-bad'),q.after());header();
+    status.textContent=Object.keys(d.answers).length===3?'今天的三題都完成了，明天再來。':ok?'答對':'答錯';
+   },prior);
+   if(prior!==undefined){if(v)v.fill();result.replaceChildren(el('p',prior===q.correct?'答對！':'答錯。',prior===q.correct?'mg-ok':'mg-bad'),q.after());}
+  }
+  header();
+ }
+
+ const PLAY={g2048:play2048,mines:playMines,iarcquiz:playIarc,lawmatch:playLaw,connect:playConnect,lawcloze:playCloze,mistakes:playMistakes,daily:playDaily};
  function show(id){
   panel=document.getElementById('minigames-panel');if(!PLAY[id])id='g2048';
   if(current===id&&panel.firstChild)return;

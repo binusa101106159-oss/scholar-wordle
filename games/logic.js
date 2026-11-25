@@ -75,7 +75,8 @@
  /* ---------- IARC 分級 ---------- */
  const IARC_GROUPS=['1','2A','2B','3'];
  // Draw the group first, then an agent in it, so each answer is equally likely.
- function iarcQuestion(entries,rand){
+ function iarcQuestion(entries,rand,given=null){
+  if(given)return {entry:given,answer:given.group,choices:IARC_GROUPS};
   const group=pick(IARC_GROUPS,rand),pool=entries.filter(e=>e.group===group&&!e.parent);
   return {entry:pick(pool,rand),answer:group,choices:IARC_GROUPS};
  }
@@ -95,8 +96,8 @@
  }
  const articleLabel=a=>'《'+a.lawName+'》第 '+a.no+' 條';
  // mode 'text': show the article, choose law + number. mode 'label': show law + number, choose the article.
- function lawQuestion(articles,mode,rand){
-  const answer=pick(articles,rand),key=a=>a.law+'#'+a.no;
+ function lawQuestion(articles,mode,rand,given=null){
+  const answer=given||pick(articles,rand),key=a=>a.law+'#'+a.no;
   const sameLaw=articles.filter(a=>a.law===answer.law&&key(a)!==key(answer)),other=articles.filter(a=>a.law!==answer.law);
   const wrong=[];
   // One distractor from the same law keeps the number in play; the rest come from other laws when possible.
@@ -155,7 +156,52 @@
   return best===4?{correct:true,group:groups[0]}:{correct:false,oneAway:best===3};
  }
 
- const api={rng,shuffle,slideLine,move2048,spawn2048,new2048,canMove2048,MINE_LEVELS,neighbors,layMines,countAround,revealCells,chord,minesWon,IARC_GROUPS,iarcQuestion,lawArticles,articleLabel,lawQuestion,shortGuide,connectionGroups,connectionsPuzzle,checkGuess};
+ /* ---------- 條文填空 ---------- */
+ const NUM='[〇零一二三四五六七八九十百千兩0-9０-９]';
+ const CLOZE=new RegExp('(?:百分之|千分之)'+NUM+'+|'+NUM+'+分之'+NUM+'+|(?<!第)'+NUM+'+(?:個月|年|日|天|小時|分鐘|星期|週|歲|人|次|公斤|公尺|分貝|倍)','g');
+ // Numbers with units (期限、人數、比例…) are what gets blanked; dates such as 一百十五年六月 are skipped.
+ function clozeBlanks(text){
+  const out=[];CLOZE.lastIndex=0;let m;
+  while((m=CLOZE.exec(text))){
+   const value=m[0],after=text.slice(m.index+value.length,m.index+value.length+4),before=text.slice(Math.max(0,m.index-4),m.index);
+   if(/年$/.test(value)&&new RegExp('^'+NUM+'*月').test(after))continue;
+   if(/日$/.test(value)&&new RegExp('月'+NUM+'*$').test(before))continue;
+   if(/月$/.test(before)&&/日$/.test(value))continue;
+   const unit=value.startsWith('百分之')?'百分之':value.startsWith('千分之')?'千分之':value.includes('分之')?'分之':value.replace(new RegExp(NUM,'g'),'');
+   out.push({start:m.index,end:m.index+value.length,text:value,unit});
+  }
+  return out;
+ }
+ function clozeIndex(articles){
+  const byUnit=new Map(),items=[];
+  for(const a of articles)for(const b of clozeBlanks(a.text)){items.push({article:a,blank:b});(byUnit.get(b.unit)||byUnit.set(b.unit,new Set()).get(b.unit)).add(b.text);}
+  return {items,byUnit};
+ }
+ // Distractors are other values with the same unit found elsewhere in the same set of laws.
+ function clozeQuestion(index,rand,given=null){
+  const usable=index.items.filter(x=>index.byUnit.get(x.blank.unit).size>=4);
+  const item=given||pick(usable,rand);if(!item)return null;
+  const wrong=sample([...index.byUnit.get(item.blank.unit)].filter(t=>t!==item.blank.text),3,rand);
+  if(wrong.length<3)return null;
+  return {article:item.article,blank:item.blank,answer:item.blank.text,choices:shuffle([item.blank.text,...wrong],rand)};
+ }
+ const clozeKey=(a,b)=>a.law+'#'+a.no+'#'+b.start;
+
+ /* ---------- 錯題本 ---------- */
+ function addMistake(list,game,key){const next=(list||[]).filter(m=>!(m.g===game&&m.k===key));const old=(list||[]).find(m=>m.g===game&&m.k===key);next.unshift({g:game,k:key,n:(old?.n||0)+1});return next.slice(0,300);}
+ const dropMistake=(list,game,key)=>(list||[]).filter(m=>!(m.g===game&&m.k===key));
+
+ /* ---------- 每日一題 ---------- */
+ const taipeiDate=(now=new Date())=>now.toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'});
+ function dateSeed(date){let h=2166136261;for(const ch of 'scholar-daily-'+date){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
+ function previousDate(date){const d=new Date(date+'T00:00:00Z');d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);}
+ // A day counts once all of its questions are answered; streak continues only from yesterday.
+ function completeDay(state,date){
+  const s={...state};if(s.done===date)return s;
+  s.streak=s.done===previousDate(date)?(s.streak||0)+1:1;s.best=Math.max(s.best||0,s.streak);s.done=date;return s;
+ }
+
+ const api={rng,shuffle,slideLine,move2048,spawn2048,new2048,canMove2048,MINE_LEVELS,neighbors,layMines,countAround,revealCells,chord,minesWon,IARC_GROUPS,iarcQuestion,lawArticles,articleLabel,lawQuestion,shortGuide,connectionGroups,connectionsPuzzle,checkGuess,clozeBlanks,clozeIndex,clozeQuestion,clozeKey,addMistake,dropMistake,taipeiDate,dateSeed,previousDate,completeDay};
  if(typeof module==='object'&&module.exports)module.exports=api;
  root.ScholarGameLogic=api;
 })(typeof window==='undefined'?globalThis:window);
