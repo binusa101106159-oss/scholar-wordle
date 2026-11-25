@@ -1,0 +1,37 @@
+/* 小遊戲 panel: 2048, 踩地雷, IARC 分級, 法規條次, 職醫 Connections */
+body:is([data-game="g2048"],[data-game="mines"],[data-game="iarcquiz"],[data-game="lawmatch"],[data-game="connect"]) :is(#game-main,#wordle-toolbar){display:none!important}
+#minigames-panel{display:block;box-sizing:border-box;max-width:760px;width:100%;margin:0 auto;padding:20px 16px 110px;color:#edf3fb}
+#minigames-panel[hidden]{display:none}
+.mg-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.mg-head h1{margin:0;font:700 22px/1.3 system-ui}
+.mg-tools,.mg-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.mg-actions{justify-content:center;margin:12px 0}
+.mg-btn,.mg-tools select{min-height:40px;padding:6px 14px;border:1px solid #bdd8ff50;border-radius:12px;background:#ffffff0d;color:#eef5ff;font:600 14px system-ui;cursor:pointer}
+.mg-tools select{padding-right:8px;max-width:100%}.mg-btn:disabled{opacity:.45;cursor:default}.mg-primary{background:#a9cfff2e;border-color:#cfe4ff90}.mg-toggle[aria-pressed=true]{background:#ffd27a33;border-color:#ffd27a}
+.mg-btn:focus-visible,.mg-tools select:focus-visible,.mg-choice:focus-visible,.mg-tile-word:focus-visible,.mg-cell:focus-visible,.mg-2048:focus-visible{outline:2px solid #d4e8ff;outline-offset:2px}
+.mg-pill{display:inline-flex;align-items:center;min-height:32px;padding:2px 12px;border-radius:999px;background:#ffffff12;font:600 13px system-ui;color:#dbe6f4}
+.mg-hint,.mg-source,.mg-meta{color:#aebdd0;font-size:13px;line-height:1.7;margin:8px 0}.mg-source{font-size:12px;color:#93a3b8;margin-top:18px}
+.mg-status{min-height:24px;margin:12px 0;text-align:center;font-weight:600}
+/* 2048 */
+.mg-2048{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:min(100%,420px);aspect-ratio:1;margin:0 auto;padding:10px;box-sizing:border-box;border-radius:16px;background:#ffffff10;border:1px solid #ffffff22;touch-action:none;user-select:none}
+.mg-tile{display:flex;align-items:center;justify-content:center;border-radius:10px;background:#ffffff0d;font:800 clamp(20px,6vw,34px)/1 system-ui;color:#f6f9ff}
+.mg-tile[data-v="2"]{background:#e9eef640;color:#fff}.mg-tile[data-v="4"]{background:#dfe8f566}.mg-tile[data-v="8"]{background:#f2b179}.mg-tile[data-v="16"]{background:#f59563}.mg-tile[data-v="32"]{background:#f67c5f}.mg-tile[data-v="64"]{background:#f65e3b}
+.mg-tile[data-v="128"],.mg-tile[data-v="256"],.mg-tile[data-v="512"]{background:#edcf72;color:#3b2f12;font-size:clamp(18px,5vw,28px)}.mg-tile[data-v="1024"],.mg-tile[data-v="2048"],.mg-tile[data-v="4096"]{background:#edc22e;color:#2f2508;font-size:clamp(15px,4.2vw,24px)}
+/* 踩地雷 */
+.mg-mines{--cell:min(32px,calc((100vw - 40px) / var(--cols)));display:grid;grid-template-columns:repeat(var(--cols),var(--cell));gap:2px;justify-content:center;margin:0 auto;user-select:none;-webkit-touch-callout:none}
+.mg-cell{width:var(--cell);height:var(--cell);padding:0;border:0;border-radius:4px;background:#9fb5d24a;color:#fff;font:800 calc(var(--cell) * .55)/1 system-ui;cursor:pointer;touch-action:manipulation}
+.mg-cell.open{background:#ffffff0f;cursor:default}.mg-cell.flag{color:#ffd27a}.mg-cell.boom{background:#e0525299}.mg-cell.mine{background:#ffffff22}.mg-cell.wrong{background:#e0525255}
+.mg-cell[data-n="1"]{color:#8ec5ff}.mg-cell[data-n="2"]{color:#8fe3a3}.mg-cell[data-n="3"]{color:#ff9d9d}.mg-cell[data-n="4"]{color:#c3a7ff}.mg-cell[data-n="5"]{color:#ffb86b}.mg-cell[data-n="6"]{color:#7fe3e3}.mg-cell[data-n="7"]{color:#fff}.mg-cell[data-n="8"]{color:#cfd8e3}
+/* 選擇題 */
+.mg-card{padding:18px;border-radius:18px;background:#ffffff0b;border:1px solid #ffffff1f}
+.mg-question{margin:6px 0 4px;font:700 22px/1.5 system-ui;overflow-wrap:anywhere}.mg-law-text{font:500 16px/1.9 system-ui;white-space:pre-line;max-height:46vh;overflow:auto}
+.mg-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}.mg-law-choices{grid-template-columns:1fr}
+.mg-choice{min-height:48px;padding:10px 12px;border:1px solid #bdd8ff40;border-radius:12px;background:#ffffff0a;color:#eef5ff;font:600 15px/1.6 system-ui;text-align:left;cursor:pointer;overflow-wrap:anywhere}
+.mg-choices:not(.mg-law-choices) .mg-choice{text-align:center;font-size:17px}
+.mg-choice.right{background:#3fae6a55;border-color:#7fe0a2}.mg-choice.wrong{background:#e0525244;border-color:#ff9d9d}.mg-choice:disabled{cursor:default}
+.mg-ok{color:#8fe3a3;font-weight:700}.mg-bad{color:#ff9d9d;font-weight:700}.mg-result details{margin-top:6px}.mg-law-full{white-space:pre-line;line-height:1.9;color:#dbe6f4}
+/* Connections */
+.mg-connect{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.mg-tile-word{min-height:64px;padding:6px;border:1px solid #bdd8ff33;border-radius:12px;background:#ffffff10;color:#eef5ff;font:600 13px/1.4 system-ui;cursor:pointer;overflow-wrap:anywhere;word-break:break-word}
+.mg-tile-word[aria-pressed=true]{background:#cfe4ff;color:#14213a;border-color:#fff}
+.mg-solved{display:grid;gap:8px;margin-bottom:8px}.mg-group{display:grid;gap:2px;padding:10px 12px;border-radius:12px;text-align:center;font-size:13px;line-height:1.5}.mg-group strong{font-size:14px}
+.mg-group.g0{background:#c9a43a66}.mg-group.g1{background:#4f9a5c66}.mg-group.g2{background:#4d79c466}.mg-group.g3{background:#8e5fb866}
+@media(max-width:560px){#minigames-panel{padding:14px 10px 120px}.mg-head h1{font-size:19px}.mg-question{font-size:19px}.mg-tile-word{min-height:58px;font-size:12px;padding:4px}.mg-connect{gap:6px}}

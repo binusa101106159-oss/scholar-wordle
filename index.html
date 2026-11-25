@@ -442,6 +442,9 @@
 <link rel="stylesheet" href="ilo/ilo.css">
 <script type="text/scholar-app" data-lazy="ilo" data-cloud-src="ilo/ilo.js"></script>
 <link rel="stylesheet" href="iarc/iarc.css">
+<link rel="stylesheet" href="games/minigames.css">
+<script type="text/scholar-app" data-lazy="minigames" data-cloud-src="games/logic.js"></script>
+<script type="text/scholar-app" data-lazy="minigames" data-cloud-src="games/minigames.js"></script>
 <script type="text/scholar-app" data-lazy="iarc" data-cloud-src="iarc/iarc.js"></script>
 <link rel="stylesheet" href="checkup/checkup.css">
 <script type="text/scholar-app" data-lazy="checkup" data-cloud-src="checkup/engine.js"></script>
@@ -632,6 +635,11 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
         <button id="game-tab-wordle" class="sg-tab" type="button" role="tab" data-game-tab="wordle" aria-controls="game-main" aria-selected="true" tabindex="0"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5"/><path d="m8 8 2 8 2-5 2 5 2-8"/></svg>Wordle</button>
         <button id="game-tab-crossword" class="sg-tab" type="button" role="tab" data-game-tab="crossword" aria-controls="crossword-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16"/><path d="M9.5 9.5h5v5h-5z" fill="currentColor" stroke="none"/></svg>Crossword</button>
         <button id="game-tab-sudoku" class="sg-tab" type="button" role="tab" data-game-tab="sudoku" aria-controls="sudoku-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 4v16M4 12h16M8 7v3M15 15h3l-3 3h3"/></svg>Sudoku</button>
+        <button id="game-tab-g2048" class="sg-tab" type="button" role="tab" data-game-tab="g2048" aria-controls="minigames-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 4v16M4 12h16"/></svg>2048</button>
+        <button id="game-tab-mines" class="sg-tab" type="button" role="tab" data-game-tab="mines" aria-controls="minigames-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="6"/><path d="M12 4v3M12 19v1M5 13H3M21 13h-2M7 8 5.5 6.5M17 8l1.5-1.5"/></svg>踩地雷</button>
+        <button id="game-tab-iarcquiz" class="sg-tab" type="button" role="tab" data-game-tab="iarcquiz" aria-controls="minigames-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/></svg>IARC 分級</button>
+        <button id="game-tab-lawmatch" class="sg-tab" type="button" role="tab" data-game-tab="lawmatch" aria-controls="minigames-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 10h6M9 14h6M9 18h3"/></svg>法規條次</button>
+        <button id="game-tab-connect" class="sg-tab" type="button" role="tab" data-game-tab="connect" aria-controls="minigames-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>職醫 Connections</button>
         <button id="game-tab-laws" class="sg-tab" type="button" role="tab" data-game-tab="laws" aria-controls="laws-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9l3 3v13H6z"/><path d="M15 4v3h3M9 11h6M9 14.5h6M9 18h4"/></svg>法規</button>
         <button id="game-tab-guides" class="sg-tab" type="button" role="tab" data-game-tab="guides" aria-controls="guides-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5C7.5 4.5 10 4.5 12 6c2-1.5 4.5-1.5 7-.5V19c-2.5-1-5-1-7 .5-2-1.5-4.5-1.5-7-.5z"/><path d="M12 6v13.5"/></svg>指引</button>
         <button id="game-tab-ama" class="sg-tab" type="button" role="tab" data-game-tab="ama" aria-controls="ama-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM16 4v3h3M8 11h8M8 15h8M12 8v10"/></svg>AMA</button>
@@ -768,6 +776,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
   <main id="cases-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-cases" hidden></main>
   <main id="maternal-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-maternal" hidden></main>
   <main id="iarc-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-iarc" hidden></main>
+  <main id="minigames-panel" class="sg-app mg-panel" role="tabpanel" aria-labelledby="game-tab-g2048" hidden></main>
   <main id="checkup-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-checkup" hidden></main>
   <main id="health-panel" class="sg-app hx-app" role="tabpanel" aria-labelledby="game-tab-health" hidden></main>
   <main id="calculator-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-calculator" hidden></main>
@@ -3144,7 +3153,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
   let studySection = 'review';
   function switchGame(game, updateURL = true) {
     if (game === 'study') game = studySection;
-    if (!['certificates', 'forms', 'calculator', 'wordle', 'crossword', 'sudoku', 'laws', 'guides', 'ama', 'health', 'checkup', 'iarc', 'cases', 'maternal', 'calendar', 'review', 'notes', 'ilo'].includes(game)) game = 'wordle';
+    if (!['certificates', 'forms', 'calculator', 'wordle', 'crossword', 'sudoku', 'laws', 'guides', 'ama', 'health', 'checkup', 'iarc', 'cases', 'maternal', 'calendar', 'review', 'notes', 'ilo', 'g2048', 'mines', 'iarcquiz', 'lawmatch', 'connect'].includes(game)) game = 'wordle';
     activeGame = game; document.body.dataset.game = game;
     if(updateURL)window.ScholarStorage.setItem('scholar-navigation-v1',JSON.stringify({hash:'#'+game}));
     const isStudy = game === 'review' || game === 'notes' || game === 'ilo';
@@ -3170,6 +3179,10 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     by('maternal-panel').hidden = game !== 'maternal';
     if (game === 'maternal' && window.ScholarMaternalSnippets) window.ScholarMaternalSnippets.show();
     else if (window.ScholarMaternalSnippets) window.ScholarMaternalSnippets.hide();
+    const isMini = ['g2048', 'mines', 'iarcquiz', 'lawmatch', 'connect'].includes(game);
+    by('minigames-panel').hidden = !isMini;
+    if (isMini && window.ScholarMiniGames) { by('minigames-panel').setAttribute('aria-labelledby', 'game-tab-' + game); window.ScholarMiniGames.show(game); }
+    else if (window.ScholarMiniGames) window.ScholarMiniGames.hide();
     by('iarc-panel').hidden = game !== 'iarc';
     if (game === 'iarc' && window.ScholarIARC) window.ScholarIARC.show();
     by('checkup-panel').hidden = game !== 'checkup';
@@ -3207,6 +3220,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     else if (game === 'checkup') document.title = '健檢報告 · Scholar';
     else if (game === 'health') document.title = '特做 · Scholar';
     else if (game === 'iarc') document.title = 'IARC · Scholar';
+    else if (isMini) document.title = ({ g2048: '2048', mines: '踩地雷', iarcquiz: 'IARC 分級', lawmatch: '法規條次', connect: '職醫 Connections' })[game] + ' · Scholar';
     else if (game === 'certificates') document.title = '診斷書 · Scholar';
     else if (game === 'forms') document.title = '表單 · Scholar';
     else if (game === 'calculator') document.title = '計算機 · Scholar';
@@ -3248,7 +3262,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     focusSelected(activeGame); save();
   }
   function keyboard(event) {
-    if (activeGame === 'certificates' || activeGame === 'maternal' || activeGame === 'checkup' || activeGame === 'forms' || activeGame === 'calendar' || activeGame === 'iarc' || activeGame === 'cases' || activeGame === 'health' || activeGame === 'calculator' || activeGame === 'wordle' || activeGame === 'laws' || activeGame === 'guides' || activeGame === 'ama' || activeGame === 'review' || activeGame === 'notes' || activeGame === 'ilo' || by('scholar-new-dialog').open || event.altKey) return;
+    if (['g2048', 'mines', 'iarcquiz', 'lawmatch', 'connect'].includes(activeGame) || activeGame === 'certificates' || activeGame === 'maternal' || activeGame === 'checkup' || activeGame === 'forms' || activeGame === 'calendar' || activeGame === 'iarc' || activeGame === 'cases' || activeGame === 'health' || activeGame === 'calculator' || activeGame === 'wordle' || activeGame === 'laws' || activeGame === 'guides' || activeGame === 'ama' || activeGame === 'review' || activeGame === 'notes' || activeGame === 'ilo' || by('scholar-new-dialog').open || event.altKey) return;
     const target = event.target;
     if (target && target.closest && target.closest('input,select,textarea,[contenteditable="true"]')) return;
     if (event.key === 'Escape') { event.preventDefault(); const tab=by('game-tab-' + activeGame);(tab.hidden?by('game-group-button'):tab).focus(); return; }
@@ -3321,9 +3335,9 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
       data.seconds++; by(activeGame + '-clock').textContent = time(data.seconds);
       if (data.seconds % 5 === 0) save();
     }, 1000);
-    if(!location.hash){const nav=JSON.parse(window.ScholarStorage.getItem('scholar-navigation-v1')||'{}');if(/^#(certificates|forms|calculator|wordle|crossword|sudoku|laws|guides|ama|health|checkup|iarc|cases|maternal|calendar|review|notes|ilo)$/.test(nav.hash||''))history.replaceState(null,'',nav.hash);}
+    if(!location.hash){const nav=JSON.parse(window.ScholarStorage.getItem('scholar-navigation-v1')||'{}');if(/^#(certificates|forms|calculator|wordle|crossword|sudoku|laws|guides|ama|health|checkup|iarc|cases|maternal|calendar|review|notes|ilo|g2048|mines|iarcquiz|lawmatch|connect)$/.test(nav.hash||''))history.replaceState(null,'',nav.hash);}
     window.addEventListener('hashchange',()=>window.ScholarStorage.setItem('scholar-navigation-v1',JSON.stringify({hash:location.hash})));
-    switchGame(location.hash === '#certificates' ? 'certificates' : location.hash === '#maternal' ? 'maternal' : location.hash === '#checkup' ? 'checkup' : location.hash === '#forms' ? 'forms' : location.hash === '#calendar' ? 'calendar' : location.hash === '#iarc' ? 'iarc' : location.hash === '#cases' ? 'cases' : location.hash === '#health' ? 'health' : location.hash === '#calculator' ? 'calculator' : location.hash === '#study' ? 'study' : location.hash === '#sudoku' ? 'sudoku' : location.hash === '#crossword' ? 'crossword' : location.hash === '#laws' ? 'laws' : location.hash === '#guides' ? 'guides' : location.hash === '#ama' ? 'ama' : location.hash === '#review' ? 'review' : location.hash === '#notes' ? 'notes' : location.hash === '#ilo' ? 'ilo' : 'wordle', false);
+    switchGame(location.hash === '#certificates' ? 'certificates' : location.hash === '#maternal' ? 'maternal' : location.hash === '#checkup' ? 'checkup' : location.hash === '#forms' ? 'forms' : location.hash === '#calendar' ? 'calendar' : location.hash === '#iarc' ? 'iarc' : location.hash === '#cases' ? 'cases' : location.hash === '#health' ? 'health' : location.hash === '#calculator' ? 'calculator' : location.hash === '#study' ? 'study' : location.hash === '#sudoku' ? 'sudoku' : location.hash === '#crossword' ? 'crossword' : location.hash === '#laws' ? 'laws' : location.hash === '#guides' ? 'guides' : location.hash === '#ama' ? 'ama' : location.hash === '#review' ? 'review' : location.hash === '#notes' ? 'notes' : location.hash === '#ilo' ? 'ilo' : /^#(g2048|mines|iarcquiz|lawmatch|connect)$/.test(location.hash) ? location.hash.slice(1) : 'wordle', false);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
