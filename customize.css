@@ -1,8 +1,6 @@
 /* 自訂：wallpaper, accent and tone. Nothing changes until a non-default choice is made. */
 body[data-game="customize"] :is(#game-main,#wordle-toolbar){display:none!important}
 html.dark[data-wallpaper] body::before{background:var(--wallpaper)!important;filter:blur(var(--wallpaper-blur,0px));inset:calc(var(--wallpaper-blur,0px) * -2)}
-html.dark[data-wallpaper="black"] body::before{background:none!important}
-html.dark[data-tone] body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(90vmax 70vmax at 50% 0%,rgba(var(--tone-rgb),.10),transparent 70%)}
 
 /* Accent */
 html[data-accent] .sg-nav-shell,html[data-accent] .sg-app{--sg-blue:var(--accent)}
@@ -30,7 +28,7 @@ html[data-tone] .sg-nav-shell,html[data-tone] .sg-app{--sg-edge:rgba(var(--tone-
 .cz-swatch{position:relative;display:grid;gap:6px;justify-items:center;padding:8px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.03);color:#dbe6f4;font:600 13px system-ui;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .cz-swatch[aria-checked=true]{border-color:#fff;background:rgba(255,255,255,.12);box-shadow:0 0 0 1px rgba(255,255,255,.5),0 4px 14px rgba(0,0,0,.4)}
 .cz-chip{display:block;width:100%;aspect-ratio:1.6;border-radius:10px;border:1px solid rgba(255,255,255,.15)}.cz-grid-color .cz-chip{width:40px;height:40px;aspect-ratio:auto;border-radius:999px}
-.cz-wall{background-color:#000!important;background-size:cover!important}
+.cz-wall{background-size:cover;background-position:center}
 .cz-custom input{width:40px;height:40px;padding:0;border:0;border-radius:999px;background:none;cursor:pointer}.cz-custom input::-webkit-color-swatch-wrapper{padding:0}.cz-custom input::-webkit-color-swatch{border:1px solid rgba(255,255,255,.3);border-radius:999px}
 .cz-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
 .cz-btn{display:inline-flex;align-items:center;min-height:40px;padding:6px 16px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));color:#f1f5f9;font:600 14px system-ui;cursor:pointer}
@@ -39,3 +37,4 @@ html[data-tone] .sg-nav-shell,html[data-tone] .sg-app{--sg-edge:rgba(var(--tone-
 .cz-foot{justify-content:flex-end}.cz-status{min-height:22px;text-align:right;color:#cbd5e1;font-size:13px}
 .cz-swatch:focus-visible,.cz-btn:focus-visible{outline:2px solid #a9c8ff;outline-offset:2px}
 @media(max-width:560px){#customize-panel{padding:16px 10px 120px}.cz-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cz-grid-color{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.cz-wall-custom{position:relative}.cz-wall-custom input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.cz-wall-custom[aria-checked=true]{border-color:#fff;background:rgba(255,255,255,.12);box-shadow:0 0 0 1px rgba(255,255,255,.5),0 4px 14px rgba(0,0,0,.4)}

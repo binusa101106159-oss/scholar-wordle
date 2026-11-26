@@ -3,24 +3,27 @@
 (() => {
  'use strict';
  const KEY='scholar-customize-v1',MIRROR='scholar-customize-local',IMAGE='scholar-wallpaper-image';
+ // Solid colours; 預設 keeps the site's original background.
  const WALLPAPERS=[
-  {id:'default',name:'預設光暈',css:'radial-gradient(40vmax 30vmax at 15% 20%, rgba(197,160,89,0.10), transparent 70%), radial-gradient(35vmax 30vmax at 85% 75%, rgba(56,120,255,0.09), transparent 70%), radial-gradient(30vmax 25vmax at 60% 40%, rgba(29,78,216,0.06), transparent 70%)'},
-  {id:'black',name:'純黑',css:'none'},
-  {id:'aurora',name:'極光',css:'radial-gradient(60vmax 40vmax at 20% 10%, rgba(64,224,180,.22), transparent 70%), radial-gradient(50vmax 40vmax at 80% 30%, rgba(90,120,255,.22), transparent 70%), radial-gradient(60vmax 40vmax at 50% 100%, rgba(170,80,255,.16), transparent 70%)'},
-  {id:'sunset',name:'夕陽',css:'radial-gradient(70vmax 45vmax at 15% 90%, rgba(255,120,60,.25), transparent 70%), radial-gradient(60vmax 40vmax at 85% 80%, rgba(255,70,120,.20), transparent 70%), radial-gradient(50vmax 35vmax at 50% 0%, rgba(120,60,200,.18), transparent 70%)'},
-  {id:'ocean',name:'深海',css:'radial-gradient(70vmax 50vmax at 50% 110%, rgba(0,140,220,.28), transparent 70%), radial-gradient(50vmax 35vmax at 10% 20%, rgba(0,90,160,.20), transparent 70%), linear-gradient(180deg, #000 0%, #02101e 100%)'},
-  {id:'forest',name:'森林',css:'radial-gradient(60vmax 45vmax at 20% 80%, rgba(40,160,90,.24), transparent 70%), radial-gradient(50vmax 35vmax at 85% 15%, rgba(150,200,80,.14), transparent 70%), linear-gradient(180deg, #000 0%, #04110a 100%)'},
-  {id:'ember',name:'餘燼',css:'radial-gradient(60vmax 40vmax at 80% 85%, rgba(255,140,40,.20), transparent 70%), radial-gradient(45vmax 35vmax at 10% 15%, rgba(200,60,40,.16), transparent 70%)'},
-  {id:'mono',name:'石墨',css:'radial-gradient(70vmax 50vmax at 50% 0%, rgba(255,255,255,.10), transparent 70%), linear-gradient(180deg, #0b0b0c 0%, #000 100%)'},
+  {id:'default',name:'預設',css:'radial-gradient(40vmax 30vmax at 15% 20%, rgba(197,160,89,0.10), transparent 70%), radial-gradient(35vmax 30vmax at 85% 75%, rgba(56,120,255,0.09), transparent 70%), radial-gradient(30vmax 25vmax at 60% 40%, rgba(29,78,216,0.06), transparent 70%)'},
+  {id:'black',name:'純黑',color:'#000000'},
+  {id:'graphite',name:'石墨',color:'#1c1c1e'},
+  {id:'navy',name:'深藍',color:'#0b1a33'},
+  {id:'ocean',name:'海藍',color:'#0e2a47'},
+  {id:'forest',name:'墨綠',color:'#0f2a1d'},
+  {id:'wine',name:'酒紅',color:'#3a0f1a'},
+  {id:'plum',name:'深紫',color:'#2a1840'},
+  {id:'brown',name:'咖啡',color:'#2b1d12'},
+  {id:'custom',name:'自選顏色',color:''},
   {id:'image',name:'自己的圖片',css:''}
  ];
  const ACCENTS=[['預設藍','#a9c8ff'],['青','#7fe3e3'],['綠','#8fe3a3'],['金','#f2c96b'],['橘','#ffb86b'],['粉','#ff9dc4'],['紫','#c3a7ff'],['白','#f1f5f9']];
  const TONES=[['neutral','中性',[255,255,255]],['blue','藍',[120,170,255]],['teal','青綠',[90,210,200]],['green','綠',[110,210,140]],['purple','紫',[180,140,255]],['warm','暖',[255,190,130]],['rose','玫瑰',[255,140,170]]];
- const DEFAULTS={wallpaper:'default',accent:'',tone:'neutral',dim:35,blur:0};
+ const DEFAULTS={wallpaper:'default',accent:'',tone:'neutral',dim:35,blur:0,color:'#000000'};
  const clamp=(v,lo,hi,d)=>Number.isFinite(Number(v))?Math.min(hi,Math.max(lo,Number(v))):d;
  function clean(s){
   s=s&&typeof s==='object'?s:{};
-  return {wallpaper:WALLPAPERS.some(w=>w.id===s.wallpaper)?s.wallpaper:'default',accent:/^#[0-9a-f]{6}$/i.test(s.accent||'')?s.accent.toLowerCase():'',tone:TONES.some(t=>t[0]===s.tone)?s.tone:'neutral',dim:clamp(s.dim,0,80,35),blur:clamp(s.blur,0,20,0)};
+  return {wallpaper:WALLPAPERS.some(w=>w.id===s.wallpaper)?s.wallpaper:'default',accent:/^#[0-9a-f]{6}$/i.test(s.accent||'')?s.accent.toLowerCase():'',tone:TONES.some(t=>t[0]===s.tone)?s.tone:'neutral',color:/^#[0-9a-f]{6}$/i.test(s.color||'')?s.color.toLowerCase():'#000000',dim:clamp(s.dim,0,80,35),blur:clamp(s.blur,0,20,0)};
  }
  const parse=t=>{try{return clean(JSON.parse(t||'{}'));}catch(_){return {...DEFAULTS};}};
  const local={get:k=>{try{return localStorage.getItem(k);}catch(_){return null;}},set:(k,v)=>{try{v===null?localStorage.removeItem(k):localStorage.setItem(k,v);return true;}catch(_){return false;}}};
@@ -30,7 +33,8 @@
  function apply(rebuild=true){
   const root=document.documentElement,s=settings,wp=WALLPAPERS.find(w=>w.id===s.wallpaper),img=s.wallpaper==='image'?local.get(IMAGE):null;
   root.dataset.wallpaper=img||s.wallpaper!=='image'?s.wallpaper:'default';
-  let bg=(img||s.wallpaper!=='image'?wp:WALLPAPERS[0]).css;
+  const base=img||s.wallpaper!=='image'?wp:WALLPAPERS[0];
+  let bg=base.id==='custom'?s.color:base.color||base.css;
   if(img)bg='linear-gradient(rgba(0,0,0,'+(s.dim/100)+'),rgba(0,0,0,'+(s.dim/100)+')), url("'+img+'") center / cover no-repeat';
   root.style.setProperty('--wallpaper',bg);root.style.setProperty('--wallpaper-blur',img&&s.blur?s.blur+'px':'0px');
   if(s.accent){const [r,g,b]=rgb(s.accent);root.dataset.accent='custom';root.style.setProperty('--accent',s.accent);root.style.setProperty('--accent-rgb',r+','+g+','+b);}
@@ -76,7 +80,13 @@
   const wp=section('桌布');const grid=el('div','','cz-grid');grid.setAttribute('role','radiogroup');grid.setAttribute('aria-label','桌布');
   for(const w of WALLPAPERS){
    if(w.id==='image'&&!hasImage)continue;
-   grid.append(swatch('wallpaper',w.name,s.wallpaper===w.id,chip=>{chip.classList.add('cz-wall');chip.style.background=w.id==='image'?'url("'+local.get(IMAGE)+'") center/cover':(w.css==='none'?'#000':w.css+', #000');},()=>save({wallpaper:w.id})));
+   if(w.id==='custom'){
+    const label=el('label','','cz-swatch cz-wall-custom'),chip=el('span','','cz-chip cz-wall'),pick=el('input');pick.type='color';pick.value=s.color;pick.setAttribute('aria-label','自選桌布顏色');
+    chip.style.background=s.color;label.setAttribute('aria-checked',String(s.wallpaper==='custom'));label.append(chip,pick,el('span',w.name,'cz-name'));
+    pick.oninput=()=>{chip.style.background=pick.value;settings.color=pick.value;settings.wallpaper='custom';apply(false);};pick.onchange=()=>save({wallpaper:'custom',color:pick.value});
+    grid.append(label);continue;
+   }
+   grid.append(swatch('wallpaper',w.name,s.wallpaper===w.id,chip=>{chip.classList.add('cz-wall');chip.style.background=w.id==='image'?'url("'+local.get(IMAGE)+'") center/cover':w.color||w.css+', #000';},()=>save({wallpaper:w.id})));
   }
   wp.append(grid);
   const row=el('div','','cz-row'),pick=el('input');pick.type='file';pick.accept='image/*';pick.id='cz-upload';pick.className='cz-file';pick.onchange=()=>upload(pick.files[0]);
@@ -93,7 +103,7 @@
   const custom=el('label','','cz-swatch cz-custom'),ci=el('input');ci.type='color';ci.value=s.accent||'#a9c8ff';ci.setAttribute('aria-label','自訂強調色');ci.oninput=()=>save({accent:ci.value});
   const isCustom=!!s.accent&&!ACCENTS.some(([,h])=>h===s.accent);custom.setAttribute('aria-checked',String(isCustom));custom.append(ci,el('span','自訂','cz-name'));ag.append(custom);ac.append(ag);
   const tn=section('主題色調','為玻璃面板與導覽列加上淡淡的顏色。');const tg=el('div','','cz-grid cz-grid-color');tg.setAttribute('role','radiogroup');tg.setAttribute('aria-label','主題色調');
-  TONES.forEach(([id,name,c])=>tg.append(swatch('tone',name,s.tone===id,chip=>{chip.style.background='linear-gradient(180deg,rgba('+c.join(',')+',.45),rgba('+c.join(',')+',.12)), #0b0f17';},()=>save({tone:id}))));tn.append(tg);
+  TONES.forEach(([id,name,c])=>tg.append(swatch('tone',name,s.tone===id,chip=>{chip.style.background='rgb('+c.map(v=>Math.round(v*.35+11*.65)).join(',')+')';},()=>save({tone:id}))));tn.append(tg);
   const foot=el('div','','cz-row cz-foot'),reset=el('button','全部恢復預設','cz-btn');reset.type='button';reset.onclick=()=>{save({...DEFAULTS});status.textContent='已恢復預設。';};
   status=status||el('p','','cz-status');status.setAttribute('role','status');foot.append(reset);wrap.append(foot,status);panel.scrollTop=scroll;
  }

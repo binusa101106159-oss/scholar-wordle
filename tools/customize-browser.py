@@ -26,12 +26,17 @@ def main():
      # Only the 自訂 panel shows: the Wordle board, keyboard and toolbar are hidden.
      assert page.locator('#game-main').is_hidden() and page.locator('#wordle-toolbar').is_hidden();assert page.locator('#customize-panel').bounding_box()['y']<200
      assert page.locator('#customize-panel').evaluate('n=>n.scrollWidth<=n.clientWidth+1');assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
-     page.get_by_role('radio',name='極光').click();assert root('wallpaper')=='aurora';assert page.evaluate("getComputedStyle(document.body,'::before').backgroundImage")!=before
-     page.get_by_role('radio',name='純黑').click();assert page.evaluate("getComputedStyle(document.body,'::before').backgroundImage")=='none'
+     # Backgrounds are solid colours (no gradient).
+     bgc=lambda:page.evaluate("[getComputedStyle(document.body,'::before').backgroundImage,getComputedStyle(document.body,'::before').backgroundColor]")
+     chips=page.evaluate("Object.fromEntries([...document.querySelectorAll('.cz-swatch')].filter(n=>n.querySelector('.cz-wall')).map(n=>[n.textContent.trim(),getComputedStyle(n.querySelector('.cz-wall')).backgroundColor]))")
+     assert chips['深藍']=='rgb(11, 26, 51)' and chips['酒紅']=='rgb(58, 15, 26)' and chips['墨綠']=='rgb(15, 42, 29)',chips
+     page.get_by_role('radio',name='深藍').click();assert root('wallpaper')=='navy';assert bgc()==['none','rgb(11, 26, 51)'],bgc()
+     page.locator('.cz-wall-custom input').evaluate("n=>{n.value='#336699';n.dispatchEvent(new Event('input',{bubbles:true}));n.dispatchEvent(new Event('change',{bubbles:true}))}");assert bgc()==['none','rgb(51, 102, 153)'],bgc()
+     page.get_by_role('radio',name='純黑').click();assert bgc()==['none','rgb(0, 0, 0)'],bgc()
      page.get_by_role('radio',name='綠',exact=True).first.click();assert root('accent')=='custom';assert page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()")=='#8fe3a3'
      sel=page.evaluate("getComputedStyle(document.querySelector('#scholar-game-tabs .lg-tab-lens')||document.getElementById('game-tab-customize')).borderColor");assert '143, 227, 163' in sel,sel
      page.locator('.cz-grid').nth(2).get_by_role('radio',name='紫').click();assert root('tone')=='purple'
-     saved=json.loads(page.evaluate("ScholarStorage.getItem('scholar-customize-v1')"));assert saved=={'wallpaper':'black','accent':'#8fe3a3','tone':'purple','dim':35,'blur':0},saved
+     saved=json.loads(page.evaluate("ScholarStorage.getItem('scholar-customize-v1')"));assert saved=={'wallpaper':'black','accent':'#8fe3a3','tone':'purple','color':'#336699','dim':35,'blur':0},saved
      # Upload: stays on this device, sliders appear and adjust the overlay.
      page.locator('#cz-upload').set_input_files(str(img));page.wait_for_function("document.documentElement.dataset.wallpaper==='image'")
      assert 'url("data:image/jpeg' in page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--wallpaper')")
