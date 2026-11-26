@@ -641,9 +641,15 @@
     if (flash) { el.classList.add('lx-flash'); setTimeout(() => el.classList.remove('lx-flash'), 1400); }
     return true;
   }
+  /* 備註另定施行日期 (laws/effective.js), shown under 第 X 條 */
+  function effectiveHTML(lawId, no) {
+    const list = window.ScholarLawEffective ? window.ScholarLawEffective.notesFor(lawId, no) : [];
+    /* text lives in data-* and is drawn by CSS, so it adds nothing to the article's textContent (highlight offsets stay put) */
+    return list.map(x => '<p class="lx-effective' + (x.pending ? ' lx-effective-pending' : '') + '" data-tag="' + (x.pending ? '尚未施行' : '已施行') + '" data-note="' + esc(x.text) + '" aria-label="' + esc((x.pending ? '尚未施行：' : '已施行：') + x.text) + '"></p>').join('');
+  }
   function articleHTML(law, it, terms, prefix = 'lx-a-') {
     const isChecked = Boolean(checkedArticles.get(law.id)?.has(it.no));
-    let html = '<section class="lx-art' + (isChecked ? ' lx-is-checked' : '') + '" id="' + prefix + law.id + '-' + it.no + '"><h3 class="lx-art-no"><label class="lx-article-label"><input type="checkbox" class="lx-article-check" data-check-law="' + esc(law.id) + '" data-check-no="' + esc(it.no) + '" aria-label="勾選' + esc(law.name) + '第' + esc(it.no) + '條"' + (isChecked ? ' checked' : '') + '>第 ' + it.no + ' 條</label></h3><div class="lx-art-body">';
+    let html = '<section class="lx-art' + (isChecked ? ' lx-is-checked' : '') + '" id="' + prefix + law.id + '-' + it.no + '"><h3 class="lx-art-no"><label class="lx-article-label"><input type="checkbox" class="lx-article-check" data-check-law="' + esc(law.id) + '" data-check-no="' + esc(it.no) + '" aria-label="勾選' + esc(law.name) + '第' + esc(it.no) + '條"' + (isChecked ? ' checked' : '') + '>第 ' + it.no + ' 條</label></h3><div class="lx-art-body">' + effectiveHTML(law.id, it.no);
       it.paras.forEach(p => {
         html += '<div class="lx-para' + (p.n ? ' lx-numbered' : '') + '">' + (p.n ? '<span class="lx-pn" aria-label="第' + p.n + '項">' + p.n + '</span>' : '');
         p.lines.forEach(l => {

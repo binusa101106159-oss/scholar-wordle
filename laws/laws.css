@@ -354,3 +354,9 @@ mark.lx-hl mark.lx-mark { background: transparent; box-shadow: 0 0 0 1px rgba(22
 /* 條文數字 switch: on = 阿拉伯數字 */
 .lx-num-btn .lx-num-glyph{font:800 11px/1 system-ui;letter-spacing:.02em}
 .lx-num-btn[aria-checked="true"]{color:#fff;border-color:rgba(147,197,253,.4);background:rgba(96,165,250,.18)}
+
+/* 備註另定施行日期 (laws/effective.js): drawn from data-* so the text is not part of the article for highlights */
+.lx-effective { margin: 0 0 6px; font-size: 13px; line-height: 1.6; color: rgba(235,235,245,.72); user-select: none; }
+.lx-effective::before { content: attr(data-tag); display: inline-block; margin-right: 8px; padding: 0 8px; border-radius: 999px; background: rgba(255,255,255,.1); color: rgba(235,235,245,.85); font-size: 12px; line-height: 20px; }
+.lx-effective::after { content: attr(data-note); }
+.lx-effective-pending::before { background: rgba(255,159,10,.18); color: #ffb340; }
