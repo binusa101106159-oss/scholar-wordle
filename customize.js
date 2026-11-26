@@ -18,6 +18,12 @@
   {id:'image',name:'自己的圖片',css:''}
  ];
  const ACCENTS=[['預設藍','#a9c8ff'],['青','#7fe3e3'],['綠','#8fe3a3'],['金','#f2c96b'],['橘','#ffb86b'],['粉','#ff9dc4'],['紫','#c3a7ff'],['白','#f1f5f9']];
+ // One-tap original themes: each sets a solid wallpaper, accent, tone and text colour; everything stays adjustable after.
+ const THEMES=[
+  {id:'gale',name:'疾風',hint:'寶藍 × 亮黃',set:{wallpaper:'custom',color:'#0b2a6b',accent:'#ffd23f',tone:'blue',text:'#ffffff'}},
+  {id:'wild',name:'林野',hint:'墨綠 × 古銅金',set:{wallpaper:'custom',color:'#13301f',accent:'#d4a93a',tone:'green',text:'#efe0c0'}},
+  {id:'brick',name:'紅磚',hint:'磚紅 × 天空藍',set:{wallpaper:'custom',color:'#5a1712',accent:'#7cc4ff',tone:'warm',text:'#fff4e0'}}
+ ];
  const TONES=[['neutral','中性',[255,255,255]],['blue','藍',[120,170,255]],['teal','青綠',[90,210,200]],['green','綠',[110,210,140]],['purple','紫',[180,140,255]],['warm','暖',[255,190,130]],['rose','玫瑰',[255,140,170]]];
  // Fonts: system fonts first where every device has them; 黑體／明體／楷體 also load a web font so they look the same everywhere.
  const FONTS=[
@@ -168,6 +174,11 @@
   const s=settings,hasImage=!!local.get(IMAGE),scroll=panel.scrollTop;
   panel.replaceChildren();const wrap=el('div','','cz-wrap');panel.append(wrap);
   const head=el('header','','cz-head');head.append(el('h1','自訂'),el('p','所有設定會跟著帳號同步到其他裝置；上傳的圖片只存在這台裝置。','cz-hint'));wrap.append(head);
+  const th=section('一鍵主題','一次換好桌布、強調色、色調和文字顏色；之後每一項仍可單獨調整。');
+  const thg=el('div','','cz-grid cz-grid-theme');thg.setAttribute('role','radiogroup');thg.setAttribute('aria-label','一鍵主題');
+  THEMES.forEach(t=>{const on=Object.entries(t.set).every(([k,v])=>s[k]===v);
+   thg.append(swatch('theme',t.name,on,chip=>{chip.classList.add('cz-theme-chip');chip.style.background=t.set.color;chip.style.color=t.set.text;chip.style.boxShadow='inset 0 -6px 0 '+t.set.accent;chip.textContent='Aa';chip.title=t.hint;},()=>save({...t.set})));});
+  th.append(thg);
   const wp=section('桌布');const grid=el('div','','cz-grid');grid.setAttribute('role','radiogroup');grid.setAttribute('aria-label','桌布');
   for(const w of WALLPAPERS){
    if(w.id==='image'&&!hasImage)continue;
@@ -226,5 +237,5 @@
   if(!document.getElementById('cz-webfont-preview')){const l=document.createElement('link');l.id='cz-webfont-preview';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Noto+Sans+TC&family=Noto+Serif+TC&family=LXGW+WenKai+TC&text='+encodeURIComponent('永Aa')+'&display=swap';document.head.append(l);}
   render();
  }
- window.ScholarCustomize={show,get settings(){return {...settings};},WALLPAPERS,ACCENTS,TONES,FONTS,TEXTS,clean,hexOf,recolor};
+ window.ScholarCustomize={show,THEMES,get settings(){return {...settings};},WALLPAPERS,ACCENTS,TONES,FONTS,TEXTS,clean,hexOf,recolor};
 })();

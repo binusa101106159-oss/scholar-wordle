@@ -35,7 +35,7 @@ def main():
      page.get_by_role('radio',name='純黑').click();assert bgc()==['none','rgb(0, 0, 0)'],bgc()
      page.get_by_role('radio',name='綠',exact=True).first.click();assert root('accent')=='custom';assert page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()")=='#8fe3a3'
      sel=page.evaluate("getComputedStyle(document.querySelector('#scholar-game-tabs .lg-tab-lens')||document.getElementById('game-tab-customize')).borderColor");assert '143, 227, 163' in sel,sel
-     page.locator('.cz-grid').nth(2).get_by_role('radio',name='紫').click();assert root('tone')=='purple'
+     page.get_by_role('radiogroup',name='主題色調').get_by_role('radio',name='紫').click();assert root('tone')=='purple'
      saved=json.loads(page.evaluate("ScholarStorage.getItem('scholar-customize-v1')"));assert saved=={'wallpaper':'black','accent':'#8fe3a3','tone':'purple','color':'#336699','dim':35,'blur':0,'font':'default','size':100,'text':'','bold':False,'motion':False},saved
      # Upload: stays on this device, sliders appear and adjust the overlay.
      page.locator('#cz-upload').set_input_files(str(img));page.wait_for_function("document.documentElement.dataset.wallpaper==='image'")
@@ -51,6 +51,13 @@ def main():
      page.evaluate("location.hash='#forms'");page.locator('#fm-bsrs').wait_for();assert page.locator('#customize-panel').is_hidden()
      if engine=='chromium':page.screenshot(path=str(out/f'forms-{width}.png'))
      page.evaluate("location.hash='#customize'");page.locator('.cz-preview').wait_for()
+     # 一鍵主題: sets wallpaper, accent, tone and text colour together; picking it shows as selected.
+     page.get_by_role('radio',name='林野').click()
+     t=json.loads(page.evaluate("ScholarStorage.getItem('scholar-customize-v1')"))
+     assert (t['wallpaper'],t['color'],t['accent'],t['tone'],t['text'])==('custom','#13301f','#d4a93a','green','#efe0c0'),t
+     assert bgc()==['none','rgb(19, 48, 31)'] and root('tone')=='green' and page.get_by_role('radio',name='林野').get_attribute('aria-checked')=='true'
+     if engine=='chromium':page.screenshot(path=str(out/f'theme-{width}.png'))
+     page.get_by_role('radio',name='紅磚').click();assert page.get_by_role('radio',name='林野').get_attribute('aria-checked')=='false' and bgc()==['none','rgb(90, 23, 18)']
      css=lambda sel,prop:page.evaluate(f"getComputedStyle(document.querySelector('{sel}')).{prop}")
      # 文字：字型
      page.get_by_role('radio',name='明體').click();assert root('font')=='serif';assert 'Noto Serif TC' in css('.cz-preview','fontFamily')
