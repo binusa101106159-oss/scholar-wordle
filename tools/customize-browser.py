@@ -23,6 +23,8 @@ def main():
      # The tab sits in the top bar with the other main tabs.
      assert page.locator('#scholar-game-tabs #game-tab-customize').count()==1
      page.evaluate("location.hash='#customize'");page.locator('.cz-card').first.wait_for();assert page.title()=='自訂 · Scholar'
+     # Only the 自訂 panel shows: the Wordle board, keyboard and toolbar are hidden.
+     assert page.locator('#game-main').is_hidden() and page.locator('#wordle-toolbar').is_hidden();assert page.locator('#customize-panel').bounding_box()['y']<200
      assert page.locator('#customize-panel').evaluate('n=>n.scrollWidth<=n.clientWidth+1');assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
      page.get_by_role('radio',name='極光').click();assert root('wallpaper')=='aurora';assert page.evaluate("getComputedStyle(document.body,'::before').backgroundImage")!=before
      page.get_by_role('radio',name='純黑').click();assert page.evaluate("getComputedStyle(document.body,'::before').backgroundImage")=='none'

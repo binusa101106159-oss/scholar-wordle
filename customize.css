@@ -1,4 +1,5 @@
 /* 自訂：wallpaper, accent and tone. Nothing changes until a non-default choice is made. */
+body[data-game="customize"] :is(#game-main,#wordle-toolbar){display:none!important}
 html.dark[data-wallpaper] body::before{background:var(--wallpaper)!important;filter:blur(var(--wallpaper-blur,0px));inset:calc(var(--wallpaper-blur,0px) * -2)}
 html.dark[data-wallpaper="black"] body::before{background:none!important}
 html.dark[data-tone] body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(90vmax 70vmax at 50% 0%,rgba(var(--tone-rgb),.10),transparent 70%)}
