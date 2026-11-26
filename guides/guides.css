@@ -322,3 +322,18 @@ mark.gx-hl mark.gx-mark { background: transparent; box-shadow: 0 0 0 1px rgba(22
 .gx-scrim { display:none!important; }
 @media(max-width:900px) { .gx-bar { padding-left:32px; } }
 @media(prefers-reduced-motion:reduce) { #gx-sidebar { transition:none; } }
+
+/* Tables stand out from the page: an opaque card, an accent header, zebra rows, a row highlight under the pointer,
+   and the 表 title as a gold heading. Colours follow the 自訂 accent (default blue); heat-map cells keep their colours. */
+.gx-twrap { --gx-acc: var(--accent-rgb, 169,200,255); border: 1px solid rgba(var(--gx-acc),.34); border-radius: 16px; background: linear-gradient(180deg, rgba(30,41,59,.92), rgba(17,24,39,.92)); box-shadow: 0 12px 32px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.14); }
+.gx-twrap.gx-nested { box-shadow: none; background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.16); }
+.gx-table { font-variant-numeric: tabular-nums; }
+.gx-table th, .gx-table td { border-color: rgba(255,255,255,.10); padding: 9px 12px; }
+.gx-table thead th, .gx-table > tbody > tr > th { background: linear-gradient(180deg, rgba(var(--gx-acc),.34), rgba(var(--gx-acc),.20)); color: #fff; font-weight: 600; letter-spacing: .02em; }
+.gx-table thead tr:last-child > th { border-bottom: 2px solid rgba(var(--gx-acc),.75); }
+:where(.gx-table > tbody > tr:nth-child(even) > td) { background: rgba(255,255,255,.045); }
+:where(.gx-table > tbody > tr:hover > td) { background: rgba(var(--accent-rgb, 169,200,255),.12); }
+.gx-table td { color: var(--gx-ink, #eef3fa); }
+.gx-dialog .gx-table thead th { background: #2b3a55; }
+.gx-cap { margin: 22px 0 6px; padding: 6px 12px; border-left: 3px solid var(--gx-gold); border-radius: 0 10px 10px 0; background: linear-gradient(90deg, rgba(226,197,138,.14), rgba(226,197,138,0)); }
+.gx-cap-btn { font-weight: 600; font-size: 15px; }
