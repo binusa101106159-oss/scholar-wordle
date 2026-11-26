@@ -351,3 +351,6 @@ mark.lx-hl mark.lx-mark { background: transparent; box-shadow: 0 0 0 1px rgba(22
 .lx-scrim { display:none!important; }
 @media(max-width:900px) { .lx-bar { padding-left:32px; } }
 @media(prefers-reduced-motion:reduce) { #lx-sidebar { transition:none; } }
+/* 條文數字 switch: on = 阿拉伯數字 */
+.lx-num-btn .lx-num-glyph{font:800 11px/1 system-ui;letter-spacing:.02em}
+.lx-num-btn[aria-checked="true"]{color:#fff;border-color:rgba(147,197,253,.4);background:rgba(96,165,250,.18)}

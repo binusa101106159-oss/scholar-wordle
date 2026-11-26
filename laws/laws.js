@@ -119,6 +119,15 @@
     return out;
   }
 
+  /* 阿拉伯數字 display (laws/numerals.js): screen only; stored text, search and the 原文 highlights stay on the original */
+  const arabicOn = () => readPrefs().numerals === 'arabic' && !!window.ScholarNumerals;
+  function shown(text, links) {
+    if (!arabicOn() || !text) return [text, links];
+    const r = window.ScholarNumerals.toArabic(text, (links || []).map(([a, b]) => [a, b]));
+    return [r.text, (links || []).map(([a, b, id]) => [r.map(a), r.map(b), id])];
+  }
+  const richShown = (text, links, terms) => rich(...shown(text, links), terms);
+
   /* text with 附表 links and search marks */
   function rich(text, links, terms) {
     const n = text.length;
@@ -265,6 +274,7 @@
             <label class="lx-jump">第<input id="lx-jump" inputmode="numeric" aria-label="跳到第幾條" placeholder="" autocomplete="off">條</label>
             <select class="lx-select" id="lx-chapters" aria-label="跳到章節" hidden></select>
             <span class="lx-spacer"></span>
+            <button type="button" class="sg-btn lx-tool-btn lx-num-btn" id="lx-num-btn" role="switch" aria-checked="false" title="條文數字：原文／阿拉伯數字"><b class="lx-num-glyph" aria-hidden="true">123</b><span>阿拉伯數字</span></button>
             <button type="button" class="sg-btn lx-tool-btn" id="lx-marks-btn" aria-haspopup="dialog" aria-controls="lx-panel" title="我的畫線">${icon.pen}<span>畫線</span></button>
             <button type="button" class="sg-btn lx-tool-btn" id="lx-style-btn" aria-haspopup="dialog" aria-controls="lx-panel" title="閱讀設定">${icon.aa}<span>閱讀設定</span></button>
           </div>
@@ -639,7 +649,7 @@
         p.lines.forEach(l => {
           if (l.table) html += tableHTML(l.table, terms, false);
           else if (l.formula) html += formulaHTML(l.formula, terms);
-          else html += '<p class="lx-l lx-lv' + (l.lv || 0) + (l.notice ? ' lx-notice' : '') + '">' + rich(l.text, l.links, terms) + '</p>';
+          else html += '<p class="lx-l lx-lv' + (l.lv || 0) + (l.notice ? ' lx-notice' : '') + '">' + richShown(l.text, l.links, terms) + '</p>';
         });
         html += '</div>';
       });
@@ -657,7 +667,7 @@
       '<h1 class="lx-title">' + rich(meta.name, null, terms) + '</h1>' +
       '<p class="lx-meta">' + (law.date ? '<span>' + esc(law.dateLabel) + ' ' + esc(law.date) + '</span>' : '') + '<span>' + meta.articles + ' 條</span>'+(meta.sourceURL?'<a href="'+esc(meta.sourceURL)+'" target="_blank" rel="noopener noreferrer">官方原文</a>':'')+'</p>' +
       (law.status ? '<p class="lx-status">' + esc(law.status) + '</p>' : '') +
-      law.notes.map((n, i) => '<p class="lx-note">' + rich(n, (law.notesLinks || [])[i], terms) + '</p>').join('');
+      law.notes.map((n, i) => '<p class="lx-note">' + richShown(n, (law.notesLinks || [])[i], terms) + '</p>').join('');
     if (law.annexes.length) {
       html += '<div class="lx-chips">' + law.annexes.map(a => '<button type="button" class="lx-chip" data-annex="' + a.id + '">' + esc(a.label) + (a.title ? '<span>' + esc(a.title) + '</span>' : '') + '</button>').join('') + '</div>';
     }
@@ -669,7 +679,7 @@
         const level = kind === '節' ? 2 : kind === '款' || kind === '目' ? 3 : 1;
         const hid = 'lx-ch-' + law.id + '-' + k;
         chapters.push({ id: hid, text: it.text, level });
-        html += '<h2 class="lx-ch lx-ch-' + level + '" id="' + hid + '">' + rich(it.text, null, terms) + '</h2>';
+        html += '<h2 class="lx-ch lx-ch-' + level + '" id="' + hid + '">' + richShown(it.text, null, terms) + '</h2>';
         return;
       }
       html += articleHTML(law, it, terms);
@@ -773,8 +783,10 @@
   let panelTab = 'style';
   function loadMarks() { try { return JSON.parse(window.ScholarStorage.getItem(HL_STORE)) || {}; } catch (_) { return {}; } }
   function saveMarks(all) { try { window.ScholarStorage.setItem(HL_STORE, JSON.stringify(all)); return true; } catch (_) { return false; } }
-  function marksOf(gid) { return loadMarks()[gid] || []; }
-  function setMarks(gid, list) { const all = loadMarks(); if (list.length) all[gid] = list; else delete all[gid]; saveMarks(all); }
+  // 原文 and 阿拉伯數字 keep separate highlights, since the same words sit at different positions.
+  const markKey = gid => arabicOn() ? gid + '@arabic' : gid;
+  function marksOf(gid) { return loadMarks()[markKey(gid)] || []; }
+  function setMarks(gid, list) { const all = loadMarks(), key = markKey(gid); if (list.length) all[key] = list; else delete all[key]; saveMarks(all); }
   const hlColor = () => readPrefs().hlColor || prefs().hlColor || 'yellow';
 
   // characters before (node, offset) inside el, counting only text
@@ -970,6 +982,9 @@
   function wireReading() {
     applyStyle();
     const panel = by('lx-panel');
+    const numBtn = by('lx-num-btn'), syncNumBtn = () => numBtn.setAttribute('aria-checked', String(arabicOn()));
+    syncNumBtn();
+    numBtn.addEventListener('click', () => { setReadPrefs({ numerals: arabicOn() ? 'original' : 'arabic' }); syncNumBtn(); hideHlBar(); if (state.current) renderDoc(state.current, true); if (state.checkedView) renderCheckedPage(true); });
     by('lx-style-btn').addEventListener('click', () => (!panel.hidden && panelTab === 'style') ? closePanel() : openPanel('style'));
     by('lx-marks-btn').addEventListener('click', () => (!panel.hidden && panelTab === 'marks') ? closePanel() : openPanel('marks'));
     panel.addEventListener('click', e => {
