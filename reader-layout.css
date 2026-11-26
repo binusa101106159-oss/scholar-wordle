@@ -78,3 +78,8 @@
   .reader-table-list>.reader-table-shortcut span{display:block;max-width:none;margin:3px 0 0;white-space:normal;overflow:visible;text-overflow:clip;color:#bac6d6;font-size:12px;line-height:1.6}
   .reader-table-list>.reader-table-shortcut:focus-visible{outline:2px solid #bcd8ff;outline-offset:1px}
 }
+/* Wide tables (reader-wide-tables.js): letter-spaced source headings close up; blank form cells keep one line of height. */
+.rt-gap{font-size:0;letter-spacing:0}
+:is(.lx-table,.gx-table,.hx-table) :is(td,th):empty::after{content:"\a0"}
+.rt-wide{position:relative;z-index:1}
+.rt-wide :is(td,th){overflow-wrap:break-word}
