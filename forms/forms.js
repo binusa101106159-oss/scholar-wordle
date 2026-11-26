@@ -20,8 +20,8 @@
  function levelText(calculated){
   if(calculated.level)return calculated.level;
   const s=calculated.severity;if(!s)return '';
-  if(s.original)return s.original;
-  if(Number.isInteger(s.grade))return (s.label==='No problem'?'No problem':s.label+' problem')+' · Grade Modifier '+s.grade+'（AMA Guides 6th Table 15-7：QuickDASH '+s.min+'–'+s.max+'）';
+  const name=s.original||s.label;if(!name)return '';
+  return Number.isInteger(s.grade)?name+' · GM '+s.grade:name;
   return '';
  }
  // Chart-note text: answered items in form order, then the same result the page shows.
