@@ -32,3 +32,11 @@
  .cl-functional-row #aa-form,#qd-form{grid-column:1/-1;grid-row:2;width:100%}
  .cl-functional-row .aa-inputs{grid-template-columns:repeat(7,minmax(0,1fr))}.qd-inputs{grid-template-columns:repeat(11,minmax(0,1fr))}
 }
+
+/* score boxes: show the calculated score, or take a score typed in directly (0–100) */
+.cl-score-input{all:unset;box-sizing:border-box;width:4.6ch;min-width:3ch;font:inherit;color:inherit;font-variant-numeric:tabular-nums;border-bottom:1px dashed #d6e7ff40;cursor:text;caret-color:#c5dfff}
+.cl-score-input::placeholder{color:inherit;opacity:1}
+.cl-score-input:hover{border-bottom-color:#d6e7ff80}
+.cl-score-input:focus-visible{border-bottom:1px solid #a9ccfa;background:#ffffff0a;border-radius:4px 4px 0 0}
+.cl-score-input.is-direct{color:#ffe7a8}
+.cl-score-input[aria-invalid=true]{border-bottom-color:#e0a18f;color:#f3b4a3}

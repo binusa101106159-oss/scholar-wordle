@@ -15,6 +15,15 @@
   const total=values.reduce((a,b)=>a+b,0);
   return {ready:true,total,level:total===0?'None':total<=70?'Mild':total<=100?'Moderate':total<=130?'Severe':'Extreme'};
  }
+ // QuickDASH has no level of its own; the AMA Guides 6th ed. Table 15-7 (Functional History Adjustment: Upper
+ // Extremities) grades it: 0–20 no problem, 21–40 mild, 41–60 moderate, 61–80 severe, 81–100 very severe.
+ function levelText(calculated){
+  if(calculated.level)return calculated.level;
+  const s=calculated.severity;if(!s)return '';
+  if(s.original)return s.original;
+  if(Number.isInteger(s.grade))return (s.label==='No problem'?'No problem':s.label+' problem')+' · Grade Modifier '+s.grade+'（AMA Guides 6th Table 15-7：QuickDASH '+s.min+'–'+s.max+'）';
+  return '';
+ }
  // Chart-note text: answered items in form order, then the same result the page shows.
  function buildNote(form,values,calculated){
   if(!values.some(v=>v!==null))return '';
@@ -23,14 +32,14 @@
   const answered=values.filter(v=>v!==null).length;
   if(!calculated||!calculated.ready)lines.push('尚未完成（已填 '+answered+' / '+values.length+' 題），不計分。');
   else{
-   const value=calculated.total??calculated.displayScore??calculated.score,max=form.id==='bsrs'?20:form.id==='pdq'?150:100,level=calculated.level||calculated.severity?.original;
+   const value=calculated.total??calculated.displayScore??calculated.score,max=form.id==='bsrs'?20:form.id==='pdq'?150:100,level=levelText(calculated);
    lines.push('結果：'+Number(value).toLocaleString('en-US',{maximumFractionDigits:2})+' / '+max+(level?'，'+level:''));
    if(form.id==='quickdash'&&values.includes(null))lines.push('已依 '+answered+' 題計分；未填第 '+values.map((v,i)=>v===null?i+1:null).filter(v=>v!==null).join('、')+' 題。');
   }
   if(form.id==='bsrs')lines.push('附加題：'+(values[5]===null?'未填':values[5]+' 分')+'（不計入總分）');
   return lines.join('\n');
  }
- if(typeof module==='object'&&module.exports)module.exports={scoreBSRS,scorePDQ,buildNote};
+ if(typeof module==='object'&&module.exports)module.exports={scoreBSRS,scorePDQ,buildNote,levelText};
  if(typeof document==='undefined')return;
  const KEY=id=>'scholar-form-'+id+'-v1';
  let catalog=null,aaos=null,guide=null,loading=null,active='bsrs',views=new Map();
@@ -94,7 +103,7 @@
    if(!calculated.ready){result.append(element('p','尚未完成，請確認未填的題目。'));return;}
    let value=calculated.total??calculated.displayScore??calculated.score;
    result.append(element('h2','填寫結果'),element('p',Number(value).toLocaleString('en-US',{maximumFractionDigits:2})+' / '+(form.id==='bsrs'?20:form.id==='pdq'?150:100),'fm-total'));
-   const level=calculated.level||calculated.severity?.original;if(level)result.append(element('p',level));
+   const level=levelText(calculated);if(level)result.append(element('p',level,form.id==='quickdash'?'fm-level':''));
    if(form.id==='quickdash' && answers.includes(null))result.append(element('p','已依 '+answers.filter(v=>v!==null).length+' 題計分；未填第 '+answers.map((v,i)=>v===null?i+1:null).filter(v=>v!==null).join('、')+' 題。'));
    if(form.id==='bsrs'){
     result.append(element('p','附加題：'+(answers[5]===null?'未填':answers[5]+' 分')+'（不計入總分）'));

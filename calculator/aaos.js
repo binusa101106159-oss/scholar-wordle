@@ -48,7 +48,13 @@
   const ready=valid>=10,score=ready?(sum/valid-1)*25:null;
   return {valid,ready,score,severity:ready?quickDASHSeverity(score):null};
  }
- if(typeof module!=='undefined'&&module.exports)module.exports={scoreAAOS,severityFor,round,scoreQuickDASH,quickDASHSeverity};
+ // A score typed straight into the result box: 0–100, decimals allowed, full-width digits accepted.
+ function parseDirectScore(text){
+  const t=String(text??'').normalize('NFKC').trim();if(t==='')return null;
+  if(!/^\d{1,3}(\.\d+)?$/.test(t))return NaN;const n=Number(t);return n<=100?n:NaN;
+ }
+ function aaosDirect(score,data){return severityFor(round(score),data);}
+ if(typeof module!=='undefined'&&module.exports)module.exports={scoreAAOS,severityFor,round,scoreQuickDASH,quickDASHSeverity,parseDirectScore,aaosDirect};
  root.ScholarQuestionnaireScores={scoreAAOS,scoreQuickDASH};
  if(typeof document==='undefined')return;
  let data=null,promise=null;
@@ -65,19 +71,31 @@
   if(first&&first.getClientRects().length&&!matchMedia('(pointer:coarse)').matches){first.focus({preventScroll:true});first.select();}
  }
  function render(host){
-  host.innerHTML='<section class="aa-compact" aria-label="AAOS下肢計算器"><h2 class="aa-label">AAOS</h2><form id="aa-form" autocomplete="off" novalidate><div class="aa-inputs">'+data.questions.map((q,i)=>'<label for="aa-'+q.id+'"><input id="aa-'+q.id+'" name="'+q.id+'" type="text" inputmode="numeric" maxlength="1" pattern="[1-'+q.max+']" aria-label="Q'+(i+1)+'，1至'+q.max+'" placeholder="—" spellcheck="false"></label>').join('')+'</div></form><p id="aa-error" role="status"></p><div id="aa-result" role="status" aria-live="polite" aria-atomic="true"><p class="aa-score">—<span>／100</span></p><p class="aa-severity" title="AAOS標準化分數的缺損程度對應GM 0–4；功能史調整仍須醫師核對臨床一致性。">—</p></div></section>';
-  const fields=[...host.querySelectorAll('input')],score=host.querySelector('.aa-score'),severity=host.querySelector('.aa-severity'),error=document.getElementById('aa-error');
+  host.innerHTML='<section class="aa-compact" aria-label="AAOS下肢計算器"><h2 class="aa-label">AAOS</h2><form id="aa-form" autocomplete="off" novalidate><div class="aa-inputs">'+data.questions.map((q,i)=>'<label for="aa-'+q.id+'"><input id="aa-'+q.id+'" name="'+q.id+'" type="text" inputmode="numeric" maxlength="1" pattern="[1-'+q.max+']" aria-label="Q'+(i+1)+'，1至'+q.max+'" placeholder="—" spellcheck="false"></label>').join('')+'</div></form><p id="aa-error" role="status"></p><div id="aa-result" role="status" aria-live="polite" aria-atomic="true"><p class="aa-score"><input id="aa-score" class="cl-score-input" type="text" inputmode="decimal" maxlength="6" placeholder="—" spellcheck="false" autocomplete="off" aria-label="AAOS 分數，可直接輸入 0–100 產生分級" title="填完題目會自動計算；也可以直接輸入分數（0–100）產生分級"><span>／100</span></p><p class="aa-severity" title="AAOS標準化分數的缺損程度對應GM 0–4；功能史調整仍須醫師核對臨床一致性。">—</p></div></section>';
+  const fields=[...host.querySelectorAll('.aa-inputs input')],score=document.getElementById('aa-score'),severity=host.querySelector('.aa-severity'),error=document.getElementById('aa-error');
   const previousValues=fields.map(()=> '');
   const reset=document.createElement('button');reset.type='button';reset.id='aa-reset';reset.textContent='↺';reset.title='重設 AAOS';reset.setAttribute('aria-label','重設 AAOS');host.querySelector('.aa-compact').append(reset);
-  function update(persist=true){
+  // direct: a score typed into the result box (kept until the answers change or 重設)
+  let direct='';
+  function update(persist=true,answersChanged=true){
+   if(answersChanged)direct='';
    let invalid=null;
    fields.forEach((field,i)=>{const bad=field.value!==''&&!new RegExp('^[1-'+data.questions[i].max+']$').test(field.value);field.setAttribute('aria-invalid',String(bad));if(bad&&!invalid)invalid='Q'+(i+1)+'：1–'+data.questions[i].max;});
-   error.textContent=invalid||'';
    const result=invalid?null:scoreAAOS(fields.map(f=>f.value),data);
-   score.innerHTML=(result?.ready?result.displayScore:'—')+'<span>／100</span>';
-   severity.textContent=result?.ready?result.severity.original+' · GM '+result.severity.grade:'—';
-   if(persist)root.ScholarStorage.setItem('scholar-aaos-v1',JSON.stringify({answers:fields.map(f=>f.value)}));
+   let grade=result?.ready?result.severity:null;
+   if(direct!==''){const n=parseDirectScore(direct);if(Number.isNaN(n)){invalid=invalid||'分數：0–100';grade=null;}else if(n!==null)grade=aaosDirect(n,data);}
+   else if(document.activeElement!==score)score.value=result?.ready?String(result.displayScore):'';
+   score.setAttribute('aria-invalid',String(direct!==''&&Number.isNaN(parseDirectScore(direct))));
+   score.classList.toggle('is-direct',direct!=='');
+   error.textContent=invalid||'';
+   severity.textContent=grade?grade.original+' · GM '+grade.grade:'—';
+   if(persist)root.ScholarStorage.setItem('scholar-aaos-v1',JSON.stringify(direct!==''?{answers:fields.map(f=>f.value),score:direct}:{answers:fields.map(f=>f.value)}));
   }
+  score.addEventListener('input',e=>{if(e.isComposing)return;direct=score.value.trim();if(direct===''){update(true,true);return;}update(true,false);});
+  score.addEventListener('compositionend',()=>{direct=score.value.trim();update(true,direct==='');});
+  score.addEventListener('focus',()=>score.select());
+  score.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();score.blur();}});
+  score.addEventListener('blur',()=>{if(direct==='')update(false,true);});
   function deleteBackward(i){
    const target=fields[i].value===''&&i>0?fields[i-1]:fields[i];
    target.value='';target.dispatchEvent(new Event('input',{bubbles:true}));target.focus();
@@ -110,25 +128,28 @@
    });
   });
   document.getElementById('aa-form').addEventListener('submit',e=>e.preventDefault());
-  reset.addEventListener('click',()=>{fields.forEach(f=>f.value='');previousValues.fill('');update();focusFirst();});
-  function hydrate(){const saved=JSON.parse(root.ScholarStorage.getItem('scholar-aaos-v1')||'{}');fields.forEach((f,i)=>{f.value=String(saved.answers?.[i]||'');previousValues[i]=f.value;});update(false);}
+  reset.addEventListener('click',()=>{fields.forEach(f=>f.value='');previousValues.fill('');score.value='';update();focusFirst();});
+  function hydrate(){const saved=JSON.parse(root.ScholarStorage.getItem('scholar-aaos-v1')||'{}');fields.forEach((f,i)=>{f.value=String(saved.answers?.[i]||'');previousValues[i]=f.value;});update(false,true);if(typeof saved.score==='string'&&saved.score){direct=saved.score;score.value=direct;update(false,false);}}
   root.ScholarSync.subscribe(key=>{if(key==='scholar-aaos-v1')hydrate();});
   hydrate();focusFirst();
  }
  function mountQuickDASH(){
   const host=document.getElementById('cl-quickdash');if(!host||host.dataset.ready)return;
   host.dataset.ready='true';
-  host.innerHTML='<section class="qd-compact" aria-label="QuickDASH計算器"><h2 class="qd-label">QuickDASH</h2><form id="qd-form" autocomplete="off" novalidate><div class="qd-inputs">'+Array.from({length:11},(_,i)=>'<label><input id="qd-q'+(i+1)+'" name="q'+(i+1)+'" type="text" inputmode="numeric" maxlength="1" pattern="[1-5]" aria-label="QuickDASH Q'+(i+1)+'，1至5" placeholder="—" spellcheck="false"></label>').join('')+'</div></form><p id="qd-error" role="status"></p><output id="qd-result" aria-live="polite" aria-atomic="true"><span id="qd-score">—</span><span class="qd-unit">／100</span><span id="qd-severity" title="AMA Guides 6e，Table 15-7，第406頁。分級以原始分數四捨五入至整數對照，保留原始計算分數。QuickDASH用於輔助功能史評估，並非障害百分比。">—</span></output><button type="button" id="qd-reset" title="重設 QuickDASH" aria-label="重設 QuickDASH">↺</button></section>';
-  const fields=[...host.querySelectorAll('input')],previous=fields.map(()=>''),score=document.getElementById('qd-score'),severity=document.getElementById('qd-severity'),error=document.getElementById('qd-error'),key='scholar-quickdash-v1';
-  let persisted='';
-  function update(save=true){
+  host.innerHTML='<section class="qd-compact" aria-label="QuickDASH計算器"><h2 class="qd-label">QuickDASH</h2><form id="qd-form" autocomplete="off" novalidate><div class="qd-inputs">'+Array.from({length:11},(_,i)=>'<label><input id="qd-q'+(i+1)+'" name="q'+(i+1)+'" type="text" inputmode="numeric" maxlength="1" pattern="[1-5]" aria-label="QuickDASH Q'+(i+1)+'，1至5" placeholder="—" spellcheck="false"></label>').join('')+'</div></form><p id="qd-error" role="status"></p><output id="qd-result" aria-live="polite" aria-atomic="true"><input id="qd-score" class="cl-score-input" type="text" inputmode="decimal" maxlength="6" placeholder="—" spellcheck="false" autocomplete="off" aria-label="QuickDASH 分數，可直接輸入 0–100 產生分級" title="填完題目會自動計算；也可以直接輸入分數（0–100）產生分級"><span class="qd-unit">／100</span><span id="qd-severity" title="AMA Guides 6e，Table 15-7，第406頁。分級以原始分數四捨五入至整數對照，保留原始計算分數。QuickDASH用於輔助功能史評估，並非障害百分比。">—</span></output><button type="button" id="qd-reset" title="重設 QuickDASH" aria-label="重設 QuickDASH">↺</button></section>';
+  const fields=[...host.querySelectorAll('.qd-inputs input')],previous=fields.map(()=>''),score=document.getElementById('qd-score'),severity=document.getElementById('qd-severity'),error=document.getElementById('qd-error'),key='scholar-quickdash-v1';
+  let persisted='',direct='';
+  function update(save=true,answersChanged=true){
+   if(answersChanged)direct='';
    fields.forEach(field=>{const invalid=String(field.value!==''&&!/^[1-5]$/.test(field.value));if(field.getAttribute('aria-invalid')!==invalid)field.setAttribute('aria-invalid',invalid);});
-   let value='—',degree='—',message='';
+   let value='',degree='—',message='';
    try{const result=scoreQuickDASH(fields.map(f=>f.value));if(result.ready){value=result.score.toLocaleString('en-US',{maximumFractionDigits:2});degree=result.severity.label+' · GM '+result.severity.grade;}}catch(e){message=e.message;}
-   if(score.textContent!==value)score.textContent=value;
+   if(direct!==''){const n=parseDirectScore(direct);if(Number.isNaN(n)){degree='—';message=message||'分數：0–100';}else if(n!==null){const g=quickDASHSeverity(n);degree=g.label+' · GM '+g.grade;}}
+   else if(document.activeElement!==score&&score.value!==value)score.value=value;
+   score.setAttribute('aria-invalid',String(direct!==''&&Number.isNaN(parseDirectScore(direct))));score.classList.toggle('is-direct',direct!=='');
    if(severity.textContent!==degree)severity.textContent=degree;
    if(error.textContent!==message)error.textContent=message;
-   const raw=JSON.stringify(Object.fromEntries(fields.map(f=>[f.name,f.value])));
+   const raw=JSON.stringify({...Object.fromEntries(fields.map(f=>[f.name,f.value])),...(direct!==''?{score:direct}:{})});
    if(save&&raw!==persisted)root.ScholarStorage.setItem(key,raw);
    persisted=raw;
   }
@@ -159,10 +180,16 @@
    });
   });
   document.getElementById('qd-form').addEventListener('submit',e=>e.preventDefault());
-  document.getElementById('qd-reset').addEventListener('click',()=>{fields.forEach(f=>f.value='');previous.fill('');update();if(!matchMedia('(pointer:coarse)').matches)fields[0].focus({preventScroll:true});});
+  score.addEventListener('input',e=>{if(e.isComposing)return;direct=score.value.trim();update(true,direct==='');});
+  score.addEventListener('compositionend',()=>{direct=score.value.trim();update(true,direct==='');});
+  score.addEventListener('focus',()=>score.select());
+  score.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();score.blur();}});
+  score.addEventListener('blur',()=>{if(direct==='')update(false,true);});
+  document.getElementById('qd-reset').addEventListener('click',()=>{fields.forEach(f=>f.value='');previous.fill('');score.value='';update();if(!matchMedia('(pointer:coarse)').matches)fields[0].focus({preventScroll:true});});
   function hydrate(){
    let saved={};try{saved=JSON.parse(root.ScholarStorage.getItem(key)||'{}')||{};}catch(_){}
-   fields.forEach((field,i)=>{field.value=String(saved[field.name]??'');previous[i]=field.value;});update(false);
+   fields.forEach((field,i)=>{field.value=String(saved[field.name]??'');previous[i]=field.value;});update(false,true);
+   if(typeof saved.score==='string'&&saved.score){direct=saved.score;score.value=direct;update(false,false);}
   }
   root.ScholarSync.subscribe(changed=>{if(changed===key)hydrate();});hydrate();
  }
