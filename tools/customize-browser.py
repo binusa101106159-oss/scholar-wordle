@@ -16,7 +16,7 @@ def main():
    for engine in args.engines:
     b=getattr(p,engine).launch()
     for width in [1440,390]:
-     page=b.new_page(viewport={'width':width,'height':900},service_workers='block');errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.route('https://www.gstatic.com/**',lambda r:r.abort())
+     page=b.new_page(viewport={'width':width,'height':900},service_workers='block');errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.route('https://www.gstatic.com/**',lambda r:r.abort());page.route('https://fonts.googleapis.com/**',lambda r:r.abort())
      page.goto(base+'#wordle');page.locator('#game-tab-customize').wait_for(state='attached')
      before=page.evaluate("getComputedStyle(document.body,'::before').backgroundImage");root=lambda a:page.evaluate(f"document.documentElement.dataset.{a}||''")
      assert root('accent')=='' and root('tone')=='';assert 'radial-gradient' in before
@@ -36,7 +36,7 @@ def main():
      page.get_by_role('radio',name='綠',exact=True).first.click();assert root('accent')=='custom';assert page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()")=='#8fe3a3'
      sel=page.evaluate("getComputedStyle(document.querySelector('#scholar-game-tabs .lg-tab-lens')||document.getElementById('game-tab-customize')).borderColor");assert '143, 227, 163' in sel,sel
      page.locator('.cz-grid').nth(2).get_by_role('radio',name='紫').click();assert root('tone')=='purple'
-     saved=json.loads(page.evaluate("ScholarStorage.getItem('scholar-customize-v1')"));assert saved=={'wallpaper':'black','accent':'#8fe3a3','tone':'purple','color':'#336699','dim':35,'blur':0},saved
+     saved=json.loads(page.evaluate("ScholarStorage.getItem('scholar-customize-v1')"));assert saved=={'wallpaper':'black','accent':'#8fe3a3','tone':'purple','color':'#336699','dim':35,'blur':0,'font':'default','size':100,'text':'','bold':False,'motion':False},saved
      # Upload: stays on this device, sliders appear and adjust the overlay.
      page.locator('#cz-upload').set_input_files(str(img));page.wait_for_function("document.documentElement.dataset.wallpaper==='image'")
      assert 'url("data:image/jpeg' in page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--wallpaper')")
@@ -50,9 +50,42 @@ def main():
      # Other tabs still work and keep the accent.
      page.evaluate("location.hash='#forms'");page.locator('#fm-bsrs').wait_for();assert page.locator('#customize-panel').is_hidden()
      if engine=='chromium':page.screenshot(path=str(out/f'forms-{width}.png'))
+     page.evaluate("location.hash='#customize'");page.locator('.cz-preview').wait_for()
+     css=lambda sel,prop:page.evaluate(f"getComputedStyle(document.querySelector('{sel}')).{prop}")
+     # 文字：字型
+     page.get_by_role('radio',name='明體').click();assert root('font')=='serif';assert 'Noto Serif TC' in css('.cz-preview','fontFamily')
+     assert 'Noto+Serif+TC' in page.evaluate("document.getElementById('cz-webfont').href")
+     assert 'Noto Serif TC' not in css('.cz-font-chip','fontFamily')  # each preview chip keeps its own font
+     # 文字大小 scales px text everywhere, also tabs loaded later; layout boxes and zoom untouched.
+     tab=float(css('#game-tab-customize','fontSize')[:-2])
+     size=page.get_by_role('slider',name='文字大小');size.fill('120');size.dispatch_event('change')
+     assert css('.cz-preview','fontSize')=='19.2px';assert abs(float(css('#game-tab-customize','fontSize')[:-2])-tab*1.2)<.05
+     # 文字顏色: white/grey text takes the colour (relative brightness kept); coloured text stays.
+     page.get_by_role('radio',name='淺藍').click();assert css('.cz-preview','color')=='rgb(204, 222, 251)',css('.cz-preview','color')
+     assert page.evaluate("ScholarCustomize.recolor('rgba(255, 255, 255, 0.5)',[10,20,30])")=='rgba(10, 20, 30, 0.5)'
+     assert page.evaluate("ScholarCustomize.recolor('#22c55e',[10,20,30])")=='#22c55e' and page.evaluate("ScholarCustomize.recolor('rgb(40, 40, 40)',[10,20,30])")=='rgb(40, 40, 40)'
+     # 色碼 fields: valid codes apply, Enter keeps; invalid codes are flagged and undone.
+     hx=page.get_by_role('textbox',name='文字顏色色碼');hx.fill('abc');hx.press('Enter');assert json.loads(page.evaluate("ScholarStorage.getItem('scholar-customize-v1')"))['text']=='#aabbcc'
+     hx=page.get_by_role('textbox',name='強調色色碼');hx.fill('#12345');assert hx.get_attribute('aria-invalid')=='true';hx.press('Enter');assert hx.input_value()!='#12345'
+     hx=page.get_by_role('textbox',name='強調色色碼');hx.fill('#123456');hx.press('Enter');assert root('accent')=='custom' and json.loads(page.evaluate("ScholarStorage.getItem('scholar-customize-v1')"))['accent']=='#123456'
+     hx=page.get_by_role('textbox',name='桌布色碼');hx.fill('#204060');hx.press('Enter');assert bgc()==['none','rgb(32, 64, 96)'],bgc()
+     # 粗體文字 and 減少動態效果
+     h1=int(css('.cz-head h1','fontWeight'));page.get_by_role('switch',name='粗體文字').click();assert root('bold')=='' and page.evaluate("'bold' in document.documentElement.dataset")
+     assert int(css('.cz-head h1','fontWeight'))==min(900,h1+200 if h1<=400 else h1+100)
+     page.get_by_role('switch',name='減少動態效果').click();assert root('motion')=='reduce';assert css('.cz-knob','transitionDuration') in ('1e-05s','0.00001s')
+     saved=json.loads(page.evaluate("ScholarStorage.getItem('scholar-customize-v1')"));assert (saved['font'],saved['size'],saved['text'],saved['bold'],saved['motion'])==('serif',120,'#aabbcc',True,True),saved
+     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
+     if engine=='chromium':page.screenshot(path=str(out/f'text-{width}.png'),full_page=False)
+     page.reload();page.locator('.cz-preview').wait_for();page.wait_for_timeout(300);assert root('font')=='serif' and css('.cz-preview','fontSize')=='19.2px'
+     # Another tab after reload keeps the larger text.
+     page.evaluate("location.hash='#forms'");page.locator('#fm-bsrs').wait_for();page.wait_for_timeout(200)
+     if engine=='chromium':page.screenshot(path=str(out/f'forms-text-{width}.png'))
      page.evaluate("location.hash='#customize'");page.get_by_role('button',name='全部恢復預設').click()
+     assert css('.cz-preview','fontSize')=='16px' and css('.cz-preview','color')=='rgb(237, 243, 251)' and int(css('.cz-head h1','fontWeight'))==h1
+     assert css('#game-tab-customize','fontSize')==str(tab).rstrip('0').rstrip('.')+'px' and page.evaluate("document.documentElement.style.fontSize")==''
+     assert root('font')=='' and root('motion')=='' and not page.evaluate("'bold' in document.documentElement.dataset")
      assert root('accent')=='' and root('tone')=='' and root('wallpaper')=='default';assert page.evaluate("getComputedStyle(document.body,'::before').backgroundImage")==before
-     assert not errors,errors;page.close();print(engine,width,'top-bar tab / wallpapers / upload device-only / sliders / accent / tone / reload / reset to the original look PASS',flush=True)
+     assert not errors,errors;page.close();print(engine,width,'top-bar tab / wallpapers / upload device-only / sliders / accent / tone / font / text size / text colour / hex codes / bold / motion / reload / reset to the original look PASS',flush=True)
     b.close()
  finally:server.shutdown()
 if __name__=='__main__':main()

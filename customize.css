@@ -38,3 +38,20 @@ html[data-tone] .sg-nav-shell,html[data-tone] .sg-app{--sg-edge:rgba(var(--tone-
 .cz-swatch:focus-visible,.cz-btn:focus-visible{outline:2px solid #a9c8ff;outline-offset:2px}
 @media(max-width:560px){#customize-panel{padding:16px 10px 120px}.cz-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cz-grid-color{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .cz-wall-custom{position:relative}.cz-wall-custom input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.cz-wall-custom[aria-checked=true]{border-color:#fff;background:rgba(255,255,255,.12);box-shadow:0 0 0 1px rgba(255,255,255,.5),0 4px 14px rgba(0,0,0,.4)}
+
+/* 文字 / 其他 */
+.cz-sub{margin:16px 0 0;font:700 14px/1.4 system-ui;color:#dbe6f4}
+.cz-grid-font{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
+.cz-font-chip{display:grid;place-items:center;aspect-ratio:auto;height:46px;color:#f1f5f9;font-size:20px;background:rgba(255,255,255,.05)}
+.cz-chip-default{background:repeating-linear-gradient(135deg,#edf3fb 0 6px,#9aa7b8 6px 8px)!important}
+.cz-preview{margin:10px 0 0;padding:10px 14px;border:1px dashed rgba(255,255,255,.2);border-radius:12px;color:#edf3fb;font-size:16px;line-height:1.7}
+.cz-hex{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#cbd5e1}
+.cz-hex input{width:8.5em;min-height:36px;box-sizing:border-box;padding:4px 10px;border:1px solid rgba(255,255,255,.22);border-radius:10px;background:rgba(0,0,0,.25);color:#f1f5f9;font:500 14px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;text-transform:lowercase}
+.cz-hex input[aria-invalid=true]{border-color:#ff6b6b}
+.cz-hex input:focus-visible{outline:2px solid #a9c8ff;outline-offset:1px}
+.cz-toggle{display:flex;width:100%;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.03);color:#edf3fb;text-align:left;cursor:pointer;font:inherit}
+.cz-toggle-text{display:grid}.cz-toggle-label{font:600 15px system-ui}.cz-toggle .cz-hint{margin:2px 0 0}
+.cz-knob{flex:none;position:relative;width:46px;height:28px;border-radius:999px;background:rgba(255,255,255,.18);transition:background .2s}
+.cz-knob::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:transform .2s}
+.cz-toggle[aria-checked=true] .cz-knob{background:var(--accent,#34c759)}.cz-toggle[aria-checked=true] .cz-knob::after{transform:translateX(18px)}
+.cz-toggle:focus-visible{outline:2px solid #a9c8ff;outline-offset:2px}
