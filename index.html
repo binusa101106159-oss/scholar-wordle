@@ -481,7 +481,12 @@ body[data-game="crossword"] #wordle-toolbar, body[data-game="sudoku"] #wordle-to
 body[data-game="cases"] #game-main, body[data-game="cases"] #wordle-toolbar,
 body[data-game="health"] #game-main, body[data-game="health"] #wordle-toolbar,
 body[data-game="ama"] #game-main, body[data-game="ama"] #wordle-toolbar,
-body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, body[data-game="notes"] #game-main, body[data-game="notes"] #wordle-toolbar { display: none !important; }
+body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, body[data-game="notes"] #game-main, body[data-game="notes"] #wordle-toolbar,
+body[data-game="ladou"] #game-main, body[data-game="ladou"] #wordle-toolbar { display: none !important; }
+.ladou-app { max-width: 920px; margin: 0 auto; padding: 28px 24px 60px; }
+.ladou-empty { padding: 28px; border: 1px solid rgba(255,255,255,.12); border-radius: 22px; background: rgba(255,255,255,.035); }
+.ladou-empty h1 { margin: 0 0 8px; font: 600 24px/1.3 system-ui, sans-serif; color: #f1f5f9; }
+.ladou-empty p { margin: 0; color: rgba(255,255,255,.55); }
 .sg-nav-shell, .sg-app { --sg-edge: rgba(255,255,255,.16); --sg-muted: rgba(255,255,255,.5); --sg-blue: #a9c8ff; color: #f1f5f9; }
 .sg-nav-shell { position: relative; z-index: 22; border-bottom: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.025); backdrop-filter: blur(24px) saturate(180%); }
 .sg-nav-inner { max-width: 1200px; min-height: 62px; margin: auto; padding: 10px 24px; display: flex; align-items: center; justify-content: center; position: relative; }
@@ -656,7 +661,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
         <button id="game-tab-checkup" class="sg-tab" type="button" role="tab" data-game-tab="checkup" aria-controls="checkup-panel" aria-selected="false" tabindex="-1">健檢報告</button>
         <button id="game-tab-health" class="sg-tab" type="button" role="tab" data-game-tab="health" aria-controls="health-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H6a2 2 0 0 0-2 2v14h16V6a2 2 0 0 0-2-2h-2M9 3h6v4H9zM8 13h8M12 9v8"/></svg>特做</button>
         <button id="game-tab-iarc" class="sg-tab" type="button" role="tab" data-game-tab="iarc" aria-controls="iarc-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5M7 10h6M10 7v6"/></svg>IARC</button>
-        <button id="game-tab-study" class="sg-tab" type="button" role="tab" data-game-tab="study" aria-controls="review-panel notes-panel ilo-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM16 4v3h3M8 11h8M8 15h8"/></svg>職專</button>
+        <button id="game-tab-study" class="sg-tab" type="button" role="tab" data-game-tab="study" aria-controls="review-panel notes-panel ilo-panel ladou-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM16 4v3h3M8 11h8M8 15h8"/></svg>職專</button>
         <button id="game-tab-cases" class="sg-tab" type="button" role="tab" data-game-tab="cases" aria-controls="cases-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H5v16h14V4h-4M9 3h6v4H9zM8 11h8M8 15h4"/><path d="m13 17 2 2 4-4"/></svg>個案追蹤</button>
         <button id="game-tab-maternal" class="sg-tab" type="button" role="tab" data-game-tab="maternal" aria-controls="maternal-panel" aria-selected="false" tabindex="-1">母保罐頭</button>
         <button id="game-tab-customize" class="sg-tab" type="button" role="tab" data-game-tab="customize" aria-controls="customize-panel" aria-selected="false" tabindex="-1"><svg class="sg-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>自訂</button>
@@ -780,6 +785,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     <button id="study-section-review" type="button" role="tab" data-study-section="review" aria-controls="review-panel" aria-selected="true">每日複習信</button>
     <button id="study-section-notes" type="button" role="tab" data-study-section="notes" aria-controls="notes-panel" aria-selected="false" tabindex="-1">職專共筆</button>
     <button id="study-section-ilo" type="button" role="tab" data-study-section="ilo" aria-controls="ilo-panel" aria-selected="false" tabindex="-1">ILO</button>
+    <button id="study-section-ladou" type="button" role="tab" data-study-section="ladou" aria-controls="ladou-panel" aria-selected="false" tabindex="-1">LaDou</button>
   </div>
   <main id="certificates-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-certificates" hidden></main>
   <main id="forms-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-forms" hidden></main>
@@ -793,6 +799,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
   <main id="health-panel" class="sg-app hx-app" role="tabpanel" aria-labelledby="game-tab-health" hidden></main>
   <main id="calculator-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-calculator" hidden></main>
   <main id="ilo-panel" class="sg-app" role="tabpanel" aria-labelledby="study-section-ilo" hidden><p>正在載入ILO教材…</p></main>
+  <main id="ladou-panel" class="sg-app ladou-app" role="tabpanel" aria-labelledby="study-section-ladou" hidden><section class="ladou-empty"><h1>LaDou</h1><p>尚無內容。</p></section></main>
   <main id="notes-panel" class="sg-app nt-app" role="tabpanel" aria-labelledby="study-section-notes" hidden></main>
   <main id="review-panel" class="sg-app rv-app" role="tabpanel" aria-labelledby="study-section-review" hidden>
     <p class="rv-message" role="status">正在載入複習信全文…</p>
@@ -3165,10 +3172,10 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
   let studySection = 'review';
   function switchGame(game, updateURL = true) {
     if (game === 'study') game = studySection;
-    if (!['certificates', 'forms', 'calculator', 'wordle', 'crossword', 'sudoku', 'laws', 'guides', 'ama', 'health', 'checkup', 'iarc', 'cases', 'maternal', 'calendar', 'review', 'notes', 'ilo', 'customize', 'g2048', 'mines', 'iarcquiz', 'lawmatch', 'connect', 'lawcloze', 'mistakes', 'daily'].includes(game)) game = 'wordle';
+    if (!['certificates', 'forms', 'calculator', 'wordle', 'crossword', 'sudoku', 'laws', 'guides', 'ama', 'health', 'checkup', 'iarc', 'cases', 'maternal', 'calendar', 'review', 'notes', 'ilo', 'ladou', 'customize', 'g2048', 'mines', 'iarcquiz', 'lawmatch', 'connect', 'lawcloze', 'mistakes', 'daily'].includes(game)) game = 'wordle';
     activeGame = game; document.body.dataset.game = game;
     if(updateURL)window.ScholarStorage.setItem('scholar-navigation-v1',JSON.stringify({hash:'#'+game}));
-    const isStudy = game === 'review' || game === 'notes' || game === 'ilo';
+    const isStudy = game === 'review' || game === 'notes' || game === 'ilo' || game === 'ladou';
     if (isStudy) studySection = game;
     by('study-nav').hidden = !isStudy;
     document.querySelectorAll('[data-study-section]').forEach(tab => {
@@ -3211,6 +3218,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     by('calculator-panel').hidden = game !== 'calculator';
     if(game === 'calculator' && window.ScholarCalculator)window.ScholarCalculator.show();
     by('ilo-panel').hidden = game !== 'ilo';
+    by('ladou-panel').hidden = game !== 'ladou';
     if(game === 'ilo' && window.ScholarILO)window.ScholarILO.show();
     else if(window.ScholarILO)window.ScholarILO.hide();
     by('notes-panel').hidden = game !== 'notes';
@@ -3240,6 +3248,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
     else if (game === 'forms') document.title = '表單 · Scholar';
     else if (game === 'calculator') document.title = '計算機 · Scholar';
     else if (game === 'ilo') document.title = 'ILO塵肺影像學習 · Scholar';
+    else if (game === 'ladou') document.title = 'LaDou · Scholar';
     else if (game === 'notes') document.title = '職專共筆 · Scholar';
     else if (game === 'review') document.title = '每日複習信 · Scholar';
     else if (game === 'ama') document.title = 'AMA · Scholar';
@@ -3278,7 +3287,7 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
   }
   function keyboard(event) {
     if (activeGame === 'customize') return;
-    if (['g2048', 'mines', 'iarcquiz', 'lawmatch', 'connect', 'lawcloze', 'mistakes', 'daily'].includes(activeGame) || activeGame === 'certificates' || activeGame === 'maternal' || activeGame === 'checkup' || activeGame === 'forms' || activeGame === 'calendar' || activeGame === 'iarc' || activeGame === 'cases' || activeGame === 'health' || activeGame === 'calculator' || activeGame === 'wordle' || activeGame === 'laws' || activeGame === 'guides' || activeGame === 'ama' || activeGame === 'review' || activeGame === 'notes' || activeGame === 'ilo' || by('scholar-new-dialog').open || event.altKey) return;
+    if (['g2048', 'mines', 'iarcquiz', 'lawmatch', 'connect', 'lawcloze', 'mistakes', 'daily'].includes(activeGame) || activeGame === 'certificates' || activeGame === 'maternal' || activeGame === 'checkup' || activeGame === 'forms' || activeGame === 'calendar' || activeGame === 'iarc' || activeGame === 'cases' || activeGame === 'health' || activeGame === 'calculator' || activeGame === 'wordle' || activeGame === 'laws' || activeGame === 'guides' || activeGame === 'ama' || activeGame === 'review' || activeGame === 'notes' || activeGame === 'ilo' || activeGame === 'ladou' || by('scholar-new-dialog').open || event.altKey) return;
     const target = event.target;
     if (target && target.closest && target.closest('input,select,textarea,[contenteditable="true"]')) return;
     if (event.key === 'Escape') { event.preventDefault(); const tab=by('game-tab-' + activeGame);(tab.hidden?by('game-group-button'):tab).focus(); return; }
@@ -3351,9 +3360,9 @@ body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, b
       data.seconds++; by(activeGame + '-clock').textContent = time(data.seconds);
       if (data.seconds % 5 === 0) save();
     }, 1000);
-    if(!location.hash){const nav=JSON.parse(window.ScholarStorage.getItem('scholar-navigation-v1')||'{}');if(/^#(certificates|forms|calculator|wordle|crossword|sudoku|laws|guides|ama|health|checkup|iarc|cases|maternal|calendar|review|notes|ilo|customize|g2048|mines|iarcquiz|lawmatch|connect|lawcloze|mistakes|daily)$/.test(nav.hash||''))history.replaceState(null,'',nav.hash);}
+    if(!location.hash){const nav=JSON.parse(window.ScholarStorage.getItem('scholar-navigation-v1')||'{}');if(/^#(certificates|forms|calculator|wordle|crossword|sudoku|laws|guides|ama|health|checkup|iarc|cases|maternal|calendar|review|notes|ilo|ladou|customize|g2048|mines|iarcquiz|lawmatch|connect|lawcloze|mistakes|daily)$/.test(nav.hash||''))history.replaceState(null,'',nav.hash);}
     window.addEventListener('hashchange',()=>window.ScholarStorage.setItem('scholar-navigation-v1',JSON.stringify({hash:location.hash})));
-    switchGame(location.hash === '#certificates' ? 'certificates' : location.hash === '#maternal' ? 'maternal' : location.hash === '#checkup' ? 'checkup' : location.hash === '#forms' ? 'forms' : location.hash === '#calendar' ? 'calendar' : location.hash === '#iarc' ? 'iarc' : location.hash === '#cases' ? 'cases' : location.hash === '#health' ? 'health' : location.hash === '#calculator' ? 'calculator' : location.hash === '#study' ? 'study' : location.hash === '#sudoku' ? 'sudoku' : location.hash === '#crossword' ? 'crossword' : location.hash === '#laws' ? 'laws' : location.hash === '#guides' ? 'guides' : location.hash === '#ama' ? 'ama' : location.hash === '#review' ? 'review' : location.hash === '#notes' ? 'notes' : location.hash === '#ilo' ? 'ilo' : /^#(customize|g2048|mines|iarcquiz|lawmatch|connect|lawcloze|mistakes|daily)$/.test(location.hash) ? location.hash.slice(1) : 'wordle', false);
+    switchGame(location.hash === '#certificates' ? 'certificates' : location.hash === '#maternal' ? 'maternal' : location.hash === '#checkup' ? 'checkup' : location.hash === '#forms' ? 'forms' : location.hash === '#calendar' ? 'calendar' : location.hash === '#iarc' ? 'iarc' : location.hash === '#cases' ? 'cases' : location.hash === '#health' ? 'health' : location.hash === '#calculator' ? 'calculator' : location.hash === '#study' ? 'study' : location.hash === '#sudoku' ? 'sudoku' : location.hash === '#crossword' ? 'crossword' : location.hash === '#laws' ? 'laws' : location.hash === '#guides' ? 'guides' : location.hash === '#ama' ? 'ama' : location.hash === '#review' ? 'review' : location.hash === '#notes' ? 'notes' : location.hash === '#ilo' ? 'ilo' : location.hash === '#ladou' ? 'ladou' : /^#(customize|g2048|mines|iarcquiz|lawmatch|connect|lawcloze|mistakes|daily)$/.test(location.hash) ? location.hash.slice(1) : 'wordle', false);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
