@@ -13,3 +13,23 @@ body[data-game=calculator] #game-main,body[data-game=calculator] #wordle-toolbar
 @media(max-width:400px){.cl-calendar{padding:14px}}
 
 .cl-calendar-head h2,.cl-calendar-week{font-weight:600}.cl-calendar-label span{font-size:10px;font-weight:600}.cl-calendar-label strong{font-weight:700}.cl-calendar-days>.is-holiday{color:#f1a49b}.cl-calendar-days>.is-makeup{color:#d9e3ef}.cl-calendar-days>.is-makeup::before{content:'班';position:absolute;top:-3px;right:-3px;font-size:7px;line-height:10px;color:#a9c3e6}.cl-calendar-days>.has-appointments::after{content:'';position:absolute;bottom:0;left:calc(50% - 2px);width:4px;height:4px;border-radius:50%;background:#7ac5ff}.cl-calendar-days>.is-selected{box-shadow:0 0 0 1px #9acaff}.cl-calendar-days>.is-today{color:#152132}.cl-calendar-days>.is-today.is-holiday{box-shadow:0 0 0 1px #f1a49b}.cl-calendar-meta{display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:space-between;padding-top:8px;font-size:9px;color:#9eafc3}.cl-calendar-meta a{color:inherit;text-decoration:underline;text-underline-offset:2px}#cl-calendar-warning{margin:8px 0 0;font-size:10px;color:#dfc18d}#cl-calendar-warning a{color:inherit;text-decoration:underline}.cl-calendar-details{margin-top:10px;padding-top:10px;border-top:1px solid #d7e9ff25;font-size:12px;line-height:1.5;overflow-wrap:anywhere}.cl-calendar-details>div{display:flex;align-items:center;justify-content:space-between}.cl-calendar-details button{font:inherit;color:inherit;border:0;background:transparent;padding:4px}.cl-calendar-details p{margin:4px 0;color:#b5c3d3}.cl-calendar-details ul{list-style:none;padding:0;margin:8px 0}.cl-calendar-details li{margin:7px 0}.cl-calendar-details li>span{display:block;font-size:11px;color:#aebdce;white-space:pre-wrap}.cl-calendar-details .cl-calendar-mrn{margin-left:8px;font-variant-numeric:tabular-nums;text-decoration:underline;text-underline-offset:3px}.cl-calendar-details>a{color:#a9cdf7;font-size:11px}
+
+/* 生日計算 (below the 月曆) */
+.cl-birthday{width:min(100%,390px);box-sizing:border-box;margin:18px auto 0;padding:16px;border:1px solid #d7e9ff30;border-radius:24px;background:linear-gradient(145deg,#b6d5fa0c,transparent 60%),#111a25}
+.cl-birthday .cl-calendar-head h2{font-weight:600}
+#cl-bd-clear{font-size:12px}
+.cl-bd-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cl-bd-fields label{display:grid;gap:5px;font-size:12px;color:#9caec3}
+.cl-bd-fields input{min-width:0;min-height:40px;box-sizing:border-box;padding:6px 10px;border:1px solid #d5e6ff2e;border-radius:12px;background:#ffffff08;color:#e8eef5;font:500 15px/1.2 system-ui,sans-serif;font-variant-numeric:tabular-nums}
+.cl-bd-fields input:focus-visible{outline:2px solid #a9ccfa;outline-offset:1px}
+.cl-bd-fields input[aria-invalid=true]{border-color:#e0a18f}
+.cl-bd-hint{margin:8px 0 0;font-size:11px;color:#8193a8}
+#cl-bd-out:not(:empty){margin-top:12px;padding-top:12px;border-top:1px solid #d7e9ff1c}
+#cl-bd-out p{margin:0}
+.cl-bd-age{font:600 34px/1.1 system-ui,sans-serif;color:#e1c58d;font-variant-numeric:tabular-nums}
+.cl-bd-exact{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 10px!important;font-size:15px;color:#e8eef5}
+.cl-bd-copy{min-height:30px;padding:2px 10px;border:1px solid #d5e6ff24;border-radius:9px;background:#ffffff06;color:inherit;font:inherit;font-size:12px}
+#cl-bd-out p:not(.cl-bd-age):not(.cl-bd-exact){display:grid;grid-template-columns:64px 1fr;gap:8px;padding:3px 0;font-size:13px;line-height:1.5}
+#cl-bd-out p>span{color:#9caec3}#cl-bd-out p>strong{font-weight:500;color:#dbe5f1;font-variant-numeric:tabular-nums}
+#cl-bd-out .cl-bd-error>strong{color:#f3b4a3}#cl-bd-out .cl-bd-today>strong{color:#e1c58d;font-weight:600}#cl-bd-out .cl-bd-note>strong{color:#9caec3;font-size:12px}
+@media(max-width:400px){.cl-birthday{padding:14px}}

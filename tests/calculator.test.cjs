@@ -58,3 +58,27 @@ test('follow-up date without a year resolves to the occurrence nearest to today'
  // Original strict parser is unchanged: a bare month/day is still not a date by itself.
  assert.equal(followupDate('11/18'),null);
 });
+
+test('生日計算：足歲、總天數、出生星期、下次生日',()=>{
+ const {birthday}=require('../calculator/calculator.js');
+ const r=birthday('1990-01-05','2026-11-27');
+ assert.deepEqual([r.years,r.months,r.days,r.totalDays,r.weekday],[36,10,22,13475,'五']);
+ assert.deepEqual(r.next,{key:'2027-01-05',daysLeft:39,turning:37,weekday:'二'});assert.equal(r.isBirthday,false);
+ // the day before / of the birthday
+ assert.deepEqual((({years,months,days})=>[years,months,days])(birthday('1990-01-05','2027-01-04')),[36,11,30]);
+ const on=birthday('1990-01-05','2027-01-05');assert.deepEqual([on.years,on.months,on.days,on.isBirthday,on.next.daysLeft],[37,0,0,true,0]);
+ // born today
+ const born=birthday('2026-11-27','2026-11-27');assert.deepEqual([born.years,born.months,born.days,born.totalDays,born.isBirthday,born.next.key],[0,0,0,0,false,'2027-11-27']);
+ // month ends: 1/31 → 2/29 is one month in a leap year; 3/1 is one month and one day
+ assert.deepEqual((({months,days})=>[months,days])(birthday('2000-01-31','2000-02-29')),[1,0]);
+ assert.deepEqual((({months,days})=>[months,days])(birthday('2000-01-31','2000-03-01')),[1,1]);
+ // 2/29: 2/28 in common years, 2/29 in leap years
+ assert.equal(birthday('2000-02-29','2027-02-27').years,26);assert.equal(birthday('2000-02-29','2027-02-28').years,27);assert.equal(birthday('2000-02-29','2027-02-28').isBirthday,true);
+ assert.equal(birthday('2000-02-29','2028-02-28').years,27);assert.equal(birthday('2000-02-29','2028-02-29').years,28);
+ assert.equal(birthday('2000-02-29','2026-11-27').next.key,'2027-02-28');
+ assert.throws(()=>birthday('2000-01-02','2000-01-01'),/早於/);
+});
+test('生日計算：民國／西元輸入',()=>{
+ const {birthDate}=require('../calculator/calculator.js');
+ for(const [t,k] of [['0790105','1990-01-05'],['790105','1990-01-05'],['79/1/5','1990-01-05'],['79年1月5日','1990-01-05'],['民國79年1月5日','1990-01-05'],['19900105','1990-01-05'],['1990/1/5','1990-01-05'],['1150229',null],['1130229','2024-02-29'],['abc',null],['',null]])assert.equal(birthDate(t),k,t);
+});

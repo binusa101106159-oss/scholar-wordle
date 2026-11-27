@@ -78,6 +78,40 @@
   const off=exception?exception[0]:weekend;
   return {known,off,makeup:known&&weekend&&!off,label:exception?.[1]||(off?'週末':'')};
  }
+ // Birth dates also come as two-digit 民國 years: 79/1/5, 79年1月5日, 790105 → 079….
+ function birthDate(raw){const t=String(raw||'').normalize('NFKC').trim().replace(/^民國\s*(?=\d{2}(?!\d))/,'');return followupDate(/^\d{2}(?:[./-]|\s*年)/.test(t)||/^\d{6}$/.test(t)?'0'+t:t);}
+ // Not saved anywhere: a birth date typed here may be a patient's.
+ function mountBirthday(host){
+  host.insertAdjacentHTML('beforeend','<section class="cl-birthday" aria-labelledby="cl-birthday-title"><div class="cl-calendar-head"><h2 id="cl-birthday-title">生日計算</h2><button type="button" id="cl-bd-clear">清除</button></div>'+
+   '<div class="cl-bd-fields"><label><span>出生日期</span><input id="cl-bd-birth" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="16" placeholder="0790105 或 19900105"></label>'+
+   '<label><span>計算到</span><input id="cl-bd-base" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="16" placeholder="今天（可填受傷日等）"></label></div>'+
+   '<p class="cl-bd-hint">民國 7 碼或西元 8 碼，也可用 / 分隔。不會儲存。</p><div id="cl-bd-out" aria-live="polite"></div></section>');
+  const card=host.querySelector('.cl-birthday'),birth=card.querySelector('#cl-bd-birth'),base=card.querySelector('#cl-bd-base'),out=card.querySelector('#cl-bd-out');
+  const roc=key=>{const [y,m,d]=key.split('-');return {ad:y+'/'+m+'/'+d,roc:(Number(y)>1911?'民國 '+(Number(y)-1911)+' 年':'民國前 '+(1912-Number(y))+' 年')+' '+Number(m)+' 月 '+Number(d)+' 日'};};
+  const todayKey=()=>{const d=new Date();return dateKey(d.getFullYear(),d.getMonth()+1,d.getDate());};
+  const line=(label,value,cls)=>{const p=document.createElement('p');if(cls)p.className=cls;const l=document.createElement('span');l.textContent=label;const v=document.createElement('strong');v.textContent=value;p.append(l,v);return p;};
+  function update(){
+   out.replaceChildren();birth.removeAttribute('aria-invalid');base.removeAttribute('aria-invalid');
+   if(!birth.value.trim())return;
+   const b=birthDate(birth.value),c=base.value.trim()?birthDate(base.value):todayKey();
+   if(!b){birth.setAttribute('aria-invalid','true');out.append(line('','出生日期格式不對','cl-bd-error'));return;}
+   if(!c){base.setAttribute('aria-invalid','true');out.append(line('','計算到的日期格式不對','cl-bd-error'));return;}
+   let r;try{r=birthday(b,c);}catch(e){out.append(line('',e.message,'cl-bd-error'));return;}
+   const age=r.years+' 歲 '+r.months+' 個月 '+r.days+' 天',bd=roc(b);
+   const big=document.createElement('p');big.className='cl-bd-age';big.textContent=r.years+' 歲';
+   const sub=document.createElement('p');sub.className='cl-bd-exact';sub.textContent='足歲 '+age;
+   const copy=document.createElement('button');copy.type='button';copy.className='cl-bd-copy';copy.textContent='複製';copy.onclick=async()=>{try{await navigator.clipboard.writeText(age);copy.textContent='已複製';}catch(_){copy.textContent='無法複製';}setTimeout(()=>copy.textContent='複製',1400);};
+   sub.append(copy);out.append(big,sub);
+   out.append(line('出生',bd.ad+'（'+bd.roc+'）星期'+r.weekday));
+   if(base.value.trim()){const cd=roc(c);out.append(line('計算到',cd.ad+'（'+cd.roc+'）'));}
+   out.append(line('共',r.totalDays.toLocaleString('en-US')+' 天'));
+   if(r.isBirthday)out.append(line('','今天生日，滿 '+r.years+' 歲','cl-bd-today'));
+   else out.append(line('下次生日',r.next.key.replaceAll('-','/')+' 星期'+r.next.weekday+'，還有 '+r.next.daysLeft+' 天（滿 '+r.next.turning+' 歲）'));
+   if(b.endsWith('-02-29'))out.append(line('','2/29 出生：平年以 2/28 為生日。','cl-bd-note'));
+  }
+  birth.addEventListener('input',update);base.addEventListener('input',update);
+  card.querySelector('#cl-bd-clear').addEventListener('click',()=>{birth.value='';base.value='';update();birth.focus();});
+ }
  function mountCalendar(host){
   const KEY='scholar-calendar-v1', current=()=>{const d=new Date();return d.getFullYear()*12+d.getMonth();};
   let visible=current(),frame=0,timer=0,pending=null,holidays=null,holidayError=false,selected=null,appointments=new Map(),missingDates=0,caseError=false;
@@ -210,7 +244,29 @@
   fetch('calculator/taiwan-calendar.json').then(response=>{if(!response.ok)throw Error('Calendar unavailable');return response.json();}).then(data=>{holidays=data;refresh();}).catch(()=>{holidayError=true;refresh();});
   return {refresh(){readAppointments();refresh();}};
  }
- if(typeof module!=='undefined'&&module.exports)module.exports={calculate,monthGrid,weekDates,monthWeek,followupDate,followupWeekday,completeFollowupYear,dayInfo};
+ // 生日計算：足歲（年、月、天）、活了幾天、下次生日。日期以 UTC 計算；2/29 出生者在平年以 2/28 為生日
+ // （民法第 121 條第 2 項：最後之月無相當日者，以其月之末日為期間之末日）。
+ const keyOf=t=>{const d=new Date(t);return dateKey(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate());};
+ const timeOf=key=>Date.parse(key+'T00:00:00Z');
+ // the same month-day in another year (2/29 → 2/28 in common years)
+ function anniversary(year,month,day){const last=new Date(Date.UTC(year,month,0)).getUTCDate();return Date.UTC(year,month-1,Math.min(day,last));}
+ function birthday(birthKey,baseKey){
+  const birth=timeOf(birthKey),base=timeOf(baseKey);
+  if(!Number.isFinite(birth)||!Number.isFinite(base))throw Error('請輸入有效日期。');
+  if(base<birth)throw Error('基準日早於出生日期。');
+  const [by,bm,bd]=birthKey.split('-').map(Number),[cy,cm,cd]=baseKey.split('-').map(Number);
+  // whole months from birth to base, then the leftover days
+  let months=(cy-by)*12+(cm-bm);
+  const at=n=>{const y=by+Math.floor((bm-1+n)/12),m=(bm-1+n)%12+1;return anniversary(y,m,bd);};
+  if(at(months)>base)months--;
+  const days=Math.round((base-at(months))/86400000);
+  let next=anniversary(cy,bm,bd);if(next<base||base===birth)next=anniversary(cy+1,bm,bd);
+  const turning=new Date(next).getUTCFullYear()-by;
+  return {years:Math.floor(months/12),months:months%12,days,totalDays:Math.round((base-birth)/86400000),
+   weekday:['日','一','二','三','四','五','六'][new Date(birth).getUTCDay()],
+   isBirthday:next===base&&base!==birth,next:{key:keyOf(next),daysLeft:Math.round((next-base)/86400000),turning,weekday:['日','一','二','三','四','五','六'][new Date(next).getUTCDay()]}};
+ }
+ if(typeof module!=='undefined'&&module.exports)module.exports={birthday,birthDate,calculate,monthGrid,weekDates,monthWeek,followupDate,followupWeekday,completeFollowupYear,dayInfo};
  if(typeof document==='undefined')return;
  let ready=false,calendar;
  function show(){
@@ -224,6 +280,7 @@
    ['0','0','zero'],['.','.'],['=','equals','equal','等於']
   ].map(([label,key,kind,aria])=>'<button type="button" class="cl-key '+(kind?'cl-'+kind:'')+'" '+(['clear','sign','equals'].includes(key)?'data-action':'data-key')+'="'+key+'"'+(aria?' aria-label="'+aria+'"':'')+'>'+label+'</button>').join('')+'</div></section></div><div id="cl-aaos"></div></div>';
   calendar=mountCalendar(document.getElementById('cl-basic'));
+  mountBirthday(document.getElementById('cl-basic'));
   root.ScholarAAOS?.mount();
   const specialty=document.createElement('div');specialty.className='cl-specialty';
   const aaos=document.getElementById('cl-aaos');aaos.before(specialty);
