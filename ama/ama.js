@@ -352,8 +352,33 @@
       if(fit<1){for(const piece of label.pieces)piece.el.style.setProperty('font-size',piece.size*fit+'px','important');label.el.dataset.labelFit=fit.toFixed(4);}
     }
   }
+  /* Key factor: the row that sets the class in a grid. The book marks it with a footnote letter on the row label
+     (「HISTORY b」 … 「b Key factor.」); where a grid has no such footnote, the chapter text names it (Ch 5: objective
+     tests; Ch 8 Table 8-2 footnote a: history; Ch 10: history). Shown with a class and a CSS label only, so the table
+     text (and highlight offsets) stay exactly as they are. */
+  const KEY_FALLBACK={'5':/^OBJECTIVE TESTS?(?![A-Z])/,'8':/^HISTORY/,'10':/^HISTORY/};
+  function markKeyFactors(root,objectLabel){
+    root.querySelectorAll('table.ax-table').forEach(table=>{
+      if(table.dataset.keyFactor)return;table.dataset.keyFactor='checked';
+      const rows=[...table.rows],foot=rows.filter(r=>r.cells.length===1&&r.cells[0].colSpan>1);
+      const letters=new Set();
+      // notes may share one paragraph («a If … b Key factor.»): find each «<letter> Key factor» / «<letter> The “key” factor»
+      for(const r of foot){const text=r.cells[0].textContent.replace(/\s+/g,' ');for(const m of text.matchAll(/(?:^|[.)]\s*|\s)([a-z])\s+(?:The\s+[“"]key[”"]\s+factor|Key\s+factors?)\b/g))letters.add(m[1]);}
+      const body=rows.filter(r=>r.cells.length>1&&!r.cells[0].classList.contains('ax-grid-ornament'));
+      const label=r=>r.cells[0].textContent.replace(/\s+/g,' ').trim();
+      let hits=[];
+      if(letters.size)hits=body.filter(r=>[...letters].some(x=>new RegExp('(?:^|[\\s,])'+x+'(?=[\\s,(]|$)','i').test(label(r))||[...r.cells[0].querySelectorAll('sup')].some(s=>s.textContent.trim().toLowerCase().split(/\s*,\s*/).includes(x))));
+      if(!hits.length){
+        const title=objectLabel||table.closest('.ax-object')?.querySelector('[data-readable-title]')?.dataset.readableTitle||root.querySelector('[data-readable-title]')?.dataset.readableTitle||'';
+        const chapter=(title.match(/^Table\s+(\d+)-/)||[])[1],rule=KEY_FALLBACK[chapter];
+        if(rule)hits=body.filter(r=>rule.test(label(r)));
+      }
+      hits.slice(0,2).forEach(r=>{r.classList.add('ax-key-row');r.cells[0].classList.add('ax-key-cell');});
+    });
+  }
   function showSourceHeadings(root,objectLabel) {
     normalizeFlowTables(root);
+    markKeyFactors(root,objectLabel);
     printedSourceHeadings(root,objectLabel);
     root.querySelectorAll('.ax-flow-heading').forEach(run=>{
       if(!run.dataset?.readableTitle)return;
@@ -1044,6 +1069,6 @@
     if(key===STORE){saved=JSON.parse(window.ScholarStorage.getItem(STORE)||'{}');saved.positions||={};saved.anchors||={};const next=JSON.stringify([saved.fontSize,saved.readingFont]);if(catalogue&&next!==cloudFont){cloudFont=next;fontSize();readingFont();}}
     if(key===MARKS){highlights=JSON.parse(window.ScholarStorage.getItem(MARKS)||'{}');if(current)restoreMarks();}
   });
-  window.ScholarAMA={show};
+  window.ScholarAMA={show,markKeyFactors};
 })();
 

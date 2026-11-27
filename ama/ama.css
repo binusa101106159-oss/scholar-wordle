@@ -331,3 +331,8 @@
 
 .ax-source-overlay[hidden]{display:none!important}
 .ax-overlay-tool>button,.ax-overlay-controls button{min-height:36px;padding:7px 12px;border:1px solid #829bb366;border-radius:8px;background:#243145;color:#e5effa;font:14px/1.4 system-ui;cursor:pointer}.ax-overlay-controls button:disabled{opacity:.45;cursor:default}.ax-overlay-tool button:focus-visible{outline:2px solid #9cf;outline-offset:2px}
+
+/* Key factor row (ama.js markKeyFactors): gold band and a label drawn by CSS, so the table text is unchanged */
+.ax-table tr.ax-key-row > td { background: rgba(226,197,138,.09); }
+.ax-table tr.ax-key-row > td:first-child { box-shadow: inset 3px 0 0 #e2c58a; }
+.ax-table td.ax-key-cell::after { content: "KEY FACTOR"; display: block; width: max-content; margin-top: 6px; padding: 1px 7px; border-radius: 999px; background: #e2c58a; color: #1b2230; font: 700 10px/1.6 system-ui, sans-serif; letter-spacing: .08em; }
