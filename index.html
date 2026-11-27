@@ -421,6 +421,8 @@
   <script type="text/scholar-app" data-cloud-src="guides/table-layout.js"></script>
   <script type="text/scholar-app" data-lazy="guides" data-cloud-src="guides/guides.js"></script>
 <link rel="stylesheet" href="ama/ama.css">
+<link rel="stylesheet" href="ladou/ladou.css">
+<script type="text/scholar-app" data-lazy="ladou" data-cloud-src="ladou/ladou.js"></script>
 <link rel="stylesheet" href="ama/form-reader.css">
   <script type="text/scholar-app" data-lazy="ama" data-cloud-src="ama/form-reader.js"></script>
   <script type="text/scholar-app" data-lazy="ama" data-cloud-src="ama/field-overlay.js"></script>
@@ -483,10 +485,6 @@ body[data-game="health"] #game-main, body[data-game="health"] #wordle-toolbar,
 body[data-game="ama"] #game-main, body[data-game="ama"] #wordle-toolbar,
 body[data-game="review"] #game-main, body[data-game="review"] #wordle-toolbar, body[data-game="notes"] #game-main, body[data-game="notes"] #wordle-toolbar,
 body[data-game="ladou"] #game-main, body[data-game="ladou"] #wordle-toolbar { display: none !important; }
-.ladou-app { max-width: 920px; margin: 0 auto; padding: 28px 24px 60px; }
-.ladou-empty { padding: 28px; border: 1px solid rgba(255,255,255,.12); border-radius: 22px; background: rgba(255,255,255,.035); }
-.ladou-empty h1 { margin: 0 0 8px; font: 600 24px/1.3 system-ui, sans-serif; color: #f1f5f9; }
-.ladou-empty p { margin: 0; color: rgba(255,255,255,.55); }
 .sg-nav-shell, .sg-app { --sg-edge: rgba(255,255,255,.16); --sg-muted: rgba(255,255,255,.5); --sg-blue: #a9c8ff; color: #f1f5f9; }
 .sg-nav-shell { position: relative; z-index: 22; border-bottom: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.025); backdrop-filter: blur(24px) saturate(180%); }
 .sg-nav-inner { max-width: 1200px; min-height: 62px; margin: auto; padding: 10px 24px; display: flex; align-items: center; justify-content: center; position: relative; }
@@ -799,7 +797,7 @@ body[data-game="ladou"] #game-main, body[data-game="ladou"] #wordle-toolbar { di
   <main id="health-panel" class="sg-app hx-app" role="tabpanel" aria-labelledby="game-tab-health" hidden></main>
   <main id="calculator-panel" class="sg-app" role="tabpanel" aria-labelledby="game-tab-calculator" hidden></main>
   <main id="ilo-panel" class="sg-app" role="tabpanel" aria-labelledby="study-section-ilo" hidden><p>正在載入ILO教材…</p></main>
-  <main id="ladou-panel" class="sg-app ladou-app" role="tabpanel" aria-labelledby="study-section-ladou" hidden><section class="ladou-empty"><h1>LaDou</h1><p>尚無內容。</p></section></main>
+  <main id="ladou-panel" class="sg-app ladou-app" role="tabpanel" aria-labelledby="study-section-ladou" hidden></main>
   <main id="notes-panel" class="sg-app nt-app" role="tabpanel" aria-labelledby="study-section-notes" hidden></main>
   <main id="review-panel" class="sg-app rv-app" role="tabpanel" aria-labelledby="study-section-review" hidden>
     <p class="rv-message" role="status">正在載入複習信全文…</p>
@@ -3219,6 +3217,7 @@ body[data-game="ladou"] #game-main, body[data-game="ladou"] #wordle-toolbar { di
     if(game === 'calculator' && window.ScholarCalculator)window.ScholarCalculator.show();
     by('ilo-panel').hidden = game !== 'ilo';
     by('ladou-panel').hidden = game !== 'ladou';
+    if(game === 'ladou' && window.ScholarLadou)window.ScholarLadou.show();
     if(game === 'ilo' && window.ScholarILO)window.ScholarILO.show();
     else if(window.ScholarILO)window.ScholarILO.hide();
     by('notes-panel').hidden = game !== 'notes';
