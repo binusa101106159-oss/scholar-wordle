@@ -2,6 +2,41 @@
   "version": 1,
   "chapters": [
     {
+      "id": "c01",
+      "label": "Chapter 1",
+      "title": "The Practice of Occupational Medicine",
+      "pages": 6,
+      "file": "ladou/c01-036a44f37dea3879.json"
+    },
+    {
+      "id": "c02",
+      "label": "Chapter 2",
+      "title": "The Occupational & Environmental Medical History",
+      "pages": 8,
+      "file": "ladou/c02-9c29a0a38525782e.json"
+    },
+    {
+      "id": "c03",
+      "label": "Chapter 3",
+      "title": "Workers’ Compensation",
+      "pages": 10,
+      "file": "ladou/c03-34cb777fe1d2ec09.json"
+    },
+    {
+      "id": "c04",
+      "label": "Chapter 4",
+      "title": "Ethics in Occupational Medicine",
+      "pages": 6,
+      "file": "ladou/c04-a0fb6b0ca9eaa90e.json"
+    },
+    {
+      "id": "c05",
+      "label": "Chapter 5",
+      "title": "Disability Management & Prevention",
+      "pages": 11,
+      "file": "ladou/c05-862ff051230f9d15.json"
+    },
+    {
       "id": "appendix-a",
       "label": "Appendix A",
       "title": "Biostatistics & Epidemiology",

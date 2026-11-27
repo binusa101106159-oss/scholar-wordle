@@ -1,5 +1,27 @@
 # LaDou Appendix A import
 
+## First chapter batch (chapters 1–5)
+
+`python tools/ladou-build/import_chapters.py <folder>` imports the five exactly
+named user files. This batch adds 41 source pages (including the blank printed
+tail page 6 in Chapter 1), 82 headings, four tables and one original figure.
+All 1,447 visible body lines are matched against the generated HTML. No missing
+formula or spinner was found in this batch. Figure 2–1 has its source caption
+on PDF p.1 and its image on p.2; the reader places the complete original image
+with that caption and records both source pages. Table 2–1 is a one-column
+questionnaire, so it is transcribed as indented paragraphs, not an empty grid.
+
+The chapter selector stays compact rather than adding one sidebar card per
+chapter. Page targets derive from each chapter's IDs; reading positions and
+highlights are isolated by chapter. Storage still uses the existing account
+store: guest state is memory-only and resets on reload. This change adds no
+patient disk cache or authentication changes.
+
+`python tools/ladou-build/batch-browser.py` verifies all five chapters in three
+engines at desktop/mobile sizes, all new objects, chapter word/page search,
+separate marks and reading positions, and clean guest reload. Private source
+PDFs, contact sheets and audit logs remain under `.local/` or Downloads.
+
 Scope: the user-supplied `Appendix A Biostatistics & Epidemiology.pdf`, LaDou 6e,
 30 consecutive PDF pages. Original PDF is private input, never a public asset.
 

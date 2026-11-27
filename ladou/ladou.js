@@ -35,7 +35,8 @@
       for(const node of nodes(root)){const start=Math.max(0,m.start-offset),end=Math.min(node.length,m.end-offset);offset+=node.length;if(end>start){const r=document.createRange();r.setStart(node,start);r.setEnd(node,end);const span=document.createElement('mark');span.className='ld-saved-mark';r.surroundContents(span);}}
     }
   }
-  function remember(){if(!data||by('ladou-panel').hidden)return;const box=by('ld-scroll').getBoundingClientRect();const page=[...by('ld-document').querySelectorAll('.ld-page')].find(el=>el.getBoundingClientRect().bottom>box.top+30);if(page){saved.chapter=current;saved.page=Number(page.dataset.page);persist();}}
+  function remember(){if(!data||by('ladou-panel').hidden)return;const box=by('ld-scroll').getBoundingClientRect();const page=[...by('ld-document').querySelectorAll('.ld-page')].find(el=>el.getBoundingClientRect().bottom>box.top+30);if(page){saved.chapter=current;saved.page=Number(page.dataset.page);saved.positions||={};saved.positions[current]=saved.page;persist();}}
+  function pageId(number){return data.pages.find(p=>p.number===number)?.id;}
   function jump(id){const el=by(id);if(!el)return;el.scrollIntoView({block:'start',behavior:'instant'});if(compact.matches){side('left',false);side('right',false);}remember();}
   function renderToc(){
     const q=by('ld-toc-search').value.trim().toLocaleLowerCase();
@@ -51,23 +52,26 @@
     by('ld-object-list').innerHTML=data.objects.filter(o=>o.kind===kind).map(o=>`<button type="button" class="ld-object-link" data-ld-object="${escape(o.id)}"><strong>${escape(o.label)}</strong>${escape(o.title)}<small>p.${o.page}</small></button>`).join('')||'<p>本章沒有此類圖表。</p>';
   }
   async function loadChapter(id,restore=true){
+    if(data&&current!==id)remember();
     const ticket=++request;status('正在載入…');const chapter=manifest.chapters.find(c=>c.id===id)||manifest.chapters[0];
     try{
       const response=await fetch(chapter.file);if(!response.ok)throw Error('content unavailable');const next=await response.json();if(ticket!==request)return;
-      current=chapter.id;data=next;searchRanges=[];active=-1;customHighlight('ld-search',[]);customHighlight('ld-active',[]);
+      current=chapter.id;data=next;if(!data.objects.some(o=>o.kind===kind))kind=data.objects.some(o=>o.kind==='table')?'table':data.objects.some(o=>o.kind==='figure')?'figure':'table';searchRanges=[];active=-1;customHighlight('ld-search',[]);customHighlight('ld-active',[]);
       by('ld-document').innerHTML=`<header><h1>${escape(next.label)}: ${escape(next.title)}</h1><p>${escape(next.author)} · LaDou 6e</p></header>`+next.pages.map(p=>`<section class="ld-page" id="${escape(p.id)}" data-page="${p.number}"><span class="ld-page-number">PDF p.${p.number} / ${next.pages.length}</span><div class="ld-page-content" id="${escape(p.id)}-content">${p.html}</div></section>`).join('');
-      by('ld-chapters').innerHTML=manifest.chapters.map(c=>`<button type="button" class="ld-chapter" data-ld-chapter="${escape(c.id)}" aria-current="${c.id===current?'true':'false'}">${escape(c.label)}<small>${escape(c.title)} · ${c.pages} 頁</small></button>`).join('');
-      by('ld-page-number').max=next.pages.length;by('ld-page-number').value=restore?saved.page||1:1;by('ld-find-count').textContent='';
+      by('ld-chapters').innerHTML=`<select id="ld-chapter-select" aria-label="選擇 LaDou 章節">${manifest.chapters.map(c=>`<option value="${escape(c.id)}"${c.id===current?' selected':''}>${escape(c.label)} · ${escape(c.title)}</option>`).join('')}</select><p class="ld-chapter-title">${escape(chapter.title)}<small>${chapter.pages} 頁</small></p>`;
+      by('ld-chapter-select').onchange=e=>{const id=e.target.value;if(compact.matches)side('left',false);loadChapter(id,false);};
+      const previous=Math.max(1,Math.min(next.pages.length,saved.positions?.[current]||(restore&&saved.chapter===current?saved.page:1)||1));
+      by('ld-page-number').max=next.pages.length;by('ld-page-number').value=previous;by('ld-find-count').textContent='';
       renderToc();renderObjects();applySettings();linkReferences();paintSaved();
-      const previous=restore?saved.page||1:1;by('ld-scroll').scrollTop=0;
-      requestAnimationFrame(()=>{if(previous>1)jump(`a-page-${previous}`);});
+      by('ld-scroll').scrollTop=0;saved.chapter=current;persist();
+      requestAnimationFrame(()=>{if(previous>1)jump(pageId(previous));});
       observer?.disconnect();observer=new IntersectionObserver(entries=>{if(pageEditing)return;for(const e of entries)if(e.isIntersecting)by('ld-page-number').value=e.target.dataset.page;},{root:by('ld-scroll'),rootMargin:'0px 0px -75% 0px'});
       by('ld-document').querySelectorAll('.ld-page').forEach(el=>observer.observe(el));status('');
     }catch(_){if(ticket===request){status('內容載入失敗，請重試。');const b=document.createElement('button');b.type='button';b.textContent='重試';b.onclick=()=>loadChapter(id,restore);by('ld-status').append(b);}}
   }
   function linkReferences(){
     for(const node of nodes(by('ld-document'))){if(node.parentElement.closest('button,a,figcaption,h1,h2,h3,h4,h5,h6'))continue;
-      const re=/(Table|Figure) A[–-](\d+)/g;let match,from=0,fragment=null;
+      const re=/(Table|Figure) (?:[A-Z]|\d+)[–-]\d+/g;let match,from=0,fragment=null;
       while((match=re.exec(node.data))){const object=data.objects.find(o=>o.label.replace(/–/g,'-')===match[0].replace(/–/g,'-'));if(!object)continue;
         fragment||=document.createDocumentFragment();fragment.append(node.data.slice(from,match.index));const a=document.createElement('a');a.href='#'+object.id;a.dataset.ldObject=object.id;a.textContent=match[0];fragment.append(a);from=match.index+match[0].length;
       }if(fragment){fragment.append(node.data.slice(from));node.replaceWith(fragment);}
@@ -96,7 +100,7 @@
     tocTools.addEventListener('click',e=>{const button=e.target.closest('[data-ld-expand]');if(!button)return;by('ld-toc-search').value='';saved.expanded=button.dataset.ldExpand==='true'?data.outline.map(h=>h.id):[];persist();renderToc();});
     for(const k of ['font','line','width','face']){const el=by('ld-'+k);el.value=saved[k]||({font:18,line:1.85,width:'reading',face:'sans'})[k];el.onchange=()=>{saved[k]=el.value;applySettings();persist();};}
     by('ld-page-number').oninput=()=>{pageEditing=true;};
-    by('ld-page-form').onsubmit=e=>{e.preventDefault();const number=Math.max(1,Math.min(data.pages.length,Number(by('ld-page-number').value)||1));pageEditing=false;by('ld-page-number').value=number;jump(`a-page-${number}`);};
+    by('ld-page-form').onsubmit=e=>{e.preventDefault();const number=Math.max(1,Math.min(data.pages.length,Number(by('ld-page-number').value)||1));pageEditing=false;by('ld-page-number').value=number;jump(pageId(number));};
     by('ld-search-form').onsubmit=e=>{e.preventDefault();search();};by('ld-find').addEventListener('input',()=>{if(!by('ld-find').value)search();});by('ld-find-prev').onclick=()=>moveFind(-1);by('ld-find-next').onclick=()=>moveFind(1);
     by('ld-document').addEventListener('pointerup',captureSelection);document.addEventListener('selectionchange',()=>{if(!by('ladou-panel').hidden)captureSelection();});
     by('ld-mark').addEventListener('pointerdown',e=>{captureSelection();e.preventDefault();});by('ld-mark').onclick=()=>{if(!selection){status('請先選取同一頁內要畫線的文字。');return;}marks[current]||=[];marks[current].push({...selection});saveMarks();paintSaved();status('已畫線');};

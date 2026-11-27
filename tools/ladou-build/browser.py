@@ -25,6 +25,9 @@ def main():
                     page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
                     page.route('https://www.gstatic.com/firebasejs/**',lambda r:r.abort())
                     page.goto(base+'#ladou');page.locator('.ld-page').last.wait_for(timeout=30000)
+                    if page.locator('#ld-chapter-select').input_value()!='appendix-a':
+                        if width<1200:page.locator('#ld-menu').click()
+                        page.locator('#ld-chapter-select').select_option('appendix-a');page.locator('#a-page-30').wait_for(state='attached')
                     assert page.locator('.ld-page').count()==30
                     assert page.locator('.ld-object').count()==21
                     assert page.locator('.ld-figure').count()==4
