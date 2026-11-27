@@ -705,12 +705,16 @@
   };
   const INKS = [['#f1f5f9', '白'], ['#e8e2d4', '米白'], ['#f3e3b5', '暖黃'], ['#cbd5e1', '淺灰'], ['#bfe3d0', '淡綠'], ['#c7d7f5', '淡藍']];
   const WEIGHTS = [[300, '細'], [400, '標準'], [500, '中粗'], [700, '粗']];
-  const DEFAULT_STYLE = { size: 15.5, lead: 1.95, font: 'sans', weight: 400, ink: '#f1f5f9', width: 860 };
+  const DEFAULT_STYLE = { size: 15.5, lead: 1.95, font: 'sans', weight: 400, ink: '#f1f5f9', width: 1120 };
+  // 版面寬度 1120 = 填滿 (the text uses all the width beside the sidebar). 860 was the old default: someone who never
+  // moved the slider gets 填滿 too; once the slider is moved (widthSet) their choice stands.
+  const FILL_WIDTH = 1120;
+  const widthLabel = w => w >= FILL_WIDTH ? '填滿' : w + ' px';
   // shared by the 法規 and 特做 readers
   const READ_STORE = 'scholar-reading-v1';
   function readPrefs() { try { return JSON.parse(window.ScholarStorage.getItem(READ_STORE)) || {}; } catch (_) { return {}; } }
   function setReadPrefs(patch) { try { window.ScholarStorage.setItem(READ_STORE, JSON.stringify(Object.assign(readPrefs(), patch))); } catch (_) { /* private mode */ } }
-  function style() { return Object.assign({}, DEFAULT_STYLE, prefs().style, readPrefs().style); }
+  function style() { const st = Object.assign({}, DEFAULT_STYLE, prefs().style, readPrefs().style); if (st.width === 860 && !readPrefs().widthSet) st.width = FILL_WIDTH; return st; }
   function applyStyle() {
     const st = style();
     const targets = [by('health-panel'), by('hx-att')].filter(Boolean);
@@ -720,7 +724,7 @@
       el.style.setProperty('--hx-font', (FONTS[st.font] || FONTS.sans).css);
       el.style.setProperty('--hx-weight', st.weight);
       el.style.setProperty('--hx-ink', st.ink);
-      el.style.setProperty('--hx-width', st.width + 'px');
+      el.style.setProperty('--hx-width', st.width >= FILL_WIDTH ? '100%' : st.width + 'px');
     });
   }
 
@@ -881,7 +885,7 @@
       body =
         '<div class="hx-field"><div class="hx-field-head"><span>字級</span><b>' + st.size + ' px</b></div><input type="range" min="13" max="24" step="0.5" value="' + st.size + '" data-range="size" aria-label="字級"></div>' +
         '<div class="hx-field"><div class="hx-field-head"><span>行距</span><b>' + st.lead + '</b></div><input type="range" min="1.5" max="2.6" step="0.05" value="' + st.lead + '" data-range="lead" aria-label="行距"></div>' +
-        '<div class="hx-field hx-wide-only"><div class="hx-field-head"><span>版面寬度</span><b>' + st.width + ' px</b></div><input type="range" min="560" max="1100" step="20" value="' + st.width + '" data-range="width" aria-label="版面寬度"></div>' +
+        '<div class="hx-field hx-wide-only"><div class="hx-field-head"><span>版面寬度</span><b>' + widthLabel(st.width) + '</b></div><input type="range" min="560" max="1120" step="20" value="' + st.width + '" data-range="width" aria-label="版面寬度"></div>' +
         '<div class="hx-field"><div class="hx-field-head"><span>字型</span></div>' + chips('font', Object.entries(FONTS).map(([k, f]) => [k, '<span style="font-family:' + f.css.replace(/"/g, '&quot;') + '">' + f.label + '</span>']), st.font) + '</div>' +
         '<div class="hx-field"><div class="hx-field-head"><span>粗細</span></div>' + chips('weight', WEIGHTS.map(([w, l]) => [w, '<span class="hx-w" style="--w:' + w + '">' + l + '</span>']), st.weight) + '</div>' +
         '<div class="hx-field"><div class="hx-field-head"><span>文字顏色</span></div><div class="hx-chiprow">' +
@@ -942,7 +946,7 @@
     });
     panel.addEventListener('input', e => {
       const r = e.target.closest('[data-range]');
-      if (r) { setStyle({ [r.dataset.range]: Number(r.value) }); const b = r.parentElement.querySelector('b'); if (b) b.textContent = r.value + (r.dataset.range === 'lead' ? '' : ' px'); return; }
+      if (r) { if (r.dataset.range === 'width') setReadPrefs({ widthSet: true }); setStyle({ [r.dataset.range]: Number(r.value) }); const b = r.parentElement.querySelector('b'); if (b) b.textContent = r.dataset.range === 'width' ? widthLabel(Number(r.value)) : r.value + (r.dataset.range === 'lead' ? '' : ' px'); return; }
       if (e.target.matches('[data-color-pick]')) setStyle({ ink: e.target.value });
     });
     panel.addEventListener('change', async e => {

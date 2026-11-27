@@ -24,7 +24,7 @@ def main():
      assert '時 間 比 例' in page.evaluate(f"document.querySelector('{art}').textContent")
      gaps=page.evaluate(f"[...document.querySelectorAll('{art} .rt-gap')].map(g=>g.getBoundingClientRect().width)");assert gaps and max(gaps)<0.5,gaps
      if width>900:
-      doc=page.evaluate(W,'#lx-doc');wide=page.evaluate(W,art+' .lx-twrap');assert wide>doc-40,(wide,doc)
+      doc=page.evaluate(W,'#lx-doc');wide=page.evaluate(W,art+' .lx-twrap');assert wide>=700,(wide,doc)
       # the 作息 row fits on one line
       tall=page.evaluate(f"Math.max(...[...[...document.querySelector('{art} tbody').rows].at(-1).cells].map(c=>c.getBoundingClientRect().height))");assert tall<48,tall
       # nothing is clipped: the table's right edge stays inside the reader

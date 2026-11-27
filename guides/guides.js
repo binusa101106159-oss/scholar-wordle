@@ -128,13 +128,69 @@
     if (b.hang) s.push('text-indent:' + b.hang + 'em');
     return s.length ? ' style="' + s.join(';') + '"' : '';
   }
-  /* opts: { inCell, anchor: gid (body blocks get ids), card: true inside the 表/圖 window } */
+  /* The printed 目錄 at the start of some guides (dot leaders and page numbers from the PDF) is shown as a tidy
+     contents list: entries without leaders or page numbers, each opening its section, 附表 or 圖. Display only:
+     block ids stay the same, and these blocks are left out of the 章節 menu. */
+  const LEADER = /[.…．·‧・]{3,}\s*\d+/;
+  const plain = t => String(t || '').normalize('NFKC').replace(/\s+/g, '');
+  function tocRange(blocks) {
+    const first = blocks.slice(0, 40).findIndex(b => (b.t === 'p' || b.t === 'h') && LEADER.test(b.text || ''));
+    if (first < 0) return null;
+    let start = first, end = first;
+    if (first > 0 && plain(blocks[first - 1].text) === '目錄') start = first - 1;
+    for (let k = first + 1; k < blocks.length; k++) {
+      const b = blocks[k], t = b.text || '';
+      if ((b.t === 'p' || b.t === 'h') && LEADER.test(t)) { end = k; continue; }
+      // an entry printed without leaders («附錄四、… 30») between two leader lines
+      if ((b.t === 'p' || b.t === 'h') && /\s\d+$/.test(t) && k + 1 < blocks.length && LEADER.test(blocks[k + 1].text || '')) { end = k; continue; }
+      break;
+    }
+    if (end - first < 2) return null;
+    const targets = new Map();
+    for (let k = end + 1; k < blocks.length; k++) if (blocks[k].t === 'h' && !targets.has(plain(blocks[k].text))) targets.set(plain(blocks[k].text), k);
+    return { start, end, targets, history: end + 1 < blocks.length && /號公告(?:訂定|修正)/.test(blocks[end + 1].text || '') ? end + 1 : -1 };
+  }
+  function tocEntries(text) {
+    const out = []; let last = 0, m;
+    const re = /(.*?)\s*[.…．·‧・]{3,}\s*(\d+)/g;
+    while ((m = re.exec(text))) { out.push({ from: m.index + (m[0].length - m[0].trimStart().length), label: m[1].trim() }); last = re.lastIndex; }
+    if (!out.length) { const n = text.match(/^(.*?)\s+\d+$/); return { entries: [{ from: 0, label: n ? n[1].trim() : text.trim() }], tail: '' }; }
+    return { entries: out, tail: text.slice(last).trim() };
+  }
+  function tocItemHTML(b, k, toc, terms, aid) {
+    const { entries, tail } = tocEntries(b.text || '');
+    const lv = b.ind > 0 && b.ind <= 3 ? ' gx-toc-sub' : '';
+    const items = entries.map(e => {
+      const links = (b.links || []).filter(l => l[0] >= e.from && l[1] <= e.from + e.label.length).map(l => [l[0] - e.from, l[1] - e.from, l[2]]);
+      const target = toc.targets.get(plain(e.label));
+      const label = links.length ? rich(e.label, links, terms) : esc(e.label);
+      return '<span class="gx-toc-item' + lv + '">' + (target != null && !links.length ? '<button type="button" class="gx-toc-go" data-goto="' + target + '">' + rich(e.label, null, terms) + '</button>' : label) + '</span>';
+    }).join('');
+    return { html: '<div class="gx-toc-row"' + aid + '>' + items + '</div>', tail };
+  }
+  /* opts: { inCell, anchor: gid (body blocks get ids), card: true inside the 表/圖 window, toc: tocRange() } */
   function blocksHTML(blocks, terms, opts = {}) {
     const out = [];
     let figure = null;           // consecutive pictures of one figure sit side by side
     const flush = () => { if (figure) { out.push('<div class="gx-fig">' + figure.join('') + '</div>'); figure = null; } };
     blocks.forEach((b, k) => {
       const aid = opts.anchor ? ' id="gx-b-' + opts.anchor + '-' + k + '"' : '';
+      const toc = opts.toc;
+      if (toc && k >= toc.start && k <= toc.end) {
+        flush();
+        if (k === toc.start) out.push('<nav class="gx-toc" aria-label="目錄"><p class="gx-toc-title">目錄</p><div class="gx-toc-list">');
+        if (k === toc.start && plain(b.text) === '目錄') { out.push('<span hidden' + aid + '></span>'); return; }
+        const item = tocItemHTML(b, k, toc, terms, aid);
+        out.push(item.html);
+        if (k === toc.end) { out.push('</div></nav>'); if (item.tail) out.push('<p class="gx-toc-doc-title">' + rich(item.tail, null, terms) + '</p>'); }
+        return;
+      }
+      if (toc && k === toc.history) {
+        // 公告 history printed as one run: one 公告 per line, centred under the title
+        const parts = (b.text || '').split(/(?<=號公告(?:訂定|修正))/).map(x => x.trim()).filter(Boolean);
+        out.push('<p class="gx-toc-history"' + aid + '>' + parts.map(x => '<span>' + rich(x, null, terms) + '</span>').join('') + '</p>');
+        return;
+      }
       if (b.t === 'img' && b.scan) {
         flush();
         out.push('<div class="gx-scan"' + aid + '>' + b.img.map(im => '<img src="' + BASE + 'attach/img/' + im.src + '" width="' + Math.round(im.w * 1.4) + '" height="' + Math.round(im.h * 1.4) + '" alt="原頁影像" loading="lazy" decoding="async">').join('') + '</div>');
@@ -604,14 +660,15 @@
     if (meta.attach.length) {
       html += '<div class="gx-chips">' + meta.attach.map(a => '<button type="button" class="gx-chip" data-att="' + a.id + '">' + esc(a.label) + (a.title ? '<span>' + esc(a.title) + '</span>' : '') + '</button>').join('') + '</div>';
     }
-    html += '</div><div class="gx-body">' + (scanView ? blocksHTML(guide.pages, terms) : blocksHTML(guide.blocks, terms, { anchor: guide.id })) + '</div>';
+    html += '</div><div class="gx-body">' + (scanView ? blocksHTML(guide.pages, terms) : blocksHTML(guide.blocks, terms, { anchor: guide.id, toc: tocRange(guide.blocks) })) + '</div>';
     by('gx-doc').innerHTML = html;
     window.ScholarReaderTables?.sync('gx');
     const conclusion = scanView ? -1 : guide.blocks.findIndex(b => b.t === 'h' && /^(?:第?[一二三四五六七八九十百壹貳參叁肆伍陸柒捌玖拾0-9]+(?:章|節)?[、.．:：)）]?)?(?:結論|總結)|[(（](?:結論|總結)[)）]$/.test((b.text || '').normalize('NFKC').replace(/\s+/g, '')));
     by('gx-conclusion').hidden = conclusion < 0;
     if (conclusion >= 0) by('gx-conclusion').dataset.block = String(conclusion);
     else delete by('gx-conclusion').dataset.block;
-    const chapters = scanView ? [] : guide.blocks.map((b, k) => b.t === 'h' ? { id: 'gx-b-' + guide.id + '-' + k, text: b.text, lv: b.lv } : null).filter(Boolean);
+    const tocInDoc = scanView ? null : tocRange(guide.blocks);
+    const chapters = scanView ? [] : guide.blocks.map((b, k) => b.t === 'h' && !(tocInDoc && k >= tocInDoc.start && k <= tocInDoc.end) ? { id: 'gx-b-' + guide.id + '-' + k, text: b.text, lv: b.lv } : null).filter(Boolean);
     const sel = by('gx-chapters');
     sel.hidden = !chapters.length;
     sel.innerHTML = '<option value="">章節</option>' + chapters.map(c => '<option value="' + c.id + '">' + '　'.repeat(c.lv - 1) + esc(c.text.replace(/\s+/g, ' ')) + '</option>').join('');
@@ -683,12 +740,16 @@
   };
   const INKS = [['#f1f5f9', '白'], ['#e8e2d4', '米白'], ['#f3e3b5', '暖黃'], ['#cbd5e1', '淺灰'], ['#bfe3d0', '淡綠'], ['#c7d7f5', '淡藍']];
   const WEIGHTS = [[300, '細'], [400, '標準'], [500, '中粗'], [700, '粗']];
-  const DEFAULT_STYLE = { size: 15.5, lead: 1.95, font: 'sans', weight: 400, ink: '#f1f5f9', width: 860 };
+  const DEFAULT_STYLE = { size: 15.5, lead: 1.95, font: 'sans', weight: 400, ink: '#f1f5f9', width: 1120 };
+  // 版面寬度 1120 = 填滿 (the text uses all the width beside the sidebar). 860 was the old default: someone who never
+  // moved the slider gets 填滿 too; once the slider is moved (widthSet) their choice stands.
+  const FILL_WIDTH = 1120;
+  const widthLabel = w => w >= FILL_WIDTH ? '填滿' : w + ' px';
   // shared by the 法規 and 指引 readers
   const READ_STORE = 'scholar-reading-v1';
   function readPrefs() { try { return JSON.parse(window.ScholarStorage.getItem(READ_STORE)) || {}; } catch (_) { return {}; } }
   function setReadPrefs(patch) { try { window.ScholarStorage.setItem(READ_STORE, JSON.stringify(Object.assign(readPrefs(), patch))); } catch (_) { /* private mode */ } }
-  function style() { return Object.assign({}, DEFAULT_STYLE, prefs().style, readPrefs().style); }
+  function style() { const st = Object.assign({}, DEFAULT_STYLE, prefs().style, readPrefs().style); if (st.width === 860 && !readPrefs().widthSet) st.width = FILL_WIDTH; return st; }
   function applyStyle() {
     const st = style();
     const targets = [by('guides-panel'), by('gx-att')].filter(Boolean);
@@ -698,7 +759,7 @@
       el.style.setProperty('--gx-font', (FONTS[st.font] || FONTS.sans).css);
       el.style.setProperty('--gx-weight', st.weight);
       el.style.setProperty('--gx-ink', st.ink);
-      el.style.setProperty('--gx-width', st.width + 'px');
+      el.style.setProperty('--gx-width', st.width >= FILL_WIDTH ? '100%' : st.width + 'px');
     });
   }
 
@@ -860,7 +921,7 @@
       body =
         '<div class="gx-field"><div class="gx-field-head"><span>字級</span><b>' + st.size + ' px</b></div><input type="range" min="13" max="24" step="0.5" value="' + st.size + '" data-range="size" aria-label="字級"></div>' +
         '<div class="gx-field"><div class="gx-field-head"><span>行距</span><b>' + st.lead + '</b></div><input type="range" min="1.5" max="2.6" step="0.05" value="' + st.lead + '" data-range="lead" aria-label="行距"></div>' +
-        '<div class="gx-field gx-wide-only"><div class="gx-field-head"><span>版面寬度</span><b>' + st.width + ' px</b></div><input type="range" min="560" max="1100" step="20" value="' + st.width + '" data-range="width" aria-label="版面寬度"></div>' +
+        '<div class="gx-field gx-wide-only"><div class="gx-field-head"><span>版面寬度</span><b>' + widthLabel(st.width) + '</b></div><input type="range" min="560" max="1120" step="20" value="' + st.width + '" data-range="width" aria-label="版面寬度"></div>' +
         '<div class="gx-field"><div class="gx-field-head"><span>字型</span></div>' + chips('font', Object.entries(FONTS).map(([k, f]) => [k, '<span style="font-family:' + f.css.replace(/"/g, '&quot;') + '">' + f.label + '</span>']), st.font) + '</div>' +
         '<div class="gx-field"><div class="gx-field-head"><span>粗細</span></div>' + chips('weight', WEIGHTS.map(([w, l]) => [w, '<span class="gx-w" style="--w:' + w + '">' + l + '</span>']), st.weight) + '</div>' +
         '<div class="gx-field"><div class="gx-field-head"><span>文字顏色</span></div><div class="gx-chiprow">' +
@@ -921,7 +982,7 @@
     });
     panel.addEventListener('input', e => {
       const r = e.target.closest('[data-range]');
-      if (r) { setStyle({ [r.dataset.range]: Number(r.value) }); const b = r.parentElement.querySelector('b'); if (b) b.textContent = r.value + (r.dataset.range === 'lead' ? '' : ' px'); return; }
+      if (r) { if (r.dataset.range === 'width') setReadPrefs({ widthSet: true }); setStyle({ [r.dataset.range]: Number(r.value) }); const b = r.parentElement.querySelector('b'); if (b) b.textContent = r.dataset.range === 'width' ? widthLabel(Number(r.value)) : r.value + (r.dataset.range === 'lead' ? '' : ' px'); return; }
       if (e.target.matches('[data-color-pick]')) setStyle({ ink: e.target.value });
     });
     panel.addEventListener('change', async e => {
