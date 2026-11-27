@@ -44,6 +44,27 @@
   games.forEach(tab=>{tab.hidden=true;});sync();
 })();
 
+/* Study sections use the same dropdown as minigames; keep the existing routes. */
+(() => {
+  'use strict';
+  const nav=document.getElementById('scholar-game-tabs'),button=document.getElementById('game-tab-study'),source=document.getElementById('study-nav');
+  if(!nav||!button||!source)return;
+  const tabs=[...source.querySelectorAll('[data-study-section]')];
+  const menu=document.createElement('div');menu.id='study-group-menu';menu.className='sg-games-menu';menu.hidden=true;menu.setAttribute('role','menu');menu.setAttribute('aria-label','職專');nav.parentElement.append(menu);
+  button.setAttribute('aria-haspopup','menu');button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls',menu.id);button.append(document.createTextNode(' ▾'));
+  const items=tabs.map(tab=>{const item=document.createElement('button');item.type='button';item.tabIndex=-1;item.dataset.studyMenu=tab.dataset.studySection;item.setAttribute('role','menuitemradio');item.textContent=tab.textContent.trim();item.onclick=()=>{tab.click();close();button.focus({preventScroll:true});};menu.append(item);return item;});
+  function close(){menu.hidden=true;button.setAttribute('aria-expanded','false');}
+  function position(){if(menu.hidden)return;const parent=nav.parentElement.getBoundingClientRect(),trigger=button.getBoundingClientRect(),edge=parseFloat(getComputedStyle(nav.parentElement).paddingRight)||12;menu.style.right='auto';menu.style.left=Math.max(edge,Math.min(trigger.left-parent.left,parent.width-edge-menu.offsetWidth))+'px';}
+  function open(last=false){menu.hidden=false;position();button.setAttribute('aria-expanded','true');(last?items.at(-1):items.find(i=>i.getAttribute('aria-checked')==='true')||items[0]).focus({preventScroll:true});}
+  function sync(){const selected=tabs.find(t=>t.getAttribute('aria-selected')==='true');items.forEach((item,i)=>item.setAttribute('aria-checked',String(tabs[i]===selected)));button.setAttribute('aria-label',document.body.dataset.game&&tabs.some(t=>t.dataset.studySection===document.body.dataset.game)?'職專：'+selected.textContent.trim():'職專');}
+  button.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();menu.hidden?open():close();},true);
+  button.addEventListener('keydown',e=>{if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();e.stopImmediatePropagation();open(e.key==='ArrowUp');}},true);
+  menu.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close();button.focus({preventScroll:true});return;}if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key))return;e.preventDefault();const i=items.indexOf(document.activeElement);(e.key==='Home'?items[0]:e.key==='End'?items.at(-1):items[(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length]).focus();});
+  document.addEventListener('pointerdown',e=>{if(!menu.contains(e.target)&&!button.contains(e.target))close();});document.addEventListener('focusin',e=>{if(!menu.contains(e.target)&&e.target!==button)close();});
+  new MutationObserver(sync).observe(source,{subtree:true,attributes:true,attributeFilter:['aria-selected']});new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['data-game']});
+  nav.addEventListener('scroll',position,{passive:true});window.addEventListener('resize',position);sync();
+})();
+
 /* Device-local ordering; move the existing buttons, never rebuild open pages. */
 (() => {
   'use strict';
@@ -89,6 +110,7 @@
   function begin(){
     if(!drag||drag.active)return;
     document.getElementById('game-group-menu').hidden=true;document.getElementById('game-group-button').setAttribute('aria-expanded','false');
+    document.getElementById('study-group-menu').hidden=true;document.getElementById('game-tab-study').setAttribute('aria-expanded','false');
     settling?.();settling=null;
     const d=drag,r=d.tab.getBoundingClientRect();d.active=true;d.width=r.width;d.height=r.height;d.offset=d.startX-r.left;d.top=r.top;d.previousScrollBehavior=nav.style.scrollBehavior;nav.style.scrollBehavior='auto';
     d.ghost=d.tab.cloneNode(true);d.ghost.removeAttribute('id');d.ghost.removeAttribute('data-game-tab');d.ghost.removeAttribute('data-game-group');d.ghost.removeAttribute('aria-describedby');d.ghost.setAttribute('aria-hidden','true');d.ghost.inert=true;d.ghost.tabIndex=-1;d.ghost.classList.add('sg-tab-drag-ghost');

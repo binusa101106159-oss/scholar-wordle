@@ -8,7 +8,8 @@
     while((index=source.indexOf(q,from))!==-1){matches.push([index,index+q.length]);from=index+q.length;}
     return matches;
   };
-  if(typeof module!=='undefined'&&module.exports)module.exports={findMatches};
+  function outlineTree(outline){const roots=[],stack=[];for(const heading of outline){const node={...heading,children:[]};while(stack.length&&stack.at(-1).level>=node.level)stack.pop();(stack.length?stack.at(-1).children:roots).push(node);stack.push(node);}return roots;}
+  if(typeof module!=='undefined'&&module.exports)module.exports={findMatches,outlineTree};
   if(typeof document==='undefined')return;
   const by=id=>document.getElementById(id),KEY='scholar-ladou-v1',MARKS='scholar-ladou-marks-v1';
   const compact=matchMedia('(max-width:1199px)');
@@ -38,7 +39,12 @@
   function jump(id){const el=by(id);if(!el)return;el.scrollIntoView({block:'start',behavior:'instant'});if(compact.matches){side('left',false);side('right',false);}remember();}
   function renderToc(){
     const q=by('ld-toc-search').value.trim().toLocaleLowerCase();
-    by('ld-contents').innerHTML=data.outline.filter(h=>!q||h.title.toLocaleLowerCase().includes(q)).map(h=>`<button type="button" class="ld-toc-link" data-ld-jump="${escape(h.id)}" data-level="${h.level}">${escape(h.title)}<small>p.${h.page}</small></button>`).join('')||'<p>找不到章節標題。</p>';
+    const expanded=new Set(saved.expanded||[]);
+    const matches=node=>node.title.toLocaleLowerCase().includes(q)||node.children.some(matches);
+    const link=h=>`<button type="button" class="ld-toc-link" data-ld-jump="${escape(h.id)}"><span>${escape(h.title)}</span><small>${h.page}</small></button>`;
+    const render=nodes=>nodes.filter(n=>!q||matches(n)).map(h=>h.children.length?`<details class="ld-toc-group" data-ld-group="${escape(h.id)}"${q||expanded.has(h.id)?' open':''}><summary><span class="ld-toc-chevron" aria-hidden="true">›</span>${link(h)}</summary><div class="ld-toc-children">${render(h.children)}</div></details>`:link(h)).join('');
+    by('ld-contents').innerHTML=render(outlineTree(data.outline))||'<p>找不到章節標題。</p>';
+    by('ld-contents').querySelectorAll('details').forEach(group=>group.addEventListener('toggle',()=>{if(!group.isConnected||by('ld-toc-search').value.trim())return;const state=new Set(saved.expanded||[]);group.open?state.add(group.dataset.ldGroup):state.delete(group.dataset.ldGroup);saved.expanded=[...state];persist();}));
   }
   function renderObjects(){
     for(const k of ['table','figure'])by('ld-kind-'+k).setAttribute('aria-selected',String(k===kind));
@@ -86,6 +92,8 @@
     side('left',!compact.matches);side('right',!compact.matches);
     by('ladou-panel').addEventListener('click',e=>{const object=e.target.closest('[data-ld-object]');if(object){e.preventDefault();openObject(object.dataset.ldObject);}const heading=e.target.closest('[data-ld-jump]');if(heading)jump(heading.dataset.ldJump);const chapter=e.target.closest('[data-ld-chapter]');if(chapter&&chapter.dataset.ldChapter!==current)loadChapter(chapter.dataset.ldChapter,false);});
     by('ld-toc-search').oninput=renderToc;by('ld-kind-table').onclick=()=>{kind='table';renderObjects();};by('ld-kind-figure').onclick=()=>{kind='figure';renderObjects();};
+    const tocTools=document.createElement('div');tocTools.className='ld-toc-tools';tocTools.innerHTML='<button type="button" data-ld-expand="true">全部展開</button><button type="button" data-ld-expand="false">全部收合</button>';by('ld-contents').before(tocTools);
+    tocTools.addEventListener('click',e=>{const button=e.target.closest('[data-ld-expand]');if(!button)return;by('ld-toc-search').value='';saved.expanded=button.dataset.ldExpand==='true'?data.outline.map(h=>h.id):[];persist();renderToc();});
     for(const k of ['font','line','width','face']){const el=by('ld-'+k);el.value=saved[k]||({font:18,line:1.85,width:'reading',face:'sans'})[k];el.onchange=()=>{saved[k]=el.value;applySettings();persist();};}
     by('ld-page-number').oninput=()=>{pageEditing=true;};
     by('ld-page-form').onsubmit=e=>{e.preventDefault();const number=Math.max(1,Math.min(data.pages.length,Number(by('ld-page-number').value)||1));pageEditing=false;by('ld-page-number').value=number;jump(`a-page-${number}`);};

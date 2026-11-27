@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const root=path.resolve(__dirname,'..');
 const index=JSON.parse(fs.readFileSync(path.join(root,'ladou/index.json'),'utf8'));
 const chapter=JSON.parse(fs.readFileSync(path.join(root,index.chapters[0].file),'utf8'));
-const {findMatches}=require('../ladou/ladou.js');
+const {findMatches,outlineTree}=require('../ladou/ladou.js');
 test('LaDou keeps all 30 source pages, numbered tables, figures and its final references',()=>{
  assert.deepEqual(chapter.pages.map(p=>p.number),Array.from({length:30},(_,i)=>i+1));
  for(const id of [1,2,3,4,5,6])assert.ok(chapter.objects.some(o=>o.label===`Table A–${id}`));
@@ -25,4 +25,10 @@ test('chapter word search handles literal special characters, repeated terms and
  assert.deepEqual(findMatches('Risk risk RISK','risk'),[[0,4],[5,9],[10,14]]);
  assert.deepEqual(findMatches('p < 0.05; [n/2]','[n/2]'),[[10,15]]);
  assert.deepEqual(findMatches('anything','  '),[]);
+});
+test('the collapsible outline preserves source order and attaches each section to its nearest parent',()=>{
+ const tree=outlineTree(chapter.outline),flat=nodes=>nodes.flatMap(n=>[n.id,...flat(n.children)]);
+ assert.deepEqual(flat(tree),chapter.outline.map(h=>h.id));
+ const bio=tree.find(h=>h.title==='I. BIOSTATISTICS');assert.ok(bio.children.some(h=>h.title==='DESCRIPTIVE STATISTICS'));
+ const epi=tree.find(h=>h.title==='II. EPIDEMIOLOGY');assert.ok(epi.children.some(h=>h.title==='SOURCES OF BIAS'));
 });

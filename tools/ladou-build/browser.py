@@ -80,7 +80,21 @@ def main():
                     page.locator('#ld-reading-settings summary').click();page.locator('#ld-font').select_option('20');page.locator('#ld-width').select_option('full');page.locator('#ld-reading-settings summary').click()
                     page.locator('#ld-page-number').fill('24');page.locator('#ld-page-form button').click()
                     page.wait_for_timeout(400);before=page.locator('#ld-scroll').evaluate('el=>el.scrollTop')
-                    page.locator('#study-section-ilo').click();page.locator('#study-section-ladou').click();assert page.locator('#ld-scroll').evaluate('el=>el.scrollTop')==before
+                    assert not page.locator('#study-nav').is_visible()
+                    page.locator('#game-tab-study').click();assert page.locator('#study-group-menu').is_visible()
+                    assert page.locator('#study-group-menu [role=menuitemradio]').count()==4
+                    assert page.locator('#ld-scroll').evaluate('el=>el.scrollTop')==before
+                    page.locator('[data-study-menu=ilo]').click();assert page.locator('#ilo-panel').is_visible()
+                    page.locator('#game-tab-study').click();page.locator('[data-study-menu=ladou]').click();assert page.locator('#ld-scroll').evaluate('el=>el.scrollTop')==before
+                    page.locator('#game-tab-study').focus();page.keyboard.press('ArrowDown');assert page.locator('#study-group-menu').is_visible();page.keyboard.press('Escape');assert not page.locator('#study-group-menu').is_visible()
+                    assert page.locator('#game-tab-study').evaluate('el=>el===document.activeElement')
+                    # Search expands matching ancestors; clear restores the compact hierarchy.
+                    page.locator('#ld-menu').click() if width<1200 else None
+                    assert page.locator('#ld-contents details:not([open])').count()>0
+                    page.locator('#ld-toc-search').fill('Median');assert page.locator('#ld-contents .ld-toc-link').filter(has_text='2. Median').is_visible()
+                    page.locator('#ld-toc-search').fill('');page.locator('[data-ld-expand=true]').click();assert page.locator('#ld-contents details:not([open])').count()==0
+                    page.locator('[data-ld-expand=false]').click();assert page.locator('#ld-contents details[open]').count()==0
+                    if width<1200:page.locator('#ld-close-left').click()
                     page.locator('#ld-page-number').fill('4');page.locator('#ld-page-form button').click();page.screenshot(path=str(out/f'{engine}-{width}.png'))
                     assert not errors,errors
                     results.append({'engine':engine,'width':width,'pages':30,'objectsOpened':len(ids)+17,'imagesDecoded':len(set(images)),'passed':True})

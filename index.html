@@ -3175,7 +3175,7 @@ body[data-game="ladou"] #game-main, body[data-game="ladou"] #wordle-toolbar { di
     if(updateURL)window.ScholarStorage.setItem('scholar-navigation-v1',JSON.stringify({hash:'#'+game}));
     const isStudy = game === 'review' || game === 'notes' || game === 'ilo' || game === 'ladou';
     if (isStudy) studySection = game;
-    by('study-nav').hidden = !isStudy;
+    by('study-nav').hidden = true;
     document.querySelectorAll('[data-study-section]').forEach(tab => {
       const active = tab.dataset.studySection === game;
       tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1;
