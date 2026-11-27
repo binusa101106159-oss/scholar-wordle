@@ -25,6 +25,7 @@
 
 /* Table shortcuts have their own scrolling column on wide readers. */
 .reader-table-rail{display:none}
+.reader-rail-open{display:none}
 .reader-object-tabs{display:flex;flex:none;gap:4px;padding:4px;border:1px solid #bdd8ff26;border-radius:12px;background:#ffffff05;margin:0 4px 12px}
 .reader-object-tabs>[role="tab"]{flex:1;min-height:40px;border:1px solid transparent;border-radius:9px;background:transparent;color:#b9c6d8;cursor:pointer;font:inherit}
 .reader-object-tabs>[aria-selected="true"]{border-color:#e2c58a60;background:#e2c58a18;color:#e2c58a}
@@ -73,6 +74,13 @@
   #ax-layout[data-table-rail="true"] #ax-table-shortcuts{display:none}
   .reader-table-rail:not([hidden]){display:flex;flex-direction:column;min-width:0;min-height:0;margin-bottom:18px;padding:16px 10px 10px;box-sizing:border-box;border:1px solid #bdd8ff26;border-radius:22px;background:linear-gradient(145deg,#c1dfff08,transparent 60%),#111923;box-shadow:inset 0 1px 0 #ffffff12}
   .reader-table-rail>h2{flex:none;margin:0 6px 14px;font:600 15px/1.5 system-ui,sans-serif;color:#c4d2e4}
+  .reader-table-rail:not(#ax-table-rail) .reader-table-heading{gap:6px;margin:0 0 10px 6px}.reader-table-rail:not(#ax-table-rail) .reader-table-heading>h2{flex:1;min-width:0;font:600 15px/1.5 system-ui,sans-serif}
+  .reader-rail-toggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;padding:7px;border:1px solid transparent;border-radius:10px;background:transparent;color:#cbd5e1;cursor:pointer}
+  .reader-rail-toggle:hover{color:#fff;background:#ffffff17}.reader-rail-toggle:focus-visible,.reader-rail-open:focus-visible{outline:2px solid #bcd8ff;outline-offset:1px}
+  .reader-rail-toggle svg,.reader-rail-open svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+  .reader-rail-open:not([hidden]){display:inline-flex;flex-direction:column;align-items:center;gap:6px;position:fixed;z-index:42;right:0;top:calc(var(--lx-top,var(--gx-top,var(--hx-top,var(--ax-top,62px)))) + 140px);width:32px;padding:8px 4px;border:1px solid #a9c8ff47;border-right:0;border-radius:12px 0 0 12px;background:#1d2736e6;color:#d5e4fa;box-shadow:-2px 3px 14px #0004;backdrop-filter:blur(18px);cursor:pointer;font:600 12px/1.25 system-ui,sans-serif}
+  .reader-rail-open span{writing-mode:vertical-rl;letter-spacing:.12em}
+  .reader-rail-open:hover{color:#fff;background:#273447f0}
   .reader-table-list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#bdd8ff40 transparent;display:flex;flex-direction:column;gap:8px;padding:2px 4px 8px}
   .reader-table-list>.reader-table-shortcut{flex:none;display:block;box-sizing:border-box;width:100%;max-width:none;min-height:44px;margin:0;padding:10px 12px;border:1px solid #e2c58a40;border-radius:14px;background:#e2c58a08;text-align:left;white-space:normal;overflow-wrap:anywhere;font-size:13px;line-height:1.6;color:#e2c58a;cursor:pointer}
   .reader-table-list>.reader-table-shortcut span{display:block;max-width:none;margin:3px 0 0;white-space:normal;overflow:visible;text-overflow:clip;color:#bac6d6;font-size:12px;line-height:1.6}
