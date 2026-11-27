@@ -128,6 +128,62 @@
     if (b.hang) s.push('text-indent:' + b.hang + 'em');
     return s.length ? ' style="' + s.join(';') + '"' : '';
   }
+  /* 職業病種類表 (and any other one-table document outside the categories): a search box over the table that lists the
+     matching 項目 as cards (類別／子分類 filled in from the merged cells); a card opens its row in the full table.
+     The cards are outside the document blocks, so highlights in the table are untouched. */
+  let odQuery = '';
+  const odNorm = t => String(t || '').normalize('NFKC').toLowerCase().replace(/[\s\-‐‑–]+/g, '');
+  function odEntries(t) {
+    const n = t.rows.length, grid = Array.from({ length: n }, () => []);
+    t.rows.forEach((row, i) => row.forEach(c => { for (let a = 0; a < c.rs && i + a < n; a++) for (let b = 0; b < c.cs; b++) grid[i + a][c.c + b] = c.text; }));
+    const out = [];
+    for (let i = t.head || 0; i < n; i++) {
+      const g = grid[i];
+      if (!/^\d+(?:\.\d+)+$/.test(g[2] || '')) continue;
+      const e = { row: i - (t.head || 0), cat: g[0] || '', sub: g[1] && g[1] !== g[0] ? g[1] : '', code: g[2], name: g[3] || '', agent: g[4] || '', scope: g[5] || '' };
+      e.key = odNorm([e.cat, e.sub, e.code, e.name, e.agent, e.scope].join(' '));
+      out.push(e);
+    }
+    return out;
+  }
+  function odMark(text, words) {
+    let html = esc(text);
+    for (const w of words) {
+      if (!w) continue;
+      const re = new RegExp('(' + esc(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      html = html.replace(re, '<mark class="gx-od-hit">$1</mark>');
+    }
+    return html;
+  }
+  function odSearch(entries) {
+    const box = by('gx-od-results'), count = by('gx-od-count'), q = odQuery.trim();
+    by('gx-doc').classList.toggle('gx-od-active', Boolean(q));
+    if (!q) { box.replaceChildren(); count.textContent = '共 ' + entries.length + ' 項，可搜尋名稱、物質、作業或項目編號'; return; }
+    const words = q.split(/\s+/), terms = words.map(odNorm).filter(Boolean);
+    const hits = entries.filter(e => terms.every(x => e.key.includes(x)));
+    count.textContent = hits.length ? '找到 ' + hits.length + ' 項' : '沒有符合的項目';
+    box.innerHTML = hits.map(e => '<button type="button" class="gx-od-card" data-od-row="' + e.row + '">' +
+      '<span class="gx-od-top"><span class="gx-od-code">' + odMark(e.code, words) + '</span><span class="gx-od-path">' + odMark(e.cat + (e.sub ? '／' + e.sub : ''), words) + '</span></span>' +
+      '<span class="gx-od-name">' + odMark(e.name, words) + '</span>' +
+      (e.agent ? '<span class="gx-od-line"><b>有害物質／因素</b>' + odMark(e.agent, words) + '</span>' : '') +
+      (e.scope ? '<span class="gx-od-line"><b>適用範圍</b>' + odMark(e.scope, words) + '</span>' : '') + '</button>').join('');
+  }
+  function odMount(guide) {
+    const table = guide.blocks.find(b => b.t === 'table');
+    if (!table || !by('gx-od-q')) return;
+    const entries = odEntries(table), input = by('gx-od-q');
+    input.value = odQuery;
+    let timer = 0;
+    input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { odQuery = input.value; odSearch(entries); }, 120); });
+    input.addEventListener('keydown', e => { if (e.key === 'Escape' && input.value) { e.preventDefault(); input.value = ''; odQuery = ''; odSearch(entries); } });
+    by('gx-od-results').addEventListener('click', e => {
+      const card = e.target.closest('[data-od-row]'); if (!card) return;
+      odQuery = ''; input.value = ''; odSearch(entries);
+      const tr = by('gx-doc').querySelectorAll('.gx-body .gx-table > tbody > tr')[Number(card.dataset.odRow)];
+      if (tr) { tr.classList.remove('gx-od-flash'); void tr.offsetWidth; tr.classList.add('gx-od-flash'); tr.scrollIntoView({ block: 'center' }); }
+    });
+    odSearch(entries);
+  }
   /* The printed 目錄 at the start of some guides (dot leaders and page numbers from the PDF) is shown as a tidy
      contents list: entries without leaders or page numbers, each opening its section, 附表 or 圖. Display only:
      block ids stay the same, and these blocks are left out of the 章節 menu. */
@@ -663,8 +719,12 @@
     if (meta.attach.length) {
       html += '<div class="gx-chips">' + meta.attach.map(a => '<button type="button" class="gx-chip" data-att="' + a.id + '">' + esc(a.label) + (a.title ? '<span>' + esc(a.title) + '</span>' : '') + '</button>').join('') + '</div>';
     }
+    const odBox = !scanView && meta.cat === 'top' && guide.blocks.filter(b => b.t === 'table').length === 1;
+    if (odBox) html += '<div class="gx-od-search"><label class="gx-od-field">' + icon.search + '<input id="gx-od-q" type="search" enterkeyhint="search" autocomplete="off" spellcheck="false" placeholder="搜尋職業病、物質、作業或編號（如 苯、鉛 肺、1.1.13）" aria-label="搜尋職業病種類表"></label><p id="gx-od-count" class="gx-od-count" aria-live="polite"></p><div id="gx-od-results" class="gx-od-results"></div></div>';
     html += '</div><div class="gx-body">' + (scanView ? blocksHTML(guide.pages, terms) : blocksHTML(guide.blocks, terms, { anchor: guide.id, toc: tocRange(guide.blocks) })) + '</div>';
     by('gx-doc').innerHTML = html;
+    by('gx-doc').classList.remove('gx-od-active');
+    if (odBox) odMount(guide);
     window.ScholarReaderTables?.sync('gx');
     const conclusion = scanView ? -1 : guide.blocks.findIndex(b => b.t === 'h' && /^(?:第?[一二三四五六七八九十百壹貳參叁肆伍陸柒捌玖拾0-9]+(?:章|節)?[、.．:：)）]?)?(?:結論|總結)|[(（](?:結論|總結)[)）]$/.test((b.text || '').normalize('NFKC').replace(/\s+/g, '')));
     by('gx-conclusion').hidden = conclusion < 0;
