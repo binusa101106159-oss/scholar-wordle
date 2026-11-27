@@ -42,7 +42,10 @@ test('guides follow the official order and numbering, one section per category',
     gs.forEach(g => assert.equal(g.no, order.indexOf(g.name) + 1, g.name));
   }
   // The five official categories keep their order, followed by the additional study categories.
-  assert.deepEqual(index.cats.filter(c => !c.parent).map(c => c.name), ['人因性危害', '化學性危害', '物理性危害', '生物性危害', '社會、心理性危害', '農保', '四大計畫']);
+  assert.deepEqual(index.cats.filter(c => !c.parent && c.id !== 'top').map(c => c.name), ['人因性危害', '化學性危害', '物理性危害', '生物性危害', '社會、心理性危害', '農保', '四大計畫']);
+  // 'top': documents outside every category (no name), listed above the groups
+  assert.deepEqual(index.cats.filter(c => c.id === 'top').map(c => c.name), ['']);
+  assert.deepEqual(index.guides.filter(g => g.cat === 'top').map(g => g.name), ['勞工職業災害保險職業病種類表']);
   assert.deepEqual(index.cats.filter(c => c.parent === 'farm').map(c => c.name), ['人因性', '化學性', '物理性', '生物性']);
   for (const g of index.guides) assert.ok(index.cats.some(c => c.id === g.cat), g.id);
   for (const c of index.cats) assert.ok(c.total >= index.guides.filter(g => g.cat === c.id).length, c.name);
@@ -54,12 +57,19 @@ test('every guide file loads, credits its source and has headings', () => {
   for (const meta of index.guides) {
     const g = read('text/' + meta.id + '.json');
     assert.equal(g.name, meta.name);
-    assert.match(g.credit, meta.cat.startsWith('farm-') || meta.cat === 'plans' ? /資料來源：使用者提供之「.+」PDF。/ : /勞動部職業安全衛生署.*政府資料開放授權條款第1版/);
+    assert.match(g.credit, meta.cat.startsWith('farm-') || meta.cat === 'plans' || meta.cat === 'top' ? /資料來源：使用者提供之「.+」PDF。/ : /勞動部職業安全衛生署.*政府資料開放授權條款第1版/);
     if (g.scan) {
       // a scanned PDF: one page picture per page, nothing retyped
       assert.equal(meta.scan, true, meta.name);
       assert.equal(g.blocks.length, meta.pages, meta.name);
       assert.ok(g.blocks.every(b => b.t === 'img' && b.scan), meta.name);
+      continue;
+    }
+    if (meta.cat === 'top') {
+      // 職業病種類表: one heading over one table that runs through all 19 pages (merged 類別／子分類 cells)
+      const t = g.blocks.filter(b => b.t === 'table');
+      assert.equal(t.length, 1, meta.name);assert.ok(t[0].rows.length >= 150, meta.name);
+      assert.ok(t[0].rows.flat().some(c => c.text === '1.1.01') && t[0].rows.flat().some(c => /^\d+\.\d+\.\d+$/.test(c.text)), meta.name);
       continue;
     }
     assert.ok(g.blocks.filter(b => b.t === 'h').length >= 5, meta.name);

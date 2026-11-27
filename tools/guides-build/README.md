@@ -64,3 +64,12 @@ python3 review.py farm-e farm-c farm-p farm-b plans           # serve the site o
 - Horizontal-rule tables treat repeated underlined codes as alignment hints, rather than inventing a column at each underline endpoint. Empty padding strips do not become columns merely because a heading spans them.
 - `guides/table-layout.js` preserves sparse column coordinates and keeps connected header rowspans in one HTML row group. `tests/guide-table-layout.cjs` checks all published native grids and the source hearing-table/ICD regressions.
 - When building into a staging folder, run `python reuse_images.py <staged-guides> <previous-guides>` before installing it. Pixel-identical PNGs reuse published filenames, preserving image quality while avoiding platform-dependent PNG encoding duplicates.
+
+## Documents outside every category (`top`)
+
+`top` is a category with no name: its documents are listed above the category groups in the reader, not inside one.
+`top01` 勞工職業災害保險職業病種類表 (the user's PDF, 19 pages, one table) is read from `STUDY_GUIDES_SRC/其他/`:
+
+```
+STUDY_GUIDES_SRC=/path/to/folder-with-其他 python3 build.py ../.. top01
+```

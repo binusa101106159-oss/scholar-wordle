@@ -452,8 +452,8 @@
   function guideButton(g, terms) {
     const n = g.attach.length;
     return '<button type="button" class="gx-guide" data-guide="' + g.id + '"' + (state.current && state.current.id === g.id ? ' aria-current="true"' : '') + '>' +
-      '<span class="gx-guide-no">' + g.no + '</span><span>' + (terms ? rich(g.name, null, terms) : esc(g.name)) + '</span>' +
-      '<span class="gx-guide-meta">' + (terms ? esc(catPath(g.cat)) + ' · ' : '') + g.pages + ' 頁' + (g.scan ? ' · 掃描影像' : g.ocr ? ' · 掃描轉文字' : '') + (n ? ' · ' + n + ' 個附件與表圖' : '') + '</span></button>';
+      (g.cat === 'top' ? '<span class="gx-guide-no gx-guide-doc" aria-hidden="true">表</span>' : '<span class="gx-guide-no">' + g.no + '</span>') + '<span>' + (terms ? rich(g.name, null, terms) : esc(g.name)) + '</span>' +
+      '<span class="gx-guide-meta">' + (terms && catPath(g.cat) ? esc(catPath(g.cat)) + ' · ' : '') + g.pages + ' 頁' + (g.scan ? ' · 掃描影像' : g.ocr ? ' · 掃描轉文字' : '') + (n ? ' · ' + n + ' 個附件與表圖' : '') + '</span></button>';
   }
   /* 農保／人因性: a category with its parents, for title hits listed outside the tree */
   function catPath(id) {
@@ -498,7 +498,10 @@
           (children.length ? '<div class="gx-subcats">' + children.map(categoryHTML).join('') + '</div>' :
             gs.length ? gs.map(guideButton).join('') : '<p class="gx-cat-empty">尚未收錄</p>') + '</div>';
       };
-      list.innerHTML = idx.cats.filter(c => !c.parent).map(categoryHTML).join('');
+      // documents outside every category (cat 'top', no name) sit above the groups, not inside one
+      const top = idx.guides.filter(g => g.cat === 'top');
+      list.innerHTML = (top.length ? '<div class="gx-top-list">' + top.map(g => guideButton(g)).join('') + '</div>' : '') +
+        idx.cats.filter(c => !c.parent && c.id !== 'top').map(categoryHTML).join('');
       return;
     }
     // 標題: guide names (no download needed); 內文: the full text. Until the reader picks one, titles show when any match.
@@ -651,7 +654,7 @@
     viewBtn.textContent = scanView ? '文字版' : '原頁掃描';
     viewBtn.setAttribute('aria-pressed', String(scanView));
     const cat = state.index.cats.find(c => c.id === meta.cat) || {};
-    let html = '<div class="gx-head sg-glass"><p class="sg-eyebrow">' + esc(cat.name || '') + ' · ' + meta.no + ' / ' + (cat.total || '') + '</p>' +
+    let html = '<div class="gx-head sg-glass"><p class="sg-eyebrow">' + (cat.name ? esc(cat.name) + ' · ' + meta.no + ' / ' + (cat.total || '') : '指引') + '</p>' +
       '<h1 class="gx-title">' + rich(guide.name, null, terms) + '</h1>' +
       guide.cover.map(c => '<p class="gx-cover">' + rich(c, null, terms) + '</p>').join('') +
       '<p class="gx-credit">' + esc(guide.credit) + '</p>' +

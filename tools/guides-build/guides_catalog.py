@@ -16,6 +16,8 @@ CATS = [
     ('farm-p', '物理性', '農保/物理性', '', 3),
     ('farm-b', '生物性', '農保/生物性', '', 9),
     ('plans', '四大計畫', '四大計劃', '', 4),
+    # Documents outside every category, listed above the category groups (the reader shows no group for 'top').
+    ('top', '', '其他', '', 1),
 ]
 
 GUIDES = [
@@ -227,12 +229,14 @@ OFFICIAL = {
 # User-supplied study documents; source filenames are preserved verbatim.
 GUIDES += [('farm-e01', 'farm-e', '手指骨關節炎導致手指變形認定參考指引', '(人因性)手指骨關節炎導致手指變形認定參考指引(pdf).pdf'), ('farm-e02', 'farm-e', '長期壓迫引起之關節滑囊病變認定參考指引', '長期壓迫引起之關節滑囊病變認定參考指引.pdf'), ('farm-c01', 'farm-c', '有機氯殺蟲劑引起之中毒及其續發症職業病認定參考指引', '(化學性)有機氯殺蟲劑引起之中毒及其續發症職業病認定參考指引(1).pdf'), ('farm-c02', 'farm-c', '有機磷化合物中毒之認定基準', '有機磷化合物中毒之認定基準.pdf'), ('farm-c03', 'farm-c', '氨基甲酸鹽類殺蟲劑引起之中毒及其續發症職業病認定參考指引', '氨基甲酸鹽類殺蟲劑引起之中毒及其續發症職業病認定參考指引.pdf'), ('farm-c04', 'farm-c', '甲醛中毒職業病認定參考指引', '甲醛中毒職業病認定參考指引.pdf'), ('farm-p01', 'farm-p', '紫外線暴露引發之皮膚鱗狀上皮細胞癌認定參考指引', '(物理性)紫外線暴露引發之皮膚鱗狀上皮細胞癌認定參考指引(pdf).pdf'), ('farm-p02', 'farm-p', '低溫引起農民職業病之認定參考指引', '低溫引起農民職業病之認定參考指引.pdf'), ('farm-p03', 'farm-p', '日射病（中暑）熱痙攣熱衰竭等疾病之認定參考指引', '日射病（中暑）熱痙攣熱衰竭等疾病之認定參考指引.pdf'), ('farm-b01', 'farm-b', '日本腦炎職業病認定參考指引', '日本腦炎職業病認定參考指引.pdf'), ('farm-b02', 'farm-b', '漢他病毒症候群之認定參考指引', '漢他病毒症候群之認定參考指引.pdf'), ('farm-b03', 'farm-b', '職業因素感染新型A型流感認定參考指引', '職業因素感染新型A型流感認定參考指引.pdf'), ('farm-b04', 'farm-b', '職業因素罹患恙蟲病之認定參考指引', '職業因素罹患恙蟲病之認定參考指引.pdf'), ('farm-b05', 'farm-b', '職業因素罹患豬丹毒、炭疽病、類鼻疽等疾病之認定參考指引', '職業因素罹患豬丹毒、炭疽病、類鼻疽等疾病之認定參考指引.pdf'), ('farm-b06', 'farm-b', '職業因素罹患黴菌性角膜疾病之認定參考指引', '職業因素罹患黴菌性角膜疾病之認定參考指引.pdf'), ('farm-b07', 'farm-b', '職業暴露鉤端螺旋體引起之疾病認定參考指引', '職業暴露鉤端螺旋體引起之疾病認定參考指引.pdf'), ('farm-b08', 'farm-b', '職業相關Q熱認定參考指引', '職業相關Q熱認定參考指引.pdf'), ('farm-b09', 'farm-b', '鉤蟲病職業病認定參考指引', '鉤蟲病職業病認定參考指引.pdf'), ('plans01', 'plans', '人因性危害預防計畫指引', '人因性危害預防計畫指引.pdf'), ('plans02', 'plans', '執行職務遭受不法侵害預防指引-第四版', '執行職務遭受不法侵害預防指引-第四版.pdf'), ('plans03', 'plans', '工作場所母性健康保護技術指引-第三版', '工作場所母性健康保護技術指引-第三版.pdf'), ('plans04', 'plans', '異常工作負荷促發疾病預防指引-第二版-108年4月', '異常工作負荷促發疾病預防指引-第二版-108年4月.pdf')]
 
+GUIDES += [('top01', 'top', '勞工職業災害保險職業病種類表', '勞工職業災害保險職業病種類表.pdf')]
+
 CAT_PARENTS = {"farm-e": "farm", "farm-c": "farm", "farm-p": "farm", "farm-b": "farm"}
 SPECIAL_SRC = os.environ.get("STUDY_GUIDES_SRC", os.path.join(os.path.expanduser("~"), "Downloads"))
 
 def source_path(cat, fname):
     folder = next(c[2] for c in CATS if c[0] == cat)
-    return os.path.join(SPECIAL_SRC if cat.startswith("farm") or cat == "plans" else SRC, folder, fname)
+    return os.path.join(SPECIAL_SRC if cat.startswith("farm") or cat in ("plans", "top") else SRC, folder, fname)
 
 def source_credit(cat, fname):
-    return "資料來源：使用者提供之「" + fname + "」PDF。" if cat.startswith("farm") or cat == "plans" else CREDIT
+    return "資料來源：使用者提供之「" + fname + "」PDF。" if cat.startswith("farm") or cat in ("plans", "top") else CREDIT
