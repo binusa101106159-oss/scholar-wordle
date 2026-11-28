@@ -72,6 +72,41 @@
       "file": "ladou/c10-51d34ed1f1491069.json"
     },
     {
+      "id": "c11",
+      "label": "Chapter 11",
+      "title": "Eye Injuries",
+      "pages": 18,
+      "file": "ladou/c11-66681f1e9f1482d4.json"
+    },
+    {
+      "id": "c12",
+      "label": "Chapter 12",
+      "title": "Hearing Loss",
+      "pages": 20,
+      "file": "ladou/c12-668fd54ceeb19233.json"
+    },
+    {
+      "id": "c13",
+      "label": "Chapter 13",
+      "title": "Injuries Caused by Physical Hazards",
+      "pages": 39,
+      "file": "ladou/c13-a09129c97c5e0b42.json"
+    },
+    {
+      "id": "c14",
+      "label": "Chapter 14",
+      "title": "Medical Toxicology",
+      "pages": 15,
+      "file": "ladou/c14-7114fc42be60f620.json"
+    },
+    {
+      "id": "c15",
+      "label": "Chapter 15",
+      "title": "Clinical Immunology",
+      "pages": 46,
+      "file": "ladou/c15-83cf16c7cffe3293.json"
+    },
+    {
       "id": "appendix-a",
       "label": "Appendix A",
       "title": "Biostatistics & Epidemiology",

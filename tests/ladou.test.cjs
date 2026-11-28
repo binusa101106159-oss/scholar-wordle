@@ -33,7 +33,7 @@ test('the collapsible outline preserves source order and attaches each section t
  const epi=tree.find(h=>h.title==='II. EPIDEMIOLOGY');assert.ok(epi.children.some(h=>h.title==='SOURCES OF BIAS'));
 });
 test('the first five chapters retain their source pages, complete figures, tables and references',()=>{
- assert.deepEqual(index.chapters.map(c=>c.id),['c01','c02','c03','c04','c05','c06','c07','c08','c09','c10','appendix-a']);
+ assert.deepEqual(index.chapters.map(c=>c.id),['c01','c02','c03','c04','c05','c06','c07','c08','c09','c10','c11','c12','c13','c14','c15','appendix-a']);
  const pages=[6,8,10,6,11],objects=[0,2,2,0,1];
  for(let i=0;i<5;i++){
   const data=JSON.parse(fs.readFileSync(path.join(root,index.chapters[i].file),'utf8'));
@@ -76,4 +76,34 @@ test('the long knee table and split pain tables join continuations in their corr
  const c6=data('c06');assert.equal((c6.objects.find(o=>o.label==='Figure 6–10').html.match(/<img /g)||[]).length,2);
  assert.equal((data('c08').objects.find(o=>o.label==='Figure 8–2').html.match(/<img /g)||[]).length,4);
  assert.doesNotMatch(data('c09').pages[29].html,/i i i|i k f l/);
+});
+
+
+test('chapters 11–15 retain all 138 pages, original figures, full captions and complete table continuations',()=>{
+ const sizes=[18,20,39,15,46],tables=[2,1,8,5,7],figures=[2,6,7,4,8];
+ const get=n=>JSON.parse(fs.readFileSync(path.join(root,index.chapters.find(c=>c.id===`c${n}`).file),'utf8'));
+ for(let i=0;i<5;i++){
+  const d=get(i+11),html=d.pages.map(p=>p.html).join('');
+  assert.deepEqual(d.pages.map(p=>p.number),Array.from({length:sizes[i]},(_,j)=>j+1));
+  assert.equal(d.objects.filter(o=>o.kind==='table').length,tables[i]);
+  assert.equal(d.objects.filter(o=>o.kind==='figure').length,figures[i]);
+  assert.doesNotMatch(html,/Downloaded|140\.112\.|Access Provided/);
+  for(const o of d.objects){assert.ok(o.title,o.label);assert.ok(html.includes(`id="${o.id}"`));}
+  for(const im of html.matchAll(/src="([^"]+)"/g))assert.ok(fs.existsSync(path.join(root,im[1])));
+  const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length);
+ }
+ const object=(n,label)=>get(n).objects.find(o=>o.label===label);
+ assert.deepEqual(object(14,'Table 14–1').sourcePages,[1,2,3]);
+ assert.equal((object(14,'Table 14–1').html.match(/<tr>/g)||[]).length,48);
+ for(const num of [3,5,6])assert.equal(object(15,`Table 15–${num}`).sourcePages.length,3);
+ assert.match(object(15,'Table 15–5').html,/Trichosporon cutaneum<\/td>/);
+ assert.doesNotMatch(object(15,'Table 15–5').html,/<br>p<|<br>yp</);
+ assert.equal((object(15,'Figure 15–8').html.match(/<img /g)||[]).length,2);
+ assert.deepEqual(object(15,'Figure 15–8').sourcePages,[25,26,27]);
+ assert.match(object(15,'Figure 15–8').title,/antibody-dependent cell-mediated cytotoxicity/);
+ assert.match(object(14,'Table 14–4').html,/rowspan="2">Nicotinic/);
+ assert.match(object(12,'Table 12–1').html,/Normal conversation<\/td><td>50–60/);
+ assert.match(object(13,'Table 13–8').html,/Adults&gt; 18 y<\/td><td>50 mSv/);
+ assert.equal(get(14).pages[14].blank,true);assert.match(get(14).pages[13].html,/RESOURCES/);
+ assert.match(get(11).pages.at(-1).html,/Zakrzewski/);assert.match(get(15).pages.at(-1).html,/Raulf/);
 });

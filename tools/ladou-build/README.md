@@ -1,5 +1,29 @@
 # LaDou Appendix A import
 
+## Third chapter batch (chapters 11–15)
+
+`python tools/ladou-build/import_batch03.py <folder>` imports the five supplied
+PDFs (18, 20, 39, 15 and 46 pages): 138 pages, 23 tables, 27 numbered figures
+with 28 original image panels. Every source page was read and visually reviewed.
+All 4,737 valid body lines match the resulting HTML after whitespace normalization.
+The two sparse duplicate glyphs `p` / `yp` in Chapter 15 p.31 overlap the intact
+Trichosporon / Summer-type cells; only these duplicates are omitted.
+Chapter 14 p.15 is blank in the source and retains its page target and blank flag.
+
+All table regions use the original vector borders to align normal selectable
+text. This avoids false margin columns in the PDF table detector. Table 14–1
+joins pp.1–3; Tables 15–3, 15–5 and 15–6 each join three pages with their category
+cells intact. The borderless noise/exposure tables use one semantic row per
+paired entry. Original blank cells, numeric signs, superscripts, captions and
+source notes are preserved. Figure 15–8 combines both panels from pp.26–27 with
+the full caption on p.25. No images are reconstructed or fetched externally.
+
+`batch03-browser.py` exercises all 138 page targets and all 50 quick-view objects
+in Chromium, Firefox and WebKit, at 1440px and 390px: image decode, complete
+captions, word/page search, popup controls and overflow. Screenshots wait for
+image decoding and paint, not only network completion. Public-reader tests
+block Firebase deliberately and do not validate account sign-in.
+
 ## Second chapter batch (chapters 6–10)
 
 `python tools/ladou-build/import_batch02.py <folder>` imports the five supplied
