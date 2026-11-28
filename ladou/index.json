@@ -37,6 +37,41 @@
       "file": "ladou/c05-862ff051230f9d15.json"
     },
     {
+      "id": "c06",
+      "label": "Chapter 6",
+      "title": "Ergonomics & the Prevention of Occupational Injuries",
+      "pages": 41,
+      "file": "ladou/c06-33fb987ebc95ac8d.json"
+    },
+    {
+      "id": "c07",
+      "label": "Chapter 7",
+      "title": "Musculoskeletal Injuries",
+      "pages": 3,
+      "file": "ladou/c07-23cc89f1774dd1e1.json"
+    },
+    {
+      "id": "c08",
+      "label": "Chapter 8",
+      "title": "Shoulder, Elbow, & Hand Injuries",
+      "pages": 35,
+      "file": "ladou/c08-dfba1bcb0dd03faf.json"
+    },
+    {
+      "id": "c09",
+      "label": "Chapter 9",
+      "title": "Back & Lower Extremity Injuries",
+      "pages": 37,
+      "file": "ladou/c09-486a2abe1bd5ac0c.json"
+    },
+    {
+      "id": "c10",
+      "label": "Chapter 10",
+      "title": "The Management of Chronic Pain",
+      "pages": 17,
+      "file": "ladou/c10-51d34ed1f1491069.json"
+    },
+    {
       "id": "appendix-a",
       "label": "Appendix A",
       "title": "Biostatistics & Epidemiology",

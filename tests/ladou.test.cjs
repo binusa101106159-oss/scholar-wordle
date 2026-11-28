@@ -33,7 +33,7 @@ test('the collapsible outline preserves source order and attaches each section t
  const epi=tree.find(h=>h.title==='II. EPIDEMIOLOGY');assert.ok(epi.children.some(h=>h.title==='SOURCES OF BIAS'));
 });
 test('the first five chapters retain their source pages, complete figures, tables and references',()=>{
- assert.deepEqual(index.chapters.map(c=>c.id),['c01','c02','c03','c04','c05','appendix-a']);
+ assert.deepEqual(index.chapters.map(c=>c.id),['c01','c02','c03','c04','c05','c06','c07','c08','c09','c10','appendix-a']);
  const pages=[6,8,10,6,11],objects=[0,2,2,0,1];
  for(let i=0;i<5;i++){
   const data=JSON.parse(fs.readFileSync(path.join(root,index.chapters[i].file),'utf8'));
@@ -47,4 +47,33 @@ test('the first five chapters retain their source pages, complete figures, table
  assert.match(c2.pages[0].html,/c02-figure-2-1/);assert.match(c2.pages[0].html,/520/);
  assert.deepEqual(c2.objects.find(o=>o.kind==='figure').sourcePages,[1,2]);
  const c1=JSON.parse(fs.readFileSync(path.join(root,index.chapters[0].file),'utf8'));assert.equal(c1.pages[5].blank,true);
+});
+
+test('chapters 6–10 preserve all 133 pages, all 52 complete objects and original image assets',()=>{
+ const sizes=[41,3,35,37,17],tables=[7,0,1,10,2],figures=[21,0,8,0,3];
+ for(let i=0;i<5;i++){
+  const entry=index.chapters.find(c=>c.id===`c${String(i+6).padStart(2,'0')}`);
+  const data=JSON.parse(fs.readFileSync(path.join(root,entry.file),'utf8'));
+  assert.equal(data.pages.length,sizes[i]);
+  assert.equal(data.objects.filter(o=>o.kind==='table').length,tables[i]);
+  assert.equal(data.objects.filter(o=>o.kind==='figure').length,figures[i]);
+  const html=data.pages.map(p=>p.html).join('');assert.doesNotMatch(html,/140\.112\.|Downloaded|Access Provided|<!--figure/);
+  assert.deepEqual(data.pages.map(p=>p.number),Array.from({length:sizes[i]},(_,j)=>j+1));
+  const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length);
+  for(const img of html.matchAll(/src="([^"]+)"/g))assert.ok(fs.existsSync(path.join(root,img[1])),img[1]);
+  for(const object of data.objects){assert.ok(object.title);assert.ok(html.includes(`id="${object.id}"`));assert.ok(object.sourcePages.every(p=>p>=1&&p<=sizes[i]));}
+ }
+});
+
+test('the long knee table and split pain tables join continuations in their corresponding cells',()=>{
+ const data=n=>JSON.parse(fs.readFileSync(path.join(root,index.chapters.find(c=>c.id===n).file),'utf8'));
+ const knee=data('c09').objects.find(o=>o.label==='Table 9–8');
+ assert.equal((knee.html.match(/<tr>/g)||[]).length,19);assert.equal((knee.html.match(/<img /g)||[]).length,8);
+ assert.deepEqual(knee.sourcePages,[16,17,18,19,20]);assert.match(knee.html,/Thessaly test/);assert.match(knee.html,/Apprehension sign/);
+ const herbs=data('c10').objects.find(o=>o.label==='Table 10–2');
+ assert.match(herbs.html,/<td>Fish oil<\/td>[\s\S]*?Ulcerative colitis<\/td><td>3 g or less per day is considered safe\./);
+ assert.equal((herbs.html.match(/<tr>/g)||[]).length,8);
+ const c6=data('c06');assert.equal((c6.objects.find(o=>o.label==='Figure 6–10').html.match(/<img /g)||[]).length,2);
+ assert.equal((data('c08').objects.find(o=>o.label==='Figure 8–2').html.match(/<img /g)||[]).length,4);
+ assert.doesNotMatch(data('c09').pages[29].html,/i i i|i k f l/);
 });

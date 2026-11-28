@@ -16,7 +16,7 @@ def main():
                 browser=getattr(p,engine).launch()
                 for width in map(int,args.widths.split(',')):
                     page=browser.new_page(viewport={'width':width,'height':950},service_workers='block',reduced_motion='reduce');errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.route('https://www.gstatic.com/firebasejs/**',lambda r:r.abort());page.goto(base+'#ladou');page.locator('#ld-chapter-select').wait_for(state='attached')
-                    assert page.locator('#ld-chapter-select option').count()==6
+                    assert page.locator('#ld-chapter-select option').count()==len(json.loads((ROOT/'ladou/index.json').read_text('utf8'))['chapters'])
                     def choose(ch):
                         if not page.locator('#ld-side').is_visible():page.locator('#ld-menu').click()
                         page.locator('#ld-chapter-select').select_option(ch);page.locator(f'#{ch}-page-1').wait_for(state='attached')

@@ -1,5 +1,38 @@
 # LaDou Appendix A import
 
+## Second chapter batch (chapters 6–10)
+
+`python tools/ladou-build/import_batch02.py <folder>` imports the five supplied
+PDFs (41, 3, 35, 37 and 17 pages): 133 source pages, 20 native table objects,
+32 numbered figure objects and eight original equation images. All 4,122 visible
+body lines match the imported HTML after whitespace normalization. Original
+chapter front matter is consolidated into each reader header. Access/download
+banners and IP addresses are excluded. No external reconstruction was used.
+
+All 133 rendered source pages were reviewed. Captions and figure panels can span
+several source pages: e.g. Figure 6–10 has two panels and Figure 8–2 has four.
+Figure 6–18 uses the intact 895×532 source JPEG rather than its duplicated/cropped
+526px PDF tile. Empty printed pages after moving a figure retain their page
+targets and links to the complete object; they are not described as missing.
+
+Table 9–8 combines four illustrated pages into 18 content/group rows, with its
+eight original images inside the corresponding cells. Tables 10–1 and 10–2 keep
+their continued rows; the Fish oil row on pp.15–16 is joined column by column.
+One-column diagnostic tables remain indented native text. Table 6–3 retains its
+three aligned numeric lines per cell. Footnotes stay in the quick-view objects.
+Chapter 9 p.30 has 18 sparse duplicate glyph fragments superimposed on the intact
+"restore function..." sentence; only the duplicates are omitted. Typography-only
+spacing fixes include `heightwhen` → `height when` and `I n` → `In`.
+
+Long quick-view captions stay complete below the image in the scrollable body,
+so mobile controls remain visible. `batch02-browser.py` checks all 133 page
+targets and all 52 objects, image loading, long captions, word/page search and
+mobile overflow in Chromium/Firefox/WebKit. Existing Appendix and first-five
+chapter browser scripts cover regression paths. Public-reader browser tests
+block Firebase requests deliberately and do not validate authenticated sessions.
+Source PDFs, contact sheets, SHA-checked rebuild caches and audit logs remain
+private in Downloads or `.local/`; only content JSON and used artwork publish.
+
 ## First chapter batch (chapters 1–5)
 
 `python tools/ladou-build/import_chapters.py <folder>` imports the five exactly
