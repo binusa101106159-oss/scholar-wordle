@@ -33,7 +33,7 @@ test('the collapsible outline preserves source order and attaches each section t
  const epi=tree.find(h=>h.title==='II. EPIDEMIOLOGY');assert.ok(epi.children.some(h=>h.title==='SOURCES OF BIAS'));
 });
 test('the first five chapters retain their source pages, complete figures, tables and references',()=>{
- assert.deepEqual(index.chapters.map(c=>c.id),['c01','c02','c03','c04','c05','c06','c07','c08','c09','c10','c11','c12','c13','c14','c15','c16','c17','c18','c19','c20','appendix-a']);
+ assert.deepEqual(index.chapters.map(c=>c.id),['c01','c02','c03','c04','c05','c06','c07','c08','c09','c10','c11','c12','c13','c14','c15','c16','c17','c18','c19','c20','c21','c22','c23','c24','c25','appendix-a']);
  const pages=[6,8,10,6,11],objects=[0,2,2,0,1];
  for(let i=0;i<5;i++){
   const data=JSON.parse(fs.readFileSync(path.join(root,index.chapters[i].file),'utf8'));
@@ -140,4 +140,35 @@ test('chapters 16–20 preserve all 114 pages, 28 native tables and 19 complete 
  assert.doesNotMatch(object(20,'Table 20–3').html,/Measurement of carboxyhemoglobin/);
  assert.doesNotMatch(get(19).pages[29].html,/>p g p</);
  for(const [n,last]of [[16,'30789129'],[17,'29894409'],[18,'28389389'],[19,'31150272'],[20,'25458643']])assert.ok(get(n).pages.at(-1).html.includes(last));
+});
+
+
+test('chapters 21–25 preserve all 119 pages, 17 native tables, five complete figures and references',()=>{
+ const sizes=[29,12,17,20,41],tables=[6,1,3,5,2],figures=[0,0,0,4,1];
+ const get=n=>JSON.parse(fs.readFileSync(path.join(root,index.chapters.find(c=>c.id===`c${n}`).file),'utf8'));
+ for(let i=0;i<5;i++){
+  const d=get(i+21),html=d.pages.map(p=>p.html).join('');
+  assert.deepEqual(d.pages.map(p=>p.number),Array.from({length:sizes[i]},(_,j)=>j+1));
+  assert.equal(d.objects.filter(o=>o.kind==='table').length,tables[i]);
+  assert.equal(d.objects.filter(o=>o.kind==='figure').length,figures[i]);
+  assert.doesNotMatch(html,/Downloaded|140\.112\.|Access Provided/);
+  const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length);
+  for(const o of d.objects){assert.ok(o.title,o.label);assert.ok(html.includes(`id="${o.id}"`));}
+  for(const im of html.matchAll(/src="([^"]+)"/g))assert.ok(fs.existsSync(path.join(root,im[1])));
+ }
+ const object=(n,label)=>get(n).objects.find(o=>o.label===label);
+ assert.match(object(21,'Table 21–2').html,/<td>Direct<\/td><td>High<\/td><td>Yes<\/td><td>Yes<\/td><td>Carbon tetrachloride/);
+ assert.match(object(21,'Table 21–3').html,/<td>Porphyria<\/td><td>Dioxin/);
+ assert.match(object(22,'Table 22–1').html,/colspan="4">Hypothesized Causes/);
+ assert.match(object(22,'Table 22–1').html,/colspan="4">Clinical Findings/);
+ assert.match(object(22,'Table 22–1').html,/NSAIDs denotes/);
+ assert.match(object(22,'Table 22–1').html,/1843-1852/);
+ assert.doesNotMatch(object(22,'Table 22–1').html,/CKD CAUSED BY LEAD/);
+ assert.equal(get(22).pages[11].blank,true);
+ assert.match(object(24,'Table 24–2').html,/<th>% Methemoglobinemia<\/th><th>Symptoms/);
+ assert.deepEqual(object(24,'Figure 24–3').sourcePages,[2,3]);
+ assert.deepEqual(object(25,'Figure 25–1').sourcePages,[2,3]);
+ assert.equal(get(24).outline.find(h=>h.title==='1. Aniline').level,4);
+ assert.ok(get(25).outline.some(h=>h.title==='A. UV Radiation'));
+ for(const [n,page,last]of [[21,29,'23262638'],[22,11,'31384436'],[23,17,'31603861'],[24,20,'31085196'],[25,41,'30288109']])assert.ok(get(n).pages[page-1].html.includes(last));
 });

@@ -142,6 +142,41 @@
       "file": "ladou/c20-2f536a085e593c0a.json"
     },
     {
+      "id": "c21",
+      "label": "Chapter 21",
+      "title": "Liver Toxicology",
+      "pages": 29,
+      "file": "ladou/c21-d841885293c7f377.json"
+    },
+    {
+      "id": "c22",
+      "label": "Chapter 22",
+      "title": "Renal Toxicology",
+      "pages": 12,
+      "file": "ladou/c22-12ed7d0e9428e5d5.json"
+    },
+    {
+      "id": "c23",
+      "label": "Chapter 23",
+      "title": "Neurotoxicology",
+      "pages": 17,
+      "file": "ladou/c23-335ad82a1dde1968.json"
+    },
+    {
+      "id": "c24",
+      "label": "Chapter 24",
+      "title": "Occupational Hematology",
+      "pages": 20,
+      "file": "ladou/c24-a5aca267e0f678e2.json"
+    },
+    {
+      "id": "c25",
+      "label": "Chapter 25",
+      "title": "Occupational Cancer",
+      "pages": 41,
+      "file": "ladou/c25-7767bcf1d2cfa07f.json"
+    },
+    {
       "id": "appendix-a",
       "label": "Appendix A",
       "title": "Biostatistics & Epidemiology",

@@ -65,7 +65,7 @@
       renderToc();renderObjects();applySettings();linkReferences();paintSaved();
       by('ld-scroll').scrollTop=0;saved.chapter=current;persist();
       requestAnimationFrame(()=>{if(previous>1)jump(pageId(previous));});
-      observer?.disconnect();observer=new IntersectionObserver(entries=>{if(pageEditing)return;for(const e of entries)if(e.isIntersecting)by('ld-page-number').value=e.target.dataset.page;},{root:by('ld-scroll'),rootMargin:'0px 0px -75% 0px'});
+      observer?.disconnect();observer=new IntersectionObserver(entries=>{if(pageEditing||document.activeElement===by('ld-page-number'))return;for(const e of entries)if(e.isIntersecting)by('ld-page-number').value=e.target.dataset.page;},{root:by('ld-scroll'),rootMargin:'0px 0px -75% 0px'});
       by('ld-document').querySelectorAll('.ld-page').forEach(el=>observer.observe(el));status('');
     }catch(_){if(ticket===request){status('內容載入失敗，請重試。');const b=document.createElement('button');b.type='button';b.textContent='重試';b.onclick=()=>loadChapter(id,restore);by('ld-status').append(b);}}
   }
@@ -99,6 +99,8 @@
     const tocTools=document.createElement('div');tocTools.className='ld-toc-tools';tocTools.innerHTML='<button type="button" data-ld-expand="true">全部展開</button><button type="button" data-ld-expand="false">全部收合</button>';by('ld-contents').before(tocTools);
     tocTools.addEventListener('click',e=>{const button=e.target.closest('[data-ld-expand]');if(!button)return;by('ld-toc-search').value='';saved.expanded=button.dataset.ldExpand==='true'?data.outline.map(h=>h.id):[];persist();renderToc();});
     for(const k of ['font','line','width','face']){const el=by('ld-'+k);el.value=saved[k]||({font:18,line:1.85,width:'reading',face:'sans'})[k];el.onchange=()=>{saved[k]=el.value;applySettings();persist();};}
+    by('ld-page-number').onfocus=()=>{pageEditing=true;};
+    by('ld-page-number').onblur=()=>{pageEditing=false;};
     by('ld-page-number').oninput=()=>{pageEditing=true;};
     by('ld-page-form').onsubmit=e=>{e.preventDefault();const number=Math.max(1,Math.min(data.pages.length,Number(by('ld-page-number').value)||1));pageEditing=false;by('ld-page-number').value=number;jump(pageId(number));};
     by('ld-search-form').onsubmit=e=>{e.preventDefault();search();};by('ld-find').addEventListener('input',()=>{if(!by('ld-find').value)search();});by('ld-find-prev').onclick=()=>moveFind(-1);by('ld-find-next').onclick=()=>moveFind(1);

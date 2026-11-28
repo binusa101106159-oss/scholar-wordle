@@ -1,5 +1,23 @@
 # LaDou Appendix A import
 
+## Fifth chapter batch (chapters 21–25)
+
+`import_batch05.py <folder>` imports all 119 source pages: 17 native-text tables
+and five original figures. All 4,412 valid body lines match the imported text;
+no source body fragments were discarded. All source pages, captions and references
+were read and visually reviewed. Chapter 22 p.12 is genuinely blank and retains
+its page target. Figure 24–3 and Figure 25–1 join captions and artwork across pp.2–3.
+Tables 21–2 and 21–3 use semantic nested-category rows to preserve value alignment.
+Table 22–1 keeps grouped headings, its NSAID footnote and attribution inside the
+quick-view object. The smaller subsection headings in Chapters 24 and 25 are
+recognized by their verified source fonts. No images were externally reconstructed.
+`batch05-browser.py` exercises all 119 page targets and 22 objects in Chromium,
+Firefox and WebKit at desktop/mobile widths, including image decoding, word/page
+search and overflow. Page-number focus locks out scroll-position updates before
+typing begins, including WebKit; blur restores normal position tracking.
+The existing Appendix A desktop/mobile reader regression also passes. Firebase
+is blocked for these public-reader tests.
+
 ## Fourth chapter batch (chapters 16–20)
 
 `import_batch04.py <folder>` imports all 114 source pages: 28 normal-text tables,
