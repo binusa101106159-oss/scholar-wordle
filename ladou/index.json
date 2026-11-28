@@ -177,6 +177,41 @@
       "file": "ladou/c25-7767bcf1d2cfa07f.json"
     },
     {
+      "id": "c26",
+      "label": "Chapter 26",
+      "title": "Genetic Toxicology",
+      "pages": 15,
+      "file": "ladou/c26-548c01069952fc33.json"
+    },
+    {
+      "id": "c27",
+      "label": "Chapter 27",
+      "title": "Female Reproductive Toxicology",
+      "pages": 16,
+      "file": "ladou/c27-0cd3ce62c65089a5.json"
+    },
+    {
+      "id": "c28",
+      "label": "Chapter 28",
+      "title": "Male Reproductive Toxicology",
+      "pages": 18,
+      "file": "ladou/c28-e4e626b5f672eacd.json"
+    },
+    {
+      "id": "c29",
+      "label": "Chapter 29",
+      "title": "Metals",
+      "pages": 31,
+      "file": "ladou/c29-700fc0ea98cef37f.json"
+    },
+    {
+      "id": "c30",
+      "label": "Chapter 30",
+      "title": "Chemicals",
+      "pages": 56,
+      "file": "ladou/c30-70fd6ffb28dcb49a.json"
+    },
+    {
       "id": "appendix-a",
       "label": "Appendix A",
       "title": "Biostatistics & Epidemiology",

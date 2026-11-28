@@ -170,3 +170,32 @@ blocked in this isolated public-reader test; this does not validate owner login.
 
 Stage intended public files before `python tools/build-public.py`: that publisher
 copies tracked files only. Never stage `.local/`, the source PDFs or screenshots.
+
+
+## Chapters 26–30 (batch 06)
+
+`python tools/ladou-build/import_batch06.py <source-folder>` imports the five
+reviewed source PDFs: 15, 16, 18, 31 and 56 pages (136 pages total). The source
+PDFs and SHA-checked extraction caches stay private.
+
+- Retain all 19 numbered tables and 12 original image assets: six numbered
+  figures and six unnumbered chemical structure/reaction diagrams.
+- Join the cross-page captions for Figures 26–1 and 27–2, Tables 27–3 and 28–4.
+- Table 27–2 joins its p.6 occupation continuation to the correct p.5 cell.
+- Table 28–2 retains all 78 entries and its p.7–8 source note and URL.
+- Table 28–3 reconstructs three independent row-spanning column headings and
+  the three-column sample-size heading; the PDF detector merges those headings.
+- Preserve blank outcome cells and each X in Table 28–4. Table 29–8 aligns every
+  welding hazard/effect pair in its own row rather than independently wrapped lists.
+- Attach all table abbreviation notes and source footnotes to their quick views.
+- Normalize only the broken spacing of verified Chapter 30 small-cap headings.
+  Omit one geometrically duplicated, unpunctuated printer overlay on p.29, retaining
+  the complete punctuated source line. No clinical wording or values are corrected.
+- Source audit: all 4,998 valid body lines matched; zero unmatched lines and zero
+  discarded clipped fragments. Every original body image is assigned exactly once.
+
+`python tools/ladou-build/batch06-browser.py` checks the real app in Chromium,
+Firefox and WebKit at desktop/mobile widths: all 136 page targets, all 31 object
+popups, original image decoding, overflow, chapter word search and page jumps.
+The short original reaction image on p.30 is checked at its actual dimensions,
+without adding artificial empty space. `--url <site>` repeats on the deployment.
