@@ -107,6 +107,41 @@
       "file": "ladou/c15-83cf16c7cffe3293.json"
     },
     {
+      "id": "c16",
+      "label": "Chapter 16",
+      "title": "Occupational Infections",
+      "pages": 19,
+      "file": "ladou/c16-76a3f7123d78b6dd.json"
+    },
+    {
+      "id": "c17",
+      "label": "Chapter 17",
+      "title": "Occupational Skin Disorders",
+      "pages": 28,
+      "file": "ladou/c17-4aeb7aa8caa8e6bf.json"
+    },
+    {
+      "id": "c18",
+      "label": "Chapter 18",
+      "title": "Upper Respiratory Tract Disorders",
+      "pages": 22,
+      "file": "ladou/c18-2cbe9e757008fe67.json"
+    },
+    {
+      "id": "c19",
+      "label": "Chapter 19",
+      "title": "Occupational Lung Diseases",
+      "pages": 31,
+      "file": "ladou/c19-bbe605efb3c05503.json"
+    },
+    {
+      "id": "c20",
+      "label": "Chapter 20",
+      "title": "Cardiovascular Toxicology",
+      "pages": 14,
+      "file": "ladou/c20-2f536a085e593c0a.json"
+    },
+    {
       "id": "appendix-a",
       "label": "Appendix A",
       "title": "Biostatistics & Epidemiology",

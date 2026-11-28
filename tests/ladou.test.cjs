@@ -33,7 +33,7 @@ test('the collapsible outline preserves source order and attaches each section t
  const epi=tree.find(h=>h.title==='II. EPIDEMIOLOGY');assert.ok(epi.children.some(h=>h.title==='SOURCES OF BIAS'));
 });
 test('the first five chapters retain their source pages, complete figures, tables and references',()=>{
- assert.deepEqual(index.chapters.map(c=>c.id),['c01','c02','c03','c04','c05','c06','c07','c08','c09','c10','c11','c12','c13','c14','c15','appendix-a']);
+ assert.deepEqual(index.chapters.map(c=>c.id),['c01','c02','c03','c04','c05','c06','c07','c08','c09','c10','c11','c12','c13','c14','c15','c16','c17','c18','c19','c20','appendix-a']);
  const pages=[6,8,10,6,11],objects=[0,2,2,0,1];
  for(let i=0;i<5;i++){
   const data=JSON.parse(fs.readFileSync(path.join(root,index.chapters[i].file),'utf8'));
@@ -106,4 +106,38 @@ test('chapters 11–15 retain all 138 pages, original figures, full captions and
  assert.match(object(13,'Table 13–8').html,/Adults&gt; 18 y<\/td><td>50 mSv/);
  assert.equal(get(14).pages[14].blank,true);assert.match(get(14).pages[13].html,/RESOURCES/);
  assert.match(get(11).pages.at(-1).html,/Zakrzewski/);assert.match(get(15).pages.at(-1).html,/Raulf/);
+});
+
+
+test('chapters 16–20 preserve all 114 pages, 28 native tables and 19 complete figures',()=>{
+ const sizes=[19,28,22,31,14],tables=[3,10,6,6,3],figures=[0,3,6,7,3];
+ const get=n=>JSON.parse(fs.readFileSync(path.join(root,index.chapters.find(c=>c.id===`c${n}`).file),'utf8'));
+ for(let i=0;i<5;i++){
+  const d=get(i+16),html=d.pages.map(p=>p.html).join('');
+  assert.deepEqual(d.pages.map(p=>p.number),Array.from({length:sizes[i]},(_,j)=>j+1));
+  assert.equal(d.objects.filter(o=>o.kind==='table').length,tables[i]);
+  assert.equal(d.objects.filter(o=>o.kind==='figure').length,figures[i]);
+  assert.doesNotMatch(html,/Downloaded|140\.112\.|Access Provided/);
+  const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length);
+  for(const o of d.objects){assert.ok(o.title,o.label);assert.ok(html.includes(`id="${o.id}"`));}
+  for(const im of html.matchAll(/src="([^"]+)"/g))assert.ok(fs.existsSync(path.join(root,im[1])));
+ }
+ const object=(n,label)=>get(n).objects.find(o=>o.label===label);
+ assert.deepEqual(object(16,'Table 16–1').sourcePages,[1,2]);
+ assert.equal((object(16,'Table 16–1').html.match(/<tr>/g)||[]).length,20);
+ assert.match(object(16,'Table 16–1').html,/Waste/);
+ assert.deepEqual(object(17,'Table 17–2').sourcePages,[4,5]);
+ assert.equal((object(17,'Table 17–2').html.match(/<tr>/g)||[]).length,25);
+ assert.deepEqual(object(18,'Figure 18–1').sourcePages,[1,2]);
+ assert.deepEqual(object(19,'Figure 19–4').sourcePages,[11,12]);
+ assert.match(object(19,'Table 19–4').html,/Moldy hay<\/td><td>Farmer’s lung/);
+ assert.match(object(19,'Table 19–4').html,/rowspan="2">Moldy redwood dust/);
+ assert.match(object(16,'Table 16–3').html,/rowspan="3">Susceptible/);
+ assert.match(object(20,'Table 20–2').html,/224<\/td><td>50 ppm for 2 h<\/td><td>1% → 2.7%<\/td><td>188/);
+ assert.match(object(20,'Table 20–3').html,/rowspan="2">Source of Carbon Monoxide/);
+ assert.match(object(20,'Table 20–3').html,/colspan="2">Carboxyhemoglobin Concentration/);
+ assert.match(object(20,'Table 20–3').html,/Endogenous levels may be higher/);
+ assert.doesNotMatch(object(20,'Table 20–3').html,/Measurement of carboxyhemoglobin/);
+ assert.doesNotMatch(get(19).pages[29].html,/>p g p</);
+ for(const [n,last]of [[16,'30789129'],[17,'29894409'],[18,'28389389'],[19,'31150272'],[20,'25458643']])assert.ok(get(n).pages.at(-1).html.includes(last));
 });

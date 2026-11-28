@@ -1,5 +1,20 @@
 # LaDou Appendix A import
 
+## Fourth chapter batch (chapters 16–20)
+
+`import_batch04.py <folder>` imports all 114 source pages: 28 normal-text tables,
+19 numbered figures and 19 original image panels. All 3,872 valid body lines
+match the rendered text after whitespace normalization. Only three sparse
+superimposed glyphs on Chapter 19 p.30 are omitted; the intact line is retained.
+All 114 original pages were read and visually reviewed, including references.
+Table 16–1 joins pp.1–2. Test/result pairs in Table 16–3 and the paired
+antigen/exposure/syndrome entries in Table 19–4 use semantic rows and shared
+cells. Table 20–3 retains its two-level header and footnote without swallowing
+subsequent body paragraphs. Source lists stay lists; no clinical data is inferred.
+`batch04-browser.py` checks every page, all 47 objects, original image decoding,
+word/page search and overflow in Chromium/Firefox/WebKit at 1440px and 390px.
+Public-reader checks deliberately block Firebase; account sign-in is not tested.
+
 ## Third chapter batch (chapters 11–15)
 
 `python tools/ladou-build/import_batch03.py <folder>` imports the five supplied
